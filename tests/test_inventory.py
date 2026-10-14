@@ -8,13 +8,6 @@ from custom_components.pantry import db
 from custom_components.pantry import inventory as inv
 
 
-@pytest.fixture
-def conn():
-    c = db.connect(":memory:")
-    db.migrate(c)
-    return c
-
-
 def cat(conn, name):
     return conn.execute("SELECT id FROM category WHERE name = ?", (name,)).fetchone()[
         "id"
@@ -194,8 +187,12 @@ def test_book_in_rejects_bad_date_and_unknown_location(conn):
 def test_unit_base_rules(conn):
     g, kg = unit(conn, "g"), unit(conn, "kg")
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
-        inv.save(conn, "unit", {"name": "x", "symbol": "x", "base_unit_id": kg, "factor": 1})
+        inv.save(
+            conn, "unit", {"name": "x", "symbol": "x", "base_unit_id": kg, "factor": 1}
+        )
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
-        inv.save(conn, "unit", {"id": g, "base_unit_id": unit(conn, "ml")})  # g is a base already
+        inv.save(
+            conn, "unit", {"id": g, "base_unit_id": unit(conn, "ml")}
+        )  # g is a base already
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
         inv.save(conn, "unit", {"name": "y", "symbol": "y"})  # factor required

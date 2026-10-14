@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ha-dev": {
+      "type": "http",
+      "url": "http://localhost:8123/api/mcp",
+      "headers": {
+        "Authorization": "Bearer ${HA_DEV_TOKEN:-}"
+      }
+    },
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}

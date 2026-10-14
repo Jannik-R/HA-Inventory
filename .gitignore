@@ -1,0 +1,22 @@
+# Dev Home Assistant runtime data (never commit)
+dev/config/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.coverage
+
+# Frontend
+node_modules/
+
+# Local data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Claude Code local settings
+.claude/settings.local.json

@@ -56,23 +56,32 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         raise ValueError(f"unknown columns for {table}: {sorted(unknown)}")
     if isinstance(data.get("off_tags"), list):
         data["off_tags"] = json.dumps(data["off_tags"])
+    if "name" in data:
+        if not isinstance(data["name"], str) or not data["name"].strip():
+            raise InventoryError("invalid_value")
+        data["name"] = data["name"].strip()
     if table == "unit":
         _check_unit(conn, row_id, data)
     if table == "category" and row_id is not None:
         _check_parent(conn, row_id, data.get("parent_id"))
     if table == "product":
         data["updated_at"] = _now()
+    if row_id is None and "sort" in cols and "sort" not in data:  # new rows go last
+        data["sort"] = conn.execute(f"SELECT coalesce(max(sort), 0) + 1 FROM {table}").fetchone()[0]
     names = list(data)
-    if row_id is None:
+    try:
+        if row_id is None:
+            cur = conn.execute(
+                f"INSERT INTO {table} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})",
+                list(data.values()),
+            )
+            return cur.lastrowid
         cur = conn.execute(
-            f"INSERT INTO {table} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})",
-            list(data.values()),
+            f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
+            [*data.values(), row_id],
         )
-        return cur.lastrowid
-    cur = conn.execute(
-        f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
-        [*data.values(), row_id],
-    )
+    except sqlite3.IntegrityError as err:
+        raise InventoryError("duplicate" if "UNIQUE" in str(err) else "invalid_value") from err
     if not cur.rowcount:
         raise InventoryError("not_found")
     return row_id
@@ -114,6 +123,20 @@ def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
         raise InventoryError("in_use") from err
     if not cur.rowcount:
         raise InventoryError("not_found")
+
+
+def master_data(conn: sqlite3.Connection) -> dict:
+    """Units, locations and categories (with effective values) for the settings view."""
+    cats, dflt = _categories(conn), defaults(conn)
+    return {
+        "units": list_rows(conn, "unit"),
+        "locations": list_rows(conn, "location"),
+        "categories": [
+            {**c, "off_tags": json.loads(c["off_tags"]), "effective": _resolve(cats, None, c["id"], dflt)}
+            for c in list_rows(conn, "category")
+        ],
+        "defaults": dflt,
+    }
 
 
 def list_rows(conn: sqlite3.Connection, table: str) -> list[dict]:

@@ -10,6 +10,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
+from . import websocket
 from .const import DOMAIN, PANEL_URL
 from .db import Database
 
@@ -19,10 +20,11 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Serve the panel bundle. Static routes cannot be removed, so register once per HA start."""
+    """Serve the panel bundle and register websocket commands (both global, once per HA start)."""
     await hass.http.async_register_static_paths(
         [StaticPathConfig(PANEL_URL, str(Path(__file__).parent / "www"), False)]
     )
+    websocket.async_register(hass)
     return True
 
 

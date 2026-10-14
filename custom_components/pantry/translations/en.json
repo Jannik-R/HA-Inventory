@@ -9,5 +9,43 @@
     "abort": {
       "single_instance_allowed": "Already configured. Only a single configuration possible."
     }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "The pantry integration is not loaded."
+    },
+    "not_found": {
+      "message": "The entry no longer exists."
+    },
+    "in_use": {
+      "message": "The entry is still in use and cannot be deleted."
+    },
+    "duplicate": {
+      "message": "An entry with this name already exists."
+    },
+    "invalid_value": {
+      "message": "Invalid value."
+    },
+    "invalid_unit": {
+      "message": "Invalid unit: the factor must be greater than 0 and a base unit cannot have a base unit itself."
+    },
+    "invalid_parent": {
+      "message": "A category cannot be moved into itself or one of its subcategories."
+    },
+    "invalid_date": {
+      "message": "Invalid date."
+    },
+    "location_required": {
+      "message": "Please choose a storage location."
+    },
+    "not_enough_stock": {
+      "message": "Not enough stock (available: {available})."
+    },
+    "invalid_ean": {
+      "message": "Invalid barcode (8 to 14 digits)."
+    },
+    "off_unavailable": {
+      "message": "Open Food Facts is not reachable. Please try again later."
+    }
   }
 }

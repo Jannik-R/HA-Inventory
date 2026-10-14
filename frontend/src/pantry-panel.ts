@@ -1,13 +1,11 @@
 import { LitElement, css, html, nothing, svg, type PropertyValues } from "lit";
 import { mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
+import type { Hass } from "./api";
+import "./settings-view";
 
 const TABS = ["stock", "in", "out", "expiry", "shopping", "settings"] as const;
 type Tab = (typeof TABS)[number];
-
-interface HassLike {
-  language: string;
-}
 
 export class PantryPanel extends LitElement {
   static properties = {
@@ -17,7 +15,7 @@ export class PantryPanel extends LitElement {
     panel: { attribute: false },
   };
 
-  declare hass?: HassLike;
+  declare hass?: Hass;
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
   declare panel?: unknown;
@@ -33,11 +31,16 @@ export class PantryPanel extends LitElement {
 
   private get tab(): Tab {
     const seg = (this.route?.path ?? "").split("/").filter(Boolean)[0];
+    if (seg === "settings" && !this.hass?.user?.is_admin) return "stock";
     return (TABS as readonly string[]).includes(seg) ? (seg as Tab) : "stock";
   }
 
-  private select(tab: Tab) {
-    history.pushState(null, "", `${this.route?.prefix ?? ""}/${tab}`);
+  private get sub(): string | undefined {
+    return (this.route?.path ?? "").split("/").filter(Boolean)[1];
+  }
+
+  private select(path: string) {
+    history.pushState(null, "", `${this.route?.prefix ?? ""}/${path}`);
     window.dispatchEvent(new CustomEvent("location-changed"));
   }
 
@@ -61,7 +64,7 @@ export class PantryPanel extends LitElement {
         <h1>${t("panel.title")}</h1>
       </header>
       <div role="tablist">
-        ${TABS.map(
+        ${TABS.filter((tab) => tab !== "settings" || this.hass?.user?.is_admin).map(
           (tab) =>
             html`<button
               role="tab"
@@ -72,7 +75,13 @@ export class PantryPanel extends LitElement {
             </button>`,
         )}
       </div>
-      <main role="tabpanel"><p>${t("common.not_ready")}</p></main>
+      <main role="tabpanel" @pantry-navigate=${(e: CustomEvent<string>) => this.select(e.detail)}>
+        ${
+          active === "settings"
+            ? html`<pantry-settings .hass=${this.hass} .section=${this.sub}></pantry-settings>`
+            : html`<p>${t("common.not_ready")}</p>`
+        }
+      </main>
     `;
   }
 

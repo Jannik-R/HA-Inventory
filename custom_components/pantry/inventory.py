@@ -182,6 +182,85 @@ def effective(
     return _resolve(_categories(conn), product, category_id, defaults(conn))
 
 
+# --- products and Open Food Facts ------------------------------------------------
+
+
+def find_ean(conn: sqlite3.Connection, ean: str) -> dict | None:
+    row = conn.execute("SELECT * FROM product WHERE ean = ?", (ean,)).fetchone()
+    return dict(row) if row else None
+
+
+def search_products(conn: sqlite3.Connection, query: str, limit: int = 20) -> list[dict]:
+    """Local products whose name, brand or EAN contains query (Unicode case-insensitive)."""
+    q = query.strip().casefold()
+    if not q:
+        return []
+    # shortcut: filters in Python (SQLite LIKE folds ASCII only, "müsli" != "Müsli"); use FTS5 if the catalog gets large.
+    rows = conn.execute("SELECT * FROM product ORDER BY name")
+    hits = (r for r in rows if any(q in (r[k] or "").casefold() for k in ("name", "brand", "ean")))
+    return [dict(r) for _, r in zip(range(limit), hits)]
+
+
+def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
+    """Deepest category whose off_tags meet the product's OFF tags; tie: more specific tag."""
+    pos = {t: i for i, t in enumerate(tags)}
+    cats = _categories(conn)
+    found = [
+        ((len(_chain(cats, cid)), max(hits)), cid)
+        for cid, row in cats.items()
+        if (hits := [pos[t] for t in json.loads(row["off_tags"]) if t in pos])
+    ]
+    return max(found)[1] if found else None
+
+
+def product_draft(conn: sqlite3.Connection, off: dict) -> dict:
+    """Normalized OFF data (see off.normalize) -> unsaved product with suggested category."""
+    amount = unit_id = None
+    if off["quantity"]:
+        row = conn.execute(
+            "SELECT id FROM unit WHERE lower(symbol) = ? OR lower(name) = ?",
+            (off["quantity"][1],) * 2,
+        ).fetchone()
+        if row:
+            amount, unit_id = off["quantity"][0], row["id"]
+    return {
+        "ean": off["ean"],
+        "name": off["name"],
+        "brand": off["brand"],
+        "category_id": suggest_category(conn, off["off_tags"]),
+        "content_amount": amount,
+        "content_unit_id": unit_id,
+        "image_url": off["image_url"],
+        "off_json": off["off_json"],
+    }
+
+
+def add_product(conn: sqlite3.Connection, data: dict) -> int:
+    """Save a new product. If its OFF tags matched no category, teach the chosen category
+    the most specific tag so the next similar product is assigned automatically."""
+    try:
+        tags = json.loads(data.get("off_json") or "{}").get("categories_tags")
+    except (ValueError, AttributeError):
+        tags = None
+    learn = (
+        isinstance(tags, list)
+        and bool(tags)
+        and data.get("category_id") is not None
+        and suggest_category(conn, tags) is None
+    )
+    product_id = save(conn, "product", data)
+    if learn:
+        row = conn.execute(
+            "SELECT off_tags FROM category WHERE id = ?", (data["category_id"],)
+        ).fetchone()
+        save(
+            conn,
+            "category",
+            {"id": data["category_id"], "off_tags": [*json.loads(row[0]), tags[-1]]},
+        )
+    return product_id
+
+
 # --- bookings ------------------------------------------------------------------
 
 

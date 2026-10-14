@@ -45,7 +45,7 @@ _DE_CATEGORIES = [
         {"expiry_type": "use_by", "warn_days": 1, "location": "Kühlschrank"},
         [
             ("Fleisch", ["en:meats"]),
-            ("Aufschnitt", ["en:cold-cuts", "en:sausages"]),
+            ("Aufschnitt", ["en:sausages", "en:hams"]),
             ("Fisch", ["en:fishes"]),
         ],
     ),
@@ -56,19 +56,19 @@ _DE_CATEGORIES = [
         [
             ("Nudeln", ["en:pastas"]),
             ("Reis", ["en:rices"]),
-            ("Couscous", ["en:couscous"]),
+            ("Couscous", ["en:durum-wheat-semolinas-for-couscous"]),
             ("Haferflocken", ["en:rolled-oats"]),
         ],
     ),
     (
         "Backen",
-        ["en:baking-aids"],
+        ["en:pastry-helpers"],
         {"unit": "kg"},
         [
             ("Mehl", ["en:flours"]),
             ("Zucker", ["en:sugars"]),
             ("Backmischungen", ["en:baking-mixes"]),
-            ("Hefe", ["en:yeasts"]),
+            ("Hefe", ["en:yeast"]),
         ],
     ),
     (
@@ -87,11 +87,11 @@ _DE_CATEGORIES = [
         ["en:condiments"],
         {},
         [
-            ("Öl", ["en:oils"]),
+            ("Öl", ["en:vegetable-oils"]),
             ("Essig", ["en:vinegars"]),
             ("Saucen", ["en:sauces"]),
             ("Gewürze", ["en:spices"]),
-            ("Brühe", ["en:broths", "en:bouillons"]),
+            ("Brühe", ["en:broths"]),
         ],
     ),
     (
@@ -99,10 +99,10 @@ _DE_CATEGORIES = [
         ["en:breakfasts", "en:spreads"],
         {},
         [
-            ("Müsli", ["en:muesli"]),
+            ("Müsli", ["en:mueslis"]),
             ("Marmelade", ["en:jams"]),
             ("Honig", ["en:honeys"]),
-            ("Nussaufstrich", ["en:nut-spreads"]),
+            ("Nussaufstrich", ["en:hazelnut-spreads", "en:nut-butters"]),
         ],
     ),
     (

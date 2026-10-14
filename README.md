@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 1: database, seed data and inventory logic; the panel is still empty). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 2: database, inventory logic and Open Food Facts product lookup; the panel is still empty). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 
@@ -52,6 +52,7 @@ docker compose -f dev/docker-compose.yml run --rm test
 
 - `.claude/skills/ha-dev`: commands for dev HA, logs, tests, build.
 - `.claude/skills/ha-integration-rules`: condensed HA integration rules used in this repo.
+- `.claude/skills/off-api`: Open Food Facts endpoints, limits and the seed category tag check.
 - `.mcp.json`: `context7` (library docs) and `ha-dev` (MCP access to the dev HA).
   For `ha-dev`: in the dev HA add the integration *Model Context Protocol Server*,
   create a long-lived access token (profile → security) and set it as environment

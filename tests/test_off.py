@@ -1,0 +1,164 @@
+"""Open Food Facts parsing, category suggestion and lookup (HTTP mocked)."""
+
+import json
+
+import pytest
+from homeassistant.core import HomeAssistant
+
+from custom_components.pantry import inventory as inv
+from custom_components.pantry import off
+from custom_components.pantry.db import Database
+
+from .test_inventory import cat, product
+
+SPAGHETTI = {
+    "code": "8076800195057",
+    "brands": "Barilla",
+    "categories_tags": [
+        "en:plant-based-foods-and-beverages",
+        "en:cereals-and-potatoes",
+        "en:pastas",
+        "en:spaghetti",
+    ],
+    "image_front_small_url": "https://images.example/spaghetti.jpg",
+    "product_name": "Spaghetti Nº5",
+    "product_name_de": "Spaghetti No. 5",
+    "product_quantity": 500,
+    "product_quantity_unit": "g",
+    "quantity": "500 g",
+}
+
+
+@pytest.mark.parametrize(
+    ("amount", "unit", "text", "expected"),
+    [
+        (500, "g", "500 g", (500, "g")),
+        ("1.5", "L", None, (1.5, "l")),
+        (None, None, "6 x 1,5 l", (9, "l")),
+        (None, None, "33 cl", (330, "ml")),
+        (None, None, "250mg", (0.25, "g")),
+        (0, "g", "4 Stück", None),
+        (None, None, None, None),
+    ],
+)
+def test_parse_quantity(amount, unit, text, expected):
+    assert off.parse_quantity(amount, unit, text) == expected
+
+
+def test_normalize_prefers_language_name():
+    n = off.normalize({**SPAGHETTI, "brands": "Barilla, Barilla G. e R."}, "de")
+    assert (n["name"], n["brand"], n["quantity"]) == (
+        "Spaghetti No. 5",
+        "Barilla",
+        (500, "g"),
+    )
+    assert off.normalize({"code": "1", "product_name": " X "}, "de")["name"] == "X"
+
+
+def test_suggest_category(conn):
+    assert inv.suggest_category(conn, SPAGHETTI["categories_tags"]) == cat(
+        conn, "Nudeln"
+    )
+    assert inv.suggest_category(conn, ["en:beverages", "en:colas"]) == cat(
+        conn, "Getränke"
+    )
+    # Same depth: the more specific (later) OFF tag wins.
+    tags = ["en:meals", "en:durum-wheat-semolinas-for-couscous"]
+    assert inv.suggest_category(conn, tags) == cat(conn, "Couscous")
+    assert inv.suggest_category(conn, ["en:unknown"]) is None
+
+
+def test_product_draft(conn):
+    draft = inv.product_draft(conn, off.normalize(SPAGHETTI, "de"))
+    g = conn.execute("SELECT id FROM unit WHERE symbol = 'g'").fetchone()["id"]
+    assert draft["category_id"] == cat(conn, "Nudeln")
+    assert (draft["content_amount"], draft["content_unit_id"]) == (500, g)
+    assert inv.find_ean(conn, SPAGHETTI["code"]) is None  # draft is not saved
+
+
+def test_add_product_learns_tag(conn):
+    raw = {"categories_tags": ["en:foods", "nl:kimchi"]}
+    data = {
+        "name": "Kimchi",
+        "category_id": cat(conn, "Gemüse"),
+        "off_json": json.dumps(raw),
+    }
+    inv.add_product(conn, data)
+    assert inv.suggest_category(conn, raw["categories_tags"]) == cat(conn, "Gemüse")
+    # A matching product does not add tags.
+    before = conn.execute(
+        "SELECT off_tags FROM category WHERE name = 'Nudeln'"
+    ).fetchone()[0]
+    inv.add_product(
+        conn,
+        {
+            "name": "S",
+            "category_id": cat(conn, "Nudeln"),
+            "off_json": json.dumps(SPAGHETTI),
+        },
+    )
+    assert (
+        conn.execute("SELECT off_tags FROM category WHERE name = 'Nudeln'").fetchone()[
+            0
+        ]
+        == before
+    )
+
+
+def test_search_products(conn):
+    product(conn, "Spaghetti", brand="Barilla", ean="123")
+    product(conn, "100% Saft", category="Saft")
+    assert [p["name"] for p in inv.search_products(conn, "bari")] == ["Spaghetti"]
+    assert [p["name"] for p in inv.search_products(conn, "%")] == ["100% Saft"]
+    assert inv.search_products(conn, "_") == []
+    assert inv.search_products(conn, " ") == []
+    product(conn, "Früchte-Müsli", category="Müsli")
+    assert [p["name"] for p in inv.search_products(conn, "MÜSLI")] == ["Früchte-Müsli"]
+
+
+def test_add_product_without_learnable_data(conn):
+    inv.add_product(
+        conn, {"name": "A", "category_id": cat(conn, "Obst"), "off_json": "x"}
+    )
+    inv.add_product(
+        conn, {"name": "B", "category_id": cat(conn, "Obst"), "off_json": "[]"}
+    )
+    assert inv.search_products(conn, "a")[0]["name"] == "A"
+
+
+async def test_async_lookup(hass: HomeAssistant, aioclient_mock, tmp_path) -> None:
+    hass.config.language = "de"
+    database = Database(hass, str(tmp_path / "pantry.db"))
+    await database.async_open()
+    url = f"{off.BASE}/api/v2/product/"
+    aioclient_mock.get(url + "8076800195057", json={"status": 1, "product": SPAGHETTI})
+    aioclient_mock.get(url + "40400000", status=404, json={"status": 0})
+    aioclient_mock.get(url + "50000000", status=500)
+
+    draft = await off.async_lookup(hass, database, "8076800195057")
+    assert draft["name"] == "Spaghetti No. 5" and "id" not in draft
+    assert await off.async_lookup(hass, database, "40400000") is None
+    with pytest.raises(inv.InventoryError, match="off_unavailable"):
+        await off.async_lookup(hass, database, "50000000")
+    for bad in ("123", "../../x", "12345678?a=b"):
+        with pytest.raises(inv.InventoryError, match="invalid_ean"):
+            await off.async_lookup(hass, database, bad)
+
+    await database.run(inv.add_product, draft)
+    calls = aioclient_mock.call_count
+    assert (await off.async_lookup(hass, database, "8076800195057"))["id"]
+    assert aioclient_mock.call_count == calls  # local hit, no request
+    await database.async_close()
+
+
+async def test_async_search(hass: HomeAssistant, aioclient_mock) -> None:
+    products = [
+        {"code": "1", "product_name": "A"},
+        {"code": "2"},
+        {"product_name": "C"},
+    ]
+    aioclient_mock.get(f"{off.BASE}/cgi/search.pl", json={"products": products})
+    assert await off.async_search(hass, "  ") == []
+    assert aioclient_mock.call_count == 0
+    hits = await off.async_search(hass, "a")
+    assert [h["ean"] for h in hits] == ["1"]

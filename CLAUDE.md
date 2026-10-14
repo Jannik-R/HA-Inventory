@@ -9,7 +9,8 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 - **English** for code, comments, commits, docs. **German** only in UI strings (translation files) and in chat with the user.
 - **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.
 - **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change.
-- Do not commit unless asked. `main` is protected (ruleset "Protect main"): changes only via PR with green CI (hassfest, hacs, tests, frontend); work on a feature branch; short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
+- **Branches**: every phase, feature or fix gets its own branch from current `main` (`phase-<n>-<topic>`, `feature/<topic>`, `fix/<topic>`) and ends with a PR to `main`. `main` is protected (ruleset "Protect main"): merge only via PR with green CI (hassfest, hacs, tests, frontend). Delete the branch after merge.
+- Do not commit unless asked. Short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
 - Never commit dev/runtime data (`dev/config/`, `*.db`, `.env`). Check `.gitignore` when adding anything that writes files.
 
 ## Token economy (speed and cost)
@@ -24,6 +25,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 - Ask before: large web research, browser automation sessions, long-running jobs, multi-agent workflows.
 - Keep answers short; no restating of plans or code the user has already seen.
 - Use the `ha-dev` skill for HA/test/build commands and filtered logs.
+- Between phases (after the phase PR is merged): if the chat context is large, ask the user to run `/compact` (or start a new session) before the next phase. Everything needed must be in the repo (PLAN, CLAUDE.md, README), not only in the chat.
 - Examples of cheaper setups to suggest: HA's MCP Server integration on the dev HA (query states/services directly instead of browser clicks), a `scripts/` helper for repeated multi-step commands.
 
 ## Layout
@@ -49,7 +51,7 @@ docs/PLAN.md                architecture and roadmap
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
-- Schema change = new migration step in `db.py`. Never edit an existing step.
+- Schema change = new migration step in `db.py`. Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`).
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 

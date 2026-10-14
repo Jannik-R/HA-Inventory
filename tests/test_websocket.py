@@ -107,3 +107,90 @@ async def test_not_loaded(hass: HomeAssistant, hass_ws_client) -> None:
     client = await hass_ws_client(hass)
     await client.send_json_auto_id({"type": "pantry/master_data"})
     assert (await client.receive_json())["error"]["translation_key"] == "not_loaded"
+
+
+async def test_booking_flow(ws) -> None:
+    md = await master(ws)
+    cat_id = by_name(md["categories"], "Nudeln")["id"]
+    loc_id = by_name(md["locations"], "Kühlschrank")["id"]
+    new = {"name": "Spaghetti", "category_id": cat_id, "ean": "4001234567890"}
+    book = {"type": "pantry/book_in", "location_id": loc_id}
+
+    msg = await ws.call({**book, "product": new, "packages": 2, "expires_on": "2027-06-01"})
+    pid = msg["result"]["product_id"]
+    msg = await ws.call({**book, "product_id": pid, "packages": 1, "expires_on": "2027-01-01"})
+    early = msg["result"]["batch_id"]
+    assert msg["result"]["product_id"] == pid
+
+    rows = (await ws.call({"type": "pantry/stock", "product_id": pid}))["result"]
+    assert [r["packages"] for r in rows] == [1, 2]  # FEFO order
+    other = await ws.call({"type": "pantry/stock", "product_id": pid + 1})
+    assert other["result"] == []
+
+    out = {"type": "pantry/book_out", "product_id": pid}
+    taken = (await ws.call({**out, "packages": 2}))["result"]["taken"]
+    assert [(t["batch_id"], t["packages"]) for t in taken][0] == (early, 1)
+    msg = await ws.call({**out, "packages": 5})
+    assert msg["error"]["translation_key"] == "not_enough_stock"
+
+    delete = {"type": "pantry/delete", "table": "product", "row_id": pid}
+    assert (await ws.call(delete))["success"]  # with stock: stock, batches, bookings go too
+    assert (await ws.call({"type": "pantry/stock", "product_id": pid}))["result"] == []
+
+
+async def test_lookup_and_search(ws) -> None:
+    cat_id = by_name((await master(ws))["categories"], "Nudeln")["id"]
+    ean = "4001234567890"
+    product = {"name": "Spaghetti", "category_id": cat_id, "ean": ean}
+    pid = (await ws.call({"type": "pantry/book_in", "product": product, "packages": 1, "location_id": 1}))["result"]["product_id"]
+
+    msg = await ws.call({"type": "pantry/search", "query": "SPAGHE"})
+    assert [r["id"] for r in msg["result"]] == [pid]
+    msg = await ws.call({"type": "pantry/lookup", "code": ean})
+    assert msg["result"]["product"]["id"] == pid  # local first, no HTTP
+    msg = await ws.call({"type": "pantry/lookup", "code": "abc"})
+    assert msg["error"]["translation_key"] == "invalid_ean"
+
+
+async def test_book_in_needs_exactly_one_product(ws) -> None:
+    cat_id = by_name((await master(ws))["categories"], "Nudeln")["id"]
+    new = {"name": "X", "category_id": cat_id}
+    for extra in ({}, {"product_id": 1, "product": new}):
+        msg = await ws.call({"type": "pantry/book_in", "packages": 1, **extra})
+        assert msg["error"]["code"] == "invalid_format"
+
+
+async def test_everyday_use_needs_no_admin(ws, hass_admin_user) -> None:
+    md = await master(ws)
+    hass_admin_user.groups = []
+    product = {"name": "Y", "category_id": by_name(md["categories"], "Nudeln")["id"]}
+    msg = await ws.call({"type": "pantry/book_in", "product": product, "packages": 1, "location_id": md["locations"][0]["id"]})
+    assert msg["success"]
+
+
+async def test_products_list_and_edit(ws, hass_admin_user) -> None:
+    hass_admin_user.groups = []  # editing products is everyday use, no admin needed
+    nudeln = by_name((await master(ws))["categories"], "Nudeln")["id"]
+    msg = await ws.call(
+        {
+            "type": "pantry/book_in",
+            "packages": 2,
+            "location_id": (await master(ws))["locations"][0]["id"],
+            "product": {"name": "Penne", "category_id": nudeln, "ean": "4000000000001", "off_json": "{}"},
+        }
+    )
+    pid = msg["result"]["product_id"]
+    rows = (await ws.call({"type": "pantry/products"}))["result"]
+    row = by_name(rows, "Penne")
+    assert row["packages"] == 2 and "off_json" not in row
+
+    msg = await ws.call(
+        {"type": "pantry/product_save", "data": {"id": pid, "name": "Penne Rigate", "warn_days": 5}}
+    )
+    assert msg["success"]
+    row = by_name((await ws.call({"type": "pantry/products"}))["result"], "Penne Rigate")
+    assert row["warn_days"] == 5 and row["ean"] == "4000000000001"
+
+    msg = await ws.call({"type": "pantry/product_save", "data": {"id": pid, "bogus": 1}})
+    assert msg["error"]["code"] == "invalid_format"
+

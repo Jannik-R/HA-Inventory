@@ -62,6 +62,7 @@ docs/PLAN.md                architecture and roadmap
 - Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
 - After frontend changes run the build so `www/pantry-panel.js` is updated.
+- Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
 
 ## UI / UX
 
@@ -74,6 +75,17 @@ Calm, functional, looks like a tool, not like a demo.
 - Color only for meaning: expired (error), expiring soon (warning), below min stock.
 - Icons: MDI only, sparingly, always with text or `aria-label`.
 - Mobile first (phone in the kitchen), works on tablet/desktop. Keyboard accessible, visible focus.
+- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon. Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first and names what goes with it (e.g. stock).
+- **Dialogs** (all modal `<dialog>`, helpers in `frontend/src/ui.ts`):
+  - Title = action + object: "„Kühlschrank“ bearbeiten", "Lagerort hinzufügen", "Kategorie wählen".
+  - Labels above fields (placeholders never replace a label); units as text after the input ("Tage", "g").
+  - First field focused on open; Enter submits; field errors live (see forms).
+  - Actions at the bottom, right-aligned: "Abbrechen" first, the one primary action last (rightmost), named by a verb ("Speichern", "Übernehmen").
+  - Only save + cancel inside; delete, add-child etc. are icons on the list row, never in the dialog.
+  - Closing: a click beside it (`backdropClick`) or Esc (`escGuard`) closes it; with unsaved changes both ask "Änderungen verwerfen?" first. "Abbrechen" discards without asking (deliberate).
+  - Backend errors show above the actions; width `min(480px, 100vw - 32px)`, content scrolls inside on small screens.
+- **Wording for inherited values**: always "Geerbt: <Wert> (<Quelle>)" (key `common.default`), never "Vorgabe" or "Erben"; source "von <Kategorie>", "vom Produkt", "Standard" or "zuletzt benutzt".
+- **Forms validate live**: every form computes its field errors on each render (an `errors()` function), shows them under the field (`fieldMsg`, `aria-invalid` red border) and disables its primary button while any exist. Warnings that must not block (e.g. a past date) use the hint style. The submit handler re-checks; the backend still validates (trust boundary).
 
 ## Commands
 
@@ -81,6 +93,7 @@ Calm, functional, looks like a tool, not like a demo.
 docker compose -f dev/docker-compose.yml run --rm test   # backend tests (see skill ha-dev)
 cd frontend && npm run build          # build panel bundle
 cd frontend && npm run dev            # watch build
+cd frontend && npm run test:e2e       # Playwright against the running dev HA (local only)
 docker compose -f dev/docker-compose.yml up -d homeassistant   # dev HA on :8123
 ```
 

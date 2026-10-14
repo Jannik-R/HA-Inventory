@@ -20,3 +20,8 @@ node_modules/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Playwright (local E2E)
+frontend/test-results/
+frontend/playwright-report/
+frontend/e2e/.auth/

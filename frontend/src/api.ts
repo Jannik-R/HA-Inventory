@@ -72,3 +72,60 @@ export const saveRow = (hass: Hass, table: Table, data: Record<string, unknown>)
   hass.callWS<{ id: number }>({ type: "pantry/save", table, data });
 export const deleteRow = (hass: Hass, table: Table, row_id: number) =>
   hass.callWS<unknown>({ type: "pantry/delete", table, row_id });
+
+/** A saved product (has id) or an unsaved Open Food Facts draft (no id). */
+export interface Product {
+  id?: number;
+  ean: string | null;
+  name: string;
+  brand: string | null;
+  category_id: number | null;
+  content_amount: number | null;
+  content_unit_id: number | null;
+  default_location_id?: number | null;
+  expiry_type?: "best_before" | "use_by" | null;
+  warn_days?: number | null;
+  /** Packages in stock (product list only). */
+  packages?: number;
+  image_url?: string | null;
+  off_json?: string | null;
+}
+export interface SearchHit {
+  id?: number;
+  ean: string | null;
+  name: string;
+  brand: string | null;
+}
+export interface StockRow {
+  batch_id: number;
+  location_id: number;
+  location: string;
+  packages: number;
+  expires_on: string | null;
+  expiry_type: "best_before" | "use_by";
+  product_id: number;
+  name: string;
+}
+export interface BookIn {
+  packages: number;
+  expires_on?: string | null;
+  location_id?: number | null;
+  product_id?: number;
+  product?: Record<string, unknown>;
+}
+
+export const lookup = (hass: Hass, code: string) =>
+  hass.callWS<{ product: Product | null }>({ type: "pantry/lookup", code });
+export const search = (hass: Hass, query: string, online = false) =>
+  hass.callWS<SearchHit[]>({ type: "pantry/search", query, online });
+export const bookIn = (hass: Hass, data: BookIn) =>
+  hass.callWS<{ product_id: number; batch_id: number }>({ type: "pantry/book_in", ...data });
+export const bookOut = (
+  hass: Hass,
+  data: { product_id: number; packages: number; batch_id?: number; location_id?: number },
+) => hass.callWS<{ taken: unknown[] }>({ type: "pantry/book_out", ...data });
+export const getStock = (hass: Hass, product_id: number) =>
+  hass.callWS<StockRow[]>({ type: "pantry/stock", product_id });
+export const listProducts = (hass: Hass) => hass.callWS<Product[]>({ type: "pantry/products" });
+export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>
+  hass.callWS<{ id: number }>({ type: "pantry/product_save", data });

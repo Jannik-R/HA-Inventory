@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.loader import async_get_integration
 
 from . import websocket
 from .const import DOMAIN, PANEL_URL
@@ -32,7 +31,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
     """Open the database and add the sidebar panel."""
     entry.runtime_data = Database(hass, hass.config.path("pantry.db"))
     await entry.runtime_data.async_open()
-    version = (await async_get_integration(hass, DOMAIN)).version
+    # Bundle mtime, not the integration version: every build must bust the browser cache.
+    bundle = Path(__file__).parent / "www" / "pantry-panel.js"
+    version = (await hass.async_add_executor_job(bundle.stat)).st_mtime_ns
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=DOMAIN,

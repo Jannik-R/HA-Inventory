@@ -7,6 +7,12 @@ description: Check a panel view in the dev HA browser at phone width, light and 
 
 Prereq: `cd frontend && npm run build`, dev HA running (skill `ha-dev`). No login needed: the dev HA trusts localhost (`trusted_networks` in `dev/configuration.yaml`). If a login page appears anyway, reload once.
 
+## Token order (cheapest first)
+
+1. **Behaviour**: Playwright (`cd frontend && npm run test:e2e`) with `data-testid` locators. Add or extend a spec in `frontend/e2e/` for the flow; output is pass/fail text, no images.
+2. **Values and state**: `javascript_tool` with the deep query helper below (text, attributes, `getComputedStyle`, focus).
+3. **Screenshots only for visual layout** (spacing, overflow, theme colours), one per state, `scale` 0.6.
+
 ## Steps
 
 1. `navigate` to `http://localhost:8123/pantry/<tab>[/<sub>]`, then `resize_window` preset `mobile` (`colorScheme: dark`).

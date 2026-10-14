@@ -49,7 +49,8 @@ Rule: **every** entry point (panel, services, automations, future AI tools) call
 ## 2. Data model
 
 ```
-unit       (id, name, symbol, base_unit_id NULL → unit, factor)
+unit       (id, name, symbol, base_unit_id NULL → unit, factor,
+            is_count)   -- 1 = counts packages (Stück, Packung, Dose ...)
            -- seeded: Stück, Packung, g, kg (=1000 g), ml, l (=1000 ml); user can add (Dose, Glas, Bund ...)
 location   (id, name, sort)
 category   (id, parent_id NULL → category, name, sort, off_tags JSON,
@@ -61,8 +62,10 @@ product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             image_url, off_json, updated_at)
 batch      (id, product_id, expires_on DATE, expiry_type 'best_before'|'use_by', created_at)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
-label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)
-booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id, location_id, packages,
+label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)   -- added in Phase 8 migration
+booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id, location_id,
+            to_location_id,                      -- only 'move' (location_id = source)
+            packages,                            -- always positive; 'correct' = signed difference
             source 'scan'|'manual'|'label'|'service', user_id)
 ```
 
@@ -85,7 +88,8 @@ Products attach to any node, normally the leaf.
   shortages converted into the node's unit (skipped if not convertible).
   Example: stock Nudeln 0,5 kg, Reis 0, Couscous 0,3 kg → items
   "Nudeln 0,5 kg", "Reis 500 g", "Nudeln, Reis & Getreide: weitere 0,2 kg (beliebig)".
-  Items are grouped by main category.
+  Items are grouped by main category. A node without its own min stock passes its children's
+  shortage up to its parent.
 - **Automatic category assignment**: each category node has `off_tags` (OFF category
   tags, e.g. `en:spaghetti`, `en:pastas`). A product gets the deepest node whose tag
   appears in its OFF `categories_tags`. No match → user picks; the product's most specific
@@ -123,7 +127,7 @@ properties (location, warn days) differ and inherit nicely.
 | Süßes & Snacks | Schokolade, Kekse, Chips, Nüsse | |
 | Getränke | Wasser, Saft, Kaffee, Tee | unit l |
 | Tiefkühlkost | Gemüse TK, Fleisch & Fisch TK, Pizza, Eis | location Gefrierschrank, warn 30 d |
-| Haushalt & Drogerie (optional) | Spülmittel, Papier | no expiry tracking |
+| Haushalt & Drogerie (optional) | Spülmittel, Papier | no expiry tracking (batches without date; UI hint comes with Phase 4) |
 
 Global defaults (integration options): warn 7 days, best-before, unit Stück.
 
@@ -200,7 +204,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | # | Phase | Content |
 |---|---|---|
 | 0 | Foundation | integration skeleton, config flow (single instance), panel shell, i18n, CI: hassfest + HACS action + pytest + frontend build |
-| 1 | Core | `db.py` schema + migrations + seed, `inventory.py` (book in/out/move/correct, inheritance resolution, queries), tests |
+| 1 | Core | `db.py` schema + migrations + seed, `inventory.py` (book in/out/move/correct, inheritance resolution, queries), backup platform (moved up from Phase 9: real data exists from now on), tests |
 | 2 | Product lookup | `off.py`, search, category suggestion |
 | 3 | Master data UI | locations, units, category tree with inherited values |
 | 4 | Booking UI | book in/out, keyboard scanner field, camera scanner |
@@ -208,7 +212,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 6 | Expiry | expiry view with temporary threshold, sensors |
 | 7 | Min stock | todo entity |
 | 8 | Labels | `label.py`, IPP printing, options, scan-to-consume |
-| 9 | Release | services, backup platform, README, HACS release |
+| 9 | Release | services, README, HACS release |
 
 ## 7. Extension points (not built now)
 

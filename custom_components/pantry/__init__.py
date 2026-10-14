@@ -11,6 +11,9 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 
 from .const import DOMAIN, PANEL_URL
+from .db import Database
+
+type PantryConfigEntry = ConfigEntry[Database]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -23,8 +26,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Add the sidebar panel."""
+async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
+    """Open the database and add the sidebar panel."""
+    entry.runtime_data = Database(hass, hass.config.path("pantry.db"))
+    await entry.runtime_data.async_open()
     version = (await async_get_integration(hass, DOMAIN)).version
     await panel_custom.async_register_panel(
         hass,
@@ -39,7 +44,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Remove the sidebar panel."""
+async def async_unload_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
+    """Remove the sidebar panel and close the database."""
     frontend.async_remove_panel(hass, DOMAIN)
+    await entry.runtime_data.async_close()
     return True

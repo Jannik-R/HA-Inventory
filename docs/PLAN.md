@@ -178,6 +178,8 @@ works on the Pi installation via HTTPS (cloud / local reverse proxy).
 `dev/docker-compose.yml` runs HA stable with `custom_components/pantry` mounted read-only.
 All runtime data goes to `dev/config/` (git-ignored). Only `docker-compose.yml` and
 `configuration.yaml` are committed.
+Port bound to `127.0.0.1`; `trusted_networks` with `allow_bypass_login` → no password for local
+browser tests (Claude's browser, later Playwright). The MCP Server uses its own token (`HA_DEV_TOKEN`).
 
 ## 5a. Dev tooling (token economy)
 
@@ -188,11 +190,12 @@ All runtime data goes to `dev/config/` (git-ignored). Only `docker-compose.yml` 
 | Context7 MCP (`.mcp.json`) | ready | library docs (Lit, Vite, Pillow) on demand |
 | Format hook (`.claude/hooks/format.mjs`) | ready; runs ruff / prettier if installed, silent otherwise | prettier active after Phase 0 (`frontend/` exists); ruff via `pip install ruff` |
 | Serena MCP (symbol-level code navigation) | planned | after Phase 1, when the code base is big enough to pay off; needs `uv` |
+| Playwright UI tests (`@playwright/test` in `frontend/`, `npm run test:e2e`): repeatable click-through tests of the panel against the local dev HA (no login via `trusted_networks`), run **locally only** (not in CI: each run would need an HA container + browser, ~5-8 billed GitHub Actions minutes, while the private repo has 2,000 free minutes/month; locally it takes seconds). Once the repo is public (Actions free), an E2E CI job can be enabled. Elements addressed by stable `data-testid` attributes (Playwright pierces shadow DOM); each test creates its own data and cleans up | planned | Phase 4 (booking flows), then extended per phase |
 | `feature-checklist` skill + missing-i18n-key script | planned | after Phase 4 (first complete feature end to end = the pattern to write down) |
 | `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | ready | |
 | `db-migration` skill: add a migration step, test upgrade from a fixture DB of the previous version, backup note | planned | after Phase 1 (first schema exists) |
 | `off-api` skill: Open Food Facts endpoints, fields used, User-Agent, rate limits, seed tag check | ready | |
-| `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | planned | Phase 3 (first real view) |
+| `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | ready | |
 | `release` skill: version bump in `manifest.json`, build, changelog, tag, GitHub release, HACS validation | planned | Phase 9 |
 
 Frontend build runs locally (Node LTS). Backend tests run in a container based on the HA

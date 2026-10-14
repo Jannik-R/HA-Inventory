@@ -9,5 +9,43 @@
     "abort": {
       "single_instance_allowed": "Bereits eingerichtet. Nur eine einzige Konfiguration möglich."
     }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Die Vorrat-Integration ist nicht geladen."
+    },
+    "not_found": {
+      "message": "Der Eintrag existiert nicht mehr."
+    },
+    "in_use": {
+      "message": "Der Eintrag wird noch verwendet und kann nicht gelöscht werden."
+    },
+    "duplicate": {
+      "message": "Ein Eintrag mit diesem Namen existiert bereits."
+    },
+    "invalid_value": {
+      "message": "Ungültiger Wert."
+    },
+    "invalid_unit": {
+      "message": "Ungültige Einheit: Der Faktor muss größer als 0 sein, und eine Basiseinheit kann selbst keine Basiseinheit haben."
+    },
+    "invalid_parent": {
+      "message": "Eine Kategorie kann nicht in sich selbst oder eine ihrer Unterkategorien verschoben werden."
+    },
+    "invalid_date": {
+      "message": "Ungültiges Datum."
+    },
+    "location_required": {
+      "message": "Bitte einen Lagerort wählen."
+    },
+    "not_enough_stock": {
+      "message": "Nicht genug Bestand (verfügbar: {available})."
+    },
+    "invalid_ean": {
+      "message": "Ungültiger Barcode (8 bis 14 Ziffern)."
+    },
+    "off_unavailable": {
+      "message": "Open Food Facts ist nicht erreichbar. Bitte später erneut versuchen."
+    }
   }
 }

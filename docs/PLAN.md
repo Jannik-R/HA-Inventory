@@ -32,7 +32,7 @@ Rule: **every** entry point (panel, services, automations, future AI tools) call
 | Storage | stdlib `sqlite3`, one file in config dir, schema via `PRAGMA user_version` migrations | relational data, constraints, growing booking log, recipes later. No dependency. |
 | Backup safety | `backup.py` platform (`async_pre_backup` / `async_post_backup`) closes/locks DB | prevents corrupt DB in HA backups |
 | DB access | executor jobs, one connection + lock | `shortcut:` single lock, fine for a household |
-| Product data | Open Food Facts API v2 (EAN), OFF search for names; result stored in `product` table | free, good DE coverage; local copy = cache |
+| Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
 | Automations | HA services (`pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, ...) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
@@ -92,7 +92,7 @@ Products attach to any node, normally the leaf.
   shortage up to its parent.
 - **Automatic category assignment**: each category node has `off_tags` (OFF category
   tags, e.g. `en:spaghetti`, `en:pastas`). A product gets the deepest node whose tag
-  appears in its OFF `categories_tags`. No match → user picks; the product's most specific
+  appears in its OFF `categories_tags` (tie: the later, more specific OFF tag). No match → user picks; the product's most specific
   OFF tag is then added to the chosen node, so the next similar product maps automatically.
   Seed data ships tags for the default categories. The OFF taxonomy itself is not used as
   the tree (thousands of nodes, inconsistent) - it only feeds the mapping.
@@ -100,7 +100,8 @@ Products attach to any node, normally the leaf.
   (fallback: parse the `quantity` string like "500 g", "6 x 1,5 l") → `content_amount` /
   `content_unit_id`. Always editable; missing → user enters it once per product.
 - **Seed data** (categories, units, locations) is language-specific data, chosen by HA
-  language at first setup; only `de` for now.
+  language at first setup; only `de` for now. Applied to a new DB only; after the first release,
+  seed fixes for existing DBs need a migration step.
 - **Amounts**: stock is counted in packages (one label per package). For min stock and
   display, packages × `content_amount` are converted into the node's effective unit
   via `unit.base_unit_id/factor`. Unit `Stück`/`Packung` = count packages.
@@ -190,7 +191,7 @@ All runtime data goes to `dev/config/` (git-ignored). Only `docker-compose.yml` 
 | `feature-checklist` skill + missing-i18n-key script | planned | after Phase 4 (first complete feature end to end = the pattern to write down) |
 | `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | ready | |
 | `db-migration` skill: add a migration step, test upgrade from a fixture DB of the previous version, backup note | planned | after Phase 1 (first schema exists) |
-| `off-api` skill: Open Food Facts endpoints, fields used, User-Agent and rate limits | planned | Phase 2 |
+| `off-api` skill: Open Food Facts endpoints, fields used, User-Agent, rate limits, seed tag check | ready | |
 | `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | planned | Phase 3 (first real view) |
 | `release` skill: version bump in `manifest.json`, build, changelog, tag, GitHub release, HACS validation | planned | Phase 9 |
 
@@ -225,6 +226,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | AI interface | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory.py` → usable by Assist agents and HA's built-in **MCP Server** integration. No own MCP server. |
 | Recipe import | websites: schema.org `Recipe` JSON-LD; Instagram etc.: caption text → LLM parse |
 | Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
+| Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |
 | Partially used packages | `stock.packages` → REAL or separate `opened` amount; not needed yet |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

@@ -51,7 +51,7 @@ docs/PLAN.md                architecture and roadmap
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
-- Schema change = new migration step in `db.py`. Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`).
+- Schema change = new migration step in `db.py`. Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 

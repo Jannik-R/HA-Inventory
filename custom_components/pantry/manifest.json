@@ -3,7 +3,7 @@
   "name": "Pantry",
   "codeowners": ["@Jannik-R"],
   "config_flow": true,
-  "dependencies": ["http", "panel_custom"],
+  "dependencies": ["http", "panel_custom", "websocket_api"],
   "documentation": "https://github.com/Jannik-R/HA-Inventory",
   "integration_type": "service",
   "iot_class": "calculated",

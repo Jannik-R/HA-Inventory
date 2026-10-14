@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 2: database, inventory logic and Open Food Facts product lookup; the panel is still empty). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 3: database, inventory logic, Open Food Facts lookup and the settings view; booking UI follows in Phase 4). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 
@@ -15,6 +15,17 @@ and get a brand-independent shopping list from minimum stock levels.
 - Stock overview with search
 - Expiry overview with configurable "expiring soon" threshold
 - Minimum stock per category in any unit (e.g. "2 kg Nudeln", any brand) and a shopping list (HA to-do entity)
+
+## Usage
+
+### Settings (Einstellungen)
+
+- **Kategorien**: tree of main category → category → food type. Each category can set a unit,
+  default storage location, expiry type (best before / use by) and warning days; empty fields are
+  inherited from the parent category or the global defaults and are shown in grey with their source
+  ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not inherited.
+- **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...).
+- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages.
 
 ## Installation
 
@@ -34,6 +45,9 @@ docker compose -f dev/docker-compose.yml up -d homeassistant
 
 Opens Home Assistant on http://localhost:8123 with the integration mounted from
 `custom_components/pantry`. All dev HA data is stored in `dev/config/` and is git-ignored.
+The dev HA is reachable only from this machine (port bound to `127.0.0.1`) and logs in without a
+password (`trusted_networks` in `dev/configuration.yaml`), so browser tests need no credentials.
+Never use this configuration for a real installation.
 The camera barcode scanner needs HTTPS or `localhost`.
 
 Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/pantry/www/` (the built file is committed):
@@ -53,6 +67,7 @@ docker compose -f dev/docker-compose.yml run --rm test
 - `.claude/skills/ha-dev`: commands for dev HA, logs, tests, build.
 - `.claude/skills/ha-integration-rules`: condensed HA integration rules used in this repo.
 - `.claude/skills/off-api`: Open Food Facts endpoints, limits and the seed category tag check.
+- `.claude/skills/ui-review`: check a panel view in the dev HA browser (phone width, light/dark) against the UI rules.
 - `.mcp.json`: `context7` (library docs) and `ha-dev` (MCP access to the dev HA).
   For `ha-dev`: in the dev HA add the integration *Model Context Protocol Server*,
   create a long-lived access token (profile → security) and set it as environment

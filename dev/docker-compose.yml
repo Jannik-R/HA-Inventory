@@ -5,7 +5,8 @@ services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
     ports:
-      - "8123:8123"
+      # Localhost only: the dev HA skips the login for local requests (configuration.yaml).
+      - "127.0.0.1:8123:8123"
     environment:
       TZ: Europe/Berlin
     volumes:

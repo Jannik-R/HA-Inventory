@@ -34,12 +34,16 @@ Rule: **every** entry point (panel, services, automations, future AI tools) call
 | DB access | executor jobs, one connection + lock | `shortcut:` single lock, fine for a household |
 | Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
+| Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only | the kitchen phone may use a non-admin account |
 | Automations | HA services (`pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, ...) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
-| Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → one committed JS file | HACS needs built file |
+| Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → committed `www/` (main file + lazy chunks with hashed names); panel URL `?v=<bundle mtime>` busts the browser cache on every build | HACS needs built file |
 | UI components | own small Lit components styled with HA theme CSS vars; **no** internal `ha-*` elements | internal elements are not public API and break on HA updates |
+| List rows | pencil (edit) + bin (delete) icons on every row, plus (add child) on tree rows (`rowActions`); row click = open/close a tree node, else edit | one pattern on every page; see CLAUDE.md UI/UX |
+| Dialogs | modal; title = action + object; "Abbrechen" + primary right-aligned (primary last); only save + cancel inside (row icons cover the rest); click beside / Esc close, asking first when there are unsaved changes | common dialog guidelines (Material, Apple HIG); see CLAUDE.md UI/UX |
+| Form validation | live: field errors under the field while typing, primary button disabled until valid; hints (e.g. past date) never block; backend validates again | errors before booking, not after; see CLAUDE.md UI/UX |
 | Barcode (hardware) | USB/BT scanners act as keyboard → the normal, always-focused input field | zero code |
-| Barcode (camera) | native `BarcodeDetector`, polyfill `barcode-detector` (zxing-wasm) loaded only when missing (iOS/Firefox) | camera needs HTTPS (or localhost) |
+| Barcode (camera) | native `BarcodeDetector`, polyfill `barcode-detector` (zxing-wasm) loaded only when missing (iOS/Firefox/Windows); the wasm is bundled in a lazy chunk (~1.4 MB, ~600 kB gzip), never fetched from a CDN | camera needs HTTPS (or localhost); works offline in the LAN |
 | Label printing | backend renders PNG (Pillow + `segno` for QR), sends it via **IPP Print-Job** to a CUPS queue. No dialog. | works from panel, services and automations; any IPP printer works |
 | i18n backend | HA standard: `strings.json` + `translations/{de,en}.json` | config flow, services, entities |
 | i18n frontend | `frontend/src/i18n/<lang>.json`, `t(key, params)`, language from `hass.language`, fallback `de` | dates/numbers via `Intl` with `hass.locale` |
@@ -55,7 +59,8 @@ unit       (id, name, symbol, base_unit_id NULL → unit, factor,
 location   (id, name, sort)
 category   (id, parent_id NULL → category, name, sort, off_tags JSON,
             unit_id, default_location_id, expiry_type, warn_days,   -- inheritable, NULL = inherit
-            min_stock NULL)                                          -- NOT inherited, see below
+            min_stock NULL,                                          -- amount in the node's unit; NOT inherited, see below
+            min_packages NULL)                                       -- package count (> 0); NOT inherited; added in Phase 7 migration
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package
             default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
@@ -79,13 +84,20 @@ Products attach to any node, normally the leaf.
   product → its category → parent … → root → integration defaults (options).
   The API returns each effective value with its source (`own` | category id | `default`);
   the UI renders inherited values in secondary text color with "von <Kategorie>".
-- **Min stock** is set on any node and counts its **whole subtree**
-  ("mind. 2 kg Nudeln" on *Nudeln*, "mind. 3 Packungen" on *Spaghetti*). Not inherited
-  (inheriting would multiply it). Levels are independent and may overlap, e.g.
-  *Nudeln* 1 kg, *Reis* 500 g **and** *Nudeln, Reis & Getreide* 2 kg.
-- **Shopping list from nested min stock** (bottom-up, no double counting):
-  `missing(node) = max(0, min − stock(subtree) − Σ missing(children))`, children's
-  shortages converted into the node's unit (skipped if not convertible).
+- **Min stock** is set on any node and counts its **whole subtree**. Two independent minimums
+  per node, each optional: an **amount** (`min_stock`, in the node's effective unit, e.g. 500 g)
+  and a **package count** (`min_packages`, e.g. 3 Packungen, any content). A node may have one,
+  both or none; levels are independent and may mix freely, e.g. *Spaghetti* 3 Packungen,
+  *Nudeln* 1 kg **and** 2 Packungen, *Reis* 500 g, *Nudeln, Reis & Getreide* 2 kg.
+  Not inherited (inheriting would multiply it). Both set on one node = both must be met.
+- **Shopping list from nested min stock** (bottom-up, no double counting), computed
+  **separately per dimension** (amount, packages) with the same rule:
+  `missing(node) = max(0, min − stock(subtree) − Σ missing(children))`. Amount: children's
+  shortages converted into the node's unit (skipped if not convertible). Packages: plain counts,
+  no conversion; products without known content still count as packages. A child's shortage only
+  reduces its parent's shortage in the same dimension; a node without a minimum in one dimension
+  passes its children's shortage in that dimension up. One todo item per node lists every
+  missing dimension ("Nudeln – 0,5 kg und 1 Packung fehlen").
   Example: stock Nudeln 0,5 kg, Reis 0, Couscous 0,3 kg → items
   "Nudeln 0,5 kg", "Reis 500 g", "Nudeln, Reis & Getreide: weitere 0,2 kg (beliebig)".
   Items are grouped by main category. A node without its own min stock passes its children's
@@ -94,9 +106,16 @@ Products attach to any node, normally the leaf.
   tags, e.g. `en:spaghetti`, `en:pastas`). A product gets the deepest node whose tag
   appears in its OFF `categories_tags` (tie: the later, more specific OFF tag). No match → user picks; the product's most specific
   OFF tag is then added to the chosen node, so the next similar product maps automatically.
+  Fallbacks when no OFF tag matches (e.g. OFF has no categories at all): (1) **name keywords**
+  (`keywords.py`, German, grows over time): keyword → OFF tag → category. The first name word
+  with a match decides (German names put the product first: "Joghurt Erdbeere"); within it the
+  score `len(keyword) + bonus` picks (whole word +10, end of compound = German head +5, start +2,
+  inside a word: no match; minimum 5), then the deeper category. (2) **similar saved products**:
+  the category of the product sharing the most name words (≥ 4 letters, longer words weigh more).
   Seed data ships tags for the default categories. The OFF taxonomy itself is not used as
   the tree (thousands of nodes, inconsistent) - it only feeds the mapping.
-- **Package content from OFF**: `product_quantity` + `product_quantity_unit`
+- **Package content from OFF**: drained weight if the `quantity` text states one
+  ("Abtropfgewicht 240 g", "670g/370g"), else `product_quantity` + `product_quantity_unit`
   (fallback: parse the `quantity` string like "500 g", "6 x 1,5 l") → `content_amount` /
   `content_unit_id`. Always editable; missing → user enters it once per product.
 - **Seed data** (categories, units, locations) is language-specific data, chosen by HA
@@ -128,7 +147,7 @@ properties (location, warn days) differ and inherit nicely.
 | Süßes & Snacks | Schokolade, Kekse, Chips, Nüsse | |
 | Getränke | Wasser, Saft, Kaffee, Tee | unit l |
 | Tiefkühlkost | Gemüse TK, Fleisch & Fisch TK, Pizza, Eis | location Gefrierschrank, warn 30 d |
-| Haushalt & Drogerie (optional) | Spülmittel, Papier | no expiry tracking (batches without date; UI hint comes with Phase 4) |
+| Haushalt & Drogerie (optional) | Spülmittel, Papier | no expiry tracking (batches without date; booking form hint: leave the date empty) |
 
 Global defaults (integration options): warn 7 days, best-before, unit Stück.
 
@@ -151,8 +170,8 @@ EAN, category, location); location filter.
 **Expiring**: sorted by date; threshold = effective `warn_days` per product, plus a view-wide
 override field (session only, not saved). Expired listed first.
 
-**Min stock / shopping list**: every category node with `min_stock` below → todo item
-"Nudeln – 1,5 kg fehlen". Recomputed on every booking. Checked items stay hidden until stock changes.
+**Min stock / shopping list**: every category node below its `min_stock` and/or `min_packages`
+→ todo item "Nudeln – 1,5 kg fehlen" / "Spaghetti – 2 Packungen fehlen" / both in one item. Recomputed on every booking. Checked items stay hidden until stock changes.
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
@@ -190,7 +209,7 @@ browser tests (Claude's browser, later Playwright). The MCP Server uses its own 
 | Context7 MCP (`.mcp.json`) | ready | library docs (Lit, Vite, Pillow) on demand |
 | Format hook (`.claude/hooks/format.mjs`) | ready; runs ruff / prettier if installed, silent otherwise | prettier active after Phase 0 (`frontend/` exists); ruff via `pip install ruff` |
 | Serena MCP (symbol-level code navigation) | planned | after Phase 1, when the code base is big enough to pay off; needs `uv` |
-| Playwright UI tests (`@playwright/test` in `frontend/`, `npm run test:e2e`): repeatable click-through tests of the panel against the local dev HA (no login via `trusted_networks`), run **locally only** (not in CI: each run would need an HA container + browser, ~5-8 billed GitHub Actions minutes, while the private repo has 2,000 free minutes/month; locally it takes seconds). Once the repo is public (Actions free), an E2E CI job can be enabled. Elements addressed by stable `data-testid` attributes (Playwright pierces shadow DOM); each test creates its own data and cleans up | planned | Phase 4 (booking flows), then extended per phase |
+| Playwright UI tests (`@playwright/test` in `frontend/`, `npm run test:e2e`): repeatable click-through tests of the panel against the local dev HA (no login via `trusted_networks`), run **locally only** (not in CI: each run would need an HA container + browser, ~5-8 billed GitHub Actions minutes, while the private repo has 2,000 free minutes/month; locally it takes seconds). Once the repo is public (Actions free), an E2E CI job can be enabled. Elements addressed by stable `data-testid` attributes (Playwright pierces shadow DOM); each test creates its own data and cleans up. Runs in the installed Edge (`channel: msedge`), no browser download | ready | booking flow covered; extend per phase |
 | `feature-checklist` skill + missing-i18n-key script | planned | after Phase 4 (first complete feature end to end = the pattern to write down) |
 | `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | ready | |
 | `db-migration` skill: add a migration step, test upgrade from a fixture DB of the previous version, backup note | planned | after Phase 1 (first schema exists) |
@@ -211,10 +230,10 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 1 | Core | `db.py` schema + migrations + seed, `inventory.py` (book in/out/move/correct, inheritance resolution, queries), backup platform (moved up from Phase 9: real data exists from now on), tests |
 | 2 | Product lookup | `off.py`, search, category suggestion |
 | 3 | Master data UI | locations, units, category tree with inherited values |
-| 4 | Booking UI | book in/out, keyboard scanner field, camera scanner |
+| 4 | Booking UI | book in/out, keyboard scanner field, camera scanner. Required fix: click beside a dialog must close it (code was there, browsers kept the old cached bundle: panel URL now busts the cache with the bundle mtime) |
 | 5 | Overview + search | stock list, filters |
 | 6 | Expiry | expiry view with temporary threshold, sensors |
-| 7 | Min stock | todo entity |
+| 7 | Min stock | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity |
 | 8 | Labels | `label.py`, IPP printing, options, scan-to-consume |
 | 9 | Release | services, README, HACS release |
 
@@ -231,5 +250,6 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
 | Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |
 | Partially used packages | `stock.packages` → REAL or separate `opened` amount; not needed yet |
+| Styled confirm dialog | replace native `confirm()` (delete questions, "Änderungen verwerfen?") with an own modal `<dialog>` in `ui.ts` following the dialog rules (title, "Abbrechen" + destructive action right, danger color for delete); returns a Promise so call sites stay one line |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

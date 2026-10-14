@@ -1,6 +1,8 @@
-import { LitElement, css, html, nothing, svg, type PropertyValues } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { mdiChevronDown, mdiChevronRight, mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
+import { backdropClick, escGuard, fieldMsg, formStyles, icon, rowActions } from "./ui";
+import "./category-picker";
 import {
   deleteRow,
   errorMessage,
@@ -38,11 +40,6 @@ const ADD: Record<Table, string> = {
   location: "settings.location.add",
   category: "settings.category.add",
 };
-const icon = (path: string) =>
-  html`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-    ${svg`<path d=${path} fill="currentColor"></path>`}
-  </svg>`;
-
 export class PantrySettings extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -131,19 +128,43 @@ export class PantrySettings extends LitElement {
     this.requestUpdate();
   }
 
+  /** Field errors of the open dialog; shown live under the fields, saving is blocked while any exist. */
+  private errors(): Record<string, string> {
+    const { table, d } = this.edit!;
+    const e: Record<string, string> = {};
+    const name = String(d.name ?? "").trim();
+    const md = this.data!;
+    const siblings: { id: number; name: string }[] =
+      table === "category"
+        ? md.categories.filter((c) => c.parent_id === (d.parent_id ?? null))
+        : table === "unit"
+          ? md.units
+          : md.locations;
+    if (!name) e.name = t("valid.required");
+    else if (siblings.some((r) => r.id !== d.id && r.name.trim().toLocaleLowerCase() === name.toLocaleLowerCase()))
+      e.name = t("valid.duplicate");
+    if (table === "unit") {
+      if (!String(d.symbol ?? "").trim()) e.symbol = t("valid.required");
+      if (d.base_unit_id != null && !(d.factor > 0)) e.factor = t("valid.positive");
+    }
+    if (table === "category") {
+      if (d.warn_days != null && !(Number.isInteger(d.warn_days) && d.warn_days >= 0)) e.warn_days = t("valid.days");
+      if (d.min_stock != null && !(d.min_stock > 0)) e.min_stock = t("valid.positive");
+    }
+    return e;
+  }
+
+  // Errors of the current render, read by the input helpers.
+  private errs: Record<string, string> = {};
+
   private async save(e: Event) {
     e.preventDefault();
+    if (Object.keys(this.errors()).length) return;
     const { table, d } = this.edit!;
     const payload: Draft = {};
     for (const c of COLUMNS[table]) payload[c] = d[c];
     if (d.id) payload.id = d.id;
     await this.run(() => saveRow(this.hass!, table, payload));
-  }
-
-  private async del() {
-    const { table, d } = this.edit!;
-    if (!confirm(t("common.confirm_delete", { name: d.name }))) return;
-    await this.run(() => deleteRow(this.hass!, table, d.id));
   }
 
   private async run(fn: () => Promise<unknown>) {
@@ -276,19 +297,49 @@ export class PantrySettings extends LitElement {
     onClick: () => void,
     depth = 0,
     lead: unknown = nothing,
+    trail: unknown = nothing,
   ) {
     return html`<li style="padding-left:${depth * 24}px">
       ${lead}
       <button class="row" @click=${onClick}>
         <span>${name}</span>${detail ? html`<span class="detail">${detail}</span>` : nothing}
       </button>
+      ${trail}
     </li>`;
+  }
+
+  private actions(table: Table, row: { id: number; name: string }) {
+    return rowActions({
+      testid: table,
+      name: row.name,
+      onEdit: () => this.open(table, row),
+      onDelete: () => this.delRow(table, row),
+      ...(table === "category"
+        ? {
+            onAdd: () => this.open("category", undefined, { parent_id: row.id }),
+            addLabel: t("settings.category.add_sub_to", { name: row.name }),
+          }
+        : {}),
+    });
+  }
+
+  /** Delete straight from the list; errors (e.g. still in use) show above the list. */
+  private async delRow(table: Table, row: { id: number; name: string }) {
+    if (!confirm(t("common.confirm_delete", { name: row.name }))) return;
+    try {
+      await deleteRow(this.hass!, table, row.id);
+      this.pageError = "";
+    } catch (err) {
+      this.pageError = await errorMessage(this.hass!, err);
+      return;
+    }
+    await this.load();
   }
 
   private renderLocations() {
     const rows = this.data!.locations;
     return html`<ul>
-        ${rows.map((l) => this.row(l.name, "", () => this.open("location", l)))}
+        ${rows.map((l) => this.row(l.name, "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
       </ul>
       ${this.empty(rows)}`;
   }
@@ -309,7 +360,7 @@ export class PantrySettings extends LitElement {
         .join(" · ");
     };
     return html`<ul>
-        ${units.map((u) => this.row(u.name, detail(u), () => this.open("unit", u)))}
+        ${units.map((u) => this.row(u.name, detail(u), () => this.open("unit", u), 0, nothing, this.actions("unit", u)))}
       </ul>
       ${this.empty(units)}`;
   }
@@ -328,7 +379,10 @@ export class PantrySettings extends LitElement {
                 ${icon(open ? mdiChevronDown : mdiChevronRight)}
               </button>`
             : html`<span class="chev"></span>`;
-          return this.row(c.name, this.catDetail(c), () => this.open("category", c), depth, lead);
+          // A row with children opens and closes; editing has its own button.
+          const actions = this.actions("category", c);
+          const click = hasKids ? () => this.toggle(c.id) : () => this.open("category", c);
+          return this.row(c.name, this.catDetail(c), click, depth, lead, actions);
         })}
       </ul>
       ${this.empty(this.data!.categories)}`;
@@ -343,8 +397,9 @@ export class PantrySettings extends LitElement {
       type="text"
       .value=${String(this.edit!.d[key] ?? "")}
       ?required=${key === "name"}
+      aria-invalid=${!!this.errs[key]}
       @input=${(e: Event) => this.set(key, (e.target as HTMLInputElement).value)}
-    />`;
+    />${fieldMsg(this.errs[key], key)}`;
   }
 
   private numInput(key: string, placeholder = "", suffix = "") {
@@ -355,17 +410,17 @@ export class PantrySettings extends LitElement {
         step=${key === "warn_days" ? "1" : "any"}
         min=${key === "factor" ? "0.000001" : "0"}
         placeholder=${placeholder}
+        aria-invalid=${!!this.errs[key]}
         .value=${String(d[key] ?? "")}
         ?disabled=${key === "factor" && (d.base_unit_id == null || this.usedAsBase(d))}
         @input=${(e: Event) => {
           const v = (e.target as HTMLInputElement).value;
           let n = v === "" ? null : Number(v);
-          if (n != null && key === "warn_days") n = Math.trunc(n);
           if (key === "min_stock" && !n) n = null;
           this.set(key, n);
         }}
       />${suffix ? html`<span class="detail">${suffix}</span>` : nothing}</span
-    >`;
+    >${key === "warn_days" ? nothing : fieldMsg(this.errs[key], key)}`;
   }
 
   private usedAsBase(d: Draft) {
@@ -401,40 +456,19 @@ export class PantrySettings extends LitElement {
     const source = this.sourceLabel(inh.source);
     const control =
       field === "warn_days"
-        ? this.numInput(field, `${value} (${source})`)
-        : this.select(field, options, t("settings.inherit", { value, source }), numeric);
-    return this.field(label, html`<span class="inh">${control}${this.reset(field)}</span>`);
-  }
-
-  /** Parent options as paths ("A › B"), without the edited category and its subtree. */
-  private parentOptions(id?: number): Opts {
-    const skip = new Set<number>();
-    if (id) {
-      skip.add(id);
-      for (const { c } of this.tree()) if (skip.has(c.parent_id ?? -1)) skip.add(c.id);
-    }
-    const cats = this.data!.categories;
-    const path = (c: Category): string =>
-      c.parent_id == null ? c.name : `${path(cats.find((x) => x.id === c.parent_id)!)} › ${c.name}`;
-    return this.tree()
-      .filter(({ c }) => !skip.has(c.id))
-      .map(({ c }) => [c.id, path(c)]);
-  }
-
-  /** A click on the backdrop targets the dialog itself, outside its box. */
-  private backdropClick(e: MouseEvent) {
-    const dlg = e.target as HTMLDialogElement;
-    if (dlg.tagName !== "DIALOG") return;
-    const r = dlg.getBoundingClientRect();
-    const inside =
-      e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-    if (!inside) dlg.close();
+        ? this.numInput(field, t("common.default", { value, source }), t("common.days_unit"))
+        : this.select(field, options, t("common.default", { value, source }), numeric);
+    return this.field(
+      label,
+      html`<span class="inh">${control}${this.reset(field)}</span>${fieldMsg(this.errs[field], field)}`,
+    );
   }
 
   private renderDialog() {
     const e = this.edit;
     if (!e || !this.data) return html`<dialog></dialog>`;
     const { table, d, orig } = e;
+    this.errs = this.errors();
     const { units, locations } = this.data;
     let fields: unknown;
     if (table === "location") {
@@ -458,10 +492,16 @@ export class PantrySettings extends LitElement {
       const suffix = this.fmt("unit_id", unit);
       const tags = this.data.categories.find((x) => x.id === d.id)?.off_tags ?? [];
       fields = html`${this.field(t("common.name"), this.text("name"))}
-      ${this.field(
-        t("settings.category.parent"),
-        this.select("parent_id", this.parentOptions(d.id), t("settings.category.no_parent")),
-      )}
+      <div class="field">
+        <span class="lbl">${t("settings.category.parent")}</span>
+        <pantry-category-picker
+          .categories=${this.data.categories}
+          .value=${d.parent_id ?? null}
+          .noneLabel=${t("settings.category.no_parent")}
+          .exclude=${d.id}
+          @change=${(ev: CustomEvent<number | null>) => this.set("parent_id", ev.detail)}
+        ></pantry-category-picker>
+      </div>
       ${this.inh(
         "unit_id",
         t("settings.category.unit"),
@@ -483,49 +523,34 @@ export class PantrySettings extends LitElement {
       ${tags.length ? html`<p class="detail">${t("settings.category.off_tags", { tags: tags.join(", ") })}</p>` : nothing}`;
     }
     const close = () => this.renderRoot.querySelector("dialog")?.close();
-    return html`<dialog @close=${() => (this.edit = undefined)} @click=${this.backdropClick}>
+    const dirty = () => COLUMNS[table].some((c) => (d[c] ?? null) !== (orig[c] ?? null));
+    const parent = table === "category" && !d.id && d.parent_id != null ? this.catName(d.parent_id) : "";
+    const title = d.id
+      ? t("common.edit_name", { name: orig.name })
+      : parent
+        ? t("settings.category.add_sub_to", { name: parent })
+        : t(ADD[table]);
+    return html`<dialog
+      @close=${() => (this.edit = undefined)}
+      @click=${backdropClick(dirty)}
+      @cancel=${escGuard(dirty)}
+    >
       <form @submit=${this.save}>
-        <h2>${d.id ? orig.name : t(ADD[table])}</h2>
+        <h2>${title}</h2>
         ${fields} ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
         <div class="actions">
-          <button class="primary" type="submit">${t("common.save")}</button>
           <button type="button" @click=${close}>${t("common.cancel")}</button>
-          ${
-            table === "category" && d.id && COLUMNS.category.every((c) => d[c] === orig[c])
-              ? html`<button
-                  type="button"
-                  @click=${() => this.open("category", undefined, { parent_id: d.id })}
-                >
-                  ${t("settings.category.add_sub")}
-                </button>`
-              : nothing
-          }
-          ${d.id ? html`<button type="button" class="danger" @click=${this.del}>${t("common.delete")}</button>` : nothing}
+          <button class="primary" type="submit" data-testid="save" ?disabled=${Object.keys(this.errs).length > 0}>
+            ${t("common.save")}
+          </button>
         </div>
       </form>
     </dialog>`;
   }
 
-  static styles = css`
-    :host {
-      display: block;
-      color: var(--primary-text-color);
-    }
-    button {
-      font: inherit;
-      color: inherit;
-      background: none;
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-      padding: 8px 12px;
-      cursor: pointer;
-    }
-    button:focus-visible,
-    input:focus-visible,
-    select:focus-visible {
-      outline: 2px solid var(--primary-color);
-      outline-offset: 1px;
-    }
+  static styles = [
+    formStyles,
+    css`
     nav {
       display: flex;
       gap: 4px;
@@ -535,37 +560,8 @@ export class PantrySettings extends LitElement {
       color: var(--primary-color);
       border-color: var(--primary-color);
     }
-    .primary {
-      background: var(--primary-color);
-      border-color: var(--primary-color);
-      color: var(--text-primary-color, #fff);
-    }
-    .danger {
-      color: var(--error-color);
-      margin-left: auto;
-    }
     .bar {
       margin-bottom: 8px;
-    }
-    ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    li {
-      display: flex;
-      align-items: center;
-      border-bottom: 1px solid var(--divider-color);
-    }
-    li .row {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 2px;
-      border: 0;
-      padding: 10px 8px;
-      text-align: left;
     }
     .chev {
       flex: none;
@@ -577,92 +573,8 @@ export class PantrySettings extends LitElement {
       align-items: center;
       justify-content: center;
     }
-    .detail,
-    .empty {
-      color: var(--secondary-text-color);
-      font-size: 0.875em;
-      margin: 0;
-    }
-    dialog {
-      width: min(480px, calc(100vw - 32px));
-      box-sizing: border-box;
-      padding: 16px;
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-      background: var(--card-background-color, var(--primary-background-color));
-      color: var(--primary-text-color);
-    }
-    dialog::backdrop {
-      background: rgba(0, 0, 0, 0.5);
-    }
-    h2 {
-      margin: 0 0 12px;
-      font-size: 1.25em;
-      font-weight: 500;
-    }
-    label {
-      display: block;
-      margin-bottom: 12px;
-    }
-    .lbl {
-      display: block;
-      margin-bottom: 4px;
-      font-size: 0.875em;
-      color: var(--secondary-text-color);
-    }
-    input:not([type="checkbox"]),
-    select {
-      font: inherit;
-      width: 100%;
-      box-sizing: border-box;
-      padding: 8px;
-      color: var(--primary-text-color);
-      background: var(--card-background-color, var(--primary-background-color));
-      border: 1px solid var(--divider-color);
-      border-radius: 4px;
-    }
-    /* Inherited values (no own value) in secondary color, see CLAUDE.md UI rules. */
-    select.unset,
-    input::placeholder {
-      color: var(--secondary-text-color);
-      opacity: 1;
-    }
-    option {
-      color: var(--primary-text-color);
-    }
-    .check {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .num,
-    .inh {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .num {
-      flex: 1;
-    }
-    .reset {
-      flex: none;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 6px 8px;
-      font-size: 0.875em;
-      color: var(--secondary-text-color);
-    }
-    .error {
-      color: var(--error-color);
-      margin: 0 0 12px;
-    }
-    .actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-  `;
+  `,
+  ];
 }
 
 customElements.define("pantry-settings", PantrySettings);

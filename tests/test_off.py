@@ -39,6 +39,10 @@ SPAGHETTI = {
         (None, None, "250mg", (0.25, "g")),
         (0, "g", "4 Stück", None),
         (None, None, None, None),
+        (670, "g", "670g/370g", (370, "g")),
+        (400, "g", "400 g (Abtropfgewicht: 240 g)", (240, "g")),
+        (None, None, "Füllmenge 0,5 kg, égoutté 0,3 kg", (300, "g")),
+        (1000, "g", "500g/1kg", (1000, "g")),
     ],
 )
 def test_parse_quantity(amount, unit, text, expected):
@@ -66,6 +70,46 @@ def test_suggest_category(conn):
     tags = ["en:meals", "en:durum-wheat-semolinas-for-couscous"]
     assert inv.suggest_category(conn, tags) == cat(conn, "Couscous")
     assert inv.suggest_category(conn, ["en:unknown"]) is None
+
+
+@pytest.mark.parametrize(
+    ("word", "keyword", "expected"),
+    [
+        ("cornichons", "cornichon", 19),  # whole word incl. plural
+        ("tomatensauce", "sauce", 10),  # compound head
+        ("tomatensauce", "tomate", 8),  # compound start
+        ("weißwein", "eis", None),  # inside a word: no match
+    ],
+)
+def test_keyword_score(word, keyword, expected):
+    assert inv.keyword_score(word, keyword) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "category"),
+    [
+        ("Cornichons", "Gemüsekonserven"),
+        ("Feine Gewürzgurken", "Gemüsekonserven"),
+        ("Tomatensauce Basilikum", "Saucen"),
+        ("Erdbeerkonfitüre extra", "Marmelade"),
+        ("Milchreis", "Reis"),
+        ("Joghurt Erdbeere", "Joghurt"),
+        ("Erdnussbutter crunchy", "Nussaufstrich"),
+        ("Weißwein trocken", None),
+    ],
+)
+def test_suggest_by_keywords(conn, name, category):
+    expected = cat(conn, category) if category else None
+    assert inv.suggest_by_keywords(conn, name) == expected
+
+
+def test_suggest_falls_back_to_similar_names(conn):
+    assert inv.suggest(conn, [], "Viva las tapas") is None
+    inv.save(conn, "product", {"name": "Tapas Mix", "category_id": cat(conn, "Fertiggerichte")})
+    assert inv.suggest(conn, [], "Viva las tapas") == cat(conn, "Fertiggerichte")
+    # OFF tags and keywords come first.
+    assert inv.suggest(conn, ["en:pastas"], "Tapas") == cat(conn, "Nudeln")
+    assert inv.suggest(conn, [], "Tapas Oliven") == cat(conn, "Gemüsekonserven")
 
 
 def test_product_draft(conn):

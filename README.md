@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 3: database, inventory logic, Open Food Facts lookup and the settings view; booking UI follows in Phase 4). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 4: database, inventory logic, Open Food Facts lookup, settings and booking in/out; overview and expiry views follow). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 
@@ -18,12 +18,44 @@ and get a brand-independent shopping list from minimum stock levels.
 
 ## Usage
 
+### Einbuchen / Auslagern (book in / out)
+
+One input field, focused when the tab opens: scan with a USB/Bluetooth barcode scanner (it types
+the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name and press Enter.
+
+- **Einbuchen** ("Produkt zubuchen"): expiry date (the label names the product's date type, e.g.
+  "Ablaufdatum (Mindesthaltbarkeit)"; leave it empty for items without one), packages and location.
+  The location defaults to the product's or category's default (shown in grey as
+  "Geerbt: … (von Nudeln)"; without one the last used one is used); another choice applies to this
+  booking only, *Zurücksetzen* returns to the default. A new product also shows its name, brand,
+  category and content; *Wird Standardlager* (on by default) keeps the chosen location as its default.
+  An unknown EAN is looked up on Open Food Facts (name, brand, content - drained weight for jars and
+  cans - and a suggested category; without OFF categories the category comes from keywords in the
+  name or from similar saved products). A name search lists local products; *Online suchen* searches
+  Open Food Facts, *Neues Produkt* creates one by hand.
+- **Auslagern**: pick the product; by default the packages with the earliest date are taken first,
+  or choose one batch and location.
+
+### Produkte
+
+All saved products with their stock, filterable. Tap one to change name, brand, EAN, category,
+content, and its own defaults (location, date type, warning days) that override the category's.
+Admins can delete a product (bin icon in the list); its stock and booking history
+are deleted with it.
+
+The camera scanner needs HTTPS (or `localhost`) and camera permission. Browsers without a built-in
+barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.
+
 ### Settings (Einstellungen)
 
 - **Kategorien**: tree of main category → category → food type. Each category can set a unit,
   default storage location, expiry type (best before / use by) and warning days; empty fields are
   inherited from the parent category or the global defaults and are shown in grey with their source
   ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not inherited.
+  Tapping a category with subcategories opens it; the plus adds a subcategory, the pencil edits,
+  the bin deletes (only when the category is not in use). The parent category is picked in a tree with a filter field.
+- Every list row has a pencil (edit) and a bin (delete) icon; forms check entries while you type
+  and only allow saving when everything is valid.
 - **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...).
 - **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages.
 
@@ -54,6 +86,14 @@ Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components
 
 ```bash
 cd frontend && npm install && npm run build
+```
+
+Browser tests (Playwright, local only, against the running dev HA; uses the installed Edge, set
+`PW_CHANNEL=chrome` for Chrome). A setup step logs in once and keeps the session in
+`frontend/e2e/.auth/` (git-ignored). Tests create their own data and remove it afterwards:
+
+```bash
+cd frontend && npm run test:e2e
 ```
 
 Backend tests run in a container with the same image as HA:

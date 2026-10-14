@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 0: skeleton and empty panel). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 1: database, seed data and inventory logic; the panel is still empty). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 

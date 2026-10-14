@@ -7,8 +7,9 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 
 - **Always use Ponytail** (`/ponytail full`; plugin enabled in `.claude/settings.json`). Laziest solution that works; stdlib and native HA features first; no speculative abstractions.
 - **English** for code, comments, commits, docs. **German** only in UI strings (translation files) and in chat with the user.
+- **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.
 - **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change.
-- Do not commit unless asked. Branch `main`; short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
+- Do not commit unless asked. `main` is protected (ruleset "Protect main"): changes only via PR with green CI (hassfest, hacs, tests, frontend); work on a feature branch; short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
 - Never commit dev/runtime data (`dev/config/`, `*.db`, `.env`). Check `.gitignore` when adding anything that writes files.
 
 ## Token economy (speed and cost)
@@ -44,6 +45,7 @@ docs/PLAN.md                architecture and roadmap
 
 ## Backend conventions
 
+- Read skill `ha-integration-rules` before changing the integration.
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
@@ -55,7 +57,7 @@ docs/PLAN.md                architecture and roadmap
 
 - No hardcoded UI text. Every string is a key in `frontend/src/i18n/de.json`, used via `t("key")`. New keys: English, dot-separated (`stock.empty`).
 - Dates/numbers via `Intl` with `hass.locale`, never manual formatting.
-- Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`). Must work in light and dark theme.
+- Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
 - After frontend changes run the build so `www/pantry-panel.js` is updated.
 

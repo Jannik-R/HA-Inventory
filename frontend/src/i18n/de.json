@@ -1,0 +1,11 @@
+{
+  "panel.title": "Vorrat",
+  "panel.menu": "Menü",
+  "tab.stock": "Bestand",
+  "tab.in": "Einbuchen",
+  "tab.out": "Auslagern",
+  "tab.expiry": "Ablauf",
+  "tab.shopping": "Einkauf",
+  "tab.settings": "Einstellungen",
+  "common.not_ready": "Noch nicht verfügbar."
+}

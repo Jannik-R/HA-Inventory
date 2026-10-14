@@ -1,0 +1,13 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Pantry",
+        "description": "Set up the food inventory. It appears as \"Vorrat\" in the sidebar."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+    }
+  }
+}

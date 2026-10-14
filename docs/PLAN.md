@@ -184,7 +184,7 @@ All runtime data goes to `dev/config/` (git-ignored). Only `docker-compose.yml` 
 | Format hook (`.claude/hooks/format.mjs`) | ready; runs ruff / prettier if installed, silent otherwise | prettier active after Phase 0 (`frontend/` exists); ruff via `pip install ruff` |
 | Serena MCP (symbol-level code navigation) | planned | after Phase 1, when the code base is big enough to pay off; needs `uv` |
 | `feature-checklist` skill + missing-i18n-key script | planned | after Phase 4 (first complete feature end to end = the pattern to write down) |
-| `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | planned | Phase 0, written while building the skeleton |
+| `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | ready | |
 | `db-migration` skill: add a migration step, test upgrade from a fixture DB of the previous version, backup note | planned | after Phase 1 (first schema exists) |
 | `off-api` skill: Open Food Facts endpoints, fields used, User-Agent and rate limits | planned | Phase 2 |
 | `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | planned | Phase 3 (first real view) |

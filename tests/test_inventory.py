@@ -55,8 +55,11 @@ def test_book_in_merges_batches(conn):
     b = inv.book_in(conn, p, 2, date(2027, 1, 1), location_id=loc(conn))
     assert a == b
     assert stock(conn) == {(a, loc(conn)): 3}
+    inv.book_in(conn, p, 1)  # location from the category (seed: Vorratsschrank)
+    inv.save(conn, "category", {"name": "Ohne Ort"})
+    nowhere = product(conn, name="Irgendwas", category="Ohne Ort")
     with pytest.raises(inv.InventoryError, match="location_required"):
-        inv.book_in(conn, p, 1)
+        inv.book_in(conn, nowhere, 1)
 
 
 def test_book_out_fefo_across_batches_and_locations(conn):
@@ -163,10 +166,18 @@ def test_shopping_list_nested_min_stock(conn):
     assert top["any_of_subtree"] and not items["Nudeln"]["any_of_subtree"]
 
 
-def test_delete_product_with_stock_is_in_use(conn):
-    p = product(conn)
-    inv.book_in(conn, p, 1, location_id=loc(conn))
-    with pytest.raises(inv.InventoryError, match="in_use"):
+def test_delete_product_removes_stock_batches_and_bookings(conn):
+    p, keep = product(conn), product(conn, name="Andere")
+    inv.book_in(conn, p, 2, location_id=loc(conn))
+    inv.book_out(conn, p, 1)
+    inv.book_in(conn, keep, 1, location_id=loc(conn))
+    inv.delete(conn, "product", p)
+    count = lambda sql: conn.execute(sql).fetchone()[0]  # noqa: E731
+    assert count("SELECT count(*) FROM batch") == 1
+    assert count("SELECT count(*) FROM stock") == 1
+    assert count("SELECT count(*) FROM booking WHERE batch_id NOT IN (SELECT id FROM batch)") == 0
+    assert count("SELECT count(*) FROM booking") == 1
+    with pytest.raises(inv.InventoryError, match="not_found"):
         inv.delete(conn, "product", p)
 
 
@@ -196,3 +207,24 @@ def test_unit_base_rules(conn):
         )  # g is a base already
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
         inv.save(conn, "unit", {"name": "y", "symbol": "y"})  # factor required
+
+
+def test_stock_list_product_filter(conn):
+    a, b = product(conn), product(conn, "Penne")
+    inv.book_in(conn, a, 1, location_id=loc(conn))
+    inv.book_in(conn, b, 1, location_id=loc(conn))
+    assert [r["product_id"] for r in inv.stock_list(conn, product_id=b)] == [b]
+    assert inv.stock_list(conn, product_id=b, location_id=loc(conn, "Vorratsschrank")) == []
+
+
+def test_seed_gives_every_category_a_location(conn):
+    md = inv.master_data(conn)
+    names = {loc["id"]: loc["name"] for loc in md["locations"]}
+    where = {c["name"]: names.get(c["effective"]["default_location_id"]["value"]) for c in md["categories"]}
+    assert None not in where.values()
+    assert (where["Gemüse"], where["Obst"], where["Nudeln"], where["Eis"]) == (
+        "Kühlschrank",
+        "Vorratsschrank",
+        "Vorratsschrank",
+        "Gefrierschrank",
+    )

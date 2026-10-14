@@ -3,24 +3,25 @@
 import json
 import sqlite3
 
-# Category: (name, off_tags, defaults, [(sub-category, off_tags), ...]).
+# Category: (name, off_tags, defaults, [(sub-category, off_tags[, location]), ...]).
 # defaults keys: warn_days, expiry_type, location, unit (names resolved at seed time).
+# Every main category has a location; a sub-category names one only where it differs.
 _DE_CATEGORIES = [
     (
         "Obst & Gemüse",
         ["en:fruits-and-vegetables-based-foods"],
-        {"warn_days": 2},
+        {"warn_days": 2, "location": "Kühlschrank"},
         [
-            ("Obst", ["en:fruits"]),
+            ("Obst", ["en:fruits"], "Vorratsschrank"),
             ("Gemüse", ["en:vegetables"]),
             ("Kräuter", ["en:herbs"]),
-            ("Kartoffeln", ["en:potatoes"]),
+            ("Kartoffeln", ["en:potatoes"], "Vorratsschrank"),
         ],
     ),
     (
         "Brot & Backwaren",
         ["en:breads", "en:bakery-products"],
-        {"warn_days": 2},
+        {"warn_days": 2, "location": "Vorratsschrank"},
         [
             ("Brot", ["en:breads"]),
             ("Brötchen", ["en:bread-rolls"]),
@@ -52,7 +53,7 @@ _DE_CATEGORIES = [
     (
         "Nudeln, Reis & Getreide",
         ["en:cereals-and-potatoes"],
-        {"unit": "kg"},
+        {"unit": "kg", "location": "Vorratsschrank"},
         [
             ("Nudeln", ["en:pastas"]),
             ("Reis", ["en:rices"]),
@@ -63,7 +64,7 @@ _DE_CATEGORIES = [
     (
         "Backen",
         ["en:pastry-helpers"],
-        {"unit": "kg"},
+        {"unit": "kg", "location": "Vorratsschrank"},
         [
             ("Mehl", ["en:flours"]),
             ("Zucker", ["en:sugars"]),
@@ -74,7 +75,7 @@ _DE_CATEGORIES = [
     (
         "Konserven & Fertiggerichte",
         ["en:canned-foods", "en:meals"],
-        {},
+        {"location": "Vorratsschrank"},
         [
             ("Gemüsekonserven", ["en:canned-vegetables"]),
             ("Tomaten", ["en:canned-tomatoes", "en:tomatoes-and-their-products"]),
@@ -85,7 +86,7 @@ _DE_CATEGORIES = [
     (
         "Öle, Saucen & Gewürze",
         ["en:condiments"],
-        {},
+        {"location": "Vorratsschrank"},
         [
             ("Öl", ["en:vegetable-oils"]),
             ("Essig", ["en:vinegars"]),
@@ -97,7 +98,7 @@ _DE_CATEGORIES = [
     (
         "Frühstück & Aufstriche",
         ["en:breakfasts", "en:spreads"],
-        {},
+        {"location": "Vorratsschrank"},
         [
             ("Müsli", ["en:mueslis"]),
             ("Marmelade", ["en:jams"]),
@@ -108,7 +109,7 @@ _DE_CATEGORIES = [
     (
         "Süßes & Snacks",
         ["en:snacks"],
-        {},
+        {"location": "Vorratsschrank"},
         [
             ("Schokolade", ["en:chocolates"]),
             ("Kekse", ["en:biscuits"]),
@@ -119,7 +120,7 @@ _DE_CATEGORIES = [
     (
         "Getränke",
         ["en:beverages"],
-        {"unit": "l"},
+        {"unit": "l", "location": "Vorratsschrank"},
         [
             ("Wasser", ["en:waters"]),
             ("Saft", ["en:fruit-juices"]),
@@ -142,7 +143,7 @@ _DE_CATEGORIES = [
     (
         "Haushalt & Drogerie",
         [],
-        {},
+        {"location": "Vorratsschrank"},
         [
             ("Spülmittel", []),
             ("Papier", []),
@@ -195,8 +196,9 @@ def seed(conn: sqlite3.Connection, lang: str) -> None:
                 dflt.get("warn_days"),
             ),
         ).lastrowid
-        for j, (child, child_tags) in enumerate(children):
+        for j, (child, child_tags, *location) in enumerate(children):
             conn.execute(
-                "INSERT INTO category (parent_id, name, sort, off_tags) VALUES (?, ?, ?, ?)",
-                (parent, child, j, json.dumps(child_tags)),
+                "INSERT INTO category (parent_id, name, sort, off_tags, default_location_id)"
+                " VALUES (?, ?, ?, ?, ?)",
+                (parent, child, j, json.dumps(child_tags), locations.get(next(iter(location), None))),
             )

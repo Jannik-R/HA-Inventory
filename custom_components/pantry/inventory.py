@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from datetime import UTC, date, datetime
+
+from .keywords import KEYWORDS
 
 INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days")
 
@@ -112,11 +115,13 @@ def _check_parent(conn: sqlite3.Connection, category_id: int, parent_id: int | N
 
 
 def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
+    """Delete a row. A product goes with its batches and stock (FK cascade) and their bookings."""
     _table(table)
-    if table == "product" and conn.execute(
-        "SELECT 1 FROM stock s JOIN batch b ON b.id = s.batch_id WHERE b.product_id = ?", (row_id,)
-    ).fetchone():
-        raise InventoryError("in_use")
+    if table == "product":
+        # booking.batch_id has no FK (the log outlives stock rows), so clean it up explicitly.
+        conn.execute(
+            "DELETE FROM booking WHERE batch_id IN (SELECT id FROM batch WHERE product_id = ?)", (row_id,)
+        )
     try:
         cur = conn.execute(f"DELETE FROM {table} WHERE id = ?", (row_id,))
     except sqlite3.IntegrityError as err:
@@ -213,6 +218,17 @@ def find_ean(conn: sqlite3.Connection, ean: str) -> dict | None:
     return dict(row) if row else None
 
 
+def list_products(conn: sqlite3.Connection) -> list[dict]:
+    """All products (without the large off_json) with their packages in stock."""
+    cols = ", ".join(f"p.{c}" for c in ("id", *COLUMNS["product"]) if c != "off_json")
+    rows = conn.execute(
+        f"SELECT {cols}, coalesce(sum(s.packages), 0) AS packages FROM product p"
+        " LEFT JOIN batch b ON b.product_id = p.id LEFT JOIN stock s ON s.batch_id = b.id"
+        " GROUP BY p.id ORDER BY p.name"
+    )
+    return [dict(r) for r in rows]
+
+
 def search_products(conn: sqlite3.Connection, query: str, limit: int = 20) -> list[dict]:
     """Local products whose name, brand or EAN contains query (Unicode case-insensitive)."""
     q = query.strip().casefold()
@@ -236,6 +252,70 @@ def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
     return max(found)[1] if found else None
 
 
+# Word endings that still count as the same word ("Gurke" -> "Gurken", "Ei" -> "Eier").
+_ENDINGS = ("", "e", "n", "en", "s", "er", "es")
+_KEYWORDS = [(kw, tag) for tag, kws in KEYWORDS.items() for kw in kws]
+_MIN_SCORE = 5
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[^\W\d_]+", text.casefold())
+
+
+def keyword_score(word: str, keyword: str) -> int | None:
+    """How well a keyword matches one word of a product name; None = no match.
+
+    Longer keywords are more specific; whole word > end of a compound (the German head:
+    "Tomatensauce" is a sauce) > start of a compound. Matches inside a word do not count.
+    """
+    if word in (keyword + e for e in _ENDINGS):
+        bonus = 10
+    elif any(word.endswith(keyword + e) for e in _ENDINGS):
+        bonus = 5
+    elif word.startswith(keyword):
+        bonus = 2
+    else:
+        return None
+    return len(keyword) + bonus
+
+
+def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
+    """Category from name keywords (keywords.py). The first name word with a match decides
+    (German names put the product before the variety: "Joghurt Erdbeere", "Tomatensauce
+    Basilikum"); within it the best score wins, then the deeper category."""
+    cats = _categories(conn)
+    tag_cats: dict[str, list[int]] = {}
+    for cid, row in cats.items():
+        for tag in json.loads(row["off_tags"]):
+            tag_cats.setdefault(tag, []).append(cid)
+    for word in _words(name):
+        found = [
+            (score, len(_chain(cats, cid)), cid)
+            for kw, tag in _KEYWORDS
+            if (score := keyword_score(word, kw)) is not None and score >= _MIN_SCORE
+            for cid in tag_cats.get(tag, [])
+        ]
+        if found:
+            return max(found)[2]
+    return None
+
+
+def suggest_by_name(conn: sqlite3.Connection, name: str) -> int | None:
+    """Category of the saved product sharing the most name words (longer words weigh more)."""
+    words = {w for w in _words(name) if len(w) >= 4}
+    found = [
+        (sum(map(len, shared)), r["updated_at"], r["category_id"])
+        for r in conn.execute("SELECT name, category_id, updated_at FROM product")
+        if (shared := words & set(_words(r["name"])))
+    ]
+    return max(found)[2] if found else None
+
+
+def suggest(conn: sqlite3.Connection, tags: list[str], name: str) -> int | None:
+    """OFF tags first, then keywords in the name, then similar saved products."""
+    return suggest_category(conn, tags) or suggest_by_keywords(conn, name) or suggest_by_name(conn, name)
+
+
 def product_draft(conn: sqlite3.Connection, off: dict) -> dict:
     """Normalized OFF data (see off.normalize) -> unsaved product with suggested category."""
     amount = unit_id = None
@@ -250,7 +330,7 @@ def product_draft(conn: sqlite3.Connection, off: dict) -> dict:
         "ean": off["ean"],
         "name": off["name"],
         "brand": off["brand"],
-        "category_id": suggest_category(conn, off["off_tags"]),
+        "category_id": suggest(conn, off["off_tags"], off["name"]),
         "content_amount": amount,
         "content_unit_id": unit_id,
         "image_url": off["image_url"],
@@ -370,6 +450,12 @@ def book_in(
     _add(conn, batch_id, location_id, packages)
     _booking(conn, "in", batch_id, location_id, packages, source, user_id)
     return batch_id
+
+
+def book_in_new(conn, product: dict, packages: int, **kwargs) -> dict:
+    """Save a new product (add_product, learns OFF tags) and book it in, in one transaction."""
+    product_id = add_product(conn, product)
+    return {"product_id": product_id, "batch_id": book_in(conn, product_id, packages, **kwargs)}
 
 
 def book_out(
@@ -504,7 +590,10 @@ def _path(cats: dict, category_id: int) -> list[str]:
 
 
 def stock_list(
-    conn: sqlite3.Connection, search: str | None = None, location_id: int | None = None
+    conn: sqlite3.Connection,
+    search: str | None = None,
+    location_id: int | None = None,
+    product_id: int | None = None,
 ) -> list[dict]:
     """One row per batch and location."""
     cats = _categories(conn)
@@ -514,10 +603,15 @@ def stock_list(
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"
         " JOIN location l ON l.id = s.location_id"
     )
-    args: list = []
+    where, args = [], []
     if location_id is not None:
-        sql += " WHERE s.location_id = ?"
+        where.append("s.location_id = ?")
         args.append(location_id)
+    if product_id is not None:
+        where.append("p.id = ?")
+        args.append(product_id)
+    if where:
+        sql += " WHERE " + " AND ".join(where)
     rows = []
     for r in conn.execute(
         sql + " ORDER BY p.name, b.expires_on IS NULL, b.expires_on", args

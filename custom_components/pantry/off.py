@@ -31,12 +31,35 @@ _UNITS = {
 _QUANTITY = re.compile(
     r"(?:(\d+)\s*[x×]\s*)?(\d+(?:[.,]\d+)?)\s*(mg|kg|g|ml|cl|dl|l)\b", re.IGNORECASE
 )
+# Drained weight: "Abtropfgewicht 370 g", "égoutté: 370g", or "670g/370g" (second weight smaller).
+_DRAINED = re.compile(
+    r"(?:abtropf|égoutt|egoutt|drained)\D{0,25}?(\d+(?:[.,]\d+)?)\s*(kg|g)\b", re.IGNORECASE
+)
+_SLASH = re.compile(r"(\d+(?:[.,]\d+)?)\s*(kg|g)\s*/\s*(\d+(?:[.,]\d+)?)\s*(kg|g)\b", re.IGNORECASE)
+
+
+def _grams(number: str, unit: str) -> float:
+    return float(number.replace(",", ".")) * (1000 if unit.lower() == "kg" else 1)
+
+
+def _drained(text: object) -> tuple[float, str] | None:
+    """Drained weight in g from the free-text quantity, if it states one."""
+    if not isinstance(text, str):
+        return None
+    if m := _DRAINED.search(text):
+        return round(_grams(*m.groups()), 6), "g"
+    if (m := _SLASH.search(text)) and (d := _grams(m[3], m[4])) < _grams(m[1], m[2]):
+        return round(d, 6), "g"
+    return None
 
 
 def parse_quantity(
     amount: object, unit: object, text: object
 ) -> tuple[float, str] | None:
-    """Package content from product_quantity(+_unit), else from a string like '6 x 1,5 l'."""
+    """Package content: drained weight if stated (canned/jarred food), else product_quantity(+_unit),
+    else a string like '6 x 1,5 l'."""
+    if drained := _drained(text):
+        return drained
     try:
         value = float(amount)  # type: ignore[arg-type]
     except (TypeError, ValueError):

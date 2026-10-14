@@ -9,7 +9,7 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 - **English** for code, comments, commits, docs. **German** only in UI strings (translation files) and in chat with the user.
 - **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.
 - **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change.
-- Do not commit unless asked. Branch `main`; short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
+- Do not commit unless asked. `main` is protected (ruleset "Protect main"): changes only via PR with green CI (hassfest, hacs, tests, frontend); work on a feature branch; short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
 - Never commit dev/runtime data (`dev/config/`, `*.db`, `.env`). Check `.gitignore` when adding anything that writes files.
 
 ## Token economy (speed and cost)

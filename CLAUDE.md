@@ -35,7 +35,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, queries, shopping, removal
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, queries, shopping, removal
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   off.py                    Open Food Facts client
@@ -43,9 +43,11 @@ custom_components/pantry/   integration (Python)
   sensor.py                 expired / expiring-soon sensors (no polling)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
-  websocket.py              websocket commands for the panel
+  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
-  (planned) label.py        label rendering + network printing (print server raw, or CUPS) (Phase 8)
+  label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
+  label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
+  fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
 frontend/                   panel source (Lit + TypeScript, Vite)
   src/i18n/de.json          UI strings
   e2e/                      Playwright specs (local only)
@@ -74,6 +76,7 @@ docs/PLAN.md                architecture and roadmap
 - After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`.
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
+- **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_labels` call (the dev HA may have the real printer configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX
 

@@ -1,5 +1,5 @@
 import { apiPage, openPage, ws } from "./helpers";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const STAMP = Date.now();
 const PARENT = `E2E Weg ${STAMP}`;

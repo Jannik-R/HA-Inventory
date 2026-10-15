@@ -1,5 +1,5 @@
 import { openPage } from "./helpers";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("parent category is picked in a tree without the own subtree", async ({ page }) => {
   await openPage(page, "/pantry/settings/categories", "Einstellungen");

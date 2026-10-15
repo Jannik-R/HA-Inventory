@@ -6,6 +6,9 @@ import { formStyles } from "./styles";
 import {
   errorMessage,
   getMasterData,
+  bookOutLabel,
+  putBack,
+  type Taken,
   getStock,
   lookup,
   search,
@@ -18,10 +21,13 @@ import {
 import type { PantryScanner } from "./scanner";
 import "./scanner";
 import "./booking-form";
-import type { PantryBookingForm } from "./booking-form";
+import { doneLine, doneStyles } from "./booking-done";
+import { hitList } from "./booking-hits";
+import type { Booked, PantryBookingForm } from "./booking-form";
 
 type Mode = "in" | "out";
 const EAN = /^\d{8,14}$/;
+const LABEL = /^PTRY:/i;
 
 /** Book in / book out: one input for scanner, camera and name search, then a short form. */
 export class PantryBooking extends LitElement {
@@ -34,6 +40,7 @@ export class PantryBooking extends LitElement {
     product: { state: true },
     stock: { state: true },
     message: { state: true },
+    undo: { state: true },
     error: { state: true },
     busy: { state: true },
   };
@@ -46,6 +53,8 @@ export class PantryBooking extends LitElement {
   declare product?: Product;
   declare stock?: StockRow[];
   declare message: string;
+  /** What the last book-out took; shown with the message as undo. */
+  declare undo?: Taken[];
   declare error: string;
   declare busy: boolean;
 
@@ -73,6 +82,7 @@ export class PantryBooking extends LitElement {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
+      this.undo = undefined;
     }
     if (changed.has("hass") && this.hass && !this.md) {
       getMasterData(this.hass).then(
@@ -116,8 +126,13 @@ export class PantryBooking extends LitElement {
     if (!q || !this.hass) return;
     const hass = this.hass;
     this.message = "";
+    this.undo = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
+    if (LABEL.test(q)) {
+      if (this.mode !== "out") return void (this.error = t("book.label_out_only"));
+      return this.scanLabel(q.replace(LABEL, ""));
+    }
     if (EAN.test(q)) {
       const res = await this.run(() => lookup(hass, q));
       if (!res) return;
@@ -129,6 +144,16 @@ export class PantryBooking extends LitElement {
     if (!hits) return;
     this.hits = hits;
     if (this.mode === "out" && hits.length === 1) this.choose(hits[0] as Product);
+  }
+
+  /** A printed label books out one package of its batch (Auslagern only). */
+  private async scanLabel(code: string) {
+    this.reset();
+    const res = await this.run(() => bookOutLabel(this.hass!, code));
+    if (!res) return this.focusInput();
+    this.message = t("book.done_label", { name: res.name, where: res.location });
+    this.undo = res.taken;
+    this.focusInput();
   }
 
   private async searchOnline() {
@@ -195,50 +220,21 @@ export class PantryBooking extends LitElement {
         </button>
       </form>
       <pantry-scanner @scan=${this.scanned}></pantry-scanner>
-      ${this.message ? html`<p class="done" role="status" data-testid="message">${this.message}</p>` : nothing}
+      ${doneLine(this.message, this.undo && (() => this.putBack()))}
       ${this.error ? html`<p class="error" role="alert" data-testid="error">${this.error}</p>` : nothing}
-      ${this.hits ? this.renderHits() : nothing} ${this.renderForm()}
-    `;
-  }
-
-  private renderHits() {
-    const hits = this.hits!;
-    return html`
-      ${hits.length ? nothing : html`<p class="empty">${t("book.no_hits")}</p>`}
-      <ul>
-        ${hits.map(
-          (h) =>
-            html`<li>
-              <button class="row" data-testid="hit" @click=${() => this.pick(h)}>
-                <span>${h.name}</span>
-                <span class="detail">${[h.brand, h.ean].filter(Boolean).join(" · ")}</span>
-              </button>
-            </li>`,
-        )}
-      </ul>
       ${
-        this.mode === "in"
-          ? html`<div class="actions after">
-              ${
-                this.online
-                  ? nothing
-                  : html`<button
-                      data-testid="search-online"
-                      ?disabled=${this.busy}
-                      @click=${this.searchOnline}
-                    >
-                      ${t("book.search_online")}
-                    </button>`
-              }
-              <button
-                data-testid="new-product"
-                @click=${() => this.choose(this.blank({ name: this.query.trim() }))}
-              >
-                ${t("book.new_product")}
-              </button>
-            </div>`
+        this.hits
+          ? hitList(this.hits, {
+              more: this.mode === "in",
+              online: this.online,
+              busy: this.busy,
+              pick: (h) => this.pick(h),
+              searchOnline: () => this.searchOnline(),
+              create: () => this.choose(this.blank({ name: this.query.trim() })),
+            })
           : nothing
       }
+      ${this.renderForm()}
     `;
   }
 
@@ -257,14 +253,27 @@ export class PantryBooking extends LitElement {
     ></pantry-booking-form>`;
   }
 
-  private booked(e: CustomEvent<string>) {
+  /** Put back what the last book-out took. */
+  private async putBack() {
+    const taken = this.undo!;
+    this.undo = undefined;
+    if ((await this.run(() => putBack(this.hass!, taken))) === undefined) return;
+    this.message = t("book.undone");
+    this.focusInput();
+  }
+
+  private booked(e: CustomEvent<Booked>) {
+    const error = this.error; // a failed label print stays visible
     this.reset();
-    this.message = e.detail;
+    this.error = error;
+    this.message = e.detail.message;
+    this.undo = e.detail.taken;
     this.focusInput();
   }
 
   static styles = [
     formStyles,
+    doneStyles,
     css`
       .scan {
         display: flex;
@@ -279,9 +288,6 @@ export class PantryBooking extends LitElement {
         display: flex;
         align-items: center;
         gap: 6px;
-      }
-      .done {
-        margin: 0 0 12px;
       }
       .after {
         margin-top: 12px;

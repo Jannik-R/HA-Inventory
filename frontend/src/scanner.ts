@@ -5,7 +5,7 @@ import { t } from "./i18n";
 import { backdropClick } from "./ui";
 import { formStyles } from "./styles";
 
-const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e"] as const;
+const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e", "qr_code"] as const; // QR: our labels (PTRY:<key>:<date>)
 
 /** Native BarcodeDetector if it reads EAN, else the zxing-wasm polyfill (loaded on first use). */
 async function createDetector(): Promise<Detector> {

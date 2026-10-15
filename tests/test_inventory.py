@@ -80,6 +80,19 @@ def test_book_out_fefo_across_batches_and_locations(conn):
     assert stock(conn) == {}
 
 
+def test_put_back_undoes_book_out(conn):
+    p = product(conn)
+    a = inv.book_in(conn, p, 2, "2027-06-01", location_id=loc(conn))
+    inv.book_in(conn, p, 1, "2027-01-01", location_id=loc(conn, "Vorratsschrank"))
+    before = stock(conn)
+    inv.put_back(conn, inv.book_out(conn, p, 2))  # spans both batches; b is gone meanwhile
+    assert stock(conn) == before
+    kinds = [r[0] for r in conn.execute("SELECT kind FROM booking ORDER BY id")]
+    assert kinds == ["in", "in", "out", "out", "in", "in"]
+    with pytest.raises(ValueError):
+        inv.put_back(conn, [{"batch_id": a, "location_id": loc(conn), "packages": 0}])
+
+
 def test_not_enough_stock_changes_nothing(conn):
     p = product(conn)
     inv.book_in(conn, p, 2, "2027-01-01", location_id=loc(conn))

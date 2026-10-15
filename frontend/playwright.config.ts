@@ -1,4 +1,15 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
+
+// Specs must use `test` from e2e/fixtures.ts: it blocks label printing (the dev HA may have the
+// real printer configured). Refuse to run when a spec imports @playwright/test directly.
+const unguarded = readdirSync("e2e").filter(
+  (f) => f.endsWith(".spec.ts") && readFileSync(`e2e/${f}`, "utf8").includes('"@playwright/test"'),
+);
+if (unguarded.length)
+  throw new Error(
+    `Import test from ./fixtures (blocks printing), not @playwright/test: ${unguarded}`,
+  );
 
 // Local only (see docs/PLAN.md 5a): runs against the dev HA, which needs no login from localhost.
 export default defineConfig({

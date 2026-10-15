@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (phases 0–7 done: booking, stock and products, expiry view, sensors, minimum stock and shopping list; next: labels). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (phases 0–8 done: booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels; now: services and first release). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -16,6 +16,7 @@ Available:
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a network label printer (Dymo LabelWriter 450 behind a USB print server) or through the browser; scan a label to book out
+- Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 
 Planned:
@@ -143,6 +144,41 @@ button on every batch row in *Bestand* opens a dialog to print any number of lab
 - **Scan to book out**: type or scan a label (scanner or camera) into the input of *Einbuchen* or
   *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
   booking out. Labels are not single-use: they name the batch, not one package.
+
+### Services (automations)
+
+All three return a response (use `response_variable` in a script or automation). Errors (unknown
+barcode, unknown location, not enough stock, printer not reachable) make the action fail with a message.
+
+| Service | Fields | Response |
+|---|---|---|
+| `pantry.book_in` | `code` (EAN of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
+| `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
+| `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 99, default 1) | `printed` |
+
+- **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
+  A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
+- **print_labels** needs a network label printer (see *Etiketten*); with *Kein Netzwerkdrucker* it fails,
+  since a service has no browser to print from.
+- Location names are matched ignoring case. Bookings made by a service are logged with source `service`
+  (label codes: `label`) and the calling user, if any.
+
+Example: book in with a scanner that sends the barcode as an event, then print one label per package:
+
+```yaml
+actions:
+  - action: pantry.book_in
+    data:
+      code: "{{ trigger.event.data.code }}"
+      packages: 2
+      expires_on: "2027-01-31"
+      location: Kühlschrank
+    response_variable: booked
+  - action: pantry.print_labels
+    data:
+      batch_id: "{{ booked.batch_id }}"
+      count: 2
+```
 
 ### Settings (Einstellungen)
 

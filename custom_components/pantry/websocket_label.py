@@ -7,7 +7,7 @@ from functools import partial
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from . import inventory, label
 from .const import CONF_LABEL_HEIGHT, CONF_LABEL_WIDTH, CONF_PRINT_ON_BOOK_IN, DOMAIN
@@ -52,22 +52,30 @@ async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
 )
 @websocket_api.async_response
 async def ws_print_labels(hass: HomeAssistant, connection, msg: dict) -> None:
-    """`count` identical labels for a batch: printed, or one image the browser repeats `count` times."""
+    """Print, or return the image for the browser (see async_print_labels)."""
+    connection.send_result(msg["id"], await async_print_labels(hass, msg["batch_id"], msg["count"]))
+
+
+async def async_print_labels(
+    hass: HomeAssistant, batch_id: int, count: int, browser: bool = True
+) -> dict:
+    """`count` identical labels for a batch: printed, or one image the browser repeats `count` times.
+
+    browser=False (services): a browser-only setup raises instead of returning an image."""
     cfg = _config(hass)
-    info = await _run(hass, inventory.label_info, msg["batch_id"])
     w, h, model = cfg["width_mm"], cfg["height_mm"], cfg["model"]
+    if not model.network and not browser:
+        raise ServiceValidationError(translation_domain=DOMAIN, translation_key="no_label_printer")
+    info = await _run(hass, inventory.label_info, batch_id)
     if model.network and not cfg["printer"]:
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="printer_unreachable")
     image = await hass.async_add_executor_job(label.render, info, w, h, model.bottom_reserve_mm)
     if cfg["printer"]:
-        data = await hass.async_add_executor_job(model.encode, [image] * msg["count"])
+        data = await hass.async_add_executor_job(model.encode, [image] * count)
         await label.send(cfg["printer"], data, model.port)
-        connection.send_result(msg["id"], {"printed": msg["count"]})
-    else:
-        (url,) = await hass.async_add_executor_job(label.png_data_urls, [image])
-        connection.send_result(
-            msg["id"], {"image": url, "count": msg["count"], "width_mm": w, "height_mm": h}
-        )
+        return {"printed": count}
+    (url,) = await hass.async_add_executor_job(label.png_data_urls, [image])
+    return {"image": url, "count": count, "width_mm": w, "height_mm": h}
 
 
 @websocket_api.websocket_command(

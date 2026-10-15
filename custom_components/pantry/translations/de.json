@@ -70,6 +70,15 @@
     },
     "printer_unreachable": {
       "message": "Der Drucker ist nicht erreichbar."
+    },
+    "product_unknown": {
+      "message": "Kein Produkt mit dem Barcode {code}. Neue Produkte einmal im Vorrat-Panel einbuchen."
+    },
+    "location_unknown": {
+      "message": "Kein Lagerort namens „{name}“."
+    },
+    "no_label_printer": {
+      "message": "Kein Netzwerk-Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren)."
     }
   },
   "options": {
@@ -100,6 +109,62 @@
     "error": {
       "host_required": "Bitte den Host des Druckers eingeben.",
       "printer_unreachable": "Der Drucker ist nicht erreichbar."
+    }
+  },
+  "services": {
+    "book_in": {
+      "name": "Einbuchen",
+      "description": "Packungen eines bekannten Produkts per Barcode einbuchen. Gibt batch_id zurück (für Etiketten drucken).",
+      "fields": {
+        "code": {
+          "name": "Barcode",
+          "description": "EAN eines Produkts, das schon im Vorrat angelegt ist."
+        },
+        "packages": {
+          "name": "Packungen",
+          "description": "Anzahl der Packungen."
+        },
+        "expires_on": {
+          "name": "Ablaufdatum",
+          "description": "MHD / Verbrauchsdatum; leer bei Produkten ohne Datum."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Name des Lagerorts; leer = Standard-Lagerort des Produkts."
+        }
+      }
+    },
+    "book_out": {
+      "name": "Auslagern",
+      "description": "Packungen per Barcode auslagern (früheste Ablaufzeit zuerst) oder per gescanntem Etikett (PTRY:…, eine Packung dieser Charge).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN oder Etikett-Code PTRY:…"
+        },
+        "packages": {
+          "name": "Packungen",
+          "description": "Anzahl der Packungen (Etikett-Code: 1)."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Nur aus diesem Lagerort (nicht mit Etikett-Code)."
+        }
+      }
+    },
+    "print_labels": {
+      "name": "Etiketten drucken",
+      "description": "Etiketten einer Charge auf dem Netzwerk-Etikettendrucker drucken.",
+      "fields": {
+        "batch_id": {
+          "name": "Charge",
+          "description": "batch_id aus der Antwort von Einbuchen."
+        },
+        "count": {
+          "name": "Anzahl",
+          "description": "Anzahl gleicher Etiketten."
+        }
+      }
     }
   },
   "selector": {

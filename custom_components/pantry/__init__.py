@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from . import websocket, websocket_label
+from . import services, websocket, websocket_label
 from .const import DOMAIN, PANEL_URL
 from .db import Database
 
@@ -21,12 +21,13 @@ PLATFORMS = [Platform.SENSOR, Platform.TODO]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Serve the panel bundle and register websocket commands (both global, once per HA start)."""
+    """Serve the panel bundle, register websocket commands and services (global, once per HA start)."""
     await hass.http.async_register_static_paths(
         [StaticPathConfig(PANEL_URL, str(Path(__file__).parent / "www"), False)]
     )
     websocket.async_register(hass)
     websocket_label.async_register(hass)
+    services.async_register(hass)
     return True
 
 

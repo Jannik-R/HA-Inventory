@@ -9,7 +9,7 @@ Everything runs inside the HA process; UI is a sidebar panel.
 HA sidebar panel (Lit web component, one bundled JS file)
         │  hass.callWS(...)
         ▼
-websocket.py ── services (planned, Phase 9) ── LLM API tools (later)
+websocket.py ── services.py ── LLM API tools (later)
         │                │                        │
         └────────────────┴──── inventory/ ────────┘   ← all business logic, one place
                                    │
@@ -36,7 +36,7 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 | Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
 | Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only | the kitchen phone may use a non-admin account |
-| Automations | HA services (`pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, ...; planned, Phase 9) | scanners/NFC/ESPHome can call them |
+| Automations | HA services `pantry.book_in` / `pantry.book_out` (by EAN or label code + location name, `inventory/codes.py`) and `pantry.print_labels` (network printer only), all with a response; unknown EANs fail (new products need a category: panel only, no OFF call from automations) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
 | Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → committed `www/` (main file + lazy chunks with hashed names); panel URL `?v=<bundle mtime>` busts the browser cache on every build | HACS needs built file |
 | UI components | own small Lit components styled with HA theme CSS vars; **no** internal `ha-*` elements | internal elements are not public API and break on HA updates |
@@ -297,7 +297,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 7 | Min stock | done | migration 4 (`min_stock_unit_id`: the minimum keeps its unit; `min_packages`; `shopping_done`), both minimums in the category dialog, *Einkauf* tab, todo entity *Einkaufsliste*; items by hand (migration 5 `shopping_item`, panel dialog with search and create, todo create/delete); deleting master data in use (`delete_impact` = dry run of the delete in a savepoint, diff of all tables, rolled back: lists every row deleted or changed; `force_delete` cascades or clears references, a location's stock moves or is booked out) |
 | 8 | Labels | done | `inventory/labels.py` (`label_info`, `book_out_code`: one package of the batch the code names; no schema change), `label.py` (QR + text with Pillow/segno, Dymo stream, raw TCP send), options flow in two steps (printer model via `label_printers.py`, then host, size, print on book-in, test print), confirm before printing more than 2 labels, `websocket_label.py`, panel: print on book-in, reprint dialog per batch row, scan `PTRY:` to book out, browser print when no printer. CUPS/IPP not built |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
-| 9 | Release | open | services, README, HACS release |
+| 9 | Release | in progress | services (done), README, `release` skill, HACS release |
 
 ## 7. Extension points (not built now)
 

@@ -107,6 +107,23 @@ def test_move(conn):
     assert stock(conn) == {(b, loc(conn)): 1, (b, loc(conn, "Vorratsschrank")): 1}
 
 
+def test_edit_stock_date_count_and_merge(conn):
+    p, fridge, shelf = product(conn), loc(conn), loc(conn, "Vorratsschrank")
+    wrong = inv.book_in(conn, p, 2, "2072-01-01", location_id=fridge)
+    inv.book_in(conn, p, 1, "2072-01-01", location_id=shelf)
+    right = inv.book_in(conn, p, 1, "2027-01-01", location_id=fridge)
+    # Date fix at one location: merges into the existing batch there, other location keeps its batch.
+    assert inv.edit_stock(conn, wrong, fridge, "2027-01-01", 2) == right
+    assert stock(conn) == {(wrong, shelf): 1, (right, fridge): 3}
+    # Same batch: only the count changes.
+    assert inv.edit_stock(conn, right, fridge, "2027-01-01", 1) == right
+    assert stock(conn) == {(wrong, shelf): 1, (right, fridge): 1}
+    with pytest.raises(inv.InventoryError, match="not_found"):
+        inv.edit_stock(conn, wrong, fridge, None, 1)  # row is gone
+    with pytest.raises(inv.InventoryError, match="invalid_date"):
+        inv.edit_stock(conn, right, fridge, "2027-13-01", 1)
+
+
 def test_effective_sources(conn):
     milk = cat(conn, "Milch")
     dairy = cat(conn, "Milchprodukte & Eier")
@@ -175,7 +192,12 @@ def test_delete_product_removes_stock_batches_and_bookings(conn):
     count = lambda sql: conn.execute(sql).fetchone()[0]  # noqa: E731
     assert count("SELECT count(*) FROM batch") == 1
     assert count("SELECT count(*) FROM stock") == 1
-    assert count("SELECT count(*) FROM booking WHERE batch_id NOT IN (SELECT id FROM batch)") == 0
+    assert (
+        count(
+            "SELECT count(*) FROM booking WHERE batch_id NOT IN (SELECT id FROM batch)"
+        )
+        == 0
+    )
     assert count("SELECT count(*) FROM booking") == 1
     with pytest.raises(inv.InventoryError, match="not_found"):
         inv.delete(conn, "product", p)
@@ -214,13 +236,19 @@ def test_stock_list_product_filter(conn):
     inv.book_in(conn, a, 1, location_id=loc(conn))
     inv.book_in(conn, b, 1, location_id=loc(conn))
     assert [r["product_id"] for r in inv.stock_list(conn, product_id=b)] == [b]
-    assert inv.stock_list(conn, product_id=b, location_id=loc(conn, "Vorratsschrank")) == []
+    assert (
+        inv.stock_list(conn, product_id=b, location_id=loc(conn, "Vorratsschrank"))
+        == []
+    )
 
 
 def test_seed_gives_every_category_a_location(conn):
     md = inv.master_data(conn)
     names = {loc["id"]: loc["name"] for loc in md["locations"]}
-    where = {c["name"]: names.get(c["effective"]["default_location_id"]["value"]) for c in md["categories"]}
+    where = {
+        c["name"]: names.get(c["effective"]["default_location_id"]["value"])
+        for c in md["categories"]
+    }
     assert None not in where.values()
     assert (where["Gemüse"], where["Obst"], where["Nudeln"], where["Eis"]) == (
         "Kühlschrank",
@@ -228,3 +256,31 @@ def test_seed_gives_every_category_a_location(conn):
         "Vorratsschrank",
         "Gefrierschrank",
     )
+
+
+def test_migration_2_merges_batches_by_date_only():
+    """Batches that differed only by date type become one; stock summed, bookings repointed."""
+    c = db.connect(":memory:")
+    c.executescript(f"BEGIN;{db.MIGRATIONS[0]}PRAGMA user_version=1;COMMIT;")
+    c.executescript(
+        """
+        INSERT INTO location (id, name) VALUES (1, 'L1');
+        INSERT INTO category (id, name) VALUES (1, 'C1');
+        INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'P', 1, 'x');
+        INSERT INTO batch (id, product_id, expires_on, expiry_type, created_at) VALUES
+            (1, 1, '2027-01-01', 'best_before', 'a'), (2, 1, '2027-01-01', 'use_by', 'b'),
+            (3, 1, NULL, 'best_before', 'c');
+        INSERT INTO stock VALUES (1, 1, 2), (2, 1, 3), (3, 1, 1);
+        INSERT INTO booking (ts, kind, batch_id, location_id, packages, source)
+            VALUES ('t', 'in', 2, 1, 3, 'test');
+        """
+    )
+    db.migrate(c)
+    assert [tuple(r) for r in c.execute("SELECT id, expires_on FROM batch ORDER BY id")] == [
+        (1, "2027-01-01"),
+        (3, None),
+    ]
+    assert stock(c) == {(1, 1): 5, (3, 1): 1}
+    assert c.execute("SELECT batch_id FROM booking").fetchone()[0] == 1
+    assert "expiry_type" not in [r[1] for r in c.execute("PRAGMA table_info(batch)")]
+    assert c.execute("PRAGMA foreign_key_check").fetchall() == []

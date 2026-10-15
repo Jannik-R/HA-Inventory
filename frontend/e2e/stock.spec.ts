@@ -73,6 +73,15 @@ test("overview groups by category, searches and filters by location", async ({ p
   await expect(batches).toHaveCount(1);
   await expect(page.getByTestId("stock-undo")).toHaveCount(0);
 
+  // Fix a batch: other date and count.
+  await batches.first().getByTestId("batch-edit").click();
+  await expect(page.locator("pantry-batch-dialog dialog > form > h2")).toContainText(NAME);
+  await page.getByTestId("batch-expires").fill("2098-01-01");
+  await page.getByTestId("batch-packages").fill("4");
+  await page.getByTestId("save").click();
+  await expect(product).toContainText("4 Pkg.");
+  await expect(batches.first()).toContainText("2098");
+
   // Without search, the tree starts closed and opens level by level.
   await filter.fill("");
   await page.getByTestId("stock-location").selectOption("");
@@ -83,4 +92,19 @@ test("overview groups by category, searches and filters by location", async ({ p
   await expect(mine).toHaveAttribute("aria-expanded", "false");
   await mine.click();
   await expect(mine).toHaveAttribute("aria-expanded", "true");
+
+  // Without stock the product is hidden, unless the checkbox asks for it; then its row opens the edit dialog.
+  await filter.fill(NAME);
+  for (let n = 2; n > 0; n--) {
+    await batches.first().getByTestId("batch-edit").click();
+    await page.getByTestId("batch-packages").fill("0");
+    await page.getByTestId("save").click();
+    await expect(batches).toHaveCount(n - 1);
+  }
+  await expect(product).toHaveCount(0);
+  await page.getByTestId("stock-with-empty").check();
+  await expect(product).toContainText("0 Pkg.");
+  await product.click();
+  await expect(page.locator("pantry-product-dialog dialog > form > h2")).toContainText(NAME);
+  await page.keyboard.press("Escape");
 });

@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, formStyles, toggled } from "./ui";
+import { chevron, formStyles, rowActions, toggled } from "./ui";
 import {
+  deleteProduct,
   errorMessage,
   getMasterData,
   getStock,
@@ -14,8 +15,13 @@ import {
 import { expiryStatus, groupStock, type Item } from "./stock-data";
 import { fmtDate } from "./format";
 import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
+import type { PantryProductDialog } from "./product-dialog";
+import type { PantryBatchDialog } from "./batch-dialog";
+import { stockFilterStyles, stockFilters } from "./stock-filters";
+import "./product-dialog";
+import "./batch-dialog";
 
-/** Stock overview: category › product › batch/location, with search and location filter. */
+/** Stock and products: category › product › batch/location, search, location filter, edit/delete. */
 export class PantryStock extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -23,6 +29,7 @@ export class PantryStock extends LitElement {
     stock: { state: true },
     filter: { state: true },
     location: { state: true },
+    withEmpty: { state: true },
     open: { state: true },
     error: { state: true },
     undo: { state: true },
@@ -33,6 +40,8 @@ export class PantryStock extends LitElement {
   declare stock?: StockRow[];
   declare filter: string;
   declare location: number | null;
+  /** Also products without stock (to edit them); off by default. */
+  declare withEmpty: boolean;
   declare open: Set<string>;
   declare error: string;
   declare undo?: Taken;
@@ -42,6 +51,7 @@ export class PantryStock extends LitElement {
     super();
     this.filter = "";
     this.location = null;
+    this.withEmpty = false;
     this.open = new Set();
     this.error = "";
   }
@@ -52,13 +62,8 @@ export class PantryStock extends LitElement {
 
   private async load() {
     try {
-      const [md, stock, products] = await Promise.all([
-        getMasterData(this.hass!),
-        getStock(this.hass!),
-        listProducts(this.hass!),
-      ]);
-      this.products = new Map(products.map((p) => [p.id!, p]));
-      [this.md, this.stock] = [md, stock];
+      this.md = await getMasterData(this.hass!);
+      await this.reload();
       await this.updateComplete;
       // Scanner types into the search field.
       this.renderRoot.querySelector<HTMLInputElement>(".filter")?.focus();
@@ -67,24 +72,42 @@ export class PantryStock extends LitElement {
     }
   }
 
-  /** Category tree (only branches with visible stock) with its products as leaves. */
+  /** Stock and products again, after a change. */
+  private reload = async () => {
+    const [stock, products] = await Promise.all([getStock(this.hass!), listProducts(this.hass!)]);
+    this.products = new Map(products.map((p) => [p.id!, p]));
+    this.stock = stock;
+  };
+
+  /** Category tree (only branches with visible products) with its products as leaves. */
   private tree(searching: boolean) {
     const cats = this.md?.categories ?? [];
-    const items = groupStock(this.stock ?? [], this.filter, this.location);
-    const total = new Map<number, number>();
-    const sum = (id: number): number => {
-      const n =
-        (items.get(id) ?? []).reduce((n, i) => n + i.packages, 0) +
-        cats.filter((c) => c.parent_id === id).reduce((n, c) => n + sum(c.id), 0);
-      total.set(id, n);
-      return n;
+    const items = groupStock(
+      this.stock ?? [],
+      this.filter,
+      this.location,
+      this.withEmpty ? this.products.values() : [],
+      this.md,
+    );
+    // [packages, visible products] per category subtree.
+    const total = new Map<number, [number, number]>();
+    const sum = (id: number): [number, number] => {
+      let [n, k] = [0, 0];
+      for (const i of items.get(id) ?? []) [n, k] = [n + i.packages, k + 1];
+      for (const c of cats.filter((x) => x.parent_id === id)) {
+        const [cn, ck] = sum(c.id);
+        [n, k] = [n + cn, k + ck];
+      }
+      total.set(id, [n, k]);
+      return [n, k];
     };
     const rows: unknown[] = [];
     const walk = (parent: number | null, depth: number) => {
       for (const c of cats.filter((x) => x.parent_id === parent)) {
-        if (!(total.get(c.id) ?? sum(c.id))) continue;
+        const [packages, visible] = total.get(c.id) ?? sum(c.id);
+        if (!visible) continue;
         const open = searching || this.open.has(`c${c.id}`);
-        rows.push(this.renderCategory(c.id, c.name, total.get(c.id)!, depth, open));
+        rows.push(this.renderCategory(c.id, c.name, packages, depth, open));
         if (!open) continue;
         walk(c.id, depth + 1);
         for (const i of items.get(c.id) ?? [])
@@ -127,55 +150,74 @@ export class PantryStock extends LitElement {
     if (!this.stock) return nothing;
     const rows = this.tree(this.filter.trim() !== "");
     return html`
-      <div class="filters">
-        <input
-          class="filter"
-          type="search"
-          data-testid="stock-filter"
-          aria-label=${t("stock.search_hint")}
-          placeholder=${t("stock.search")}
-          .value=${this.filter}
-          @input=${(e: Event) => (this.filter = (e.target as HTMLInputElement).value)}
-        />
-        <select
-          data-testid="stock-location"
-          aria-label=${t("stock.location")}
-          @change=${(e: Event) => (this.location = Number((e.target as HTMLSelectElement).value) || null)}
-        >
-          <option value="" ?selected=${this.location == null}>${t("stock.all_locations")}</option>
-          ${(this.md?.locations ?? []).map((l) => html`<option value=${l.id} ?selected=${l.id === this.location}>${l.name}</option>`)}
-        </select>
-      </div>
-      ${undoLine(this, "stock")}
+      ${stockFilters(this)} ${undoLine(this, "stock")}
       ${
-        !this.stock.length
-          ? html`<p class="empty">${t("stock.empty")}</p>`
-          : rows.length
-            ? html`<ul>
-                ${rows}
-              </ul>`
-            : html`<p class="empty">${t("book.no_hits")}</p>`
+        rows.length
+          ? html`<ul>
+              ${rows}
+            </ul>`
+          : html`<p class="empty">
+              ${t(this.stock.length || this.filter.trim() ? "book.no_hits" : "stock.empty")}
+            </p>`
       }
+      <pantry-product-dialog
+        .hass=${this.hass}
+        .md=${this.md}
+        @pantry-saved=${this.reload}
+      ></pantry-product-dialog>
+      <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.reload}></pantry-batch-dialog>
     `;
+  }
+
+  private editProduct(id: number) {
+    this.renderRoot
+      .querySelector<PantryProductDialog>("pantry-product-dialog")!
+      .open(this.products.get(id)!, [...this.products.values()]);
+  }
+
+  private async deleteProduct(p: Item) {
+    const ask = p.packages
+      ? t("products.confirm_delete_stock", { name: p.name, n: p.packages })
+      : t("common.confirm_delete", { name: p.name });
+    if (!confirm(ask)) return;
+    try {
+      await deleteProduct(this.hass!, p.id);
+      this.undo = undefined; // its batches are gone
+      await this.reload();
+    } catch (err) {
+      this.error = await errorMessage(this.hass!, err);
+    }
+  }
+
+  private editBatch(b: StockRow) {
+    this.renderRoot.querySelector<PantryBatchDialog>("pantry-batch-dialog")!.open(b);
   }
 
   private renderItem(p: Item, depth: number, expanded: boolean) {
     const first = p.batches[0];
+    // Without stock there is nothing to open: the row edits the product (list rule).
+    const onRow = first ? () => this.toggle(`p${p.id}`) : () => this.editProduct(p.id);
     return html`<li class="item" style="padding-left:${depth * 24}px">
       <div class="head">
-        ${chevron(expanded, () => this.toggle(`p${p.id}`))}
+        ${first ? chevron(expanded, onRow) : html`<span class="chev"></span>`}
         <button
           class="row"
           data-testid="stock-product"
-          aria-expanded=${expanded}
-          @click=${() => this.toggle(`p${p.id}`)}
+          aria-expanded=${first ? expanded : nothing}
+          @click=${onRow}
         >
           <span>${p.name}</span>
           <span class="detail">
-            ${[p.brand, t("book.count", { n: p.packages })].filter(Boolean).join(" · ")} ·
-            <span class=${this.status(first)}>${this.date(first)}</span>
+            ${[p.brand, t("book.count", { n: p.packages })].filter(Boolean).join(" · ")}
+            ${first ? html` · <span class=${this.status(first)}>${this.date(first)}</span>` : nothing}
           </span>
         </button>
+        ${rowActions({
+          testid: "product",
+          name: p.name,
+          onEdit: () => this.editProduct(p.id),
+          onDelete: this.hass?.user?.is_admin ? () => this.deleteProduct(p) : undefined,
+        })}
       </div>
       ${
         expanded
@@ -187,6 +229,11 @@ export class PantryStock extends LitElement {
                     <span class="detail">${b.location}</span>
                     <span class="count">${t("book.count", { n: b.packages })}</span>
                     ${outButton(this, p.name, b, "stock-batch-out")}
+                    ${rowActions({
+                      testid: "batch",
+                      name: `${p.name}, ${this.date(b)}`,
+                      onEdit: () => this.editBatch(b),
+                    })}
                   </li>`,
               )}
             </ul>`
@@ -198,13 +245,8 @@ export class PantryStock extends LitElement {
   static styles = [
     formStyles,
     takeOutStyles,
+    stockFilterStyles,
     css`
-      .filters {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
       li.item {
         flex-direction: column;
         align-items: stretch;

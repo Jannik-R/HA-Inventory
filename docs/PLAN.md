@@ -65,7 +65,8 @@ product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package
             default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
             image_url, off_json, updated_at)
-batch      (id, product_id, expires_on DATE, expiry_type 'best_before'|'use_by', created_at)
+batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
+           -- date type is a product property (own or inherited), never per batch (migration 2)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
 label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)   -- added in Phase 8 migration
 booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id, location_id,
@@ -155,7 +156,7 @@ Global defaults (integration options): warn 7 days, best-before, unit Stück.
 
 **Book in**: one input (scanner types into it, camera button next to it, or typed name)
 → local `product` lookup → else OFF lookup → else manual form. Unknown product: choose
-category (suggested from OFF categories). Then: expiry date (+ type, default inherited),
+category (suggested from OFF categories). Then: expiry date (its type comes from the product/category),
 packages, location (default inherited / last used). "Print labels" toggle (default from options)
 → one label per package, printed immediately.
 
@@ -165,7 +166,8 @@ packages, location (default inherited / last used). "Print labels" toggle (defau
   location = only one / last used. Override possible.
 
 **Overview**: grouped by category tree → product → batch/location; search (name, brand,
-EAN, category, location); location filter.
+EAN, category, location); location filter. Also the product page: edit/delete on product rows,
+take out and fix (date, count) on batch rows; products without stock via an opt-in checkbox.
 
 **Expiring**: sorted by date; threshold = effective `warn_days` per product, plus a view-wide
 override field (session only, not saved). Expired listed first.
@@ -233,6 +235,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 4 | Booking UI | book in/out, keyboard scanner field, camera scanner. Required fix: click beside a dialog must close it (code was there, browsers kept the old cached bundle: panel URL now busts the cache with the bundle mtime) |
 | 5 | Overview + search | stock list, filters (category tree with products as leaves, take out one package per batch with undo; all filtering in the panel: one `pantry/stock` call, data size of a household) |
 | 6 | Expiry | expiry view with temporary threshold (all in the panel from `pantry/stock`, like Phase 5), sensors expired / expiring soon (packages, batches as attribute; `DataUpdateCoordinator` without polling: `Database.run` sends a dispatcher signal after any write, plus a refresh at midnight) |
+| 6a | Stock + products | "Produkte" tab merged into "Bestand": product rows get edit/delete, batch rows an edit dialog (`inventory.edit_stock`: date and count of one batch at one location, date type stays a product property; another date moves the packages to that batch, logged as two corrections); products without stock only via an opt-in checkbox |
 | 7 | Min stock | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity |
 | 8 | Labels | `label.py`, IPP printing, options, scan-to-consume |
 | 9 | Release | services, README, HACS release |

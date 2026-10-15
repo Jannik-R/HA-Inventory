@@ -39,8 +39,9 @@ test("booking form validates while typing", async ({ page }) => {
 });
 
 test("product dialog validates the EAN", async ({ page }) => {
-  await openPage(page, "/pantry/products", "Produkte");
-  await page.getByTestId("product").first().click();
+  await openPage(page, "/pantry/stock", "Bestand");
+  await page.getByTestId("stock-filter").fill("e"); // opens the tree down to the products
+  await page.getByTestId("product-edit").first().click();
   await page.getByTestId("ean").fill("123");
   await expect(page.getByTestId("ean-error")).toBeVisible();
   await expect(page.getByTestId("save")).toBeDisabled();

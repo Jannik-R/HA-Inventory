@@ -68,19 +68,20 @@ test("book a new product in and out again", async ({ page }) => {
   await page.getByTestId("submit").click();
   await expect(page.getByTestId("message")).toContainText(`1 × ${NAME}`);
 
-  // Product page: edit a property.
-  await openTab(page, "Produkte");
-  await page.getByTestId("product-filter").fill(NAME);
-  await expect(page.getByTestId("product")).toContainText("4 Pkg.");
+  // Stock page: edit a property of the product.
+  await openTab(page, "Bestand");
+  await page.getByTestId("stock-filter").fill(NAME);
+  const product = page.getByTestId("stock-product");
+  await expect(product).toContainText("4 Pkg.");
   await page.getByTestId("product-edit").click();
   // Safety: only ever edit or delete the test's own product.
-  await expect(page.locator("pantry-products dialog > form > h2")).toHaveText(
+  await expect(page.locator("pantry-product-dialog dialog > form > h2")).toHaveText(
     `„${NAME}“ bearbeiten`,
   );
   await page.getByTestId("brand").fill("E2E Marke");
   await page.getByTestId("warn-days").fill("4");
   await page.getByTestId("save").click();
-  await expect(page.getByTestId("product")).toContainText("E2E Marke");
+  await expect(product).toContainText("E2E Marke");
 
   await openTab(page, "Auslagern");
   await code.fill(NAME);
@@ -91,12 +92,12 @@ test("book a new product in and out again", async ({ page }) => {
   await expect(page.getByTestId("message")).toContainText(`2 × ${NAME}`);
 
   // Admin deletes the product with its remaining stock.
-  await openTab(page, "Produkte");
-  await page.getByTestId("product-filter").fill(NAME);
+  await openTab(page, "Bestand");
+  await page.getByTestId("stock-filter").fill(NAME);
   // Delete icon in the list, only on the row with the test's own product name.
-  const row = page.locator("pantry-products li").filter({ hasText: NAME });
+  const row = page.locator("pantry-stock li.item").filter({ hasText: NAME });
   await expect(row).toHaveCount(1);
   page.once("dialog", (d) => d.accept());
   await row.getByTestId("product-delete").click();
-  await expect(page.getByTestId("product")).toHaveCount(0);
+  await expect(product).toHaveCount(0);
 });

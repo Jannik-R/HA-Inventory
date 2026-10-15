@@ -194,3 +194,29 @@ async def test_products_list_and_edit(ws, hass_admin_user) -> None:
     msg = await ws.call({"type": "pantry/product_save", "data": {"id": pid, "bogus": 1}})
     assert msg["error"]["code"] == "invalid_format"
 
+
+
+async def test_stock_edit(ws, hass_admin_user) -> None:
+    hass_admin_user.groups = []  # any user may fix stock, like booking
+    md = await master(ws)
+    cat_id = by_name(md["categories"], "Nudeln")["id"]
+    loc_id = by_name(md["locations"], "Kühlschrank")["id"]
+    res = await ws.call(
+        {
+            "type": "pantry/book_in",
+            "product": {"name": "Penne", "category_id": cat_id},
+            "packages": 2,
+            "expires_on": "2072-01-01",
+            "location_id": loc_id,
+        }
+    )
+    pid, batch = res["result"]["product_id"], res["result"]["batch_id"]
+    edit = {"type": "pantry/stock_edit", "batch_id": batch, "location_id": loc_id}
+    msg = await ws.call({**edit, "expires_on": "2027-01-01", "packages": 3})
+    assert msg["result"]["batch_id"] != batch
+    rows = (await ws.call({"type": "pantry/stock", "product_id": pid}))["result"]
+    assert [(r["expires_on"], r["expiry_type"], r["packages"]) for r in rows] == [
+        ("2027-01-01", "best_before", 3)  # the product's type, inherited
+    ]
+    msg = await ws.call({**edit, "expires_on": None, "packages": 1})
+    assert msg["error"]["translation_key"] == "not_found"

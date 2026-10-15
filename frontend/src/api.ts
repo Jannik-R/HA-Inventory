@@ -56,6 +56,8 @@ export interface Category {
   expiry_type: "best_before" | "use_by" | null;
   warn_days: number | null;
   min_stock: number | null;
+  min_stock_unit_id: number | null;
+  min_packages: number | null;
   effective: Record<InheritField, { value: number | string | null; source: Source }>;
 }
 export interface MasterData {
@@ -72,8 +74,27 @@ export const saveRow = (hass: Hass, table: Table, data: Record<string, unknown>)
   hass.callWS<{ id: number }>({ type: "pantry/save", table, data });
 export const saveDefaults = (hass: Hass, data: MasterData["defaults"]) =>
   hass.callWS<unknown>({ type: "pantry/defaults_save", data });
-export const deleteRow = (hass: Hass, table: Table, row_id: number) =>
-  hass.callWS<unknown>({ type: "pantry/delete", table, row_id });
+/** `force`: also delete what uses the row (see getDeleteImpact); `move_to`: target for a location's stock. */
+export const deleteRow = (
+  hass: Hass,
+  table: Table | "product",
+  row_id: number,
+  opts: { force?: boolean; move_to?: number | null } = {},
+) => hass.callWS<unknown>({ type: "pantry/delete", table, row_id, ...opts });
+export interface DeleteGroup {
+  /** "<delete|change>.<table>" */
+  kind: string;
+  count: number;
+  /** Distinct, sorted; empty for rows without a name (bookings). */
+  names: string[];
+  packages?: number;
+}
+export const getDeleteImpact = (hass: Hass, table: Table | "product", row_id: number) =>
+  hass.callWS<{ blocked: string | null; groups: DeleteGroup[] }>({
+    type: "pantry/delete_impact",
+    table,
+    row_id,
+  });
 
 /** A saved product (has id) or an unsaved Open Food Facts draft (no id). */
 export interface Product {
@@ -143,7 +164,47 @@ export const editStock = (
 export const getStock = (hass: Hass, product_id?: number) =>
   hass.callWS<StockRow[]>({ type: "pantry/stock", product_id });
 export const listProducts = (hass: Hass) => hass.callWS<Product[]>({ type: "pantry/products" });
-export const deleteProduct = (hass: Hass, row_id: number) =>
-  hass.callWS<unknown>({ type: "pantry/delete", table: "product", row_id });
 export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "pantry/product_save", data });
+
+export interface ShoppingItem {
+  /** Set for items added by hand (`manual`); min stock shortages have none. */
+  id: number | null;
+  manual: boolean;
+  product_id: number | null;
+  brand: string | null;
+  category_id: number;
+  name: string;
+  /** Category names from the main category down to this one. */
+  path: string[];
+  amount: {
+    missing: number;
+    unit_id: number;
+    unit_symbol: string;
+    unknown_products: number;
+  } | null;
+  packages: number | null;
+  /** Minimums below are counted already: the rest is "any of this category". */
+  any_of_subtree: boolean;
+  done: boolean;
+}
+export const getShopping = (hass: Hass) => hass.callWS<ShoppingItem[]>({ type: "pantry/shopping" });
+export const setShoppingDone = (hass: Hass, category_id: number, done: boolean) =>
+  hass.callWS<unknown>({ type: "pantry/shopping_done", category_id, done });
+export const addShopping = (
+  hass: Hass,
+  data: {
+    packages: number;
+    product_id?: number;
+    category_id?: number;
+    product?: Product;
+    category?: { name: string; parent_id: number | null };
+  },
+) => hass.callWS<{ id: number }>({ type: "pantry/shopping_add", ...data });
+export const updateShoppingItem = (
+  hass: Hass,
+  item_id: number,
+  data: { packages?: number; done?: boolean },
+) => hass.callWS<unknown>({ type: "pantry/shopping_item", item_id, ...data });
+export const deleteShoppingItem = (hass: Hass, item_id: number) =>
+  hass.callWS<unknown>({ type: "pantry/shopping_item_delete", item_id });

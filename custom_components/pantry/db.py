@@ -213,6 +213,59 @@ MIGRATIONS: list[str] = [
     INSERT INTO defaults (id, unit_id, expiry_type, warn_days)
         SELECT 1, id, 'best_before', 7 FROM unit ORDER BY is_count DESC, id LIMIT 1;
     """,
+    # 4: min stock keeps its own unit (an inherited unit changing higher up silently changed its
+    # meaning), plus a minimum package count. Existing minimums get the unit they had in effect.
+    # shopping_done: checked shopping items; `missing` is the shortage when checked, so the item
+    # comes back once its shortage changes.
+    """
+    CREATE TEMP TABLE min_unit AS
+        WITH RECURSIVE up(cid, parent_id, unit_id) AS (
+            SELECT id, parent_id, unit_id FROM category WHERE min_stock IS NOT NULL
+            UNION ALL
+            SELECT up.cid, c.parent_id, c.unit_id FROM up JOIN category c ON c.id = up.parent_id
+                WHERE up.unit_id IS NULL
+        )
+        SELECT cid, COALESCE(MAX(unit_id), (SELECT unit_id FROM defaults WHERE id = 1)) AS unit_id
+        FROM up GROUP BY cid;
+    CREATE TABLE category_new (
+        id INTEGER PRIMARY KEY,
+        parent_id INTEGER REFERENCES category(id) ON DELETE RESTRICT,
+        name TEXT NOT NULL,
+        sort INTEGER NOT NULL DEFAULT 0,
+        unit_id INTEGER REFERENCES unit(id),
+        default_location_id INTEGER REFERENCES location(id),
+        expiry_type TEXT CHECK (expiry_type IN ('best_before', 'use_by')),
+        warn_days INTEGER CHECK (warn_days >= 0),
+        min_stock REAL CHECK (min_stock > 0),
+        min_stock_unit_id INTEGER REFERENCES unit(id),
+        min_packages INTEGER CHECK (min_packages > 0),
+        UNIQUE (parent_id, name),
+        CHECK ((min_stock IS NULL) = (min_stock_unit_id IS NULL))
+    );
+    INSERT INTO category_new SELECT c.id, c.parent_id, c.name, c.sort, c.unit_id,
+        c.default_location_id, c.expiry_type, c.warn_days, c.min_stock, m.unit_id, NULL
+        FROM category c LEFT JOIN min_unit m ON m.cid = c.id;
+    DROP TABLE min_unit;
+    DROP TABLE category;
+    ALTER TABLE category_new RENAME TO category;
+    CREATE TABLE shopping_done (
+        category_id INTEGER PRIMARY KEY REFERENCES category(id) ON DELETE CASCADE,
+        missing TEXT NOT NULL
+    );
+    """,
+    # 5: items put on the shopping list by hand: a product or a whole category (any of it).
+    # Adding the same again adds to the packages (see inventory.add_shopping_item).
+    """
+    CREATE TABLE shopping_item (
+        id INTEGER PRIMARY KEY,
+        product_id INTEGER UNIQUE REFERENCES product(id) ON DELETE CASCADE,
+        category_id INTEGER UNIQUE REFERENCES category(id) ON DELETE CASCADE,
+        packages INTEGER NOT NULL DEFAULT 1 CHECK (packages > 0),
+        done INTEGER NOT NULL DEFAULT 0 CHECK (done IN (0, 1)),
+        created_at TEXT NOT NULL,
+        CHECK ((product_id IS NULL) <> (category_id IS NULL))
+    );
+    """,
 ]
 
 

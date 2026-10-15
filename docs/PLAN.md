@@ -19,7 +19,7 @@ websocket.py ── services (planned, Phase 9) ── LLM API tools (later)
               label.py (planned, Phase 8: render label, raw to a network print server or IPP to CUPS)
               receipt.py (planned: ESC/POS receipt printer, see 4a)
 
-Entities: sensor (expired / expiring soon; below-min in Phase 7), todo (shopping list, Phase 7)
+Entities: sensor (expired / expiring soon), todo (shopping list; its state = open items, so no extra below-min sensor)
 ```
 
 Rule: **every** entry point (panel, services, automations, future AI tools) calls
@@ -63,8 +63,8 @@ defaults   (id = 1, unit_id → unit, default_location_id NULL → location, exp
            -- one row: root of inheritance, editable in Einstellungen › Standards
 category   (id, parent_id NULL → category, name, sort,
             unit_id, default_location_id, expiry_type, warn_days,   -- inheritable, NULL = inherit
-            min_stock NULL,                                          -- amount in the node's unit; NOT inherited, see below
-            min_packages NULL)                                       -- package count (> 0); NOT inherited; added in Phase 7 migration
+            min_stock NULL, min_stock_unit_id NULL → unit,           -- amount with its own unit (both or none, CHECK); NOT inherited
+            min_packages NULL)                                       -- package count (> 0); NOT inherited (migration 4)
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
             default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
@@ -72,6 +72,9 @@ product    (id, ean UNIQUE NULL, name, brand, category_id → category,
 batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
            -- date type is a product property (own or inherited), never per batch (migration 2)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
+shopping_done (category_id PK → category (cascade), missing)   -- checked shopping item + its shortage then
+shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL → category,   -- added by hand,
+            packages > 0, done 0|1, created_at)   -- exactly one of product / category (CHECK); both cascade
 label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)   -- added in Phase 8 migration
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
 category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
@@ -92,7 +95,7 @@ Products attach to any node, normally the leaf.
   The API returns each effective value with its source (`own` | category id | `default`);
   the UI renders inherited values in secondary text color with "von <Kategorie>".
 - **Min stock** is set on any node and counts its **whole subtree**. Two independent minimums
-  per node, each optional: an **amount** (`min_stock`, in the node's effective unit, e.g. 500 g)
+  per node, each optional: an **amount** (`min_stock` in its own `min_stock_unit_id`, e.g. 500 g; a new amount starts in the node's effective unit and keeps its unit when that changes)
   and a **package count** (`min_packages`, e.g. 3 Packungen, any content). A node may have one,
   both or none; levels are independent and may mix freely, e.g. *Spaghetti* 3 Packungen,
   *Nudeln* 1 kg **and** 2 Packungen, *Reis* 500 g, *Nudeln, Reis & Getreide* 2 kg.
@@ -179,7 +182,13 @@ take out and fix (date, count) on batch rows; products without stock via an opt-
 override field (session only, not saved). Expired listed first.
 
 **Min stock / shopping list**: every category node below its `min_stock` and/or `min_packages`
-→ todo item "Nudeln – 1,5 kg fehlen" / "Spaghetti – 2 Packungen fehlen" / both in one item. Recomputed on every booking. Checked items stay hidden until stock changes.
+→ todo item "Nudeln – 1,5 kg fehlen" / "Spaghetti – 2 Packungen fehlen" / both in one item. Recomputed on every booking. A check is stored with the item's shortage (`shopping_done`); the item counts as done while that shortage stays the same, so it comes back when it changes. Panel and todo entity share it. The panel shows the list as the category tree: only rows with something to buy get a checkbox, checked ones are struck through in place.
+**Items by hand** (`shopping_item`): a product or a category ("any of it") with a package count; adding
+the same again adds packages (a checked one starts again). The panel searches local products and
+categories and can create a new product (any user) or category (admin) in the same transaction.
+Todo entity: create = exact name of a product, else a category (no creation from free text: a
+product needs a category); update = check mark only; delete = items by hand only (min stock items
+come from the stock). Todo uids: `c<category id>` (min stock), `m<item id>` (by hand).
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
@@ -282,7 +291,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 6 | Expiry | done | expiry view with temporary threshold (all in the panel from `pantry/stock`, like Phase 5), sensors expired / expiring soon (packages, batches as attribute; `DataUpdateCoordinator` without polling: `Database.run` sends a dispatcher signal after any write, plus a refresh at midnight) |
 | 6a | Stock + products | done | "Produkte" tab merged into "Bestand": product rows get edit/delete, batch rows an edit dialog (`inventory.edit_stock`: date and count of one batch at one location, date type stays a product property; another date moves the packages to that batch, logged as two corrections); products without stock only via an opt-in checkbox |
 | 6b | Maintenance | done | migration 3 (OFF tags normalized, CHECKs, location deactivation + booking FKs, `defaults` table editable in settings), styled confirm dialog, Prettier + i18n check in CI, skills `db-migration` and `feature-checklist` |
-| 7 | Min stock | open | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity. `min_stock` is in the node's **inherited** unit: when that unit changes higher up, the number silently changes meaning (2 kg → 2 Packungen). Fix here: store the unit with the minimum (`min_stock_unit_id`) or warn/convert when the effective unit changes |
+| 7 | Min stock | done | migration 4 (`min_stock_unit_id`: the minimum keeps its unit; `min_packages`; `shopping_done`), both minimums in the category dialog, *Einkauf* tab, todo entity *Einkaufsliste*; items by hand (migration 5 `shopping_item`, panel dialog with search and create, todo create/delete); deleting master data in use (`delete_impact` = dry run of the delete in a savepoint, diff of all tables, rolled back: lists every row deleted or changed; `force_delete` cascades or clears references, a location's stock moves or is booked out) |
 | 8 | Labels | open | `label.py`, raw printing via TP-Link print server (Dymo raster), CUPS/IPP fallback, options, scan-to-consume |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
 | 9 | Release | open | services, README, HACS release |
@@ -299,7 +308,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | Recipe import | websites: schema.org `Recipe` JSON-LD; Instagram etc.: caption text → LLM parse |
 | Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
 | Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |
-| Move a whole location | "Umlagern": move all stock of a location to another one in one step (today: per batch via `inventory.move`, no UI yet; a location with stock cannot be deactivated). Needed before deactivating a full location; UI = target select in the delete question |
+| Move a whole location | done as part of deleting a location (the delete question offers a target, `inventory.force_delete`); a separate "Umlagern" action for a location that stays is still open |
 | Partially used packages | `stock.packages` → REAL or separate `opened` amount; not needed yet |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

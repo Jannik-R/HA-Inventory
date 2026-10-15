@@ -230,3 +230,53 @@ async def test_defaults_save(ws, hass_admin_user) -> None:
     hass_admin_user.groups = []
     msg = await ws.call({"type": "pantry/defaults_save", "data": dflt})
     assert msg["error"]["code"] == "unauthorized"
+
+
+async def test_shopping(ws, hass_admin_user) -> None:
+    md = await master(ws)
+    cat_id = by_name(md["categories"], "Nudeln")["id"]
+    kg = by_name(md["units"], "kg")["id"]
+    save = {"type": "pantry/save", "table": "category"}
+    msg = await ws.call({**save, "data": {"id": cat_id, "min_stock": 1}})
+    assert not msg["success"]  # amount without its unit
+    msg = await ws.call({**save, "data": {"id": cat_id, "min_stock": 1, "min_stock_unit_id": kg}})
+    assert msg["success"]
+    items = [i for i in (await ws.call({"type": "pantry/shopping"}))["result"] if not i["manual"]]
+    assert [(i["name"], i["amount"]["missing"], i["done"]) for i in items] == [("Nudeln", 1, False)]
+    hass_admin_user.groups = []  # any user may check items
+    msg = await ws.call({"type": "pantry/shopping_done", "category_id": cat_id, "done": True})
+    assert msg["success"]
+    assert (await ws.call({"type": "pantry/shopping"}))["result"][0]["done"]
+
+
+async def test_shopping_add(ws, hass_admin_user) -> None:
+    md = await master(ws)
+    cat_id = by_name(md["categories"], "Nudeln")["id"]
+    add = {"type": "pantry/shopping_add"}
+    msg = await ws.call({**add, "category": {"name": "WS Neu"}, "packages": 2})
+    item_id = msg["result"]["id"]
+    msg = await ws.call({**add, "category_id": cat_id, "product_id": 1})
+    assert not msg["success"]  # one thing only
+    hass_admin_user.groups = []  # any user: existing things and new products
+    msg = await ws.call({**add, "category": {"name": "WS Neu 2"}})
+    assert msg["error"]["code"] == "unauthorized"
+    msg = await ws.call({**add, "product": {"name": "WS Penne", "category_id": cat_id}})
+    assert msg["success"]
+    await ws.call({"type": "pantry/shopping_item", "item_id": item_id, "packages": 4})
+    items = (await ws.call({"type": "pantry/shopping"}))["result"]
+    assert by_name(items, "WS Neu")["packages"] == 4
+    msg = await ws.call({"type": "pantry/shopping_item_delete", "item_id": item_id})
+    assert msg["success"]
+
+
+async def test_delete_impact_and_force(ws, hass_admin_user) -> None:
+    msg = await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "WS Weg"}})
+    parent = msg["result"]["id"]
+    await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "WS Kind", "parent_id": parent}})
+    delete = {"type": "pantry/delete", "table": "category", "row_id": parent}
+    assert (await ws.call(delete))["error"]["translation_key"] == "in_use"
+    impact = (await ws.call({"type": "pantry/delete_impact", "table": "category", "row_id": parent}))["result"]
+    assert impact == {
+        "blocked": None, "groups": [{"kind": "delete.category", "count": 1, "names": ["WS Kind"]}]
+    }  # fmt: skip
+    assert (await ws.call({**delete, "force": True}))["success"]

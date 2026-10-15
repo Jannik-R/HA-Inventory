@@ -114,12 +114,12 @@ def _db(hass: HomeAssistant):
 
 
 @contextmanager
-def _translated() -> Iterator[None]:
-    """InventoryError -> HomeAssistantError with translation."""
+def _translated(cls: type[HomeAssistantError] = HomeAssistantError) -> Iterator[None]:
+    """InventoryError -> HomeAssistantError (services: ServiceValidationError) with translation."""
     try:
         yield
     except InventoryError as err:
-        raise HomeAssistantError(
+        raise cls(
             translation_domain=DOMAIN,
             translation_key=err.translation_key,
             translation_placeholders={k: str(v) for k, v in err.placeholders.items()},

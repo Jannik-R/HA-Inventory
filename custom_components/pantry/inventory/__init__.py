@@ -4,6 +4,7 @@ Callers use `inventory.<name>`; the submodules are an implementation detail.
 """
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
+from .codes import book_in_by_code, book_out_by_code
 from .common import COLUMNS, INHERITED, InventoryError
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info
@@ -29,8 +30,10 @@ __all__ = [
     "add_shopping_by_name",
     "add_shopping_item",
     "book_in",
+    "book_in_by_code",
     "book_in_new",
     "book_out",
+    "book_out_by_code",
     "book_out_code",
     "correct",
     "defaults",

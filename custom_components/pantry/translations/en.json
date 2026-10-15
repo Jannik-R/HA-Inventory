@@ -70,6 +70,15 @@
     },
     "printer_unreachable": {
       "message": "The printer is not reachable."
+    },
+    "product_unknown": {
+      "message": "No product with barcode {code}. Book new products in once in the Pantry panel."
+    },
+    "location_unknown": {
+      "message": "No storage location named “{name}”."
+    },
+    "no_label_printer": {
+      "message": "No network label printer is configured (Settings › Devices & services › Pantry › Configure)."
     }
   },
   "options": {
@@ -100,6 +109,62 @@
     "error": {
       "host_required": "Please enter the printer host.",
       "printer_unreachable": "The printer is not reachable."
+    }
+  },
+  "services": {
+    "book_in": {
+      "name": "Book in",
+      "description": "Book packages of a known product in by its barcode. Returns batch_id (for print_labels).",
+      "fields": {
+        "code": {
+          "name": "Barcode",
+          "description": "EAN of a product already in the pantry."
+        },
+        "packages": {
+          "name": "Packages",
+          "description": "Number of packages."
+        },
+        "expires_on": {
+          "name": "Expiry date",
+          "description": "Best-before / use-by date; empty for products without one."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Name of the location; empty = the product's default location."
+        }
+      }
+    },
+    "book_out": {
+      "name": "Book out",
+      "description": "Take packages out by barcode (earliest expiry first) or by a scanned label code (PTRY:…, one package of that batch).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN or label code PTRY:…"
+        },
+        "packages": {
+          "name": "Packages",
+          "description": "Number of packages (label code: 1)."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Only from this location (not with a label code)."
+        }
+      }
+    },
+    "print_labels": {
+      "name": "Print labels",
+      "description": "Print labels of a batch on the network label printer.",
+      "fields": {
+        "batch_id": {
+          "name": "Batch",
+          "description": "batch_id from the book_in response."
+        },
+        "count": {
+          "name": "Count",
+          "description": "Number of identical labels."
+        }
+      }
     }
   },
   "selector": {

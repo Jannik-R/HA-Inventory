@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import sqlite3
 
-from .common import COLUMNS, InventoryError, _now
-from .inherit import _categories, _resolve, defaults
+from .common import COLUMNS, INHERITED, InventoryError, _now
+from .inherit import _categories, _resolve, category_tags, defaults, set_tags
 
 
 def _table(table: str) -> tuple[str, ...]:
@@ -24,8 +23,9 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         raise ValueError("no data")
     if unknown := set(data) - set(cols):
         raise ValueError(f"unknown columns for {table}: {sorted(unknown)}")
-    if isinstance(data.get("off_tags"), list):
-        data["off_tags"] = json.dumps(data["off_tags"])
+    tags = data.pop("off_tags", None)  # stored in off_tag / category_off_tag
+    if tags is not None and not (isinstance(tags, list) and all(isinstance(x, str) for x in tags)):
+        raise ValueError("off_tags must be a list of strings")
     if "name" in data:
         if not isinstance(data["name"], str) or not data["name"].strip():
             raise InventoryError("invalid_value")
@@ -38,23 +38,60 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         data["updated_at"] = _now()
     if row_id is None and "sort" in cols and "sort" not in data:  # new rows go last
         data["sort"] = conn.execute(f"SELECT coalesce(max(sort), 0) + 1 FROM {table}").fetchone()[0]
+    if table == "location" and row_id is None and (old := _inactive_location(conn, data)):
+        row_id = old  # adding a deactivated name brings that location back
+        data["active"] = 1
     names = list(data)
     try:
         if row_id is None:
-            cur = conn.execute(
+            row_id = conn.execute(
                 f"INSERT INTO {table} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})",
                 list(data.values()),
-            )
-            return cur.lastrowid
-        cur = conn.execute(
+            ).lastrowid
+        elif names and not conn.execute(
             f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
             [*data.values(), row_id],
-        )
+        ).rowcount:
+            raise InventoryError("not_found")
     except sqlite3.IntegrityError as err:
         raise InventoryError("duplicate" if "UNIQUE" in str(err) else "invalid_value") from err
-    if not cur.rowcount:
-        raise InventoryError("not_found")
+    if tags is not None:
+        if table != "category":
+            raise ValueError("off_tags only for categories")
+        set_tags(conn, row_id, tags)
     return row_id
+
+
+def _inactive_location(conn: sqlite3.Connection, data: dict) -> int | None:
+    row = conn.execute(
+        "SELECT id FROM location WHERE name = ? AND NOT active", (data.get("name"),)
+    ).fetchone()
+    return row["id"] if row else None
+
+
+def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
+    """Change the integration-wide defaults (root of inheritance); all four are given."""
+    if set(data) != set(INHERITED):
+        raise ValueError(f"defaults need exactly {INHERITED}")
+    if data["unit_id"] is None or data["expiry_type"] is None or data["warn_days"] is None:
+        raise InventoryError("invalid_value")
+    if data["default_location_id"] is not None:
+        _active_location(conn, data["default_location_id"])
+    try:
+        conn.execute(
+            f"INSERT INTO defaults (id, {', '.join(INHERITED)}) VALUES (1, ?, ?, ?, ?)"
+            f" ON CONFLICT (id) DO UPDATE SET {', '.join(f'{k} = excluded.{k}' for k in INHERITED)}",
+            [data[k] for k in INHERITED],
+        )
+    except sqlite3.IntegrityError as err:
+        raise InventoryError("invalid_value") from err
+
+
+def _active_location(conn: sqlite3.Connection, location_id: int) -> None:
+    if not conn.execute(
+        "SELECT 1 FROM location WHERE id = ? AND active", (location_id,)
+    ).fetchone():
+        raise InventoryError("not_found")
 
 
 def _check_unit(conn: sqlite3.Connection, unit_id: int | None, data: dict) -> None:
@@ -82,13 +119,12 @@ def _check_parent(conn: sqlite3.Connection, category_id: int, parent_id: int | N
 
 
 def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
-    """Delete a row. A product goes with its batches and stock (FK cascade) and their bookings."""
+    """Delete a row. A product goes with its batches, stock and bookings (FK cascade).
+    A location is only deactivated (bookings keep referring to it); it must be empty."""
     _table(table)
-    if table == "product":
-        # booking.batch_id has no FK (the log outlives stock rows), so clean it up explicitly.
-        conn.execute(
-            "DELETE FROM booking WHERE batch_id IN (SELECT id FROM batch WHERE product_id = ?)", (row_id,)
-        )
+    if table == "location":
+        _deactivate_location(conn, row_id)
+        return
     try:
         cur = conn.execute(f"DELETE FROM {table} WHERE id = ?", (row_id,))
     except sqlite3.IntegrityError as err:
@@ -97,14 +133,27 @@ def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
         raise InventoryError("not_found")
 
 
+def _deactivate_location(conn: sqlite3.Connection, location_id: int) -> None:
+    """Hide a location everywhere; defaults pointing to it fall back to inheritance."""
+    _active_location(conn, location_id)
+    if conn.execute("SELECT 1 FROM stock WHERE location_id = ?", (location_id,)).fetchone():
+        raise InventoryError("location_has_stock")
+    conn.execute("UPDATE location SET active = 0 WHERE id = ?", (location_id,))
+    for table in ("category", "product", "defaults"):
+        conn.execute(
+            f"UPDATE {table} SET default_location_id = NULL WHERE default_location_id = ?",
+            (location_id,),
+        )
+
+
 def master_data(conn: sqlite3.Connection) -> dict:
-    """Units, locations and categories (with effective values) for the settings view."""
-    cats, dflt = _categories(conn), defaults(conn)
+    """Units, active locations and categories (with effective values) for the settings view."""
+    cats, dflt, tags = _categories(conn), defaults(conn), category_tags(conn)
     return {
         "units": list_rows(conn, "unit"),
         "locations": list_rows(conn, "location"),
         "categories": [
-            {**c, "off_tags": json.loads(c["off_tags"]), "effective": _resolve(cats, None, c["id"], dflt)}
+            {**c, "off_tags": tags.get(c["id"], []), "effective": _resolve(cats, None, c["id"], dflt)}
             for c in list_rows(conn, "category")
         ],
         "defaults": dflt,
@@ -114,4 +163,5 @@ def master_data(conn: sqlite3.Connection) -> dict:
 def list_rows(conn: sqlite3.Connection, table: str) -> list[dict]:
     _table(table)
     order = "sort, id" if table in ("location", "category") else "id"
-    return [dict(r) for r in conn.execute(f"SELECT * FROM {table} ORDER BY {order}")]
+    where = " WHERE active" if table == "location" else ""
+    return [dict(r) for r in conn.execute(f"SELECT * FROM {table}{where} ORDER BY {order}")]

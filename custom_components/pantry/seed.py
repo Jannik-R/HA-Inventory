@@ -1,7 +1,8 @@
 """Language-specific seed data (units, locations, categories). Data only."""
 
-import json
 import sqlite3
+
+from .inventory.inherit import set_tags
 
 # Category: (name, off_tags, defaults, [(sub-category, off_tags[, location]), ...]).
 # defaults keys: warn_days, expiry_type, location, unit (names resolved at seed time).
@@ -169,7 +170,7 @@ SEED = {
 
 
 def seed(conn: sqlite3.Connection, lang: str) -> None:
-    """Insert units, locations and categories; the caller commits."""
+    """Insert units, defaults, locations and categories; the caller commits."""
     data = SEED[lang]
     units: dict[str, int] = {}
     for name, symbol, base, factor, is_count in data["units"]:
@@ -177,6 +178,11 @@ def seed(conn: sqlite3.Connection, lang: str) -> None:
             "INSERT INTO unit (name, symbol, base_unit_id, factor, is_count) VALUES (?, ?, ?, ?, ?)",
             (name, symbol, units.get(base), factor, is_count),
         ).lastrowid
+    # Root of inheritance: counted in packages, best before, warn 7 days (editable in the settings).
+    conn.execute(
+        "INSERT INTO defaults (id, unit_id, expiry_type, warn_days)"
+        " SELECT 1, id, 'best_before', 7 FROM unit ORDER BY is_count DESC, id LIMIT 1"
+    )
     locations: dict[str, int] = {}
     for i, name in enumerate(data["locations"]):
         locations[name] = conn.execute(
@@ -184,21 +190,21 @@ def seed(conn: sqlite3.Connection, lang: str) -> None:
         ).lastrowid
     for i, (name, tags, dflt, children) in enumerate(data["categories"]):
         parent = conn.execute(
-            "INSERT INTO category (name, sort, off_tags, unit_id, default_location_id,"
-            " expiry_type, warn_days) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO category (name, sort, unit_id, default_location_id,"
+            " expiry_type, warn_days) VALUES (?, ?, ?, ?, ?, ?)",
             (
                 name,
                 i,
-                json.dumps(tags),
                 units.get(dflt.get("unit")),
                 locations.get(dflt.get("location")),
                 dflt.get("expiry_type"),
                 dflt.get("warn_days"),
             ),
         ).lastrowid
+        set_tags(conn, parent, tags)
         for j, (child, child_tags, *location) in enumerate(children):
-            conn.execute(
-                "INSERT INTO category (parent_id, name, sort, off_tags, default_location_id)"
-                " VALUES (?, ?, ?, ?, ?)",
-                (parent, child, j, json.dumps(child_tags), locations.get(next(iter(location), None))),
-            )
+            child_id = conn.execute(
+                "INSERT INTO category (parent_id, name, sort, default_location_id) VALUES (?, ?, ?, ?)",
+                (parent, child, j, locations.get(next(iter(location), None))),
+            ).lastrowid
+            set_tags(conn, child_id, child_tags)

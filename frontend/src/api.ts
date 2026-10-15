@@ -70,6 +70,8 @@ export const getMasterData = (hass: Hass) =>
   hass.callWS<MasterData>({ type: "pantry/master_data" });
 export const saveRow = (hass: Hass, table: Table, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "pantry/save", table, data });
+export const saveDefaults = (hass: Hass, data: MasterData["defaults"]) =>
+  hass.callWS<unknown>({ type: "pantry/defaults_save", data });
 export const deleteRow = (hass: Hass, table: Table, row_id: number) =>
   hass.callWS<unknown>({ type: "pantry/delete", table, row_id });
 

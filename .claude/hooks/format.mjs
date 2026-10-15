@@ -8,7 +8,7 @@ const file = JSON.parse(input).tool_input?.file_path ?? "";
 
 if (file.endsWith(".py")) {
   spawnSync("python", ["-m", "ruff", "format", "--quiet", file]);
-} else if (/[\\/]frontend[\\/]src[\\/].*\.(ts|json|css)$/.test(file)) {
+} else if (/[\\/]frontend[\\/](src|e2e)[\\/].*\.(ts|json|css)$/.test(file)) {
   const prettier = `${process.env.CLAUDE_PROJECT_DIR ?? "."}/frontend/node_modules/prettier/bin/prettier.cjs`;
   if (existsSync(prettier)) spawnSync("node", [prettier, "--write", "--log-level", "silent", file]);
 }

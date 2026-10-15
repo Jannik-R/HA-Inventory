@@ -17,6 +17,9 @@
     }
   },
   "exceptions": {
+    "location_has_stock": {
+      "message": "The location still holds stock. Move or take it out first."
+    },
     "not_loaded": {
       "message": "The pantry integration is not loaded."
     },

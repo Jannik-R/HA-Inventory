@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { mdiBarcodeScan } from "@mdi/js";
 import { t } from "./i18n";
-import { formStyles, icon } from "./ui";
+import { icon } from "./ui";
+import { formStyles } from "./styles";
 import {
   errorMessage,
   getMasterData,
@@ -196,8 +197,7 @@ export class PantryBooking extends LitElement {
       <pantry-scanner @scan=${this.scanned}></pantry-scanner>
       ${this.message ? html`<p class="done" role="status" data-testid="message">${this.message}</p>` : nothing}
       ${this.error ? html`<p class="error" role="alert" data-testid="error">${this.error}</p>` : nothing}
-      ${this.hits ? this.renderHits() : nothing}
-      ${this.renderForm()}
+      ${this.hits ? this.renderHits() : nothing} ${this.renderForm()}
     `;
   }
 

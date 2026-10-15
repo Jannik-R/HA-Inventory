@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.pantry import inventory as inv
 from custom_components.pantry import off
 from custom_components.pantry.db import Database
+from custom_components.pantry.inventory.inherit import category_tags
 
 from .test_inventory import cat, product
 
@@ -105,7 +106,11 @@ def test_suggest_by_keywords(conn, name, category):
 
 def test_suggest_falls_back_to_similar_names(conn):
     assert inv.suggest(conn, [], "Viva las tapas") is None
-    inv.save(conn, "product", {"name": "Tapas Mix", "category_id": cat(conn, "Fertiggerichte")})
+    inv.save(
+        conn,
+        "product",
+        {"name": "Tapas Mix", "category_id": cat(conn, "Fertiggerichte")},
+    )
     assert inv.suggest(conn, [], "Viva las tapas") == cat(conn, "Fertiggerichte")
     # OFF tags and keywords come first.
     assert inv.suggest(conn, ["en:pastas"], "Tapas") == cat(conn, "Nudeln")
@@ -130,9 +135,7 @@ def test_add_product_learns_tag(conn):
     inv.add_product(conn, data)
     assert inv.suggest_category(conn, raw["categories_tags"]) == cat(conn, "Gemüse")
     # A matching product does not add tags.
-    before = conn.execute(
-        "SELECT off_tags FROM category WHERE name = 'Nudeln'"
-    ).fetchone()[0]
+    before = category_tags(conn)
     inv.add_product(
         conn,
         {
@@ -141,12 +144,7 @@ def test_add_product_learns_tag(conn):
             "off_json": json.dumps(SPAGHETTI),
         },
     )
-    assert (
-        conn.execute("SELECT off_tags FROM category WHERE name = 'Nudeln'").fetchone()[
-            0
-        ]
-        == before
-    )
+    assert category_tags(conn) == before
 
 
 def test_search_products(conn):

@@ -1,11 +1,13 @@
 """Inventory logic on an in-memory database (seed included), no HA needed."""
 
+import sqlite3
 from datetime import date
 
 import pytest
 
 from custom_components.pantry import db
 from custom_components.pantry import inventory as inv
+from custom_components.pantry.inventory.inherit import category_tags
 
 
 def cat(conn, name):
@@ -284,3 +286,70 @@ def test_migration_2_merges_batches_by_date_only():
     assert c.execute("SELECT batch_id FROM booking").fetchone()[0] == 1
     assert "expiry_type" not in [r[1] for r in c.execute("PRAGMA table_info(batch)")]
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
+def test_migration_3_normalizes_and_cleans_up():
+    """OFF tags move to their own tables (each tag once), bad rows are fixed, defaults filled."""
+    c = db.connect(":memory:")
+    c.executescript(f"BEGIN;{db.MIGRATIONS[0]}{db.MIGRATIONS[1]}PRAGMA user_version=2;COMMIT;")
+    c.executescript(
+        """
+        INSERT INTO unit (id, name, symbol, is_count) VALUES (1, 'Gramm', 'g', 0), (2, 'Packung', 'Pkg.', 5);
+        INSERT INTO location (id, name) VALUES (1, 'L1');
+        INSERT INTO category (id, name, off_tags) VALUES (1, 'A', '["en:x", "en:y"]'), (2, 'B', '["en:y"]');
+        INSERT INTO product (id, name, category_id, content_amount, updated_at) VALUES (1, 'P', 1, 500, 'x');
+        INSERT INTO batch (id, product_id, created_at) VALUES (1, 1, 'x');
+        INSERT INTO booking (ts, kind, batch_id, location_id, packages, source) VALUES
+            ('t', 'in', 1, 1, 1, 's'), ('t', 'in', 1, 9, 1, 's'), ('t', 'in', 7, 1, 1, 's');
+        """
+    )
+    db.migrate(c)
+    assert c.execute("SELECT COUNT(*) FROM off_tag").fetchone()[0] == 2  # en:y only once
+    assert category_tags(c) == {1: ["en:x", "en:y"], 2: ["en:y"]}
+    assert tuple(c.execute("SELECT is_count FROM unit WHERE id = 2").fetchone()) == (1,)
+    assert tuple(c.execute("SELECT content_amount, content_unit_id FROM product").fetchone()) == (None, None)
+    # Booking of an unknown batch is gone, an unknown location is cleared.
+    assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
+    assert inv.defaults(c) == {
+        "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7
+    }  # fmt: skip
+    with pytest.raises(sqlite3.IntegrityError):
+        c.execute("UPDATE unit SET is_count = 2")
+
+
+def test_tags_are_shared_and_replaced(conn):
+    a, b = cat(conn, "Nudeln"), cat(conn, "Reis")
+    inv.save(conn, "category", {"id": a, "off_tags": ["en:test-tag"]})
+    inv.save(conn, "category", {"id": b, "off_tags": ["en:test-tag", "en:other"]})
+    count = "SELECT COUNT(*) FROM off_tag WHERE tag = 'en:test-tag'"
+    assert conn.execute(count).fetchone()[0] == 1
+    assert category_tags(conn)[a] == ["en:test-tag"]
+
+
+def test_location_is_deactivated_not_deleted(conn):
+    fridge, p = loc(conn), product(conn)
+    inv.save(conn, "category", {"id": cat(conn, "Nudeln"), "default_location_id": fridge})
+    b = inv.book_in(conn, p, 1, "2027-01-01", location_id=fridge)
+    with pytest.raises(inv.InventoryError, match="location_has_stock"):
+        inv.delete(conn, "location", fridge)
+    inv.book_out(conn, p, 1)
+    inv.delete(conn, "location", fridge)
+    md = inv.master_data(conn)
+    assert fridge not in [x["id"] for x in md["locations"]]
+    assert next(c for c in md["categories"] if c["name"] == "Nudeln")["default_location_id"] is None
+    assert conn.execute("SELECT COUNT(*) FROM booking WHERE location_id = ?", (fridge,)).fetchone()[0] == 2
+    with pytest.raises(inv.InventoryError, match="not_found"):
+        inv.book_in(conn, p, 1, location_id=fridge)
+    # Adding the name again brings the same location back.
+    assert inv.save(conn, "location", {"name": "Kühlschrank"}) == fridge
+    assert inv.book_in(conn, p, 1, "2027-01-01", location_id=fridge) == b
+
+
+def test_defaults_are_editable(conn):
+    old = inv.defaults(conn)
+    with pytest.raises(inv.InventoryError, match="invalid_value"):
+        inv.save_defaults(conn, {**old, "warn_days": None})
+    inv.save_defaults(conn, {**old, "warn_days": 3})
+    assert inv.defaults(conn)["warn_days"] == 3
+    top = inv.save(conn, "category", {"name": "Ohne Werte"})
+    assert inv.effective(conn, category_id=top)["warn_days"] == {"value": 3, "source": "default"}

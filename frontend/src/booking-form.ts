@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg, formStyles, plausibleDate, todayIso } from "./ui";
+import { fieldMsg, plausibleDate, todayIso } from "./ui";
+import { formStyles } from "./styles";
 import { bookIn, bookOut, type Hass, type MasterData, type Product, type StockRow } from "./api";
 import { categoryDefault, categoryPath, inheritSelect, type Dflt } from "./inherit";
 import { productErrors, productFields, productSummary, type Errors } from "./product-fields";

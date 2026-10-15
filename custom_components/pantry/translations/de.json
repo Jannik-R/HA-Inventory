@@ -17,6 +17,9 @@
     }
   },
   "exceptions": {
+    "location_has_stock": {
+      "message": "Am Lagerort liegt noch Bestand. Bitte zuerst umlagern oder auslagern."
+    },
     "not_loaded": {
       "message": "Die Vorrat-Integration ist nicht geladen."
     },

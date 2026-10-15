@@ -97,7 +97,8 @@ test("book a new product in and out again", async ({ page }) => {
   // Delete icon in the list, only on the row with the test's own product name.
   const row = page.locator("pantry-stock li.item").filter({ hasText: NAME });
   await expect(row).toHaveCount(1);
-  page.once("dialog", (d) => d.accept());
   await row.getByTestId("product-delete").click();
+  await expect(page.locator("pantry-confirm h2")).toHaveText(`„${NAME}“ löschen?`);
+  await page.getByTestId("confirm-ok").click();
   await expect(product).toHaveCount(0);
 });

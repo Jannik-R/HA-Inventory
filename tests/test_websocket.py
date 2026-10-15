@@ -220,3 +220,13 @@ async def test_stock_edit(ws, hass_admin_user) -> None:
     ]
     msg = await ws.call({**edit, "expires_on": None, "packages": 1})
     assert msg["error"]["translation_key"] == "not_found"
+
+
+async def test_defaults_save(ws, hass_admin_user) -> None:
+    dflt = (await master(ws))["defaults"]
+    msg = await ws.call({"type": "pantry/defaults_save", "data": {**dflt, "warn_days": 5}})
+    assert msg["success"]
+    assert (await master(ws))["defaults"]["warn_days"] == 5
+    hass_admin_user.groups = []
+    msg = await ws.call({"type": "pantry/defaults_save", "data": dflt})
+    assert msg["error"]["code"] == "unauthorized"

@@ -1,7 +1,8 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, formStyles, icon } from "./ui";
+import { editDialog, fieldMsg, icon } from "./ui";
+import { formStyles } from "./styles";
 import "./category-picker";
 import {
   errorMessage,

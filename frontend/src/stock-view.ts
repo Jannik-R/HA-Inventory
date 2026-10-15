@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, formStyles, rowActions, toggled } from "./ui";
+import { chevron, rowActions, toggled } from "./ui";
+import { formStyles } from "./styles";
 import {
   deleteProduct,
   errorMessage,
@@ -18,6 +19,7 @@ import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
 import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
+import { confirmDelete } from "./confirm-dialog";
 import "./product-dialog";
 import "./batch-dialog";
 
@@ -176,10 +178,8 @@ export class PantryStock extends LitElement {
   }
 
   private async deleteProduct(p: Item) {
-    const ask = p.packages
-      ? t("products.confirm_delete_stock", { name: p.name, n: p.packages })
-      : t("common.confirm_delete", { name: p.name });
-    if (!confirm(ask)) return;
+    const goes = p.packages ? t("products.delete_stock", { n: p.packages }) : undefined;
+    if (!(await confirmDelete(p.name, goes))) return;
     try {
       await deleteProduct(this.hass!, p.id);
       this.undo = undefined; // its batches are gone

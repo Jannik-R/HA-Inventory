@@ -5,7 +5,10 @@
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "dev": "vite build --watch",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",

@@ -6,6 +6,7 @@ import json
 import sqlite3
 
 from .common import COLUMNS
+from .inherit import category_tags, set_tags
 from .master import save
 from .suggest import suggest, suggest_category
 
@@ -74,12 +75,6 @@ def add_product(conn: sqlite3.Connection, data: dict) -> int:
     )
     product_id = save(conn, "product", data)
     if learn:
-        row = conn.execute(
-            "SELECT off_tags FROM category WHERE id = ?", (data["category_id"],)
-        ).fetchone()
-        save(
-            conn,
-            "category",
-            {"id": data["category_id"], "off_tags": [*json.loads(row[0]), tags[-1]]},
-        )
+        cid = data["category_id"]
+        set_tags(conn, cid, [*category_tags(conn).get(cid, []), tags[-1]])
     return product_id

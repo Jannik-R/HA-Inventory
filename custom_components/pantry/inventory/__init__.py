@@ -4,7 +4,7 @@ Callers use `inventory.<name>`; the submodules are an implementation detail.
 """
 
 from .common import COLUMNS, INHERITED, InventoryError
-from .master import delete, list_rows, master_data, save
+from .master import delete, list_rows, master_data, save, save_defaults
 from .inherit import defaults, effective
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_by_name, suggest_category
@@ -33,6 +33,7 @@ __all__ = [
     "move",
     "product_draft",
     "save",
+    "save_defaults",
     "search_products",
     "shopping_list",
     "stock_list",

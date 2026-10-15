@@ -44,17 +44,21 @@ export function groupStock(
   return out;
 }
 
-/** "expired" / "soon" by the product's effective warn days, for color only. */
+/** Days from today to an ISO date (negative = past); rounding absorbs DST hours. */
+export const daysLeft = (iso: string) =>
+  Math.round((Date.parse(`${iso}T00:00`) - Date.parse(`${todayIso()}T00:00`)) / 86_400_000);
+
+/** "expired" / "soon" by the product's effective warn days, or by `days` when given. */
 export function expiryStatus(
   r: StockRow,
   p: Product | undefined,
   md: MasterData | undefined,
+  days?: number,
 ): "expired" | "soon" | "" {
   if (!r.expires_on) return "";
-  const today = todayIso();
-  if (r.expires_on < today) return "expired";
-  const warn = Number(p?.warn_days ?? categoryDefault(md, p?.category_id, "warn_days")?.value ?? 0);
-  const limit = new Date(`${today}T00:00`);
-  limit.setDate(limit.getDate() + warn);
-  return new Date(`${r.expires_on}T00:00`) <= limit ? "soon" : "";
+  const left = daysLeft(r.expires_on);
+  if (left < 0) return "expired";
+  const warn =
+    days ?? Number(p?.warn_days ?? categoryDefault(md, p?.category_id, "warn_days")?.value ?? 0);
+  return left <= warn ? "soon" : "";
 }

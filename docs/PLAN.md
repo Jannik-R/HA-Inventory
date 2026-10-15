@@ -232,7 +232,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 3 | Master data UI | locations, units, category tree with inherited values |
 | 4 | Booking UI | book in/out, keyboard scanner field, camera scanner. Required fix: click beside a dialog must close it (code was there, browsers kept the old cached bundle: panel URL now busts the cache with the bundle mtime) |
 | 5 | Overview + search | stock list, filters (category tree with products as leaves, take out one package per batch with undo; all filtering in the panel: one `pantry/stock` call, data size of a household) |
-| 6 | Expiry | expiry view with temporary threshold, sensors |
+| 6 | Expiry | expiry view with temporary threshold (all in the panel from `pantry/stock`, like Phase 5), sensors expired / expiring soon (packages, batches as attribute; `DataUpdateCoordinator` without polling: `Database.run` sends a dispatcher signal after any write, plus a refresh at midnight) |
 | 7 | Min stock | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity |
 | 8 | Labels | `label.py`, IPP printing, options, scan-to-consume |
 | 9 | Release | services, README, HACS release |

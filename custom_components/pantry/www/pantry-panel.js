@@ -2037,7 +2037,7 @@ var Wt = [
 async function Gt() {
 	let e = window.BarcodeDetector, t = e ? await e.getSupportedFormats() : [];
 	if (e && t.includes("ean_13")) return new e({ formats: Wt.filter((e) => t.includes(e)) });
-	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-B4FQvd9R.js"), import("./zxing_reader-DpUOKxRW.js")]);
+	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-B4FQvd9R.js"), import("./zxing_reader-Dml86taW.js")]);
 	return r({ overrides: { locateFile: (e, t) => e.endsWith(".wasm") ? i : t + e } }), new n({ formats: [...Wt] });
 }
 var Kt = class extends N {

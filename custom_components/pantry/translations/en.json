@@ -10,6 +10,12 @@
       "single_instance_allowed": "Already configured. Only a single configuration possible."
     }
   },
+  "entity": {
+    "sensor": {
+      "expired": { "name": "Expired", "unit_of_measurement": "packages" },
+      "soon": { "name": "Expiring soon", "unit_of_measurement": "packages" }
+    }
+  },
   "exceptions": {
     "not_loaded": {
       "message": "The pantry integration is not loaded."

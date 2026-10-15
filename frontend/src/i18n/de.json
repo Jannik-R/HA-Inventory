@@ -113,5 +113,9 @@
   "stock.search_hint": "Suchen (Name, Marke, EAN, Kategorie, Lagerort)",
   "stock.take_one": "1 Pkg. „{name}“ auslagern",
   "stock.taken_one": "1 Pkg. „{name}“ ausgelagert.",
-  "stock.undo": "Rückgängig"
+  "stock.undo": "Rückgängig",
+  "expiry.days": "Warnschwelle",
+  "expiry.days_placeholder": "je Produkt",
+  "expiry.days_invalid": "Ganze Zahl ab 0",
+  "expiry.empty": "Nichts läuft bald ab."
 }

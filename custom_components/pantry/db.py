@@ -7,6 +7,9 @@ import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+from .const import SIGNAL_CHANGED
 from .seed import seed
 
 if TYPE_CHECKING:
@@ -123,19 +126,26 @@ class Database:
     async def async_open(self) -> None:
         self._conn = await self._hass.async_add_executor_job(self._open)
 
-    def _run(self, fn: Callable[..., Any], args: tuple) -> Any:
+    def _run(self, fn: Callable[..., Any], args: tuple) -> tuple[Any, bool]:
         with self.lock:
+            before = self._conn.total_changes
             try:
                 result = fn(self._conn, *args)
                 self._conn.commit()
             except BaseException:
                 self._conn.rollback()
                 raise
-            return result
+            return result, self._conn.total_changes != before
 
     async def run(self, fn: Callable[..., Any], *args: Any) -> Any:
-        """Run an inventory function in the executor; commit on success, roll back on error."""
-        return await self._hass.async_add_executor_job(self._run, fn, args)
+        """Run an inventory function in the executor; commit on success, roll back on error.
+
+        Any write sends SIGNAL_CHANGED, so entities refresh whatever the entry point was.
+        """
+        result, changed = await self._hass.async_add_executor_job(self._run, fn, args)
+        if changed:
+            async_dispatcher_send(self._hass, SIGNAL_CHANGED)
+        return result
 
     def _close(self) -> None:
         with self.lock:

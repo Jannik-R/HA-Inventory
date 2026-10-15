@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 5: database, inventory logic, Open Food Facts lookup, settings, booking in/out and stock overview; expiry view follows). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 6: database, inventory logic, Open Food Facts lookup, settings, booking in/out, stock overview, expiry view and sensors; minimum stock follows). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 
@@ -28,6 +28,38 @@ scanner can type an EAN) matches name, brand, EAN, category and location and ope
 (the product's or category's *Warnung vor Ablauf*) orange. The minus button on a batch row takes one package out of
 that batch and location (only there, so you look at the batches first); *Rückgängig* books it
 back in.
+
+### Ablauf (expiry)
+
+All batches that are expired (red) or within their warning period (orange), earliest date first,
+with the days left ("vor 2 Tagen", "morgen"), location and packages. The warning period is each
+product's *Warnung vor Ablauf* (own or inherited). *Warnschwelle* overrides it for all products
+while the page is open (e.g. 14 days when planning meals); empty = per product. Nothing is saved.
+The minus button takes one package out of that batch, with *Rückgängig* like in *Bestand*.
+
+### Sensors
+
+The integration adds a device *Vorrat* with two sensors (packages, no polling, updated after every
+booking and at midnight):
+
+| Sensor | Value | Attribute `items` |
+|---|---|---|
+| *Abgelaufen* | packages past their date | name, expires_on, days_left, packages, location per batch |
+| *Läuft bald ab* | packages within their warning period | same |
+
+Example: notify when something has expired.
+
+```yaml
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.vorrat_abgelaufen
+    above: 0
+actions:
+  - action: notify.notify
+    data:
+      message: >
+        Abgelaufen: {{ state_attr('sensor.vorrat_abgelaufen', 'items') | map(attribute='name') | join(', ') }}
+```
 
 ### Einbuchen / Auslagern (book in / out)
 

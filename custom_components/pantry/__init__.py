@@ -5,6 +5,7 @@ from pathlib import Path
 from homeassistant.components import frontend, panel_custom
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
@@ -16,6 +17,7 @@ from .db import Database
 type PantryConfigEntry = ConfigEntry[Database]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+PLATFORMS = [Platform.SENSOR]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -44,11 +46,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
         module_url=f"{PANEL_URL}/pantry-panel.js?v={version}",
         require_admin=False,
     )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
-    """Remove the sidebar panel and close the database."""
+    """Remove the sidebar panel and entities, then close the database."""
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
     frontend.async_remove_panel(hass, DOMAIN)
     await entry.runtime_data.async_close()
     return True

@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 4: database, inventory logic, Open Food Facts lookup, settings and booking in/out; overview and expiry views follow). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (Phase 5: database, inventory logic, Open Food Facts lookup, settings, booking in/out and stock overview; expiry view follows). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Planned features
 
@@ -17,6 +17,17 @@ and get a brand-independent shopping list from minimum stock levels.
 - Minimum stock per category in any unit (e.g. "2 kg Nudeln", any brand) and a shopping list (HA to-do entity)
 
 ## Usage
+
+### Bestand (stock overview)
+
+The category tree (only branches with stock, each with its package count), products as leaves
+with their total packages and earliest date. Tap a row (arrow on the left) to open it; a product
+shows its batches (date, location, packages). The search field (focused, so a
+scanner can type an EAN) matches name, brand, EAN, category and location and opens the tree down to all hits;
+*Alle Lagerorte* filters by location. Expired dates are red, dates within the warning period
+(the product's or category's *Warnung vor Ablauf*) orange. The minus button on a batch row takes one package out of
+that batch and location (only there, so you look at the batches first); *Rückgängig* books it
+back in.
 
 ### Einbuchen / Auslagern (book in / out)
 

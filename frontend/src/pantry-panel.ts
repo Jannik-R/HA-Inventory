@@ -5,6 +5,7 @@ import type { Hass } from "./api";
 import "./settings-view";
 import "./booking-view";
 import "./products-view";
+import "./stock-view";
 
 const TABS = ["stock", "in", "out", "products", "expiry", "shopping", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -85,7 +86,9 @@ export class PantryPanel extends LitElement {
               ? html`<pantry-products .hass=${this.hass}></pantry-products>`
               : active === "in" || active === "out"
               ? html`<pantry-booking .hass=${this.hass} .mode=${active}></pantry-booking>`
-              : html`<p>${t("common.not_ready")}</p>`
+              : active === "stock"
+                ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
+                : html`<p>${t("common.not_ready")}</p>`
         }
       </main>
     `;

@@ -104,5 +104,14 @@
   "settings.category.add_sub_to": "Unterkategorie zu „{name}“ hinzufügen",
   "common.days_unit": "Tage",
   "common.discard": "Änderungen verwerfen?",
-  "book.choose_category": "Kategorie wählen"
+  "book.choose_category": "Kategorie wählen",
+  "stock.search": "Suchen",
+  "stock.location": "Lagerort",
+  "stock.all_locations": "Alle Lagerorte",
+  "stock.empty": "Noch nichts eingelagert.",
+  "stock.no_date": "ohne Datum",
+  "stock.search_hint": "Suchen (Name, Marke, EAN, Kategorie, Lagerort)",
+  "stock.take_one": "1 Pkg. „{name}“ auslagern",
+  "stock.taken_one": "1 Pkg. „{name}“ ausgelagert.",
+  "stock.undo": "Rückgängig"
 }

@@ -10,7 +10,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, Unauthorized
 
 from . import inventory, off
 from .const import DOMAIN
@@ -37,7 +37,10 @@ MASTER_SCHEMAS = {
                 None, vol.In(("best_before", "use_by"))
             ),
             vol.Optional("warn_days"): vol.Any(None, vol.All(int, vol.Range(min=0))),
-            vol.Optional("min_stock"): vol.Any(None, _POSITIVE),
+            # amount and its unit only together (DB CHECK as well)
+            vol.Inclusive("min_stock", "min_stock"): vol.Any(None, _POSITIVE),
+            vol.Inclusive("min_stock_unit_id", "min_stock"): _ID,
+            vol.Optional("min_packages"): vol.Any(None, vol.All(int, vol.Range(min=1))),
         },
     }.items()
 }
@@ -73,6 +76,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_save,
         ws_defaults_save,
         ws_delete,
+        ws_delete_impact,
         ws_lookup,
         ws_search,
         ws_book_in,
@@ -81,6 +85,11 @@ def async_register(hass: HomeAssistant) -> None:
         ws_stock,
         ws_products,
         ws_product_save,
+        ws_shopping,
+        ws_shopping_done,
+        ws_shopping_add,
+        ws_shopping_item,
+        ws_shopping_item_delete,
     ):
         websocket_api.async_register_command(hass, command)
 
@@ -166,13 +175,40 @@ async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
         vol.Required("type"): "pantry/delete",
         vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
         vol.Required("row_id"): int,
+        # also delete what uses it (see pantry/delete_impact); locations: move the stock there
+        vol.Optional("force", default=False): bool,
+        vol.Optional("move_to"): _ID,
     }
 )
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
-    await _run(hass, inventory.delete, msg["table"], msg["row_id"])
+    if msg["force"]:
+        await _run(
+            hass,
+            partial(inventory.force_delete, move_to=msg.get("move_to"), user_id=connection.user.id),
+            msg["table"],
+            msg["row_id"],
+        )
+    else:
+        await _run(hass, inventory.delete, msg["table"], msg["row_id"])
     connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/delete_impact",
+        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
+        vol.Required("row_id"): int,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_delete_impact(hass: HomeAssistant, connection, msg: dict) -> None:
+    """What deleting a row would take with it, for the question before deleting."""
+    connection.send_result(
+        msg["id"], await _run(hass, inventory.delete_impact, msg["table"], msg["row_id"])
+    )
 
 
 @websocket_api.websocket_command(
@@ -331,3 +367,76 @@ async def ws_products(hass: HomeAssistant, connection, msg: dict) -> None:
 async def ws_product_save(hass: HomeAssistant, connection, msg: dict) -> None:
     row_id = await _run(hass, inventory.save, "product", msg["data"])
     connection.send_result(msg["id"], {"id": row_id})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "pantry/shopping"})
+@websocket_api.async_response
+async def ws_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
+    connection.send_result(msg["id"], await _run(hass, inventory.shopping_list))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/shopping_done",
+        vol.Required("category_id"): int,
+        vol.Required("done"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_shopping_done(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Check / uncheck a shopping item; any user."""
+    await _run(hass, inventory.set_shopping_done, msg["category_id"], msg["done"])
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/shopping_add",
+        vol.Optional("packages", default=1): vol.All(int, vol.Range(min=1)),
+        vol.Exclusive("product_id", "what"): int,
+        vol.Exclusive("category_id", "what"): int,
+        vol.Exclusive("product", "what"): _NEW_PRODUCT,
+        vol.Exclusive("category", "what"): vol.Schema(
+            {vol.Required("name"): str, vol.Optional("parent_id"): _ID}
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_shopping_add(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Put a product or category on the list by hand (a new product: any user; a new category: admin)."""
+    if "category" in msg and not connection.user.is_admin:
+        raise Unauthorized
+    keys = ("product_id", "category_id", "product", "category")
+    item_id = await _run(
+        hass,
+        partial(inventory.add_shopping_item, **{k: msg[k] for k in keys if k in msg}),
+        msg["packages"],
+    )
+    connection.send_result(msg["id"], {"id": item_id})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/shopping_item",
+        vol.Required("item_id"): int,
+        vol.Optional("packages"): vol.All(int, vol.Range(min=1)),
+        vol.Optional("done"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_shopping_item(hass: HomeAssistant, connection, msg: dict) -> None:
+    await _run(
+        hass,
+        partial(inventory.update_shopping_item, packages=msg.get("packages"), done=msg.get("done")),
+        msg["item_id"],
+    )
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "pantry/shopping_item_delete", vol.Required("item_id"): int}
+)
+@websocket_api.async_response
+async def ws_shopping_item_delete(hass: HomeAssistant, connection, msg: dict) -> None:
+    await _run(hass, inventory.delete_shopping_item, msg["item_id"])
+    connection.send_result(msg["id"])

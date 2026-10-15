@@ -14,9 +14,18 @@
     "sensor": {
       "expired": { "name": "Abgelaufen", "unit_of_measurement": "Pkg." },
       "soon": { "name": "Läuft bald ab", "unit_of_measurement": "Pkg." }
+    },
+    "todo": {
+      "shopping": { "name": "Einkaufsliste" }
     }
   },
   "exceptions": {
+    "unit_is_default": {
+      "message": "Diese Einheit (oder eine darauf aufbauende) ist die Standard-Einheit. Bitte zuerst unter Einstellungen › Standards ändern."
+    },
+    "shopping_unknown": {
+      "message": "„{name}“ ist weder ein Produkt noch eine Kategorie. Neue im Vorrat-Panel unter Einkauf anlegen."
+    },
     "location_has_stock": {
       "message": "Am Lagerort liegt noch Bestand. Bitte zuerst umlagern oder auslagern."
     },

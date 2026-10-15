@@ -17,7 +17,7 @@ from .db import Database
 type PantryConfigEntry = ConfigEntry[Database]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.TODO]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:

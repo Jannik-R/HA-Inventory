@@ -6,6 +6,7 @@ import "./settings-view";
 import "./booking-view";
 import "./stock-view";
 import "./expiry-view";
+import "./shopping-view";
 
 const TABS = ["stock", "in", "out", "expiry", "shopping", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -88,7 +89,7 @@ export class PantryPanel extends LitElement {
                 ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
                 : active === "expiry"
                   ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
-                  : html`<p>${t("common.not_ready")}</p>`
+                  : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
         }
       </main>
     `;

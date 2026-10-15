@@ -161,15 +161,15 @@ def test_expiring_with_and_without_override(conn):
 
 
 def test_shopping_list_nested_min_stock(conn):
-    kg, g = unit(conn, "kg"), unit(conn, "g")
+    kg, g, pkg = unit(conn, "kg"), unit(conn, "g"), unit(conn, "Packung")
     nudeln, reis, parent = (
         cat(conn, "Nudeln"),
         cat(conn, "Reis"),
         cat(conn, "Nudeln, Reis & Getreide"),
     )
-    inv.save(conn, "category", {"id": nudeln, "min_stock": 1})
-    inv.save(conn, "category", {"id": reis, "min_stock": 500, "unit_id": g})
-    inv.save(conn, "category", {"id": parent, "min_stock": 2})
+    inv.save(conn, "category", {"id": nudeln, "min_stock": 1, "min_stock_unit_id": kg})
+    inv.save(conn, "category", {"id": reis, "min_stock": 500, "min_stock_unit_id": g})
+    inv.save(conn, "category", {"id": parent, "min_stock": 2, "min_stock_unit_id": kg})
     for name, category, grams in (
         ("Spaghetti", "Nudeln", 500),
         ("Couscous", "Couscous", 300),
@@ -177,12 +177,48 @@ def test_shopping_list_nested_min_stock(conn):
         p = product(conn, name, category, content_amount=grams, content_unit_id=g)
         inv.book_in(conn, p, 1, location_id=loc(conn))
     items = {i["name"]: i for i in inv.shopping_list(conn)}
-    assert items["Nudeln"]["missing"] == pytest.approx(0.5)
-    assert items["Nudeln"]["unit_id"] == kg
-    assert items["Reis"]["missing"] == pytest.approx(500)
+    assert items["Nudeln"]["amount"]["missing"] == pytest.approx(0.5)
+    assert items["Nudeln"]["amount"]["unit_id"] == kg
+    assert items["Nudeln"]["packages"] is None
+    assert items["Reis"]["amount"]["missing"] == pytest.approx(500)
     top = items["Nudeln, Reis & Getreide"]
-    assert top["missing"] == pytest.approx(0.2)
+    assert top["amount"]["missing"] == pytest.approx(0.2)
     assert top["any_of_subtree"] and not items["Nudeln"]["any_of_subtree"]
+    # The minimum keeps its unit when the category's (inherited) unit changes.
+    inv.save(conn, "category", {"id": nudeln, "unit_id": pkg})
+    assert {i["name"]: i for i in inv.shopping_list(conn)}["Nudeln"]["amount"]["unit_id"] == kg
+
+
+def test_shopping_list_packages_apart_from_amount(conn):
+    g = unit(conn, "g")
+    nudeln, parent = cat(conn, "Nudeln"), cat(conn, "Nudeln, Reis & Getreide")
+    inv.save(conn, "category", {"id": nudeln, "min_packages": 3})
+    inv.save(
+        conn, "category",
+        {"id": parent, "min_packages": 5, "min_stock": 1000, "min_stock_unit_id": g},
+    )  # fmt: skip
+    p = product(conn, content_amount=500, content_unit_id=g)
+    inv.book_in(conn, p, 1, location_id=loc(conn))
+    inv.book_in(conn, product(conn, "Reis lose", "Reis"), 1, location_id=loc(conn))  # no content
+    items = {i["name"]: i for i in inv.shopping_list(conn)}
+    assert items["Nudeln"]["packages"] == 2 and items["Nudeln"]["amount"] is None
+    # packages: 5 - 2 in stock - 2 missing below; amount: Nudeln has none, so no subtraction
+    top = items["Nudeln, Reis & Getreide"]
+    assert top["packages"] == 1
+    assert top["amount"]["missing"] == pytest.approx(500)
+    assert top["amount"]["unknown_products"] == 1
+
+
+def test_shopping_done_holds_until_shortage_changes(conn):
+    nudeln = cat(conn, "Nudeln")
+    inv.save(conn, "category", {"id": nudeln, "min_packages": 3})
+    inv.set_shopping_done(conn, nudeln, True)
+    assert inv.shopping_list(conn)[0]["done"]
+    inv.book_in(conn, product(conn), 1, location_id=loc(conn))
+    assert not inv.shopping_list(conn)[0]["done"]  # 2 instead of 3 missing: open again
+    inv.set_shopping_done(conn, nudeln, True)
+    inv.set_shopping_done(conn, nudeln, False)
+    assert not inv.shopping_list(conn)[0]["done"]
 
 
 def test_delete_product_removes_stock_batches_and_bookings(conn):
@@ -315,6 +351,118 @@ def test_migration_3_normalizes_and_cleans_up():
     }  # fmt: skip
     with pytest.raises(sqlite3.IntegrityError):
         c.execute("UPDATE unit SET is_count = 2")
+
+
+def test_shopping_items_by_hand(conn):
+    nudeln = cat(conn, "Nudeln")
+    inv.save(conn, "category", {"id": nudeln, "min_packages": 1})
+    p = inv.add_shopping_item(conn, 2, product={"name": "Penne", "category_id": nudeln})
+    assert inv.add_shopping_item(conn, 1, product_id=inv.search_products(conn, "penne")[0]["id"]) == p
+    reis = inv.add_shopping_by_name(conn, "reis")  # category by name, any case
+    items = inv.shopping_list(conn)
+    # The min stock item first, then the items by hand of that category.
+    assert [(i["name"], i["manual"], i["packages"]) for i in items] == [
+        ("Nudeln", False, 1), ("Penne", True, 3), ("Reis", True, 1)
+    ]  # fmt: skip
+    inv.update_shopping_item(conn, p, done=True)
+    inv.set_shopping_done(conn, nudeln, True)  # same category, other kind: separate
+    assert [i["done"] for i in inv.shopping_list(conn)] == [True, True, False]
+    inv.add_shopping_item(conn, 2, category={"name": "Gewürze neu", "parent_id": None})
+    inv.add_shopping_item(conn, 5, product_id=inv.shopping_list(conn)[1]["product_id"])
+    assert inv.shopping_list(conn)[1]["packages"] == 5  # checked item starts again
+    inv.delete_shopping_item(conn, reis)
+    with pytest.raises(inv.InventoryError, match="shopping_unknown"):
+        inv.add_shopping_by_name(conn, "Gibtsnicht")
+    with pytest.raises(inv.InventoryError, match="not_found"):
+        inv.update_shopping_item(conn, reis, packages=2)
+    assert len(inv.shopping_list(conn)) == 3
+
+
+def test_force_delete_category_with_subtree(conn):
+    parent = cat(conn, "Nudeln, Reis & Getreide")
+    sub = inv.save(conn, "category", {"name": "Vollkorn", "parent_id": cat(conn, "Nudeln")})
+    p = product(conn, "Dinkelnudeln", "Vollkorn")
+    inv.book_in(conn, p, 2, location_id=loc(conn))
+    inv.add_shopping_item(conn, 1, category_id=sub)
+    with pytest.raises(inv.InventoryError, match="in_use"):
+        inv.delete(conn, "category", parent)
+    impact = inv.delete_impact(conn, "category", parent)
+    groups = {g["kind"]: g for g in impact["groups"]}
+    assert impact["blocked"] is None
+    assert {"Nudeln", "Vollkorn"} <= set(groups["delete.category"]["names"])
+    assert groups["delete.product"]["names"] == ["Dinkelnudeln"]
+    assert groups["delete.stock"]["packages"] == 2
+    assert groups["delete.booking"]["count"] == 1
+    # The dry run catches cascades nobody listed by hand, and changes nothing.
+    assert groups["delete.shopping_item"]["names"] == ["Vollkorn"]
+    assert conn.execute("SELECT count(*) FROM product").fetchone()[0] == 1
+    inv.force_delete(conn, "category", parent)
+    assert conn.execute("SELECT 1 FROM category WHERE name IN ('Nudeln', 'Vollkorn')").fetchone() is None
+    assert conn.execute("SELECT count(*) FROM product").fetchone()[0] == 0
+    assert conn.execute("SELECT count(*) FROM booking").fetchone()[0] == 0
+    assert inv.shopping_list(conn) == []
+
+
+def test_force_delete_unit_clears_references(conn):
+    g, kg = unit(conn, "g"), unit(conn, "kg")
+    nudeln = cat(conn, "Nudeln")
+    inv.save(conn, "category", {"id": nudeln, "unit_id": kg, "min_stock": 1, "min_stock_unit_id": kg})
+    p = product(conn, content_amount=500, content_unit_id=g)
+    impact = inv.delete_impact(conn, "unit", g)
+    names = {g_["kind"]: g_["names"] for g_ in impact["groups"]}
+    assert names["delete.unit"] == ["kg"] and names["change.product"] == ["Spaghetti"]
+    assert "Nudeln" in names["change.category"]  # seed categories use g / kg as well
+    inv.force_delete(conn, "unit", g)
+    row = conn.execute("SELECT unit_id, min_stock FROM category WHERE id = ?", (nudeln,)).fetchone()
+    assert tuple(row) == (None, None)
+    assert conn.execute("SELECT content_unit_id FROM product WHERE id = ?", (p,)).fetchone()[0] is None
+    assert conn.execute("SELECT 1 FROM unit WHERE id IN (?, ?)", (g, kg)).fetchone() is None
+    default = inv.defaults(conn)["unit_id"]
+    assert inv.delete_impact(conn, "unit", default)["blocked"] == "unit_is_default"
+    with pytest.raises(inv.InventoryError, match="unit_is_default"):
+        inv.force_delete(conn, "unit", default)
+
+
+def test_force_delete_location_moves_or_removes_stock(conn):
+    fridge, freezer, shelf = loc(conn), loc(conn, "Gefrierschrank"), loc(conn, "Vorratsschrank")
+    p = product(conn)
+    batch = inv.book_in(conn, p, 3, location_id=fridge)
+    groups = {g["kind"]: g for g in inv.delete_impact(conn, "location", fridge)["groups"]}
+    assert groups["delete.stock"] == {
+        "kind": "delete.stock", "count": 1, "names": ["Spaghetti"], "packages": 3
+    }  # fmt: skip
+    assert "Milchprodukte & Eier" in groups["change.category"]["names"]  # default location cleared
+    inv.force_delete(conn, "location", fridge, move_to=freezer)
+    assert stock(conn) == {(batch, freezer): 3}
+    inv.force_delete(conn, "location", freezer)  # no target: booked out as a correction
+    assert stock(conn) == {}
+    kinds = [r[0] for r in conn.execute("SELECT kind FROM booking ORDER BY id")]
+    assert kinds == ["in", "move", "correct"]
+    assert shelf in [r["id"] for r in inv.list_rows(conn, "location")]
+    assert fridge not in [r["id"] for r in inv.list_rows(conn, "location")]
+
+
+def test_migration_4_min_stock_gets_its_effective_unit():
+    """Existing minimums keep the unit they meant (own, inherited or default)."""
+    c = db.connect(":memory:")
+    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:3])}PRAGMA user_version=3;COMMIT;")
+    c.executescript(
+        """
+        INSERT INTO unit (id, name, symbol) VALUES (1, 'Gramm', 'g'), (2, 'Stück', 'St.');
+        UPDATE defaults SET unit_id = 2;
+        INSERT INTO defaults (id, unit_id, expiry_type, warn_days) VALUES (1, 2, 'best_before', 7)
+            ON CONFLICT DO NOTHING;
+        INSERT INTO category (id, parent_id, name, unit_id, min_stock) VALUES
+            (1, NULL, 'A', 1, NULL), (2, 1, 'B', NULL, 5), (3, NULL, 'C', NULL, 2), (4, 3, 'D', NULL, NULL);
+        INSERT INTO product (name, category_id, updated_at) VALUES ('P', 4, 'x');
+        """
+    )
+    db.migrate(c)
+    rows = c.execute("SELECT id, min_stock_unit_id FROM category ORDER BY id").fetchall()
+    assert [tuple(r) for r in rows] == [(1, None), (2, 1), (3, 2), (4, None)]
+    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
+    with pytest.raises(sqlite3.IntegrityError):
+        c.execute("UPDATE category SET min_stock = 1 WHERE id = 4")
 
 
 def test_tags_are_shared_and_replaced(conn):

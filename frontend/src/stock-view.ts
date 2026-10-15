@@ -3,7 +3,6 @@ import { t } from "./i18n";
 import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import {
-  deleteProduct,
   errorMessage,
   getMasterData,
   getStock,
@@ -19,7 +18,7 @@ import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
 import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
-import { confirmDelete } from "./confirm-dialog";
+import { deleteMasterRow } from "./delete-flow";
 import "./product-dialog";
 import "./batch-dialog";
 
@@ -178,10 +177,8 @@ export class PantryStock extends LitElement {
   }
 
   private async deleteProduct(p: Item) {
-    const goes = p.packages ? t("products.delete_stock", { n: p.packages }) : undefined;
-    if (!(await confirmDelete(p.name, goes))) return;
     try {
-      await deleteProduct(this.hass!, p.id);
+      if (!(await deleteMasterRow(this.hass!, this.md!, "product", p))) return;
       this.undo = undefined; // its batches are gone
       await this.reload();
     } catch (err) {

@@ -29,13 +29,14 @@ export function fmt(
   field: InheritField,
   v: number | string | null,
 ): string {
-  if (v == null) return "–";
+  if (v == null) return t("common.none_dash");
   const { units, locations } = md;
   if (field === "unit_id") {
     const u = units.find((x) => x.id === v);
-    return u ? u.symbol || u.name : "–";
+    return u ? u.symbol || u.name : t("common.none_dash");
   }
-  if (field === "default_location_id") return locations.find((x) => x.id === v)?.name ?? "–";
+  if (field === "default_location_id")
+    return locations.find((x) => x.id === v)?.name ?? t("common.none_dash");
   if (field === "expiry_type") return t(`settings.expiry.${v}`);
   return fmtDays(hass, v);
 }

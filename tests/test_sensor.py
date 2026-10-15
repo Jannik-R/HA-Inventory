@@ -21,9 +21,7 @@ async def test_expiry_sensors(hass: HomeAssistant) -> None:
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     ids = {
-        k: er.async_get(hass).async_get_entity_id(
-            "sensor", DOMAIN, f"{entry.entry_id}_{k}"
-        )
+        k: er.async_get(hass).async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{k}")
         for k in ("expired", "soon")
     }
     assert hass.states.get(ids["expired"]).state == "0"

@@ -20,8 +20,8 @@ FIELDS = (
 )
 SEARCH_FIELDS = "code,product_name,product_name_{lang},brands,quantity"
 TIMEOUT = aiohttp.ClientTimeout(total=10)
-# OFF asks for an identifying User-Agent: app/version (contact).
-HEADERS = {"User-Agent": "HA-Pantry/0.1 (https://github.com/Jannik-R/HA-Inventory)"}
+# OFF asks for an identifying User-Agent: app (contact); no version, so it never goes stale.
+HEADERS = {"User-Agent": "HA-Pantry (https://github.com/Jannik-R/HA-Inventory)"}
 
 # Unit symbol -> (target symbol, factor); target symbols match the seeded units.
 _UNITS = {
@@ -53,9 +53,7 @@ def _drained(text: object) -> tuple[float, str] | None:
     return None
 
 
-def parse_quantity(
-    amount: object, unit: object, text: object
-) -> tuple[float, str] | None:
+def parse_quantity(amount: object, unit: object, text: object) -> tuple[float, str] | None:
     """Package content: drained weight if stated (canned/jarred food), else product_quantity(+_unit),
     else a string like '6 x 1,5 l'."""
     if drained := _drained(text):
@@ -75,23 +73,32 @@ def parse_quantity(
     return (round(total, 6), symbol) if total > 0 else None
 
 
+def _str(value: object) -> str:
+    """OFF fields are not always strings (null, numbers, lists): anything else counts as empty."""
+    return value if isinstance(value, str) else ""
+
+
 def normalize(p: dict, lang: str) -> dict:
     """OFF product -> {ean, name, brand, quantity, off_tags, image_url, off_json}."""
-    name = (
-        p.get(f"product_name_{lang}")
-        or p.get("product_name")
-        or p.get(f"generic_name_{lang}")
-        or ""
+    name = next(
+        (
+            s
+            for k in (f"product_name_{lang}", "product_name", f"generic_name_{lang}")
+            if (s := _str(p.get(k)).strip())
+        ),
+        "",
     )
+    tags = p.get("categories_tags")
+    code = p.get("code")
     return {
-        "ean": p.get("code"),
-        "name": name.strip(),
-        "brand": (p.get("brands") or "").split(",")[0].strip() or None,
+        "ean": str(code) if isinstance(code, (str, int)) and code != "" else None,
+        "name": name,
+        "brand": _str(p.get("brands")).split(",")[0].strip() or None,
         "quantity": parse_quantity(
             p.get("product_quantity"), p.get("product_quantity_unit"), p.get("quantity")
         ),
-        "off_tags": p.get("categories_tags") or [],
-        "image_url": p.get("image_front_small_url"),
+        "off_tags": [t for t in tags if isinstance(t, str)] if isinstance(tags, list) else [],
+        "image_url": _str(p.get("image_front_small_url")) or None,
         "off_json": json.dumps(p, ensure_ascii=False),
     }
 
@@ -116,7 +123,9 @@ async def _get(hass: HomeAssistant, path: str, params: dict) -> dict:
 async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | None:
     """Local product by EAN, else an OFF-based draft (not saved), else None."""
     ean = ean.strip()
-    if not (ean.isdigit() and 8 <= len(ean) <= 14):  # also keeps the URL path safe
+    if not (
+        ean.isascii() and ean.isdigit() and 8 <= len(ean) <= 14
+    ):  # also keeps the URL path safe
         raise InventoryError("invalid_ean")
     if local := await db.run(inventory.find_ean, ean):
         return local

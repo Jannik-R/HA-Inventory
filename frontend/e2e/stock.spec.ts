@@ -1,19 +1,24 @@
-import { apiPage, openPage, ws } from "./helpers";
+import { apiPage, openPage, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
-const NAME = `E2E Bestand ${Date.now()}`;
+const STAMP = Date.now();
+const NAME = `E2E Bestand ${STAMP}`;
+const MAIN = `E2E Haupt ${STAMP}`;
+const SUB = `E2E Unter ${STAMP}`;
+const LOCATIONS = [`E2E Lager A ${STAMP}`, `E2E Lager B ${STAMP}`];
+let mainId: number | undefined;
+let locationIds: number[] = [];
 
 let productId: number | undefined;
 let locations: { id: number; name: string }[] = [];
 
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const md = (await ws(page, { type: "pantry/master_data" })) as {
-    categories: { id: number; name: string }[];
-    locations: { id: number; name: string }[];
-  };
-  locations = md.locations.slice(0, 2);
-  const category_id = md.categories.find((c) => c.name === "Nudeln")!.id;
+  mainId = await save(page, "category", { name: MAIN });
+  const category_id = await save(page, "category", { name: SUB, parent_id: mainId });
+  locationIds = [await save(page, "location", { name: LOCATIONS[0] })];
+  locationIds.push(await save(page, "location", { name: LOCATIONS[1] }));
+  locations = locationIds.map((id, i) => ({ id, name: LOCATIONS[i] }));
   const res = (await ws(page, {
     type: "pantry/book_in",
     product: { name: NAME, category_id },
@@ -33,9 +38,10 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.afterAll(async ({ browser }) => {
-  if (productId == null) return;
   const page = await apiPage(browser);
-  await ws(page, { type: "pantry/delete", table: "product", row_id: productId });
+  if (productId != null) await remove(page, "product", productId);
+  if (mainId != null) await remove(page, "category", mainId);
+  for (const id of locationIds) await remove(page, "location", id);
   await page.close();
 });
 
@@ -50,8 +56,8 @@ test("overview groups by category, searches and filters by location", async ({ p
   await expect(product).toContainText("5 Pkg.");
   // Searching opens the whole branch: main category › category › product.
   const cats = page.getByTestId("stock-category");
-  await expect(cats.filter({ hasText: "Nudeln, Reis" })).toHaveAttribute("aria-expanded", "true");
-  await expect(cats.filter({ hasText: /^\s*Nudeln\s+\d/ })).toHaveCount(1);
+  await expect(cats.filter({ hasText: MAIN })).toHaveAttribute("aria-expanded", "true");
+  await expect(cats.filter({ hasText: SUB })).toHaveCount(1);
   // Searching shows the batches; earliest (expired) first, in error color.
   const batches = page.getByTestId("stock-batch");
   await expect(batches).toHaveCount(2);
@@ -64,7 +70,7 @@ test("overview groups by category, searches and filters by location", async ({ p
   await expect(batches.first()).toContainText(locations[1].name);
 
   // Only batch rows take packages out; undo books it back into the same batch.
-  await expect(page.getByTestId("stock-out")).toHaveCount(0);
+  await expect(page.locator("pantry-stock .head [data-testid=stock-batch-out]")).toHaveCount(0);
   await batches.first().getByTestId("stock-batch-out").click();
   await expect(page.getByTestId("stock-done")).toContainText(NAME);
   await expect(product).toContainText("2 Pkg.");
@@ -87,8 +93,8 @@ test("overview groups by category, searches and filters by location", async ({ p
   await page.getByTestId("stock-location").selectOption("");
   const mine = product.filter({ hasText: NAME });
   await expect(mine).toHaveCount(0);
-  await cats.filter({ hasText: "Nudeln, Reis" }).click();
-  await cats.filter({ hasText: /^\s*Nudeln\s+\d/ }).click();
+  await cats.filter({ hasText: MAIN }).click();
+  await cats.filter({ hasText: SUB }).click();
   await expect(mine).toHaveAttribute("aria-expanded", "false");
   await mine.click();
   await expect(mine).toHaveAttribute("aria-expanded", "true");
@@ -135,4 +141,23 @@ test("reprint asks for the count and shows the stock", async ({ page, printCalls
   await page.getByTestId("label-print").click();
   await expect.poll(() => printCalls.length).toBe(1);
   await expect(page.locator("pantry-confirm")).toHaveCount(0);
+});
+
+test("undo works once: the second try is impossible and one package comes back", async ({
+  page,
+}) => {
+  await openPage(page, "/pantry/stock", "Bestand");
+  await page.getByTestId("stock-filter").fill(NAME);
+  const product = page.getByTestId("stock-product");
+  const count = async () => Number(/(\d+) Pkg\./.exec((await product.textContent()) ?? "")?.[1]);
+  const before = await count();
+  expect(before).toBeGreaterThan(1);
+  await page.getByTestId("stock-batch-out").first().click();
+  await expect.poll(count).toBe(before - 1);
+  // A double click must not put back two packages.
+  await page.getByTestId("stock-undo").dblclick();
+  await expect.poll(count).toBe(before);
+  await expect(page.getByTestId("stock-undo")).toHaveCount(0);
+  await page.waitForTimeout(500); // a late second put_back would show up now
+  expect(await count()).toBe(before);
 });

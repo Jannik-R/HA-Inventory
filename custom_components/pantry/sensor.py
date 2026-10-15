@@ -62,10 +62,7 @@ class ExpirySensor(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], SensorE
     def extra_state_attributes(self) -> dict:
         return {
             "items": [
-                {
-                    k: r[k]
-                    for k in ("name", "expires_on", "days_left", "packages", "location")
-                }
+                {k: r[k] for k in ("name", "expires_on", "days_left", "packages", "location")}
                 for r in self._rows
             ]
         }

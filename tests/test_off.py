@@ -61,12 +61,8 @@ def test_normalize_prefers_language_name():
 
 
 def test_suggest_category(conn):
-    assert inv.suggest_category(conn, SPAGHETTI["categories_tags"]) == cat(
-        conn, "Nudeln"
-    )
-    assert inv.suggest_category(conn, ["en:beverages", "en:colas"]) == cat(
-        conn, "Getränke"
-    )
+    assert inv.suggest_category(conn, SPAGHETTI["categories_tags"]) == cat(conn, "Nudeln")
+    assert inv.suggest_category(conn, ["en:beverages", "en:colas"]) == cat(conn, "Getränke")
     # Same depth: the more specific (later) OFF tag wins.
     tags = ["en:meals", "en:durum-wheat-semolinas-for-couscous"]
     assert inv.suggest_category(conn, tags) == cat(conn, "Couscous")
@@ -148,7 +144,7 @@ def test_add_product_learns_tag(conn):
 
 
 def test_search_products(conn):
-    product(conn, "Spaghetti", brand="Barilla", ean="123")
+    product(conn, "Spaghetti", brand="Barilla", ean="12345678")
     product(conn, "100% Saft", category="Saft")
     assert [p["name"] for p in inv.search_products(conn, "bari")] == ["Spaghetti"]
     assert [p["name"] for p in inv.search_products(conn, "%")] == ["100% Saft"]
@@ -159,12 +155,8 @@ def test_search_products(conn):
 
 
 def test_add_product_without_learnable_data(conn):
-    inv.add_product(
-        conn, {"name": "A", "category_id": cat(conn, "Obst"), "off_json": "x"}
-    )
-    inv.add_product(
-        conn, {"name": "B", "category_id": cat(conn, "Obst"), "off_json": "[]"}
-    )
+    inv.add_product(conn, {"name": "A", "category_id": cat(conn, "Obst"), "off_json": "x"})
+    inv.add_product(conn, {"name": "B", "category_id": cat(conn, "Obst"), "off_json": "[]"})
     assert inv.search_products(conn, "a")[0]["name"] == "A"
 
 
@@ -204,3 +196,12 @@ async def test_async_search(hass: HomeAssistant, aioclient_mock) -> None:
     assert aioclient_mock.call_count == 0
     hits = await off.async_search(hass, "a")
     assert [h["ean"] for h in hits] == ["1"]
+
+
+def test_normalize_survives_odd_fields():
+    p = {"code": 4006040053026, "product_name": 5, "product_name_de": None, "generic_name_de": " Brot ",
+         "brands": ["a"], "categories_tags": "en:x", "image_front_small_url": {}}  # fmt: skip
+    out = off.normalize(p, "de")
+    assert out["name"] == "Brot" and out["brand"] is None and out["ean"] == "4006040053026"
+    assert out["off_tags"] == [] and out["image_url"] is None
+    assert off.normalize({"categories_tags": ["en:a", 3]}, "de")["off_tags"] == ["en:a"]

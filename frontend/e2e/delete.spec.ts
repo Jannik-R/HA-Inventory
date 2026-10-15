@@ -6,8 +6,10 @@ const PARENT = `E2E Weg ${STAMP}`;
 const CHILD = `E2E Kind ${STAMP}`;
 const PRODUCT = `E2E Ware ${STAMP}`;
 const LOCATION = `E2E Regal ${STAMP}`;
+const TARGET = `E2E Ziel ${STAMP}`;
 
 let productId: number | undefined;
+let targetId: number | undefined;
 
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
@@ -16,6 +18,7 @@ test.beforeAll(async ({ browser }) => {
   const parent = await save("category", { name: PARENT });
   const child = await save("category", { name: CHILD, parent_id: parent.id });
   const location = await save("location", { name: LOCATION });
+  targetId = (await save("location", { name: TARGET })).id;
   const res = (await ws(page, {
     type: "pantry/book_in",
     product: { name: PRODUCT, category_id: child.id },
@@ -36,6 +39,8 @@ test.afterAll(async ({ browser }) => {
   const parent = md.categories.find((c) => c.name === PARENT);
   if (parent)
     await ws(page, { type: "pantry/delete", table: "category", row_id: parent.id, force: true });
+  if (targetId != null)
+    await ws(page, { type: "pantry/delete", table: "location", row_id: targetId, force: true });
   await page.close();
 });
 
@@ -47,14 +52,14 @@ test("deleting things in use lists what goes with it; a location's stock moves",
   await shelf.getByTestId("location-delete").click();
   await expect(page.getByTestId("delete-impact")).toContainText(PRODUCT);
   await expect(page.getByTestId("delete-impact")).toContainText("2 Pkg.");
-  await page.getByTestId("delete-move-to").selectOption({ label: "Umlagern nach „Kühlschrank“" });
+  await page.getByTestId("delete-move-to").selectOption({ label: `Umlagern nach „${TARGET}“` });
   await page.getByTestId("confirm-ok").click();
   await expect(shelf).toHaveCount(0);
   const rows = (await ws(page, { type: "pantry/stock", product_id: productId })) as {
     location: string;
     packages: number;
   }[];
-  expect(rows.map((r) => [r.location, r.packages])).toEqual([["Kühlschrank", 2]]);
+  expect(rows.map((r) => [r.location, r.packages])).toEqual([[TARGET, 2]]);
 
   await openPage(page, "/pantry/settings/categories", "Einstellungen");
   const parent = page.locator("pantry-settings li").filter({ hasText: PARENT });

@@ -206,7 +206,7 @@ export class PantryBookingForm extends LitElement {
             </h2>`
           : html`<h2>${t("book.title_in")}</h2>
               <p class="summary" data-testid="summary">
-                ${productSummary(this.md, p, categoryPath(this.md, p.category_id), lang(this.hass)) || t("book.new_product")}
+                ${productSummary(this.md, p, categoryPath(this.md?.categories, p.category_id), lang(this.hass)) || t("book.new_product")}
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }

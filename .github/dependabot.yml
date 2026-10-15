@@ -1,0 +1,18 @@
+# Weekly update PRs; CI shows whether a new version breaks anything before it reaches main.
+# pytest-homeassistant-custom-component pins the Home Assistant version the tests run against.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+    groups:
+      dev-dependencies: { dependency-type: development }
+  - package-ecosystem: docker-compose
+    directory: /dev
+    schedule: { interval: weekly }

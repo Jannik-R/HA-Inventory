@@ -2,7 +2,7 @@ import { html, nothing } from "lit";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
-import type { InheritField, MasterData } from "./api";
+import type { Category, InheritField, MasterData } from "./api";
 
 export interface Dflt {
   value: number | string;
@@ -10,12 +10,15 @@ export interface Dflt {
 }
 
 /** "Hauptkategorie › Kategorie" for a category id. */
-export function categoryPath(md: MasterData | undefined, id: number | null | undefined): string {
+export function categoryPath(
+  categories: Category[] | undefined,
+  id: number | null | undefined,
+): string {
   const names: string[] = [];
   for (
-    let c = md?.categories.find((x) => x.id === id);
+    let c = categories?.find((x) => x.id === id);
     c;
-    c = md!.categories.find((x) => x.id === c!.parent_id)
+    c = categories!.find((x) => x.id === c!.parent_id)
   )
     names.unshift(c.name);
   return names.join(" › ");

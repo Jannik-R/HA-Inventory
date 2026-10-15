@@ -15,57 +15,68 @@ from homeassistant.exceptions import HomeAssistantError, Unauthorized
 from . import inventory, off
 from .const import DOMAIN
 from .inventory import InventoryError
+from .ws_validate import (
+    CODE,
+    DAYS,
+    EAN,
+    ID,
+    IMAGE_URL,
+    NAME,
+    NULL_ID,
+    OFF_JSON,
+    PACKAGES,
+    PACKAGES_OR_ZERO,
+    POSITIVE,
+    QUERY,
+    text,
+)
 
-_ID = vol.Any(None, int)
-_POSITIVE = vol.All(vol.Coerce(float), vol.Range(min=0, min_included=False))
 # Typed columns per table; inventory.save and DB constraints check the rest (cycles, unit rules).
 MASTER_SCHEMAS = {
-    table: vol.Schema({vol.Optional("id"): int, vol.Optional("name"): str, **cols})
+    table: vol.Schema({vol.Optional("id"): ID, vol.Optional("name"): NAME, **cols})
     for table, cols in {
         "unit": {
-            vol.Optional("symbol"): str,
-            vol.Optional("base_unit_id"): _ID,
-            vol.Optional("factor"): _POSITIVE,
+            vol.Optional("symbol"): NAME,
+            vol.Optional("base_unit_id"): NULL_ID,
+            vol.Optional("factor"): POSITIVE,
             vol.Optional("is_count"): vol.All(vol.Coerce(int), vol.In((0, 1))),
         },
         "location": {},
         "category": {
-            vol.Optional("parent_id"): _ID,
-            vol.Optional("unit_id"): _ID,
-            vol.Optional("default_location_id"): _ID,
-            vol.Optional("expiry_type"): vol.Any(
-                None, vol.In(("best_before", "use_by"))
-            ),
-            vol.Optional("warn_days"): vol.Any(None, vol.All(int, vol.Range(min=0))),
+            vol.Optional("parent_id"): NULL_ID,
+            vol.Optional("unit_id"): NULL_ID,
+            vol.Optional("default_location_id"): NULL_ID,
+            vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by"))),
+            vol.Optional("warn_days"): vol.Any(None, DAYS),
             # amount and its unit only together (DB CHECK as well)
-            vol.Inclusive("min_stock", "min_stock"): vol.Any(None, _POSITIVE),
-            vol.Inclusive("min_stock_unit_id", "min_stock"): _ID,
-            vol.Optional("min_packages"): vol.Any(None, vol.All(int, vol.Range(min=1))),
+            vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
+            vol.Inclusive("min_stock_unit_id", "min_stock"): NULL_ID,
+            vol.Optional("min_packages"): vol.Any(None, PACKAGES),
         },
     }.items()
 }
 _EXPIRY_TYPE = vol.Any(None, vol.In(("best_before", "use_by")))
 _NEW_PRODUCT = vol.Schema(
     {
-        vol.Required("name"): str,
-        vol.Required("category_id"): int,
-        vol.Optional("ean"): vol.Any(None, str),
-        vol.Optional("brand"): vol.Any(None, str),
-        vol.Optional("content_amount"): vol.Any(None, _POSITIVE),
-        vol.Optional("content_unit_id"): _ID,
-        vol.Optional("image_url"): vol.Any(None, str),
-        vol.Optional("off_json"): vol.Any(None, str),
-        vol.Optional("default_location_id"): _ID,
+        vol.Required("name"): NAME,
+        vol.Required("category_id"): ID,
+        vol.Optional("ean"): vol.Any(None, EAN),
+        vol.Optional("brand"): vol.Any(None, NAME),
+        vol.Optional("content_amount"): vol.Any(None, POSITIVE),
+        vol.Optional("content_unit_id"): NULL_ID,
+        vol.Optional("image_url"): vol.Any(None, IMAGE_URL),
+        vol.Optional("off_json"): vol.Any(None, OFF_JSON),
+        vol.Optional("default_location_id"): NULL_ID,
     }
 )
 
 # Product edits (creation happens on book in); any user, like booking.
 _PRODUCT = vol.Schema(
     {
-        vol.Required("id"): int,
+        vol.Required("id"): ID,
         **{vol.Optional(str(k)): v for k, v in _NEW_PRODUCT.schema.items()},
         vol.Optional("expiry_type"): _EXPIRY_TYPE,
-        vol.Optional("warn_days"): vol.Any(None, vol.All(int, vol.Range(min=0))),
+        vol.Optional("warn_days"): vol.Any(None, DAYS),
     }
 )
 
@@ -98,9 +109,7 @@ def async_register(hass: HomeAssistant) -> None:
 def _db(hass: HomeAssistant):
     entries = hass.config_entries.async_loaded_entries(DOMAIN)
     if not entries:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN, translation_key="not_loaded"
-        )
+        raise HomeAssistantError(translation_domain=DOMAIN, translation_key="not_loaded")
     return entries[0].runtime_data
 
 
@@ -156,10 +165,10 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
     {
         vol.Required("type"): "pantry/defaults_save",
         vol.Required("data"): {
-            vol.Required("unit_id"): int,
-            vol.Required("default_location_id"): _ID,
+            vol.Required("unit_id"): ID,
+            vol.Required("default_location_id"): NULL_ID,
             vol.Required("expiry_type"): vol.In(("best_before", "use_by")),
-            vol.Required("warn_days"): vol.All(int, vol.Range(min=0)),
+            vol.Required("warn_days"): DAYS,
         },
     }
 )
@@ -175,10 +184,10 @@ async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
     {
         vol.Required("type"): "pantry/delete",
         vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
-        vol.Required("row_id"): int,
+        vol.Required("row_id"): ID,
         # also delete what uses it (see pantry/delete_impact); locations: move the stock there
         vol.Optional("force", default=False): bool,
-        vol.Optional("move_to"): _ID,
+        vol.Optional("move_to"): NULL_ID,
     }
 )
 @websocket_api.require_admin
@@ -200,20 +209,22 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
     {
         vol.Required("type"): "pantry/delete_impact",
         vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
-        vol.Required("row_id"): int,
+        vol.Required("row_id"): ID,
     }
 )
 @websocket_api.require_admin
 @websocket_api.async_response
 async def ws_delete_impact(hass: HomeAssistant, connection, msg: dict) -> None:
     """What deleting a row would take with it, for the question before deleting."""
-    connection.send_result(
-        msg["id"], await _run(hass, inventory.delete_impact, msg["table"], msg["row_id"])
-    )
+    with _translated():  # rolled back: write=False, so no entity refresh
+        result = await _db(hass).run(
+            inventory.delete_impact, msg["table"], msg["row_id"], write=False
+        )
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/lookup", vol.Required("code"): str}
+    {vol.Required("type"): "pantry/lookup", vol.Required("code"): CODE}
 )
 @websocket_api.async_response
 async def ws_lookup(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -227,7 +238,7 @@ async def ws_lookup(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/search",
-        vol.Required("query"): str,
+        vol.Required("query"): QUERY,
         vol.Optional("online", default=False): bool,
     }
 )
@@ -244,10 +255,10 @@ async def ws_search(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/book_in",
-        vol.Required("packages"): vol.All(int, vol.Range(min=1)),
-        vol.Optional("expires_on"): vol.Any(None, str),
-        vol.Optional("location_id"): _ID,
-        vol.Exclusive("product_id", "product"): int,
+        vol.Required("packages"): PACKAGES,
+        vol.Optional("expires_on"): vol.Any(None, text(32)),
+        vol.Optional("location_id"): NULL_ID,
+        vol.Exclusive("product_id", "product"): ID,
         vol.Exclusive("product", "product"): _NEW_PRODUCT,
     }
 )
@@ -259,9 +270,10 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
             msg["id"], websocket_api.ERR_INVALID_FORMAT, "need product_id or product"
         )
         return
-    opts = {
-        k: msg[k] for k in ("expires_on", "location_id") if k in msg
-    } | {"source": "panel", "user_id": connection.user.id}
+    opts = {k: msg[k] for k in ("expires_on", "location_id") if k in msg} | {
+        "source": "panel",
+        "user_id": connection.user.id,
+    }
     try:
         if "product_id" in msg:
             batch_id = await _run(
@@ -287,10 +299,10 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/book_out",
-        vol.Required("product_id"): int,
-        vol.Required("packages"): vol.All(int, vol.Range(min=1)),
-        vol.Optional("batch_id"): int,
-        vol.Optional("location_id"): int,
+        vol.Required("product_id"): ID,
+        vol.Required("packages"): PACKAGES,
+        vol.Optional("batch_id"): ID,
+        vol.Optional("location_id"): ID,
     }
 )
 @websocket_api.async_response
@@ -313,31 +325,23 @@ async def ws_book_out(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/put_back",
-        vol.Required("taken"): [
-            {
-                vol.Required("batch_id"): int,
-                vol.Required("location_id"): int,
-                vol.Required("packages"): vol.All(int, vol.Range(min=1)),
-            }
-        ],
+        vol.Required("booking_ids"): vol.All([ID], vol.Length(min=1, max=50)),
     }
 )
 @websocket_api.async_response
 async def ws_put_back(hass: HomeAssistant, connection, msg: dict) -> None:
-    """Undo a book-out (the `taken` rows it returned)."""
-    await _run(
-        hass, partial(inventory.put_back, source="panel", user_id=connection.user.id), msg["taken"]
-    )
+    """Undo book-outs by the `booking_id`s of the `taken` rows; each can be undone once."""
+    await _run(hass, partial(inventory.put_back, user_id=connection.user.id), msg["booking_ids"])
     connection.send_result(msg["id"])
 
 
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/stock_edit",
-        vol.Required("batch_id"): int,
-        vol.Required("location_id"): int,
-        vol.Required("expires_on"): vol.Any(None, str),
-        vol.Required("packages"): vol.All(int, vol.Range(min=0)),
+        vol.Required("batch_id"): ID,
+        vol.Required("location_id"): ID,
+        vol.Required("expires_on"): vol.Any(None, text(32)),
+        vol.Required("packages"): PACKAGES_OR_ZERO,
     }
 )
 @websocket_api.async_response
@@ -357,9 +361,9 @@ async def ws_stock_edit(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/stock",
-        vol.Optional("product_id"): int,
-        vol.Optional("search"): str,
-        vol.Optional("location_id"): int,
+        vol.Optional("product_id"): ID,
+        vol.Optional("search"): QUERY,
+        vol.Optional("location_id"): ID,
     }
 )
 @websocket_api.async_response
@@ -387,7 +391,11 @@ async def ws_products(hass: HomeAssistant, connection, msg: dict) -> None:
 )
 @websocket_api.async_response
 async def ws_product_save(hass: HomeAssistant, connection, msg: dict) -> None:
-    row_id = await _run(hass, inventory.save, "product", msg["data"])
+    try:
+        row_id = await _run(hass, inventory.save, "product", msg["data"])
+    except ValueError as err:  # e.g. only an id: a client bug
+        connection.send_error(msg["id"], websocket_api.ERR_INVALID_FORMAT, str(err))
+        return
     connection.send_result(msg["id"], {"id": row_id})
 
 
@@ -400,7 +408,7 @@ async def ws_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/shopping_done",
-        vol.Required("category_id"): int,
+        vol.Required("category_id"): ID,
         vol.Required("done"): bool,
     }
 )
@@ -414,12 +422,12 @@ async def ws_shopping_done(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/shopping_add",
-        vol.Optional("packages", default=1): vol.All(int, vol.Range(min=1)),
-        vol.Exclusive("product_id", "what"): int,
-        vol.Exclusive("category_id", "what"): int,
+        vol.Optional("packages", default=1): PACKAGES,
+        vol.Exclusive("product_id", "what"): ID,
+        vol.Exclusive("category_id", "what"): ID,
         vol.Exclusive("product", "what"): _NEW_PRODUCT,
         vol.Exclusive("category", "what"): vol.Schema(
-            {vol.Required("name"): str, vol.Optional("parent_id"): _ID}
+            {vol.Required("name"): NAME, vol.Optional("parent_id"): NULL_ID}
         ),
     }
 )
@@ -440,8 +448,8 @@ async def ws_shopping_add(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/shopping_item",
-        vol.Required("item_id"): int,
-        vol.Optional("packages"): vol.All(int, vol.Range(min=1)),
+        vol.Required("item_id"): ID,
+        vol.Optional("packages"): PACKAGES,
         vol.Optional("done"): bool,
     }
 )
@@ -456,7 +464,7 @@ async def ws_shopping_item(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/shopping_item_delete", vol.Required("item_id"): int}
+    {vol.Required("type"): "pantry/shopping_item_delete", vol.Required("item_id"): ID}
 )
 @websocket_api.async_response
 async def ws_shopping_item_delete(hass: HomeAssistant, connection, msg: dict) -> None:

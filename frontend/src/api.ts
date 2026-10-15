@@ -157,9 +157,13 @@ export interface Taken {
   batch_id: number;
   location_id: number;
   packages: number;
+  booking_id: number;
 }
 export const putBack = (hass: Hass, taken: Taken[]) =>
-  hass.callWS<null>({ type: "pantry/put_back", taken });
+  hass.callWS<null>({
+    type: "pantry/put_back",
+    booking_ids: taken.map((x) => x.booking_id),
+  });
 export const editStock = (
   hass: Hass,
   data: {
@@ -223,8 +227,9 @@ export interface LabelConfig {
   width_mm: number;
   height_mm: number;
 }
+/** Browser mode: one label image (data url), to be printed `count` times. */
 export type PrintResult =
-  { printed: number } | { images: string[]; width_mm: number; height_mm: number };
+  { printed: number } | { image: string; count: number; width_mm: number; height_mm: number };
 export const getLabelConfig = (hass: Hass) =>
   hass.callWS<LabelConfig>({ type: "pantry/label_config" });
 export const printLabelsWs = (hass: Hass, data: { batch_id: number; count: number }) =>

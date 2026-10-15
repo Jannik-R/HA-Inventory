@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import UTC, datetime
-
 
 INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days")
 
@@ -34,3 +34,18 @@ class InventoryError(Exception):
 
 def _now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+def _exists(conn: sqlite3.Connection, table: str, row_id: int | None) -> None:
+    """Row exists (None passes); a location must also be active (deactivated ones take no stock)."""
+    active = " AND active" if table == "location" else ""
+    if (
+        row_id is not None
+        and not conn.execute(f"SELECT 1 FROM {table} WHERE id = ?{active}", (row_id,)).fetchone()
+    ):
+        raise InventoryError("not_found")
+
+
+def _packages(packages: int, minimum: int = 1) -> None:
+    if packages < minimum:
+        raise ValueError(f"packages must be >= {minimum}")

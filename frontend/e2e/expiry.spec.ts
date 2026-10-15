@@ -1,18 +1,17 @@
-import { apiPage, openPage, ws } from "./helpers";
+import { apiPage, openPage, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
 const NAME = `E2E Ablauf ${Date.now()}`;
+const SCOPE = `E2E Ablauf-Ort ${Date.now()}`;
 
 let productId: number | undefined;
+let categoryId: number | undefined;
+let locationId: number | undefined;
 
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const md = (await ws(page, { type: "pantry/master_data" })) as {
-    categories: { id: number; name: string }[];
-    locations: { id: number }[];
-  };
-  const category_id = md.categories.find((c) => c.name === "Nudeln")!.id;
-  const location_id = md.locations[0].id;
+  const category_id = (categoryId = await save(page, "category", { name: SCOPE }));
+  const location_id = (locationId = await save(page, "location", { name: SCOPE }));
   const res = (await ws(page, {
     type: "pantry/book_in",
     product: { name: NAME, category_id },
@@ -32,9 +31,10 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.afterAll(async ({ browser }) => {
-  if (productId == null) return;
   const page = await apiPage(browser);
-  await ws(page, { type: "pantry/delete", table: "product", row_id: productId });
+  if (productId != null) await remove(page, "product", productId);
+  if (categoryId != null) await remove(page, "category", categoryId);
+  if (locationId != null) await remove(page, "location", locationId);
   await page.close();
 });
 

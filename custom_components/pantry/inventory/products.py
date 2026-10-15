@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from itertools import islice
 
 from .common import COLUMNS
 from .inherit import category_tags, set_tags
@@ -35,7 +36,7 @@ def search_products(conn: sqlite3.Connection, query: str, limit: int = 20) -> li
     # shortcut: filters in Python (SQLite LIKE folds ASCII only, "müsli" != "Müsli"); use FTS5 if the catalog gets large.
     rows = conn.execute("SELECT * FROM product ORDER BY name")
     hits = (r for r in rows if any(q in (r[k] or "").casefold() for k in ("name", "brand", "ean")))
-    return [dict(r) for _, r in zip(range(limit), hits)]
+    return [dict(r) for r in islice(hits, limit)]
 
 
 def product_draft(conn: sqlite3.Connection, off: dict) -> dict:

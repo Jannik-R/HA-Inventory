@@ -52,9 +52,7 @@ class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         return PantryOptionsFlow()
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Confirm and create the entry."""
         if user_input is None:
             return self.async_show_form(step_id="user")
@@ -66,9 +64,7 @@ class PantryOptionsFlow(OptionsFlow):
 
     _model = "browser"
 
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         if user_input is not None:
             self._model = user_input[CONF_LABEL_PRINTER]
             return await self.async_step_label()
@@ -83,9 +79,7 @@ class PantryOptionsFlow(OptionsFlow):
         )
         return self.async_show_form(step_id="init", data_schema=schema)
 
-    async def async_step_label(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_label(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         model = MODELS[self._model]
         o = self.config_entry.options
@@ -98,7 +92,12 @@ class PantryOptionsFlow(OptionsFlow):
                 if not host:
                     errors[CONF_LABEL_PRINTER_HOST] = "host_required"
             if test and not errors:
-                info = {"code": "PTRY:P0:", "name": "Testetikett", "brand": "Pantry", "expires_on": None}
+                info = {
+                    "code": "PTRY:P0:",
+                    "name": "Testetikett",
+                    "brand": "Pantry",
+                    "expires_on": None,
+                }
                 try:
                     image = await self.hass.async_add_executor_job(
                         label.render,
@@ -108,7 +107,7 @@ class PantryOptionsFlow(OptionsFlow):
                         model.bottom_reserve_mm,
                     )
                     await label.send(host, model.encode([image]), model.port)
-                except HomeAssistantError:
+                except (HomeAssistantError, OSError):
                     errors["base"] = "printer_unreachable"
             if not errors:
                 return self.async_create_entry(data=user_input)
@@ -116,9 +115,15 @@ class PantryOptionsFlow(OptionsFlow):
         fields: dict[Any, Any] = {}
         if model.network:
             fields[vol.Required(CONF_LABEL_PRINTER_HOST, default=printer_of(o)[1])] = str
-        fields[vol.Required(CONF_LABEL_WIDTH, default=o.get(CONF_LABEL_WIDTH, model.default_width))] = _mm(model.max_width)
-        fields[vol.Required(CONF_LABEL_HEIGHT, default=o.get(CONF_LABEL_HEIGHT, model.default_height))] = _mm(model.max_height)
-        fields[vol.Required(CONF_PRINT_ON_BOOK_IN, default=o.get(CONF_PRINT_ON_BOOK_IN, True))] = bool
+        fields[
+            vol.Required(CONF_LABEL_WIDTH, default=o.get(CONF_LABEL_WIDTH, model.default_width))
+        ] = _mm(model.max_width)
+        fields[
+            vol.Required(CONF_LABEL_HEIGHT, default=o.get(CONF_LABEL_HEIGHT, model.default_height))
+        ] = _mm(model.max_height)
+        fields[vol.Required(CONF_PRINT_ON_BOOK_IN, default=o.get(CONF_PRINT_ON_BOOK_IN, True))] = (
+            bool
+        )
         if model.network:
             fields[vol.Optional(_TEST, default=False)] = bool
         return self.async_show_form(

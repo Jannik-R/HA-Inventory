@@ -5,10 +5,11 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry.const import DOMAIN
+from custom_components.pantry.const import DOMAIN, SIGNAL_CHANGED
 
 
 @pytest.fixture
@@ -43,20 +44,14 @@ async def test_master_data_save_delete(ws) -> None:
     assert nudeln["effective"]["unit_id"]["source"] == nudeln["parent_id"]
     assert isinstance(nudeln["off_tags"], list)
 
-    msg = await ws.call(
-        {"type": "pantry/save", "table": "location", "data": {"name": " Keller "}}
-    )
+    msg = await ws.call({"type": "pantry/save", "table": "location", "data": {"name": " Keller "}})
     loc_id = msg["result"]["id"]
     assert (await master(ws))["locations"][-1]["name"] == "Keller"
 
-    msg = await ws.call(
-        {"type": "pantry/save", "table": "location", "data": {"name": "Keller"}}
-    )
+    msg = await ws.call({"type": "pantry/save", "table": "location", "data": {"name": "Keller"}})
     assert not msg["success"] and msg["error"]["translation_key"] == "duplicate"
 
-    msg = await ws.call(
-        {"type": "pantry/delete", "table": "location", "row_id": loc_id}
-    )
+    msg = await ws.call({"type": "pantry/delete", "table": "location", "row_id": loc_id})
     assert msg["success"]
 
 
@@ -98,9 +93,7 @@ async def test_delete_errors(ws) -> None:
 
 async def test_writes_need_admin(ws, hass_admin_user) -> None:
     hass_admin_user.groups = []
-    msg = await ws.call(
-        {"type": "pantry/save", "table": "location", "data": {"name": "Z"}}
-    )
+    msg = await ws.call({"type": "pantry/save", "table": "location", "data": {"name": "Z"}})
     assert msg["error"]["code"] == "unauthorized"
     assert (await ws.call({"type": "pantry/master_data"}))["success"]
 
@@ -132,7 +125,7 @@ async def test_booking_flow(ws) -> None:
 
     out = {"type": "pantry/book_out", "product_id": pid}
     taken = (await ws.call({**out, "packages": 2}))["result"]["taken"]
-    assert [(t["batch_id"], t["packages"]) for t in taken][0] == (early, 1)
+    assert (taken[0]["batch_id"], taken[0]["packages"]) == (early, 1)
     msg = await ws.call({**out, "packages": 5})
     assert msg["error"]["translation_key"] == "not_enough_stock"
 
@@ -145,7 +138,11 @@ async def test_lookup_and_search(ws) -> None:
     cat_id = by_name((await master(ws))["categories"], "Nudeln")["id"]
     ean = "4001234567890"
     product = {"name": "Spaghetti", "category_id": cat_id, "ean": ean}
-    pid = (await ws.call({"type": "pantry/book_in", "product": product, "packages": 1, "location_id": 1}))["result"]["product_id"]
+    pid = (
+        await ws.call(
+            {"type": "pantry/book_in", "product": product, "packages": 1, "location_id": 1}
+        )
+    )["result"]["product_id"]
 
     msg = await ws.call({"type": "pantry/search", "query": "SPAGHE"})
     assert [r["id"] for r in msg["result"]] == [pid]
@@ -167,7 +164,14 @@ async def test_everyday_use_needs_no_admin(ws, hass_admin_user) -> None:
     md = await master(ws)
     hass_admin_user.groups = []
     product = {"name": "Y", "category_id": by_name(md["categories"], "Nudeln")["id"]}
-    msg = await ws.call({"type": "pantry/book_in", "product": product, "packages": 1, "location_id": md["locations"][0]["id"]})
+    msg = await ws.call(
+        {
+            "type": "pantry/book_in",
+            "product": product,
+            "packages": 1,
+            "location_id": md["locations"][0]["id"],
+        }
+    )
     assert msg["success"]
 
 
@@ -179,7 +183,12 @@ async def test_products_list_and_edit(ws, hass_admin_user) -> None:
             "type": "pantry/book_in",
             "packages": 2,
             "location_id": (await master(ws))["locations"][0]["id"],
-            "product": {"name": "Penne", "category_id": nudeln, "ean": "4000000000001", "off_json": "{}"},
+            "product": {
+                "name": "Penne",
+                "category_id": nudeln,
+                "ean": "4000000000001",
+                "off_json": "{}",
+            },
         }
     )
     pid = msg["result"]["product_id"]
@@ -196,7 +205,6 @@ async def test_products_list_and_edit(ws, hass_admin_user) -> None:
 
     msg = await ws.call({"type": "pantry/product_save", "data": {"id": pid, "bogus": 1}})
     assert msg["error"]["code"] == "invalid_format"
-
 
 
 async def test_stock_edit(ws, hass_admin_user) -> None:
@@ -275,10 +283,18 @@ async def test_shopping_add(ws, hass_admin_user) -> None:
 async def test_delete_impact_and_force(ws, hass_admin_user) -> None:
     msg = await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "WS Weg"}})
     parent = msg["result"]["id"]
-    await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "WS Kind", "parent_id": parent}})
+    await ws.call(
+        {
+            "type": "pantry/save",
+            "table": "category",
+            "data": {"name": "WS Kind", "parent_id": parent},
+        }
+    )
     delete = {"type": "pantry/delete", "table": "category", "row_id": parent}
     assert (await ws.call(delete))["error"]["translation_key"] == "in_use"
-    impact = (await ws.call({"type": "pantry/delete_impact", "table": "category", "row_id": parent}))["result"]
+    impact = (
+        await ws.call({"type": "pantry/delete_impact", "table": "category", "row_id": parent})
+    )["result"]
     assert impact == {
         "blocked": None, "groups": [{"kind": "delete.category", "count": 1, "names": ["WS Kind"]}]
     }  # fmt: skip
@@ -304,10 +320,16 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     cfg = (await ws.call({"type": "pantry/label_config"}))["result"]
     assert cfg == {"printer": False, "print_on_book_in": True, "width_mm": 57, "height_mm": 32}
     out = (await ws.call(msg))["result"]
-    assert len(out["images"]) == 2 and out["width_mm"] == 57
+    assert (
+        out["image"].startswith("data:image/png;base64,")
+        and out["count"] == 2
+        and out["width_mm"] == 57
+    )
+    assert "images" not in out
 
     hass.config_entries.async_update_entry(
-        hass.config_entries.async_entries(DOMAIN)[0], options={"label_printer": "dymo_lw4xx", "label_printer_host": "10.0.0.5"}
+        hass.config_entries.async_entries(DOMAIN)[0],
+        options={"label_printer": "dymo_lw4xx", "label_printer_host": "10.0.0.5"},
     )
     with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
         out = (await ws.call({**msg, "count": 3}))["result"]
@@ -315,10 +337,14 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     assert send.await_args.args[0] == "10.0.0.5" and send.await_args.args[2] == 9100
     assert (await ws.call({"type": "pantry/label_config"}))["result"]["printer"] is True
 
-    with patch(
-        "custom_components.pantry.label.send", side_effect=HomeAssistantError("x")
-    ):
+    with patch("custom_components.pantry.label.send", side_effect=HomeAssistantError("x")):
         assert (await ws.call(msg))["success"] is False
+
+    hass.config_entries.async_update_entry(  # network model without a host: no silent browser fallback
+        hass.config_entries.async_entries(DOMAIN)[0], options={"label_printer": "dymo_lw4xx"}
+    )
+    no_host = await ws.call(msg)
+    assert no_host["error"]["translation_key"] == "printer_unreachable"
 
     for bad in (0, 100):
         assert (await ws.call({**msg, "count": bad}))["success"] is False
@@ -326,3 +352,76 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     out = await ws.call({"type": "pantry/book_out_label", "code": f"P{pid}:"})
     assert out["result"]["name"] == "Etikett-Nudeln"
     assert (await ws.call({"type": "pantry/book_out_label", "code": "x"}))["success"] is False
+
+
+async def test_undo_book_out_by_booking_id(ws) -> None:
+    data = await master(ws)
+    cat_id = by_name(data["categories"], "Nudeln")["id"]
+    loc_id = data["locations"][0]["id"]
+    res = await ws.call(
+        {"type": "pantry/book_in", "packages": 2, "location_id": loc_id,
+         "product": {"name": "Undo-Nudeln", "category_id": cat_id}}
+    )  # fmt: skip
+    out = await ws.call(
+        {"type": "pantry/book_out", "product_id": res["result"]["product_id"], "packages": 2}
+    )
+    (taken,) = out["result"]["taken"]
+    assert set(taken) == {"batch_id", "location_id", "packages", "booking_id"}
+    undo = {"type": "pantry/put_back", "booking_ids": [taken["booking_id"]]}
+    assert (await ws.call(undo))["success"]
+    assert (await ws.call(undo))["error"]["translation_key"] == "already_undone"
+    for bad in ([], list(range(1, 52)), [0]):
+        assert (await ws.call({**undo, "booking_ids": bad}))["success"] is False
+
+
+async def test_input_validation(ws) -> None:
+    data = await master(ws)
+    cat_id = by_name(data["categories"], "Nudeln")["id"]
+    unit = {"type": "pantry/save", "table": "unit"}
+    for factor in ("inf", "nan", "-inf", 0):
+        msg = await ws.call({**unit, "data": {"name": "Zzz", "symbol": "z", "factor": factor}})
+        assert msg["error"]["code"] == "invalid_format", factor
+    msg = await ws.call({**unit, "data": {"name": "x" * 201, "symbol": "z", "factor": 1}})
+    assert msg["error"]["code"] == "invalid_format"
+    cat = {"type": "pantry/save", "table": "category"}
+    msg = await ws.call({**cat, "data": {"id": cat_id, "min_stock": "nan", "min_stock_unit_id": 1}})
+    assert msg["error"]["code"] == "invalid_format"
+    prod = {"name": "Val", "category_id": cat_id}
+    book_in = {"type": "pantry/book_in", "packages": 1, "product": prod}
+    for extra in ({"packages": 10000}, {"product": {**prod, "image_url": "javascript:alert(1)"}},
+                  {"product": {**prod, "ean": "1" * 33}}, {"product": {**prod, "off_json": "x" * 100_001}},
+                  {"product": {**prod, "category_id": 0}}, {"location_id": 2**31 + 1}):  # fmt: skip
+        assert (await ws.call({**book_in, **extra}))["error"]["code"] == "invalid_format", extra
+    msg = await ws.call({**book_in, "product": {**prod, "ean": "12345"}})
+    assert msg["error"]["translation_key"] == "invalid_ean"
+    for bad in ({"type": "pantry/search", "query": "q" * 201}, {"type": "pantry/lookup", "code": "1" * 65},
+                {"type": "pantry/shopping_add", "packages": 10000, "category_id": cat_id},
+                {"type": "pantry/book_out", "product_id": 1, "packages": 10000}):  # fmt: skip
+        assert (await ws.call(bad))["error"]["code"] == "invalid_format", bad
+    res = await ws.call({**book_in, "product": {**prod, "image_url": "https://example.org/a.png"}})
+    assert res["success"]
+    msg = await ws.call(
+        {"type": "pantry/product_save", "data": {"id": res["result"]["product_id"]}}
+    )
+    assert msg["error"]["code"] == "invalid_format"  # only an id: a clean validation error
+
+
+async def test_delete_impact_is_silent(hass: HomeAssistant, ws) -> None:
+    """A dry run is rolled back and must not make the entities refresh."""
+    calls = []
+    unsub = async_dispatcher_connect(hass, SIGNAL_CHANGED, lambda: calls.append(1))
+    msg = await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "Dry"}})
+    parent = msg["result"]["id"]
+    await ws.call(
+        {
+            "type": "pantry/save",
+            "table": "category",
+            "data": {"name": "Dry kid", "parent_id": parent},
+        }
+    )
+    n = len(calls)
+    assert n >= 2
+    impact = {"type": "pantry/delete_impact", "table": "category", "row_id": parent}
+    assert (await ws.call(impact))["result"]["groups"]
+    assert len(calls) == n
+    unsub()

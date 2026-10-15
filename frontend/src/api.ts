@@ -105,10 +105,15 @@ export interface StockRow {
   expiry_type: "best_before" | "use_by";
   product_id: number;
   name: string;
+  brand: string | null;
+  ean: string | null;
+  category_id: number;
+  category_path: string[];
 }
 export interface BookIn {
   packages: number;
   expires_on?: string | null;
+  expiry_type?: "best_before" | "use_by";
   location_id?: number | null;
   product_id?: number;
   product?: Record<string, unknown>;
@@ -124,7 +129,7 @@ export const bookOut = (
   hass: Hass,
   data: { product_id: number; packages: number; batch_id?: number; location_id?: number },
 ) => hass.callWS<{ taken: unknown[] }>({ type: "pantry/book_out", ...data });
-export const getStock = (hass: Hass, product_id: number) =>
+export const getStock = (hass: Hass, product_id?: number) =>
   hass.callWS<StockRow[]>({ type: "pantry/stock", product_id });
 export const listProducts = (hass: Hass) => hass.callWS<Product[]>({ type: "pantry/products" });
 export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>

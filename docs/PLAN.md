@@ -297,21 +297,25 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 7 | Min stock | done | migration 4 (`min_stock_unit_id`: the minimum keeps its unit; `min_packages`; `shopping_done`), both minimums in the category dialog, *Einkauf* tab, todo entity *Einkaufsliste*; items by hand (migration 5 `shopping_item`, panel dialog with search and create, todo create/delete); deleting master data in use (`delete_impact` = dry run of the delete in a savepoint, diff of all tables, rolled back: lists every row deleted or changed; `force_delete` cascades or clears references, a location's stock moves or is booked out) |
 | 8 | Labels | done | `inventory/labels.py` (`label_info`, `book_out_code`: one package of the batch the code names; no schema change), `label.py` (QR + text with Pillow/segno, Dymo stream, raw TCP send), options flow in two steps (printer model via `label_printers.py`, then host, size, print on book-in, test print), confirm before printing more than 2 labels, `websocket_label.py`, panel: print on book-in, reprint dialog per batch row, scan `PTRY:` to book out, browser print when no printer. CUPS/IPP not built |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
-| 9 | Release | in progress | services (done), README, `release` skill, HACS release |
+| 9 | Release | in progress | services (done: `pantry.book_in` / `book_out` / `print_labels`), README, `release` skill, HACS release |
+| 10 | Recipe DB | open | `recipe` (name, servings, instructions, source URL, image URL), `recipe_ingredient` (category node as the ingredient key, amount, unit, original text, optional flag); tab *Rezepte*: list with search, edit dialog, availability per ingredient from stock (category subtree, unit conversion like min stock). Cooking does **not** book out (booking stays manual) |
+| 11 | Recipe import | open | URL → schema.org `Recipe` JSON-LD (Chefkoch and most recipe sites), fetched via HA's session on user action only; ingredient lines parsed (amount, unit, name) → category suggested (`suggest_by_name` / keywords), confirmed in a dialog. Sources without JSON-LD (Instagram caption, free text) need an LLM: added in phase 19 |
+| 12 | Shopping by recipes | open | pick recipes + servings → missing amounts (demand − stock per category) → items on the shopping list (same todo entity), source shown. Offers (supermarket discounts) deferred: see 7 |
+| 13 | Week planner | open | `meal_plan(date, slot, recipe_id or free text, servings)`; slots flexible per day (default one per day, more added as needed); default servings = option *Portionen im Haushalt* (3); panel week view; HA `calendar` entity shows the plan |
+| 14 | Shopping list from plan | open | plan demand for a date range − stock − forecast (consumption rate from `booking`) → same todo entity |
+| 15 | Recipe suggestions for expiring items | open | expiring batches → their categories → recipes ranked by expiring ingredients used and availability; shown in *Ablauf* and the recipe list |
+| 16 | Move a whole location | open | *Umlagern* action on a location row: move all its stock to another location (logic exists in `force_delete` for a location; reuse it for a location that stays) |
+| 17 | Category mapping feedback | open | `mapping_log` table: each product whose OFF tags matched no category or whose suggested category was changed (EAN, OFF `categories_tags`, suggested and chosen category); view/export to improve the seed `off_tags` (`add_product` already knows both cases) |
+| 18 | Opened packages | open | mark a package as opened (no remaining amount): it gets its own stock row with `opened_on`; new inherited field *haltbar nach Anbruch* (days) on category/product, empty = no change (e.g. Nudeln); effective expiry = min(batch expiry, opened_on + days); expiry view, sensors and labels use it |
+| 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task` |
+
+Order decided 2026-10-16. Data model details are designed (agent `architect`) at the start of each phase.
 
 ## 7. Extension points (not built now)
 
 | Later feature | Prepared by |
 |---|---|
-| Recipe DB | category nodes as ingredient key; `recipe`, `recipe_ingredient(category_id, amount, unit_id)` |
-| Week planner | `meal_plan(date, slot, recipe_id, servings)` |
-| Shopping list from plan | plan demand − stock − forecast from `booking` consumption rate → same todo entity |
-| Recipe suggestions for expiring items | expiry query returns category ids → match recipes |
-| AI interface | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → usable by Assist agents and HA's built-in **MCP Server** integration. No own MCP server. |
-| Recipe import | websites: schema.org `Recipe` JSON-LD; Instagram etc.: caption text → LLM parse |
-| Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
-| Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |
-| Move a whole location | done as part of deleting a location (the delete question offers a target, `inventory.force_delete`); a separate "Umlagern" action for a location that stays is still open |
-| Partially used packages | `stock.packages` → REAL or separate `opened` amount; not needed yet |
+| Shopping by offers (supermarket discounts) | phase 12 shopping by recipes; no stable public API for offers (Marktguru, kaufDA: scraping only), so deferred |
+| Remaining amount of opened packages / book out by cooking | phase 18 marks opened packages only; cooking does not book out (manual booking) |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

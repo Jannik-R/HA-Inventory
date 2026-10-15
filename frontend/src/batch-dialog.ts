@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, formStyles, plausibleDate } from "./ui";
+import { editDialog, fieldMsg, plausibleDate } from "./ui";
+import { formStyles } from "./styles";
 import { editStock, errorMessage, type Hass, type StockRow } from "./api";
 import type { Errors } from "./product-fields";
 

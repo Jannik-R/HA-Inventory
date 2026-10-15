@@ -71,6 +71,7 @@ def async_register(hass: HomeAssistant) -> None:
     for command in (
         ws_master_data,
         ws_save,
+        ws_defaults_save,
         ws_delete,
         ws_lookup,
         ws_search,
@@ -139,6 +140,25 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
         connection.send_error(msg["id"], websocket_api.ERR_INVALID_FORMAT, str(err))
         return
     connection.send_result(msg["id"], {"id": row_id})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/defaults_save",
+        vol.Required("data"): {
+            vol.Required("unit_id"): int,
+            vol.Required("default_location_id"): _ID,
+            vol.Required("expiry_type"): vol.In(("best_before", "use_by")),
+            vol.Required("warn_days"): vol.All(int, vol.Range(min=0)),
+        },
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Integration-wide defaults (root of inheritance)."""
+    await _run(hass, inventory.save_defaults, msg["data"])
+    connection.send_result(msg["id"])
 
 
 @websocket_api.websocket_command(

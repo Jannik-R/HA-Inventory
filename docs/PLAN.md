@@ -9,16 +9,17 @@ Everything runs inside the HA process; UI is a sidebar panel.
 HA sidebar panel (Lit web component, one bundled JS file)
         │  hass.callWS(...)
         ▼
-websocket.py ── services (services.yaml) ── LLM API tools (later)
+websocket.py ── services (planned, Phase 9) ── LLM API tools (later)
         │                │                        │
         └────────────────┴──── inventory/ ────────┘   ← all business logic, one place
                                    │
                          db.py (stdlib sqlite3, <config>/pantry.db)
                                    │
               off.py (Open Food Facts lookup, result cached in `product`)
-              label.py (render label PNG, send via IPP to CUPS)
+              label.py (planned, Phase 8: render label, raw to a network print server or IPP to CUPS)
+              receipt.py (planned: ESC/POS receipt printer, see 4a)
 
-Entities: sensor (expiring / expired / below-min counts), todo (shopping list)
+Entities: sensor (expired / expiring soon; below-min in Phase 7), todo (shopping list, Phase 7)
 ```
 
 Rule: **every** entry point (panel, services, automations, future AI tools) calls
@@ -35,7 +36,7 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 | Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
 | Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only | the kitchen phone may use a non-admin account |
-| Automations | HA services (`pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, ...) | scanners/NFC/ESPHome can call them |
+| Automations | HA services (`pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, ...; planned, Phase 9) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
 | Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → committed `www/` (main file + lazy chunks with hashed names); panel URL `?v=<bundle mtime>` busts the browser cache on every build | HACS needs built file |
 | UI components | own small Lit components styled with HA theme CSS vars; **no** internal `ha-*` elements | internal elements are not public API and break on HA updates |
@@ -44,7 +45,7 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 | Form validation | live: field errors under the field while typing, primary button disabled until valid; hints (e.g. past date) never block; backend validates again | errors before booking, not after; see CLAUDE.md UI/UX |
 | Barcode (hardware) | USB/BT scanners act as keyboard → the normal, always-focused input field | zero code |
 | Barcode (camera) | native `BarcodeDetector`, polyfill `barcode-detector` (zxing-wasm) loaded only when missing (iOS/Firefox/Windows); the wasm is bundled in a lazy chunk (~1.4 MB, ~600 kB gzip), never fetched from a CDN | camera needs HTTPS (or localhost); works offline in the LAN |
-| Label printing | backend renders PNG (Pillow + `segno` for QR), sends it via **IPP Print-Job** to a CUPS queue. No dialog. | works from panel, services and automations; any IPP printer works |
+| Label printing | backend renders the label (Pillow + `segno` for QR) and sends Dymo raster data raw to a **network print server** (TP-Link, port 9100); CUPS/IPP as fallback. No dialog. | works from panel, services and automations; no USB cable to HA |
 | i18n backend | HA standard: `strings.json` + `translations/{de,en}.json` | config flow, services, entities |
 | i18n frontend | `frontend/src/i18n/<lang>.json`, `t(key, params)`, language from `hass.language`, fallback `de` | dates/numbers via `Intl` with `hass.locale` |
 | Distribution | private GitHub repo now; layout HACS-compatible from day 1 (`hacs.json`, built bundle committed, GitHub releases) | publishing later = make repo public |
@@ -53,24 +54,29 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 ## 2. Data model
 
 ```
-unit       (id, name, symbol, base_unit_id NULL → unit, factor,
-            is_count)   -- 1 = counts packages (Stück, Packung, Dose ...)
+unit       (id, name UNIQUE, symbol, base_unit_id NULL → unit, factor > 0,
+            is_count 0|1)   -- 1 = counts packages (Stück, Packung, Dose ...)
            -- seeded: Stück, Packung, g, kg (=1000 g), ml, l (=1000 ml); user can add (Dose, Glas, Bund ...)
-location   (id, name, sort)
-category   (id, parent_id NULL → category, name, sort, off_tags JSON,
+location   (id, name UNIQUE, sort, active 0|1)   -- never deleted: "delete" deactivates (must be empty),
+           -- so bookings keep a valid FK; adding the same name again reactivates it
+defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days)
+           -- one row: root of inheritance, editable in Einstellungen › Standards
+category   (id, parent_id NULL → category, name, sort,
             unit_id, default_location_id, expiry_type, warn_days,   -- inheritable, NULL = inherit
             min_stock NULL,                                          -- amount in the node's unit; NOT inherited, see below
             min_packages NULL)                                       -- package count (> 0); NOT inherited; added in Phase 7 migration
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
-            content_amount, content_unit_id,                         -- e.g. 500 g per package
+            content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
             default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
             image_url, off_json, updated_at)
 batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
            -- date type is a product property (own or inherited), never per batch (migration 2)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
 label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)   -- added in Phase 8 migration
-booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id, location_id,
-            to_location_id,                      -- only 'move' (location_id = source)
+off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
+category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
+booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascade), location_id → location,
+            to_location_id → location,           -- only 'move' (location_id = source)
             packages,                            -- always positive; 'correct' = signed difference
             source 'scan'|'manual'|'label'|'service', user_id)
 ```
@@ -82,7 +88,7 @@ One self-referencing `category` table, any depth. Convention (not enforced):
 Products attach to any node, normally the leaf.
 
 - **Inheritance**: `unit`, `default_location`, `expiry_type`, `warn_days` resolve
-  product → its category → parent … → root → integration defaults (options).
+  product → its category → parent … → root → integration defaults (`defaults` table).
   The API returns each effective value with its source (`own` | category id | `default`);
   the UI renders inherited values in secondary text color with "von <Kategorie>".
 - **Min stock** is set on any node and counts its **whole subtree**. Two independent minimums
@@ -177,22 +183,61 @@ override field (session only, not saved). Expired listed first.
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
-The 450 is USB-only, so the network part is CUPS:
+The 450 has only USB. It goes into the network through a **TP-Link mini print server**
+(USB print server, e.g. TL-PS110U / TL-WPS510U: raw TCP port 9100 and LPD), so neither HA nor
+a Pi needs a USB cable to the printer.
 
 ```
-HA (pantry) ──IPP Print-Job (PNG)──▶ CUPS on the Pi (container, USB passthrough,
-                                      printer-driver-dymo) ──USB──▶ LabelWriter 450
+HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print server ──USB──▶ LabelWriter 450
 ```
 
-Options (config flow → options): printer URI (`ipp://<pi>:631/printers/dymo`),
-CUPS media name, label width/height mm, DPI, auto-print on book-in.
+- **Default path: HA talks to the print server directly.** The 450 is not PostScript/PCL; it takes
+  its own raster protocol (Dymo "LabelWriter Technical Reference": `ESC @` reset, label length,
+  `SYN` + one line of 1-bit pixels per dot row, `ESC E` form feed). `label.py` renders the label
+  with Pillow (QR via `segno`), converts it to 1-bit rows at 300 dpi and writes them to
+  `<print server>:9100` (asyncio socket). No CUPS, no driver, no extra host.
+  `shortcut: own small raster encoder for LabelWriter 4xx; other label printers need their own encoder or the CUPS path.`
+- **Fallback path: CUPS** (for printers without an own encoder): a CUPS server (Pi container or
+  HA add-on) with `printer-driver-dymo`, its queue pointing to `socket://<print server>:9100`;
+  HA sends the PNG via IPP Print-Job to that queue.
+- Check first: TP-Link print servers have a compatibility list and some USB label printers fail
+  behind them (no bidirectional status). Test the 450 with one raw test label (via
+  `nc <print server> 9100 < test.bin`) before building on it; if it fails, use CUPS on a Pi with USB.
+
+Options (config flow → options): transport (`raw` print server host[:port] | `ipp` CUPS queue URI),
+label width/height mm, auto-print on book-in. Test print button in options.
 Label content: QR `PTRY:<id>`, product name, expiry date, short ID as text.
-Test print button in options. README documents the CUPS container setup (compose template).
+README documents the print server setup (fixed IP, port 9100 enabled) and the optional CUPS setup.
 
-Network printing is **optional**: no printer URI configured → labels still work, the panel
+Network printing is **optional**: no printer configured → labels still work, the panel
 opens the same PNG in the browser print view (`@page` sized to the label). Camera scanner
 works on the Pi installation via HTTPS (cloud / local reverse proxy).
-`shortcut: IPP only; add raw/other transports when a printer without IPP/CUPS is needed.`
+
+## 4a. Receipt printer (shopping list, later recipes)
+
+Goal: print the shopping list (Phase 7) and later recipes on a cheap thermal receipt printer,
+from the panel, a service and automations, without a print dialog. Support as many printers as
+possible; the printer ordered for testing (58/80 mm thermal receipt printer from eBay) is only one example.
+
+- **Command set: ESC/POS.** Almost every receipt printer speaks it (Epson TM, Star in ESC/POS mode,
+  Xprinter, Munbyn, Rongta, HOIN, generic "POS-58/POS-80"). Only a small subset is needed:
+  init (`ESC @`), raster image (`GS v 0`), feed, cut (`GS V`, ignored by printers without a cutter).
+- **Content as a raster image**, not text mode: rendered with Pillow (shared with `label.py`), so
+  umlauts, fonts, bold headings and QR codes work on every printer without code-page tables.
+  `shortcut: image only; add text mode if a slow printer needs it.`
+- **Transports** (option in the config flow, one printer):
+  - device file on the HA host: USB printers show up as `/dev/usb/lp0` (USB printer class) or
+    `/dev/ttyUSB0` / `/dev/ttyACM0` (USB-serial); plain binary writes, no dependency. Works on HA OS
+    (USB devices are passed to HA core) and in Docker with `devices:`. Example: **TPG A799** (80 mm,
+    cutter, USB with serial-over-USB) → `/dev/ttyUSB0` or `/dev/ttyACM0`;
+  - network: raw TCP to port 9100 (most LAN/WiFi models), asyncio socket, no dependency;
+  - CUPS/IPP: a raw queue on the Pi that already serves the Dymo;
+  - Bluetooth: not planned (pairing on HA OS is fragile); use an ESP32 serial bridge or CUPS.
+- **Options**: transport + address/device, paper width (58 mm = 384 dots, 80 mm = 576 dots), cutter yes/no,
+  test print button. A cash drawer port (ESC/POS `ESC p`) is ignored.
+- **No new requirement** if possible: ESC/POS bytes are written by hand (~30 lines); `python-escpos`
+  only if real printers need its quirks database.
+- Entry points: panel button "Einkaufszettel drucken" in the *Einkauf* tab, service `pantry.print_shopping_list`.
 
 ## 5. Development environment
 
@@ -209,12 +254,12 @@ browser tests (Claude's browser, later Playwright). The MCP Server uses its own 
 | `ha-dev` skill (`.claude/skills/ha-dev`) | ready | start/restart HA, filtered logs, tests, build |
 | HA MCP Server on dev HA (`.mcp.json` → `ha-dev`) | prepared; needs the MCP Server integration added in dev HA + `HA_DEV_TOKEN` env var | after Phase 0 (dev HA onboarded) |
 | Context7 MCP (`.mcp.json`) | ready | library docs (Lit, Vite, Pillow) on demand |
-| Format hook (`.claude/hooks/format.mjs`) | ready; runs ruff / prettier if installed, silent otherwise | prettier active after Phase 0 (`frontend/` exists); ruff via `pip install ruff` |
+| Format hook (`.claude/hooks/format.mjs`) | ready; runs ruff / prettier if installed, silent otherwise; prettier on `frontend/src` + `frontend/e2e`, generated files in `frontend/.prettierignore`, CI runs `npm run format:check` | ruff via `pip install ruff` |
 | Serena MCP (symbol-level code navigation) | planned | after Phase 1, when the code base is big enough to pay off; needs `uv` |
-| Playwright UI tests (`@playwright/test` in `frontend/`, `npm run test:e2e`): repeatable click-through tests of the panel against the local dev HA (no login via `trusted_networks`), run **locally only** (not in CI: each run would need an HA container + browser, ~5-8 billed GitHub Actions minutes, while the private repo has 2,000 free minutes/month; locally it takes seconds). Once the repo is public (Actions free), an E2E CI job can be enabled. Elements addressed by stable `data-testid` attributes (Playwright pierces shadow DOM); each test creates its own data and cleans up. Runs in the installed Edge (`channel: msedge`), no browser download | ready | booking flow covered; extend per phase |
-| `feature-checklist` skill + missing-i18n-key script | planned | after Phase 4 (first complete feature end to end = the pattern to write down) |
+| Playwright UI tests (`@playwright/test` in `frontend/`, `npm run test:e2e`): repeatable click-through tests of the panel against the local dev HA (no login via `trusted_networks`), run **locally only** (not in CI: each run would need an HA container + browser, ~5-8 billed GitHub Actions minutes, while the private repo has 2,000 free minutes/month; locally it takes seconds). Once the repo is public (Actions free), an E2E CI job can be enabled. Elements addressed by stable `data-testid` attributes (Playwright pierces shadow DOM); each test creates its own data and cleans up. Runs in the installed Edge (`channel: msedge`), no browser download | ready | booking, stock, expiry, settings, validation covered; extend per phase |
+| `feature-checklist` skill + `npm run i18n:check` (missing/unused UI keys, also in CI) | ready | every feature/fix |
 | `ha-integration-rules` skill: condensed HA dev rules (config flow, `runtime_data`, translations, service registration, quality scale items that matter here) | ready | |
-| `db-migration` skill: add a migration step, test upgrade from a fixture DB of the previous version, backup note | planned | after Phase 1 (first schema exists) |
+| `db-migration` skill: add a migration step, test upgrade from a DB of the previous version, backup note | ready | every schema change |
 | `off-api` skill: Open Food Facts endpoints, fields used, User-Agent, rate limits, seed tag check | ready | |
 | `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | ready | |
 | `release` skill: version bump in `manifest.json`, build, changelog, tag, GitHub release, HACS validation | planned | Phase 9 |
@@ -226,19 +271,21 @@ image (Python version always matches HA; HA does not run on Windows natively).
 
 Each phase ends with: tests green, README updated, checked in dev HA.
 
-| # | Phase | Content |
-|---|---|---|
-| 0 | Foundation | integration skeleton, config flow (single instance), panel shell, i18n, CI: hassfest + HACS action + pytest + frontend build |
-| 1 | Core | `db.py` schema + migrations + seed, `inventory.py` (book in/out/move/correct, inheritance resolution, queries), backup platform (moved up from Phase 9: real data exists from now on), tests |
-| 2 | Product lookup | `off.py`, search, category suggestion |
-| 3 | Master data UI | locations, units, category tree with inherited values |
-| 4 | Booking UI | book in/out, keyboard scanner field, camera scanner. Required fix: click beside a dialog must close it (code was there, browsers kept the old cached bundle: panel URL now busts the cache with the bundle mtime) |
-| 5 | Overview + search | stock list, filters (category tree with products as leaves, take out one package per batch with undo; all filtering in the panel: one `pantry/stock` call, data size of a household) |
-| 6 | Expiry | expiry view with temporary threshold (all in the panel from `pantry/stock`, like Phase 5), sensors expired / expiring soon (packages, batches as attribute; `DataUpdateCoordinator` without polling: `Database.run` sends a dispatcher signal after any write, plus a refresh at midnight) |
-| 6a | Stock + products | "Produkte" tab merged into "Bestand": product rows get edit/delete, batch rows an edit dialog (`inventory.edit_stock`: date and count of one batch at one location, date type stays a product property; another date moves the packages to that batch, logged as two corrections); products without stock only via an opt-in checkbox |
-| 7 | Min stock | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity |
-| 8 | Labels | `label.py`, IPP printing, options, scan-to-consume |
-| 9 | Release | services, README, HACS release |
+| # | Phase | Status | Content |
+|---|---|---|---|
+| 0 | Foundation | done | integration skeleton, config flow (single instance), panel shell, i18n, CI: hassfest + HACS action + pytest + frontend build |
+| 1 | Core | done | `db.py` schema + migrations + seed, `inventory` (then one module, now the `inventory/` package; book in/out/move/correct, inheritance resolution, queries), backup platform (moved up from Phase 9: real data exists from now on), tests |
+| 2 | Product lookup | done | `off.py`, search, category suggestion |
+| 3 | Master data UI | done | locations, units, category tree with inherited values |
+| 4 | Booking UI | done | book in/out, keyboard scanner field, camera scanner. Required fix: click beside a dialog must close it (code was there, browsers kept the old cached bundle: panel URL now busts the cache with the bundle mtime) |
+| 5 | Overview + search | done | stock list, filters (category tree with products as leaves, take out one package per batch with undo; all filtering in the panel: one `pantry/stock` call, data size of a household) |
+| 6 | Expiry | done | expiry view with temporary threshold (all in the panel from `pantry/stock`, like Phase 5), sensors expired / expiring soon (packages, batches as attribute; `DataUpdateCoordinator` without polling: `Database.run` sends a dispatcher signal after any write, plus a refresh at midnight) |
+| 6a | Stock + products | done | "Produkte" tab merged into "Bestand": product rows get edit/delete, batch rows an edit dialog (`inventory.edit_stock`: date and count of one batch at one location, date type stays a product property; another date moves the packages to that batch, logged as two corrections); products without stock only via an opt-in checkbox |
+| 6b | Maintenance | done | migration 3 (OFF tags normalized, CHECKs, location deactivation + booking FKs, `defaults` table editable in settings), styled confirm dialog, Prettier + i18n check in CI, skills `db-migration` and `feature-checklist` |
+| 7 | Min stock | open | migration `min_packages`, both minimums per node (each optional, any level) in settings UI and shopping list, todo entity. `min_stock` is in the node's **inherited** unit: when that unit changes higher up, the number silently changes meaning (2 kg → 2 Packungen). Fix here: store the unit with the minimum (`min_stock_unit_id`) or warn/convert when the effective unit changes |
+| 8 | Labels | open | `label.py`, raw printing via TP-Link print server (Dymo raster), CUPS/IPP fallback, options, scan-to-consume |
+| 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
+| 9 | Release | open | services, README, HACS release |
 
 ## 7. Extension points (not built now)
 
@@ -252,7 +299,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | Recipe import | websites: schema.org `Recipe` JSON-LD; Instagram etc.: caption text → LLM parse |
 | Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
 | Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |
+| Move a whole location | "Umlagern": move all stock of a location to another one in one step (today: per batch via `inventory.move`, no UI yet; a location with stock cannot be deactivated). Needed before deactivating a full location; UI = target select in the delete question |
 | Partially used packages | `stock.packages` → REAL or separate `opened` amount; not needed yet |
-| Styled confirm dialog | replace native `confirm()` (delete questions, "Änderungen verwerfen?") with an own modal `<dialog>` in `ui.ts` following the dialog rules (title, "Abbrechen" + destructive action right, danger color for delete); returns a Promise so call sites stay one line |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

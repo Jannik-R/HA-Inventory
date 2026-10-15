@@ -2,7 +2,8 @@
 import { LitElement, css, html } from "lit";
 import type { BarcodeDetector as Detector } from "barcode-detector/ponyfill";
 import { t } from "./i18n";
-import { backdropClick, formStyles } from "./ui";
+import { backdropClick } from "./ui";
+import { formStyles } from "./styles";
 
 const FORMATS = ["ean_13", "ean_8", "upc_a", "upc_e"] as const;
 

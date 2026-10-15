@@ -12,7 +12,8 @@ export function productErrors(p: Product): Errors {
   if (!p.name.trim()) e.name = t("valid.required");
   if (p.category_id == null) e.category = t("book.category_required");
   if (p.content_amount != null && !(p.content_amount > 0)) e.content = t("valid.positive");
-  else if ((p.content_amount == null) !== (p.content_unit_id == null)) e.content = t("valid.content_pair");
+  else if ((p.content_amount == null) !== (p.content_unit_id == null))
+    e.content = t("valid.content_pair");
   return e;
 }
 
@@ -90,9 +91,16 @@ export function productFields(
 }
 
 /** "Spaghetti No. 5 · Barilla · 500 g · Nudeln, Reis & Getreide › Nudeln" */
-export function productSummary(md: MasterData | undefined, p: Product, path: string, lang?: string): string {
+export function productSummary(
+  md: MasterData | undefined,
+  p: Product,
+  path: string,
+  lang?: string,
+): string {
   const unit = md?.units.find((u) => u.id === p.content_unit_id);
   const content =
-    p.content_amount != null && unit ? `${new Intl.NumberFormat(lang).format(p.content_amount)} ${unit.symbol || unit.name}` : "";
+    p.content_amount != null && unit
+      ? `${new Intl.NumberFormat(lang).format(p.content_amount)} ${unit.symbol || unit.name}`
+      : "";
   return [p.name, p.brand, content, path].filter(Boolean).join(" · ");
 }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from .common import COLUMNS, INHERITED, InventoryError, _now
+from .common import COLUMNS, INHERITED, InventoryError, _exists, _now
 from .inherit import _categories, _resolve, category_tags, defaults, set_tags
 
 
@@ -30,6 +30,8 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         if not isinstance(data["name"], str) or not data["name"].strip():
             raise InventoryError("invalid_value")
         data["name"] = data["name"].strip()
+    if table == "product" and "ean" in data:
+        data["ean"] = _check_ean(data["ean"])
     if table == "unit":
         _check_unit(conn, row_id, data)
     if table == "category" and row_id is not None:
@@ -48,10 +50,13 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
                 f"INSERT INTO {table} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})",
                 list(data.values()),
             ).lastrowid
-        elif names and not conn.execute(
-            f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
-            [*data.values(), row_id],
-        ).rowcount:
+        elif (
+            names
+            and not conn.execute(
+                f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
+                [*data.values(), row_id],
+            ).rowcount
+        ):
             raise InventoryError("not_found")
     except sqlite3.IntegrityError as err:
         raise InventoryError("duplicate" if "UNIQUE" in str(err) else "invalid_value") from err
@@ -60,6 +65,20 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
             raise ValueError("off_tags only for categories")
         set_tags(conn, row_id, tags)
     return row_id
+
+
+def _check_ean(ean: object) -> str | None:
+    """None / blank -> no EAN; otherwise 8 to 14 ASCII digits."""
+    if ean is None or (isinstance(ean, str) and not ean.strip()):
+        return None
+    if not (
+        isinstance(ean, str)
+        and (ean := ean.strip()).isascii()
+        and ean.isdigit()
+        and 8 <= len(ean) <= 14
+    ):
+        raise InventoryError("invalid_ean")
+    return ean
 
 
 def _inactive_location(conn: sqlite3.Connection, data: dict) -> int | None:
@@ -76,7 +95,7 @@ def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
     if data["unit_id"] is None or data["expiry_type"] is None or data["warn_days"] is None:
         raise InventoryError("invalid_value")
     if data["default_location_id"] is not None:
-        _active_location(conn, data["default_location_id"])
+        _exists(conn, "location", data["default_location_id"])
     try:
         conn.execute(
             f"INSERT INTO defaults (id, {', '.join(INHERITED)}) VALUES (1, ?, ?, ?, ?)"
@@ -87,13 +106,6 @@ def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
         raise InventoryError("invalid_value") from err
 
 
-def _active_location(conn: sqlite3.Connection, location_id: int) -> None:
-    if not conn.execute(
-        "SELECT 1 FROM location WHERE id = ? AND active", (location_id,)
-    ).fetchone():
-        raise InventoryError("not_found")
-
-
 def _check_unit(conn: sqlite3.Connection, unit_id: int | None, data: dict) -> None:
     """Factor > 0; a base unit has no base itself, and a unit used as base cannot get one."""
     if ("factor" in data or unit_id is None) and not (data.get("factor") or 0) > 0:
@@ -102,9 +114,10 @@ def _check_unit(conn: sqlite3.Connection, unit_id: int | None, data: dict) -> No
     if base_id is None:
         return
     base = conn.execute("SELECT base_unit_id FROM unit WHERE id = ?", (base_id,)).fetchone()
-    used_as_base = unit_id is not None and conn.execute(
-        "SELECT 1 FROM unit WHERE base_unit_id = ?", (unit_id,)
-    ).fetchone()
+    used_as_base = (
+        unit_id is not None
+        and conn.execute("SELECT 1 FROM unit WHERE base_unit_id = ?", (unit_id,)).fetchone()
+    )
     if base is None or base_id == unit_id or base["base_unit_id"] is not None or used_as_base:
         raise InventoryError("invalid_unit")
 
@@ -135,7 +148,7 @@ def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
 
 def _deactivate_location(conn: sqlite3.Connection, location_id: int) -> None:
     """Hide a location everywhere; defaults pointing to it fall back to inheritance."""
-    _active_location(conn, location_id)
+    _exists(conn, "location", location_id)
     if conn.execute("SELECT 1 FROM stock WHERE location_id = ?", (location_id,)).fetchone():
         raise InventoryError("location_has_stock")
     conn.execute("UPDATE location SET active = 0 WHERE id = ?", (location_id,))
@@ -153,7 +166,11 @@ def master_data(conn: sqlite3.Connection) -> dict:
         "units": list_rows(conn, "unit"),
         "locations": list_rows(conn, "location"),
         "categories": [
-            {**c, "off_tags": tags.get(c["id"], []), "effective": _resolve(cats, None, c["id"], dflt)}
+            {
+                **c,
+                "off_tags": tags.get(c["id"], []),
+                "effective": _resolve(cats, None, c["id"], dflt),
+            }
             for c in list_rows(conn, "category")
         ],
         "defaults": dflt,

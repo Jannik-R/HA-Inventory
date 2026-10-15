@@ -71,6 +71,7 @@ product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             image_url, off_json, updated_at)
 batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
            -- date type is a product property (own or inherited), never per batch (migration 2)
+           -- at most one batch without a date per product (partial unique index, migration 6)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
 shopping_done (category_id PK → category (cascade), missing)   -- checked shopping item + its shortage then
 shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL → category,   -- added by hand,
@@ -80,7 +81,9 @@ category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -
 booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascade), location_id → location,
             to_location_id → location,           -- only 'move' (location_id = source)
             packages,                            -- always positive; 'correct' = signed difference
-            source 'scan'|'manual'|'label'|'service', user_id)
+            source 'scan'|'manual'|'label'|'service'|'undo', user_id,
+            reverts_id UNIQUE NULL → booking)    -- an undo's 'in' names the 'out' it reverses: undone once (migration 6)
+            -- root category names are unique too (partial unique index, migration 6)
 ```
 
 ### Category tree
@@ -215,7 +218,7 @@ HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print se
 
 Options (config flow → options): transport (`raw` print server host[:port] | `ipp` CUPS queue URI),
 label width/height mm, auto-print on book-in. Test print button in options.
-Label content: QR `PTRY:<key>:<date>`, product name, brand, expiry date. No label table; reprint = `count` identical labels of a batch (1..99).
+Label content: QR `PTRY:<key>:<date>`, product name, brand, expiry date. No label table; reprint = `count` identical labels of a batch (1..99); `pantry/print_labels` renders once: network printer `{printed}`, browser `{image, count, width_mm, height_mm}` (the panel repeats the image).
 README documents the print server setup (fixed IP, port 9100 enabled) and the optional CUPS setup.
 
 Network printing is **optional**: no printer configured → labels still work, the panel

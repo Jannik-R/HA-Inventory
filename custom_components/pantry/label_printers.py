@@ -8,7 +8,7 @@ from typing import Any
 
 from PIL import Image
 
-from .const import CONF_LABEL_PRINTER, CONF_LABEL_PRINTER_HOST, CONF_LEGACY_PRINTER
+from .const import CONF_LABEL_PRINTER, CONF_LABEL_PRINTER_HOST
 
 
 @dataclass(frozen=True)
@@ -19,9 +19,7 @@ class Model:
     default_height: int
     network: bool = False  # sent as a raw TCP stream; otherwise printed by the browser
     port: int = 9100
-    bottom_reserve_mm: float = (
-        0  # extra blank space at the bottom the printer never prints
-    )
+    bottom_reserve_mm: float = 0  # extra blank space at the bottom the printer never prints
     encode: Callable[[list[Image.Image]], bytes] | None = None
 
 
@@ -36,17 +34,11 @@ def _dymo_lw4xx(images: list[Image.Image]) -> bytes:
     data += b"\x1bL" + (height + round(10 / 25.4 * 300)).to_bytes(
         2, "big"
     )  # label length + tolerance
-    data += b"\x1bh\x1bB\x00\x1bD" + bytes(
-        [_LINE_BYTES]
-    )  # 300x300, dot tab 0, bytes per line
+    data += b"\x1bh\x1bB\x00\x1bD" + bytes([_LINE_BYTES])  # 300x300, dot tab 0, bytes per line
     for img in images:
         page = Image.new("1", (_HEAD_DOTS, height), 1)
-        page.paste(
-            img, (0, 0)
-        )  # narrow labels sit at the left edge of the head (verified)
-        raw = bytes(
-            b ^ 0xFF for b in page.tobytes()
-        )  # PIL: 1 = white, printer: 1 = black
+        page.paste(img, (0, 0))  # narrow labels sit at the left edge of the head (verified)
+        raw = bytes(b ^ 0xFF for b in page.tobytes())  # PIL: 1 = white, printer: 1 = black
         for y in range(height):
             data += b"\x16" + raw[y * _LINE_BYTES : (y + 1) * _LINE_BYTES]
         data += b"\x1bE"
@@ -61,9 +53,8 @@ MODELS: dict[str, Model] = {
 
 
 def printer_of(options: Any) -> tuple[str, str]:
-    """(model key, host) from the options; reads the pre-release `printer` key as the host."""
-    host = (
-        options.get(CONF_LABEL_PRINTER_HOST) or options.get(CONF_LEGACY_PRINTER) or ""
-    ).strip()
+    """(model key, host) from the options; an unknown or missing model is the browser."""
     key = options.get(CONF_LABEL_PRINTER)
-    return (key if key in MODELS else ("dymo_lw4xx" if host else "browser")), host
+    return (key if key in MODELS else "browser"), (
+        options.get(CONF_LABEL_PRINTER_HOST) or ""
+    ).strip()

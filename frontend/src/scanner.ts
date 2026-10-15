@@ -49,30 +49,46 @@ export class PantryScanner extends LitElement {
       this.error = t("scan.https");
       return;
     }
+    // Each step has its own message: permission/camera problems differ from a detector load failure.
+    let stream: MediaStream;
     try {
-      const [detector, stream] = await Promise.all([
-        createDetector(),
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }),
-      ]);
-      if (!dlg.open) return stream.getTracks().forEach((tr) => tr.stop());
-      this.stream = stream;
-      const video = this.renderRoot.querySelector("video")!;
-      video.srcObject = stream;
-      await video.play();
-      this.timer = window.setInterval(async () => {
-        const [hit] = await detector.detect(video).catch(() => []);
-        if (hit && dlg.open) {
-          dlg.close();
-          this.dispatchEvent(new CustomEvent("scan", { detail: hit.rawValue }));
-        }
-      }, 250);
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
     } catch {
       this.error = t("scan.no_camera");
+      return;
     }
+    let detector: Detector;
+    try {
+      detector = await createDetector();
+    } catch {
+      stream.getTracks().forEach((tr) => tr.stop());
+      this.error = t("scan.detector");
+      return;
+    }
+    if (!dlg.open) return stream.getTracks().forEach((tr) => tr.stop());
+    this.stream = stream;
+    const video = this.renderRoot.querySelector("video")!;
+    video.srcObject = stream;
+    try {
+      await video.play();
+    } catch {
+      this.error = t("scan.no_camera");
+      return;
+    }
+    // One detect() at a time: the next one is armed only after the previous finished.
+    const tick = async () => {
+      const [hit] = await detector.detect(video).catch(() => []);
+      if (!dlg.open) return;
+      if (hit) {
+        dlg.close();
+        this.dispatchEvent(new CustomEvent("scan", { detail: hit.rawValue }));
+      } else this.timer = window.setTimeout(tick, 250);
+    };
+    this.timer = window.setTimeout(tick, 250);
   }
 
   private stop() {
-    clearInterval(this.timer);
+    clearTimeout(this.timer);
     this.stream?.getTracks().forEach((tr) => tr.stop());
     this.stream = undefined;
   }

@@ -6,6 +6,7 @@
     "build": "tsc --noEmit && vite build",
     "dev": "vite build --watch",
     "test:e2e": "playwright test",
+    "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "i18n:check": "node scripts/check-i18n.mjs"

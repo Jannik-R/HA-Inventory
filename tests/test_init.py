@@ -1,5 +1,7 @@
 """Setup, panel and unload."""
 
+import asyncio
+import sqlite3
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -10,6 +12,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.pantry import inventory
 from custom_components.pantry.backup import async_post_backup, async_pre_backup
 from custom_components.pantry.const import DOMAIN
 
@@ -29,9 +32,9 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await async_pre_backup(hass)
-    assert entry.runtime_data.lock.locked()
+    assert entry.runtime_data.gate.locked()
     await async_post_backup(hass)
-    assert not entry.runtime_data.lock.locked()
+    assert not entry.runtime_data.gate.locked()
 
     assert await hass.config_entries.async_unload(entry.entry_id)
     assert DOMAIN not in hass.data["frontend_panels"]
@@ -68,7 +71,12 @@ async def test_options_flow_browser(hass: HomeAssistant) -> None:
 async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
     """Dymo: limits of the model, host required, test print reports an unreachable printer (nothing real is sent)."""
     entry = await _options_entry(hass)
-    form = {"label_printer_host": "10.0.0.5", "label_width": 57, "label_height": 32, "print_on_book_in": False}
+    form = {
+        "label_printer_host": "10.0.0.5",
+        "label_width": 57,
+        "label_height": 32,
+        "print_on_book_in": False,
+    }
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
@@ -96,3 +104,25 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
     send.assert_awaited_once()
     assert send.await_args.args[0] == "10.0.0.5" and send.await_args.args[2] == 9100
     assert entry.options == {**form, "label_printer": "dymo_lw4xx"}  # test_print is not stored
+
+
+async def test_backup_blocks_writes_without_parking_a_thread(hass: HomeAssistant) -> None:
+    db = (await _options_entry(hass)).runtime_data
+    await async_pre_backup(hass)
+    write = hass.async_create_task(db.run(inventory.list_rows, "unit"))
+    await asyncio.sleep(0.05)
+    assert not write.done()  # waits on the event loop
+    await async_post_backup(hass)
+    assert await asyncio.wait_for(write, 5)
+
+
+async def test_failed_setup_closes_the_database(hass: HomeAssistant) -> None:
+    assert await async_setup_component(hass, "http", {})
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+    with patch(
+        "custom_components.pantry.panel_custom.async_register_panel", side_effect=RuntimeError("x")
+    ):
+        assert not await hass.config_entries.async_setup(entry.entry_id)
+    with pytest.raises(sqlite3.ProgrammingError):  # closed
+        entry.runtime_data._conn.execute("SELECT 1")

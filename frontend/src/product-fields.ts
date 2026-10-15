@@ -77,7 +77,7 @@ export function productFields(
           aria-invalid=${!!errors.content}
           @change=${(e: Event) => set("content_unit_id", Number((e.target as HTMLSelectElement).value) || null)}
         >
-          <option value="" ?selected=${p.content_unit_id == null}>–</option>
+          <option value="" ?selected=${p.content_unit_id == null}>${t("common.none_dash")}</option>
           ${(md?.units ?? []).map(
             (u) =>
               html`<option value=${u.id} ?selected=${u.id === p.content_unit_id}>

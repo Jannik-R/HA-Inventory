@@ -1,5 +1,32 @@
-import { openPage } from "./helpers";
+import { apiPage, openPage, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
+
+const STAMP = Date.now();
+const CATEGORY = `E2E Pruefung ${STAMP}`;
+const LOCATION = `E2E Pruefort ${STAMP}`;
+const PRODUCT = `E2E Pruefware ${STAMP}`;
+let categoryId: number | undefined;
+let locationId: number | undefined;
+
+test.beforeAll(async ({ browser }) => {
+  const page = await apiPage(browser);
+  categoryId = await save(page, "category", { name: CATEGORY });
+  locationId = await save(page, "location", { name: LOCATION });
+  await ws(page, {
+    type: "pantry/book_in",
+    product: { name: PRODUCT, category_id: categoryId },
+    packages: 1,
+    location_id: locationId,
+  });
+  await page.close();
+});
+
+test.afterAll(async ({ browser }) => {
+  const page = await apiPage(browser);
+  if (categoryId != null) await remove(page, "category", categoryId); // takes the product along
+  if (locationId != null) await remove(page, "location", locationId);
+  await page.close();
+});
 
 // Live validation: errors show while typing and block saving; nothing is saved here.
 test("booking form validates while typing", async ({ page }) => {
@@ -31,17 +58,17 @@ test("booking form validates while typing", async ({ page }) => {
   await expect(page.getByTestId("expires-hint")).toBeVisible(); // past date: hint only
 
   await page.getByTestId("category").click();
-  await page.getByTestId("category-filter").fill("nudeln");
+  await page.getByTestId("category-filter").fill(CATEGORY);
   await page.getByTestId("category-filter").press("Enter");
   await page.getByTestId("category-confirm").click();
-  await page.getByTestId("location").selectOption({ index: 1 });
+  await page.getByTestId("location").selectOption({ label: LOCATION });
   await expect(submit).toBeEnabled();
 });
 
 test("product dialog validates the EAN", async ({ page }) => {
   await openPage(page, "/pantry/stock", "Bestand");
-  await page.getByTestId("stock-filter").fill("e"); // opens the tree down to the products
-  await page.getByTestId("product-edit").first().click();
+  await page.getByTestId("stock-filter").fill(PRODUCT); // opens the tree down to the product
+  await page.getByTestId("product-edit").click();
   await page.getByTestId("ean").fill("123");
   await expect(page.getByTestId("ean-error")).toBeVisible();
   await expect(page.getByTestId("save")).toBeDisabled();

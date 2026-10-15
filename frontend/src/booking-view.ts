@@ -59,6 +59,8 @@ export class PantryBooking extends LitElement {
   declare busy: boolean;
 
   private md?: MasterData;
+  /** Latest request; slower older answers (and answers after a reset) are dropped. */
+  private seq = 0;
 
   constructor() {
     super();
@@ -70,6 +72,7 @@ export class PantryBooking extends LitElement {
   }
 
   private reset() {
+    this.seq++;
     this.query = "";
     this.hits = undefined;
     this.online = false;
@@ -125,6 +128,7 @@ export class PantryBooking extends LitElement {
     const q = this.query.trim();
     if (!q || !this.hass) return;
     const hass = this.hass;
+    const id = ++this.seq;
     this.message = "";
     this.undo = undefined;
     this.product = this.stock = this.hits = undefined;
@@ -135,13 +139,13 @@ export class PantryBooking extends LitElement {
     }
     if (EAN.test(q)) {
       const res = await this.run(() => lookup(hass, q));
-      if (!res) return;
+      if (!res || id !== this.seq) return;
       if (res.product) return this.choose(res.product);
       if (this.mode === "out") return void (this.error = t("book.unknown"));
       return this.choose(this.blank({ ean: q }));
     }
     const hits = await this.run(() => search(hass, q));
-    if (!hits) return;
+    if (!hits || id !== this.seq) return;
     this.hits = hits;
     if (this.mode === "out" && hits.length === 1) this.choose(hits[0] as Product);
   }
@@ -149,7 +153,9 @@ export class PantryBooking extends LitElement {
   /** A printed label books out one package of its batch (Auslagern only). */
   private async scanLabel(code: string) {
     this.reset();
+    const id = this.seq;
     const res = await this.run(() => bookOutLabel(this.hass!, code));
+    if (id !== this.seq) return;
     if (!res) return this.focusInput();
     this.message = t("book.done_label", { name: res.name, where: res.location });
     this.undo = res.taken;
@@ -158,8 +164,9 @@ export class PantryBooking extends LitElement {
 
   private async searchOnline() {
     const hass = this.hass!;
+    const id = ++this.seq;
     const hits = await this.run(() => search(hass, this.query.trim(), true));
-    if (hits) ((this.hits = hits), (this.online = true));
+    if (hits && id === this.seq) ((this.hits = hits), (this.online = true));
   }
 
   private blank(p: Partial<Product>): Product {
@@ -177,15 +184,21 @@ export class PantryBooking extends LitElement {
   /** Online hits are only a name + EAN: load the full draft (category suggestion) first. */
   private async pick(hit: SearchHit | Product) {
     if (hit.id || !hit.ean) return this.choose(hit as Product);
+    const id = ++this.seq;
     const res = await this.run(() => lookup(this.hass!, hit.ean!));
-    if (res?.product) this.choose(res.product);
+    if (res?.product && id === this.seq) this.choose(res.product);
   }
 
   private async choose(p: Product) {
+    const id = ++this.seq;
     this.hits = undefined;
     if (this.mode === "out" && !p.id) return void (this.error = t("book.unknown"));
     this.product = p;
-    if (this.mode === "out") this.stock = await this.run(() => getStock(this.hass!, p.id!));
+    if (this.mode === "out") {
+      const stock = await this.run(() => getStock(this.hass!, p.id!));
+      if (id !== this.seq) return;
+      this.stock = stock;
+    }
     await this.updateComplete;
     const form = this.renderRoot.querySelector<PantryBookingForm>("pantry-booking-form");
     await form?.updateComplete;

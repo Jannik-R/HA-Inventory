@@ -14,8 +14,10 @@ import {
   type StockRow,
 } from "./api";
 import { expiryStatus, groupStock, type Item } from "./stock-data";
+import { stockTree } from "./stock-tree";
 import { fmtDate } from "./format";
-import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
+import { outButton, undoLine, type Undo } from "./take-out";
+import { doneLine, doneStyles } from "./booking-done";
 import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
@@ -49,7 +51,7 @@ export class PantryStock extends LitElement {
   declare withEmpty: boolean;
   declare open: Set<string>;
   declare error: string;
-  declare undo?: Taken;
+  declare undo?: Undo;
   declare message: string;
   private products = new Map<number, Product>();
 
@@ -65,6 +67,8 @@ export class PantryStock extends LitElement {
 
   willUpdate(changed: PropertyValues) {
     if (changed.has("hass") && this.hass && !this.md) this.load();
+    // The "label printed" note belongs to the moment of printing.
+    if (["filter", "location", "withEmpty", "stock"].some((k) => changed.has(k))) this.message = "";
   }
 
   private async load() {
@@ -86,9 +90,7 @@ export class PantryStock extends LitElement {
     this.stock = stock;
   };
 
-  /** Category tree (only branches with visible products) with its products as leaves. */
   private tree(searching: boolean) {
-    const cats = this.md?.categories ?? [];
     const items = groupStock(
       this.stock ?? [],
       this.filter,
@@ -96,33 +98,11 @@ export class PantryStock extends LitElement {
       this.withEmpty ? this.products.values() : [],
       this.md,
     );
-    // [packages, visible products] per category subtree.
-    const total = new Map<number, [number, number]>();
-    const sum = (id: number): [number, number] => {
-      let [n, k] = [0, 0];
-      for (const i of items.get(id) ?? []) [n, k] = [n + i.packages, k + 1];
-      for (const c of cats.filter((x) => x.parent_id === id)) {
-        const [cn, ck] = sum(c.id);
-        [n, k] = [n + cn, k + ck];
-      }
-      total.set(id, [n, k]);
-      return [n, k];
-    };
-    const rows: unknown[] = [];
-    const walk = (parent: number | null, depth: number) => {
-      for (const c of cats.filter((x) => x.parent_id === parent)) {
-        const [packages, visible] = total.get(c.id) ?? sum(c.id);
-        if (!visible) continue;
-        const open = searching || this.open.has(`c${c.id}`);
-        rows.push(this.renderCategory(c.id, c.name, packages, depth, open));
-        if (!open) continue;
-        walk(c.id, depth + 1);
-        for (const i of items.get(c.id) ?? [])
-          rows.push(this.renderItem(i, depth + 1, searching || this.open.has(`p${i.id}`)));
-      }
-    };
-    walk(null, 0);
-    return rows;
+    return stockTree(this.md?.categories ?? [], items, this.open, searching).map((n) =>
+      n.kind === "category"
+        ? this.renderCategory(n.id, n.name, n.packages, n.depth, n.open)
+        : this.renderItem(n.item, n.depth, n.open),
+    );
   }
 
   private renderCategory(id: number, name: string, packages: number, depth: number, open: boolean) {
@@ -153,12 +133,12 @@ export class PantryStock extends LitElement {
   }
 
   render() {
-    if (this.error) return html`<p class="error" role="alert">${this.error}</p>`;
-    if (!this.stock) return nothing;
+    const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
+    if (!this.stock) return error;
     const rows = this.tree(this.filter.trim() !== "");
     return html`
-      ${stockFilters(this)} ${undoLine(this, "stock")}
-      ${this.message ? html`<p class="done" role="status" data-testid="label-done">${this.message}</p>` : nothing}
+      ${error} ${stockFilters(this)} ${undoLine(this, "stock")}
+      ${doneLine(this.message, undefined, "label")}
       ${
         rows.length
           ? html`<ul>
@@ -171,9 +151,9 @@ export class PantryStock extends LitElement {
       <pantry-product-dialog
         .hass=${this.hass}
         .md=${this.md}
-        @pantry-saved=${this.reload}
+        @pantry-saved=${this.saved}
       ></pantry-product-dialog>
-      <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.reload}></pantry-batch-dialog>
+      <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-batch-dialog>
       <pantry-label-dialog
         .hass=${this.hass}
         @pantry-printed=${(e: CustomEvent<number>) =>
@@ -188,7 +168,18 @@ export class PantryStock extends LitElement {
       .open(this.products.get(id)!, [...this.products.values()]);
   }
 
+  /** After a dialog saved: reload; a failure shows above the list. */
+  private saved = async () => {
+    this.error = "";
+    try {
+      await this.reload();
+    } catch (err) {
+      this.error = await errorMessage(this.hass!, err);
+    }
+  };
+
   private async deleteProduct(p: Item) {
+    this.error = "";
     try {
       if (!(await deleteMasterRow(this.hass!, this.md!, "product", p))) return;
       this.undo = undefined; // its batches are gone
@@ -272,7 +263,7 @@ export class PantryStock extends LitElement {
 
   static styles = [
     formStyles,
-    takeOutStyles,
+    doneStyles,
     stockFilterStyles,
     css`
       li.item {

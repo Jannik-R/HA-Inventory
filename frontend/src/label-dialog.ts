@@ -41,6 +41,7 @@ export class PantryLabelDialog extends LitElement {
     if (this.invalid()) return;
     try {
       const n = await printLabels(this.hass!, this.batch!.id, Number(this.count));
+      if (n === null) return; // cancelled: stay in the dialog
       this.renderRoot.querySelector("dialog")?.close();
       this.dispatchEvent(
         new CustomEvent("pantry-printed", { detail: n, bubbles: true, composed: true }),

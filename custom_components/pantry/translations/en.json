@@ -56,6 +56,9 @@
     "location_required": {
       "message": "Please choose a storage location."
     },
+    "already_undone": {
+      "message": "This booking was already undone."
+    },
     "not_enough_stock": {
       "message": "Not enough stock (available: {available})."
     },

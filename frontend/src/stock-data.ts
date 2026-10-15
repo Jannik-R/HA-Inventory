@@ -47,7 +47,7 @@ export function groupStock(
     for (const p of products)
       if (
         !items.has(p.id!) &&
-        (!q || hit([p.name, p.brand, p.ean, categoryPath(md, p.category_id)]))
+        (!q || hit([p.name, p.brand, p.ean, categoryPath(md?.categories, p.category_id)]))
       )
         items.set(p.id!, {
           id: p.id!,

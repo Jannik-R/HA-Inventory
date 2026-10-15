@@ -14,7 +14,8 @@ import {
 } from "./api";
 import { daysLeft, expiryStatus } from "./stock-data";
 import { fmtDate, lang } from "./format";
-import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
+import { outButton, undoLine, type Undo } from "./take-out";
+import { doneStyles } from "./booking-done";
 
 /** Expired and soon expiring batches, earliest first; threshold per product or a temporary one. */
 export class PantryExpiry extends LitElement {
@@ -33,7 +34,7 @@ export class PantryExpiry extends LitElement {
   /** Temporary threshold as typed; "" = each product's warn days. Not saved. */
   declare days: string;
   declare error: string;
-  declare undo?: Taken;
+  declare undo?: Undo;
   private products = new Map<number, Product>();
 
   constructor() {
@@ -73,8 +74,8 @@ export class PantryExpiry extends LitElement {
   }
 
   render() {
-    if (this.error) return html`<p class="error" role="alert">${this.error}</p>`;
-    if (!this.stock) return nothing;
+    const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
+    if (!this.stock) return error;
     const invalid = this.errors();
     const days = this.days.trim() && !invalid ? Number(this.days) : undefined;
     const rows = this.stock
@@ -82,6 +83,7 @@ export class PantryExpiry extends LitElement {
       .filter((x) => x.status)
       .sort((a, b) => a.r.expires_on!.localeCompare(b.r.expires_on!));
     return html`
+      ${error}
       <div class="field">
         <label class="lbl" for="days">${t("expiry.days")}</label>
         <span class="num">
@@ -130,7 +132,7 @@ export class PantryExpiry extends LitElement {
 
   static styles = [
     formStyles,
-    takeOutStyles,
+    doneStyles,
     css`
       .num input {
         max-width: 160px;

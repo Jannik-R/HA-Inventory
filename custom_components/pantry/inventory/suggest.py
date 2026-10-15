@@ -86,4 +86,8 @@ def suggest_by_name(conn: sqlite3.Connection, name: str) -> int | None:
 
 def suggest(conn: sqlite3.Connection, tags: list[str], name: str) -> int | None:
     """OFF tags first, then keywords in the name, then similar saved products."""
-    return suggest_category(conn, tags) or suggest_by_keywords(conn, name) or suggest_by_name(conn, name)
+    return (
+        suggest_category(conn, tags)
+        or suggest_by_keywords(conn, name)
+        or suggest_by_name(conn, name)
+    )

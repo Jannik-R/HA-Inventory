@@ -3,13 +3,12 @@
 Callers use `inventory.<name>`; the submodules are an implementation detail.
 """
 
-from .common import COLUMNS, INHERITED, InventoryError
-from .master import delete, list_rows, master_data, save, save_defaults
-from .inherit import defaults, effective
-from .products import add_product, find_ean, list_products, product_draft, search_products
-from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_by_name, suggest_category
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
+from .common import COLUMNS, INHERITED, InventoryError
+from .inherit import defaults, effective
 from .labels import book_out_code, label_info
+from .master import delete, list_rows, master_data, save, save_defaults
+from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
 from .removal import delete_impact, force_delete
 from .shopping import (
@@ -20,6 +19,7 @@ from .shopping import (
     shopping_list,
     update_shopping_item,
 )
+from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_by_name, suggest_category
 
 __all__ = [
     "COLUMNS",
@@ -31,10 +31,8 @@ __all__ = [
     "book_in",
     "book_in_new",
     "book_out",
-    "put_back",
-    "book_out_label",
+    "book_out_code",
     "correct",
-    "create_labels",
     "defaults",
     "delete",
     "delete_impact",
@@ -45,12 +43,13 @@ __all__ = [
     "find_ean",
     "force_delete",
     "keyword_score",
-    "labels_for_stock",
+    "label_info",
     "list_products",
     "list_rows",
     "master_data",
     "move",
     "product_draft",
+    "put_back",
     "save",
     "save_defaults",
     "search_products",

@@ -40,9 +40,7 @@ def _categories(conn: sqlite3.Connection) -> dict[int, sqlite3.Row]:
     return {r["id"]: r for r in conn.execute("SELECT * FROM category")}
 
 
-def _resolve(
-    cats: dict, product: dict | None, category_id: int | None, dflt: dict
-) -> dict:
+def _resolve(cats: dict, product: dict | None, category_id: int | None, dflt: dict) -> dict:
     out = {}
     for key in INHERITED:
         if product is not None and product.get(key) is not None:
@@ -68,15 +66,11 @@ def effective(
     """Effective inheritable values with their source: "own", a category id or "default"."""
     product = None
     if product_id is not None:
-        row = conn.execute(
-            "SELECT * FROM product WHERE id = ?", (product_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM product WHERE id = ?", (product_id,)).fetchone()
         if row is None:
             raise InventoryError("not_found")
         product, category_id = dict(row), row["category_id"]
-        product.pop(
-            "unit_id", None
-        )  # products inherit the unit; content has its own unit
+        product.pop("unit_id", None)  # products inherit the unit; content has its own unit
     return _resolve(_categories(conn), product, category_id, defaults(conn))
 
 

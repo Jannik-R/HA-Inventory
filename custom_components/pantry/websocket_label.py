@@ -7,11 +7,13 @@ from functools import partial
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 
 from . import inventory, label
 from .const import CONF_LABEL_HEIGHT, CONF_LABEL_WIDTH, CONF_PRINT_ON_BOOK_IN, DOMAIN
 from .label_printers import MODELS, printer_of
 from .websocket import _db, _run
+from .ws_validate import CODE, ID
 
 
 def async_register(hass: HomeAssistant) -> None:
@@ -44,30 +46,32 @@ async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/print_labels",
-        vol.Required("batch_id"): int,
+        vol.Required("batch_id"): ID,
         vol.Required("count"): vol.All(int, vol.Range(min=1, max=99)),
     }
 )
 @websocket_api.async_response
 async def ws_print_labels(hass: HomeAssistant, connection, msg: dict) -> None:
-    """`count` identical labels for a batch."""
+    """`count` identical labels for a batch: printed, or one image the browser repeats `count` times."""
     cfg = _config(hass)
     info = await _run(hass, inventory.label_info, msg["batch_id"])
     w, h, model = cfg["width_mm"], cfg["height_mm"], cfg["model"]
-    images = await hass.async_add_executor_job(
-        lambda: [label.render(info, w, h, model.bottom_reserve_mm)] * msg["count"]
-    )
+    if model.network and not cfg["printer"]:
+        raise HomeAssistantError(translation_domain=DOMAIN, translation_key="printer_unreachable")
+    image = await hass.async_add_executor_job(label.render, info, w, h, model.bottom_reserve_mm)
     if cfg["printer"]:
-        data = await hass.async_add_executor_job(model.encode, images)
+        data = await hass.async_add_executor_job(model.encode, [image] * msg["count"])
         await label.send(cfg["printer"], data, model.port)
-        connection.send_result(msg["id"], {"printed": len(images)})
+        connection.send_result(msg["id"], {"printed": msg["count"]})
     else:
-        urls = await hass.async_add_executor_job(label.png_data_urls, images)
-        connection.send_result(msg["id"], {"images": urls, "width_mm": w, "height_mm": h})
+        (url,) = await hass.async_add_executor_job(label.png_data_urls, [image])
+        connection.send_result(
+            msg["id"], {"image": url, "count": msg["count"], "width_mm": w, "height_mm": h}
+        )
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/book_out_label", vol.Required("code"): str}
+    {vol.Required("type"): "pantry/book_out_label", vol.Required("code"): CODE}
 )
 @websocket_api.async_response
 async def ws_book_out_label(hass: HomeAssistant, connection, msg: dict) -> None:

@@ -52,7 +52,7 @@ export class PantryBatchDialog extends LitElement {
   private errors(d: Draft): Errors {
     const e: Errors = {};
     if (d.dateBad || (d.expires_on && !plausibleDate(d.expires_on))) e.expires = t("valid.date");
-    if (!/^\d+$/.test(d.packages.trim())) e.packages = t("valid.days");
+    if (!/^\d+$/.test(d.packages.trim())) e.packages = t("valid.packages_zero");
     return e;
   }
 

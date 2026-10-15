@@ -116,6 +116,7 @@ the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name a
 - **Auslagern**: pick the product; by default the packages with the earliest date are taken first,
   or choose one batch and location. After booking out (also by scanning a label), *Rückgängig*
   next to the message puts exactly those packages back into their batch and location.
+  Each booking out can be undone once; a storage location deactivated meanwhile is reactivated.
 
 The camera scanner needs HTTPS (or `localhost`) and camera permission. Browsers without a built-in
 barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.
@@ -181,7 +182,7 @@ Then: *Settings → Devices & services → Add integration → Pantry*. The pane
 
 ## Development
 
-Requires Docker (running) and Node.js LTS. Optional: `pip install ruff` (auto-formatting in Claude Code).
+Requires Docker (running) and Node.js LTS. Python lint and format: ruff (config in `pyproject.toml`, checked in CI; command in CLAUDE.md). CI also pins the Home Assistant and tool versions; Dependabot opens weekly update PRs.
 
 ```bash
 docker compose -f dev/docker-compose.yml up -d homeassistant

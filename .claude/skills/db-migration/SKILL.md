@@ -42,7 +42,7 @@ Upgrade test in `tests/test_inventory.py`, pattern `test_migration_<n>_...`:
 
 ```python
 c = db.connect(":memory:")
-c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:n - 1])}PRAGMA user_version={n - 1};COMMIT;")
+c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[: n - 1])}PRAGMA user_version={n - 1};COMMIT;")
 c.executescript("INSERT ... rows in the OLD shape, including the bad cases ...")
 db.migrate(c)
 # assert new shape, fixed data, and: c.execute("PRAGMA foreign_key_check").fetchall() == []

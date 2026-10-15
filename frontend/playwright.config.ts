@@ -1,10 +1,13 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
-// Specs must use `test` from e2e/fixtures.ts: it blocks label printing (the dev HA may have the
-// real printer configured). Refuse to run when a spec imports @playwright/test directly.
+// Every e2e file must use `test` from e2e/fixtures.ts: it blocks label printing (the dev HA may have the
+// real printer configured). Refuse to run when one (but fixtures.ts) mentions @playwright/test directly.
 const unguarded = readdirSync("e2e").filter(
-  (f) => f.endsWith(".spec.ts") && readFileSync(`e2e/${f}`, "utf8").includes('"@playwright/test"'),
+  (f) =>
+    f.endsWith(".ts") &&
+    f !== "fixtures.ts" &&
+    /["'`]@playwright\/test["'`]/.test(readFileSync(`e2e/${f}`, "utf8")),
 );
 if (unguarded.length)
   throw new Error(
@@ -15,6 +18,7 @@ if (unguarded.length)
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: false,
+  workers: 1, // the specs share one dev DB
   reporter: "list",
   use: {
     ...devices["Pixel 7"],

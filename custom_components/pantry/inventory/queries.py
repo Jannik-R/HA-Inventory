@@ -32,9 +32,7 @@ def stock_list(
     if where:
         sql += " WHERE " + " AND ".join(where)
     rows = []
-    for r in conn.execute(
-        sql + " ORDER BY p.name, b.expires_on IS NULL, b.expires_on", args
-    ):
+    for r in conn.execute(sql + " ORDER BY p.name, b.expires_on IS NULL, b.expires_on", args):
         row = dict(r)
         row["category_path"] = _path(cats, r["category_id"])
         row["expiry_type"] = _resolve(cats, row, r["category_id"], dflt)["expiry_type"]["value"]
@@ -50,9 +48,7 @@ def stock_list(
     return rows
 
 
-def expiring(
-    conn: sqlite3.Connection, today: date, days: int | None = None
-) -> list[dict]:
+def expiring(conn: sqlite3.Connection, today: date, days: int | None = None) -> list[dict]:
     """Stock rows expiring within the product's warn_days, or within `days` if given."""
     dflt, cats = defaults(conn), _categories(conn)
     products = {

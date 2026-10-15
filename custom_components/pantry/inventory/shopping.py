@@ -128,6 +128,9 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
 
     for root in children.get(None, []):
         walk(root)
+    # A check whose shortage is gone or changed is stale: drop it, or it would come back later.
+    for cid in done.keys() - {i["category_id"] for i in items if i["done"]}:
+        conn.execute("DELETE FROM shopping_done WHERE category_id = ?", (cid,))
     for r in conn.execute(
         "SELECT i.*, p.name AS product, p.brand, p.category_id AS product_category"
         " FROM shopping_item i LEFT JOIN product p ON p.id = i.product_id"

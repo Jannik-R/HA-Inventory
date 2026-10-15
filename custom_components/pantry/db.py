@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import sqlite3
 import threading
 from collections.abc import Callable
@@ -266,6 +267,41 @@ MIGRATIONS: list[str] = [
         CHECK ((product_id IS NULL) <> (category_id IS NULL))
     );
     """,
+    # 6: integrity the app relied on but SQLite did not enforce (NULLs are distinct in UNIQUE):
+    # - root categories have unique names; duplicates get " (2)", " (3)" ... (lowest id keeps its name;
+    #   shortcut: a root already named "X (2)" would still collide, rename it by hand then)
+    # - one batch without a date per product; duplicates merge into the lowest id (stock summed,
+    #   bookings repointed)
+    # - booking.reverts_id: an 'in' booking written by an undo names the 'out' booking it reverses
+    #   (unique, so a book-out can be undone once)
+    """
+    CREATE TEMP TABLE cat_dup AS
+        SELECT id, ROW_NUMBER() OVER (PARTITION BY name ORDER BY id) AS n FROM category
+        WHERE parent_id IS NULL;
+    UPDATE category SET name = name || ' (' || (SELECT n FROM cat_dup WHERE cat_dup.id = category.id) || ')'
+        WHERE id IN (SELECT id FROM cat_dup WHERE n > 1);
+    DROP TABLE cat_dup;
+    CREATE UNIQUE INDEX category_root_name ON category (name) WHERE parent_id IS NULL;
+
+    CREATE TEMP TABLE batch_map AS
+        SELECT b.id AS old_id,
+            (SELECT MIN(k.id) FROM batch k WHERE k.product_id = b.product_id AND k.expires_on IS NULL) AS new_id
+        FROM batch b WHERE b.expires_on IS NULL;
+    DELETE FROM batch_map WHERE old_id = new_id;
+    INSERT INTO stock (batch_id, location_id, packages)
+        SELECT m.new_id, s.location_id, SUM(s.packages) FROM stock s
+        JOIN batch_map m ON m.old_id = s.batch_id WHERE true GROUP BY m.new_id, s.location_id
+        ON CONFLICT (batch_id, location_id) DO UPDATE SET packages = packages + excluded.packages;
+    DELETE FROM stock WHERE batch_id IN (SELECT old_id FROM batch_map);
+    UPDATE booking SET batch_id = (SELECT new_id FROM batch_map WHERE old_id = booking.batch_id)
+        WHERE batch_id IN (SELECT old_id FROM batch_map);
+    DELETE FROM batch WHERE id IN (SELECT old_id FROM batch_map);
+    DROP TABLE batch_map;
+    CREATE UNIQUE INDEX batch_no_date ON batch (product_id) WHERE expires_on IS NULL;
+
+    ALTER TABLE booking ADD COLUMN reverts_id INTEGER REFERENCES booking(id);
+    CREATE UNIQUE INDEX booking_reverts ON booking (reverts_id);
+    """,
 ]
 
 
@@ -312,10 +348,17 @@ class Database:
         self._path = path
         self._conn: sqlite3.Connection | None = None
         self.lock = threading.Lock()
+        # Held by every run() while it works and by a backup: writes wait on the event loop,
+        # not in an executor thread.
+        self.gate = asyncio.Lock()
 
     def _open(self) -> sqlite3.Connection:
         conn = connect(self._path)
-        migrate(conn)
+        try:
+            migrate(conn)
+        except BaseException:
+            conn.close()
+            raise
         return conn
 
     async def async_open(self) -> None:
@@ -332,13 +375,15 @@ class Database:
                 raise
             return result, self._conn.total_changes != before
 
-    async def run(self, fn: Callable[..., Any], *args: Any) -> Any:
+    async def run(self, fn: Callable[..., Any], *args: Any, write: bool = True) -> Any:
         """Run an inventory function in the executor; commit on success, roll back on error.
 
-        Any write sends SIGNAL_CHANGED, so entities refresh whatever the entry point was.
+        Any write sends SIGNAL_CHANGED, so entities refresh whatever the entry point was
+        (`write=False`: a dry run that is rolled back, nothing to announce).
         """
-        result, changed = await self._hass.async_add_executor_job(self._run, fn, args)
-        if changed:
+        async with self.gate:
+            result, changed = await self._hass.async_add_executor_job(self._run, fn, args)
+        if changed and write:
             async_dispatcher_send(self._hass, SIGNAL_CHANGED)
         return result
 

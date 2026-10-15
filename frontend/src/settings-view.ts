@@ -4,7 +4,7 @@ import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
-import type { PantrySettingsDialog } from "./settings-dialog";
+import type { Draft, PantrySettingsDialog } from "./settings-dialog";
 import { ADD } from "./settings-dialog";
 import { fmt } from "./settings-format";
 import { fmtNumber } from "./format";
@@ -27,7 +27,6 @@ const SECTIONS = {
 } as const;
 type Section = keyof typeof SECTIONS;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Draft = Record<string, any>;
 
 export class PantrySettings extends LitElement {
   static properties = {
@@ -141,7 +140,11 @@ export class PantrySettings extends LitElement {
       <nav aria-label=${t("settings.nav")}>
         ${(Object.keys(SECTIONS) as Section[]).map(
           (s) =>
-            html`<button aria-current=${s === sec ? "page" : "false"} @click=${() => this.nav(s)}>
+            html`<button
+              data-testid=${`settings-nav-${s}`}
+              aria-current=${s === sec ? "page" : "false"}
+              @click=${() => this.nav(s)}
+            >
               ${t(`settings.section.${s}`)}
             </button>`,
         )}
@@ -151,7 +154,13 @@ export class PantrySettings extends LitElement {
         this.data
           ? table
             ? html`<div class="bar">
-                  <button class="primary" @click=${() => this.open(table)}>${t(ADD[table])}</button>
+                  <button
+                    class="primary"
+                    data-testid="settings-add"
+                    @click=${() => this.open(table)}
+                  >
+                    ${t(ADD[table])}
+                  </button>
                 </div>
                 ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
             : html`<pantry-defaults

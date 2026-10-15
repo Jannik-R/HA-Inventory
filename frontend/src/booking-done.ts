@@ -1,14 +1,20 @@
 import { css, html, nothing } from "lit";
 import { t } from "./i18n";
 
-/** Status line after a booking, with an undo button when something can be put back. */
-export function doneLine(message: string, undo: (() => void) | undefined) {
+/** Status line after a booking, with an undo button when something can be put back.
+ *  Testids `message` / `undo`, or `<prefix>-done` / `<prefix>-undo`. */
+export function doneLine(message: string, undo: (() => void) | undefined, prefix?: string) {
   if (!message) return nothing;
-  return html`<p class="done" role="status" data-testid="message">
+  return html`<p class="done" role="status" data-testid=${prefix ? `${prefix}-done` : "message"}>
     ${message}
     ${
       undo
-        ? html`<button type="button" class="undo" data-testid="undo" @click=${undo}>
+        ? html`<button
+            type="button"
+            class="undo"
+            data-testid=${prefix ? `${prefix}-undo` : "undo"}
+            @click=${undo}
+          >
             ${t("stock.undo")}
           </button>`
         : nothing

@@ -56,6 +56,9 @@
     "location_required": {
       "message": "Bitte einen Lagerort wählen."
     },
+    "already_undone": {
+      "message": "Bereits rückgängig gemacht."
+    },
     "not_enough_stock": {
       "message": "Nicht genug Bestand (verfügbar: {available})."
     },

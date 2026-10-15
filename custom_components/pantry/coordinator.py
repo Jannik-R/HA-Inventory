@@ -36,7 +36,9 @@ async def async_coordinator(
 
     @callback
     def refresh(*_) -> None:
-        hass.async_create_task(coordinator.async_request_refresh())
+        entry.async_create_background_task(
+            hass, coordinator.async_request_refresh(), f"{DOMAIN} refresh"
+        )
 
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_CHANGED, refresh))
     if midnight:

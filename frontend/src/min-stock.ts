@@ -2,9 +2,9 @@ import { html } from "lit";
 import { t } from "./i18n";
 import { fieldMsg } from "./ui";
 import type { MasterData } from "./api";
+import type { Draft } from "./settings-dialog";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Draft = Record<string, any>;
 
 /** Live errors of the two minimums (each optional; amount > 0, packages a whole number ≥ 1). */
 export function minErrors(d: Draft): Record<string, string> {

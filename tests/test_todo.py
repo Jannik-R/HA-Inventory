@@ -3,8 +3,8 @@
 from datetime import timedelta
 from pathlib import Path
 
-from homeassistant.components.todo import DOMAIN as TODO_DOMAIN
 import pytest
+from homeassistant.components.todo import DOMAIN as TODO_DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er

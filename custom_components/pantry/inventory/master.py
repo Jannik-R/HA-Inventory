@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from .common import COLUMNS, INHERITED, InventoryError, _now
+from .common import COLUMNS, INHERITED, InventoryError, _exists, _now
 from .inherit import _categories, _resolve, category_tags, defaults, set_tags
 
 
@@ -30,6 +30,8 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         if not isinstance(data["name"], str) or not data["name"].strip():
             raise InventoryError("invalid_value")
         data["name"] = data["name"].strip()
+    if table == "product" and "ean" in data:
+        data["ean"] = _check_ean(data["ean"])
     if table == "unit":
         _check_unit(conn, row_id, data)
     if table == "category" and row_id is not None:
@@ -62,6 +64,15 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
     return row_id
 
 
+def _check_ean(ean: object) -> str | None:
+    """None / blank -> no EAN; otherwise 8 to 14 ASCII digits."""
+    if ean is None or (isinstance(ean, str) and not ean.strip()):
+        return None
+    if not (isinstance(ean, str) and (ean := ean.strip()).isascii() and ean.isdigit() and 8 <= len(ean) <= 14):
+        raise InventoryError("invalid_ean")
+    return ean
+
+
 def _inactive_location(conn: sqlite3.Connection, data: dict) -> int | None:
     row = conn.execute(
         "SELECT id FROM location WHERE name = ? AND NOT active", (data.get("name"),)
@@ -76,7 +87,7 @@ def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
     if data["unit_id"] is None or data["expiry_type"] is None or data["warn_days"] is None:
         raise InventoryError("invalid_value")
     if data["default_location_id"] is not None:
-        _active_location(conn, data["default_location_id"])
+        _exists(conn, "location", data["default_location_id"])
     try:
         conn.execute(
             f"INSERT INTO defaults (id, {', '.join(INHERITED)}) VALUES (1, ?, ?, ?, ?)"
@@ -85,13 +96,6 @@ def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
         )
     except sqlite3.IntegrityError as err:
         raise InventoryError("invalid_value") from err
-
-
-def _active_location(conn: sqlite3.Connection, location_id: int) -> None:
-    if not conn.execute(
-        "SELECT 1 FROM location WHERE id = ? AND active", (location_id,)
-    ).fetchone():
-        raise InventoryError("not_found")
 
 
 def _check_unit(conn: sqlite3.Connection, unit_id: int | None, data: dict) -> None:
@@ -135,7 +139,7 @@ def delete(conn: sqlite3.Connection, table: str, row_id: int) -> None:
 
 def _deactivate_location(conn: sqlite3.Connection, location_id: int) -> None:
     """Hide a location everywhere; defaults pointing to it fall back to inheritance."""
-    _active_location(conn, location_id)
+    _exists(conn, "location", location_id)
     if conn.execute("SELECT 1 FROM stock WHERE location_id = ?", (location_id,)).fetchone():
         raise InventoryError("location_has_stock")
     conn.execute("UPDATE location SET active = 0 WHERE id = ?", (location_id,))

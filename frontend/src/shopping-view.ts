@@ -45,34 +45,38 @@ export class PantryShopping extends LitElement {
     if (changed.has("hass") && this.hass && !this.items) this.load();
   }
 
-  private async load() {
+  private async load(keepError = false) {
     try {
       [this.items, this.cats] = await Promise.all([
         getShopping(this.hass!),
         getMasterData(this.hass!).then((md) => md.categories),
       ]);
-      this.error = "";
+      if (!keepError) this.error = "";
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
   }
 
   private async check(item: ShoppingItem, done: boolean) {
+    this.error = "";
     try {
       if (item.manual) await updateShoppingItem(this.hass!, item.id!, { done });
       else await setShoppingDone(this.hass!, item.category_id, done);
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
+      return this.load(true); // the checkbox springs back; the error stays
     }
     await this.load();
   }
 
   private async removeItem(i: ShoppingItem) {
     if (!(await confirmDelete(i.name))) return;
+    this.error = "";
     try {
       await deleteShoppingItem(this.hass!, i.id!);
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
+      return this.load(true);
     }
     await this.load();
   }
@@ -163,14 +167,18 @@ export class PantryShopping extends LitElement {
   }
 
   render() {
-    if (this.error) return html`<p class="error" role="alert">${this.error}</p>`;
-    if (!this.items || !this.cats) return nothing;
-    const bar = html`<div class="bar">
+    const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
+    if (!this.items || !this.cats) return error;
+    const bar = html`${error}
+      <div class="bar">
         <button class="primary" data-testid="shopping-add" @click=${() => this.openAdd()}>
           ${t("shopping.add.title")}
         </button>
       </div>
-      <pantry-shopping-add .hass=${this.hass} @pantry-saved=${this.load}></pantry-shopping-add>`;
+      <pantry-shopping-add
+        .hass=${this.hass}
+        @pantry-saved=${() => this.load()}
+      ></pantry-shopping-add>`;
     return html`${bar}
     ${
       this.items.length

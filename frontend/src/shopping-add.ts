@@ -14,6 +14,7 @@ import {
   type ShoppingItem,
 } from "./api";
 import { productErrors, productFields, type Errors } from "./product-fields";
+import { categoryPath } from "./inherit";
 import "./category-picker";
 
 /** What goes on the list: a saved product or category, or a new one created on save. */
@@ -60,19 +61,19 @@ export class PantryShoppingAdd extends LitElement {
   }
 
   async open(item?: ShoppingItem) {
+    this.item = item;
+    this.query = "";
+    this.choice = undefined;
+    this.packages = item?.packages ?? 1;
+    this.error = "";
     try {
       [this.md, this.products] = await Promise.all([
         getMasterData(this.hass!),
         listProducts(this.hass!),
       ]);
     } catch (err) {
-      this.error = await errorMessage(this.hass!, err);
+      this.error = await errorMessage(this.hass!, err); // stays visible in the dialog
     }
-    this.item = item;
-    this.query = "";
-    this.choice = undefined;
-    this.packages = item?.packages ?? 1;
-    this.error = "";
     this.active = true;
     await this.updateComplete;
     this.renderRoot.querySelector("dialog")!.showModal();
@@ -80,12 +81,7 @@ export class PantryShoppingAdd extends LitElement {
   }
 
   private path(id: number | null) {
-    const names: string[] = [];
-    for (let c = this.md?.categories.find((x) => x.id === id); c;) {
-      names.unshift(c.name);
-      c = this.md!.categories.find((x) => x.id === c!.parent_id);
-    }
-    return names.join(" › ");
+    return categoryPath(this.md?.categories, id);
   }
 
   private errors(): Errors {

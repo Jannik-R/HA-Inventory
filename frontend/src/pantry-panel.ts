@@ -1,6 +1,7 @@
-import { LitElement, css, html, nothing, svg, type PropertyValues } from "lit";
+import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
+import { icon } from "./ui";
 import type { Hass } from "./api";
 import "./settings-view";
 import "./booking-view";
@@ -16,13 +17,11 @@ export class PantryPanel extends LitElement {
     hass: { attribute: false },
     narrow: { type: Boolean },
     route: { attribute: false },
-    panel: { attribute: false },
   };
 
   declare hass?: Hass;
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
-  declare panel?: unknown;
 
   constructor() {
     super();
@@ -59,9 +58,7 @@ export class PantryPanel extends LitElement {
                 aria-label=${t("panel.menu")}
                 @click=${() => this.dispatchEvent(new Event("hass-toggle-menu", { bubbles: true, composed: true }))}
               >
-                <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-                  ${svg`<path d=${mdiMenu} fill="currentColor"></path>`}
-                </svg>
+                ${icon(mdiMenu)}
               </button>`
             : nothing
         }
@@ -72,6 +69,7 @@ export class PantryPanel extends LitElement {
           (tab) =>
             html`<button
               role="tab"
+              data-testid=${`tab-${tab}`}
               aria-selected=${tab === active}
               @click=${() => this.select(tab)}
             >

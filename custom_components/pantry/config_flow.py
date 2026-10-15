@@ -108,7 +108,7 @@ class PantryOptionsFlow(OptionsFlow):
                         model.bottom_reserve_mm,
                     )
                     await label.send(host, model.encode([image]), model.port)
-                except HomeAssistantError:
+                except (HomeAssistantError, OSError):
                     errors["base"] = "printer_unreachable"
             if not errors:
                 return self.async_create_entry(data=user_input)

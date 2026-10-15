@@ -1,7 +1,21 @@
-import { apiPage, openPage, openTab, ws } from "./helpers";
+import { apiPage, openPage, openTab, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
-const NAME = `E2E Testprodukt ${Date.now()}`;
+const STAMP = Date.now();
+const NAME = `E2E Testprodukt ${STAMP}`;
+const PARENT = `E2E Eltern ${STAMP}`;
+const CHILD = `E2E Sorte ${STAMP}`;
+const LOCATION = `E2E Regal ${STAMP}`;
+let parentId: number | undefined;
+let locationId: number | undefined;
+
+test.beforeAll(async ({ browser }) => {
+  const page = await apiPage(browser);
+  parentId = await save(page, "category", { name: PARENT });
+  await save(page, "category", { name: CHILD, parent_id: parentId });
+  locationId = await save(page, "location", { name: LOCATION });
+  await page.close();
+});
 
 test.afterAll(async ({ browser }) => {
   const page = await apiPage(browser);
@@ -12,8 +26,10 @@ test.afterAll(async ({ browser }) => {
     }[];
     const left = stock.reduce((n, r) => n + r.packages, 0);
     if (left) await ws(page, { type: "pantry/book_out", product_id: id, packages: left });
-    await ws(page, { type: "pantry/delete", table: "product", row_id: id });
+    await remove(page, "product", id);
   }
+  if (parentId != null) await remove(page, "category", parentId);
+  if (locationId != null) await remove(page, "location", locationId);
   await page.close();
 });
 
@@ -27,28 +43,24 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await expect(page.locator("pantry-booking form.book > h2")).toHaveText("Produkt zubuchen");
   await expect(page.getByTestId("name")).toHaveValue(NAME);
   await page.getByTestId("category").click();
-  await page.getByTestId("category-filter").fill("nudeln");
+  await page.getByTestId("category-filter").fill(CHILD);
   await page.getByTestId("category-filter").press("Enter");
   await page.getByTestId("category-confirm").click();
-  await expect(page.getByTestId("category")).toContainText("Nudeln");
+  await expect(page.getByTestId("category")).toContainText(CHILD);
   // Reopening shows the tree expanded down to the chosen category.
   await page.getByTestId("category").click();
-  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(
-    "Nudeln",
-  );
+  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(CHILD);
   // Clicking a parent only marks and opens it; the dialog stays open until confirmed.
-  await page.getByTestId("category-option").filter({ hasText: "Obst & Gemüse" }).click();
+  await page.getByTestId("category-option").filter({ hasText: PARENT }).click();
   await expect(page.getByTestId("category-confirm")).toBeVisible();
-  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(
-    "Obst & Gemüse",
-  );
+  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(PARENT);
   await page.keyboard.press("Escape");
-  await expect(page.getByTestId("category")).toContainText("Nudeln");
+  await expect(page.getByTestId("category")).toContainText(CHILD);
   // The date label names the product's date type; the chosen location becomes its default.
   await expect(page.locator("label", { has: page.getByTestId("expires") })).toContainText(
     "Ablaufdatum (",
   );
-  await page.getByTestId("location").selectOption({ index: 1 });
+  await page.getByTestId("location").selectOption({ label: LOCATION });
   await expect(page.getByTestId("make-default")).toBeChecked();
   await page.getByTestId("expires").fill("2030-01-31");
   await page.getByTestId("packages").fill("3");
@@ -66,7 +78,7 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await code.fill(NAME);
   await code.press("Enter");
   await page.getByTestId("hit").click();
-  await expect(page.getByTestId("summary")).toContainText("Nudeln");
+  await expect(page.getByTestId("summary")).toContainText(CHILD);
   await expect(page.getByTestId("name")).toHaveCount(0);
   await expect(page.getByTestId("make-default")).toHaveCount(0);
   await expect(page.getByTestId("location").locator("option").first()).toContainText("vom Produkt");

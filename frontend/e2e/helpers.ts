@@ -1,5 +1,4 @@
-import { expect, type Browser, type Page } from "@playwright/test";
-import { blockPrinting } from "./fixtures";
+import { expect, type Browser, type Page } from "./fixtures";
 
 /** Click a panel tab and wait until the panel shows it (the route update is async). */
 export async function openTab(page: Page, name: string) {
@@ -29,10 +28,37 @@ export const ws = (page: Page, msg: Record<string, unknown>) =>
 /** A fresh page with HA's connection ready, for `ws` calls in beforeAll/afterAll. */
 export async function apiPage(browser: Browser) {
   const page = await browser.newPage();
-  await blockPrinting(page.context());
   await openPage(page, "/pantry/stock", "Bestand");
   await page.waitForFunction(
     () => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass,
   );
   return page;
+}
+
+/** Create a master data row (category, location); returns its id. */
+export async function save(page: Page, table: string, data: object) {
+  return ((await ws(page, { type: "pantry/save", table, data })) as { id: number }).id;
+}
+
+/** Delete a master data row with everything that uses it (cleanup; ignores rows already gone). */
+export const remove = (page: Page, table: string, row_id: number) =>
+  ws(page, { type: "pantry/delete", table, row_id, force: true }).catch(() => undefined);
+
+/** Delete everything the specs create ("E2E " prefix), e.g. left over after a failed run. */
+export async function cleanupE2E(page: Page) {
+  const del = (table: string, row_id: number) =>
+    ws(page, { type: "pantry/delete", table, row_id, force: true }).catch(() => undefined);
+  const products = (await ws(page, { type: "pantry/search", query: "E2E " })) as {
+    id: number;
+    name: string;
+  }[];
+  for (const p of products) if (p.name.startsWith("E2E ")) await del("product", p.id);
+  const md = (await ws(page, { type: "pantry/master_data" })) as Record<
+    string,
+    { id: number; name: string }[]
+  >;
+  // Deleting a parent category takes its children along (later deletes fail quietly).
+  for (const table of ["category", "location"])
+    for (const r of md[`${table === "category" ? "categories" : "locations"}`])
+      if (r.name.startsWith("E2E ")) await del(table, r.id);
 }

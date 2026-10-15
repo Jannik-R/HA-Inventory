@@ -43,7 +43,7 @@ custom_components/pantry/   integration (Python)
   sensor.py                 expired / expiring-soon sensors (no polling)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
-  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands
+  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
@@ -51,7 +51,7 @@ custom_components/pantry/   integration (Python)
 frontend/                   panel source (Lit + TypeScript, Vite)
   src/i18n/de.json          UI strings
   e2e/                      Playwright specs (local only)
-  scripts/check-i18n.mjs    missing/unused UI keys (`npm run i18n:check`, runs in CI)
+  scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
 docs/PLAN.md                architecture and roadmap
@@ -74,7 +74,7 @@ docs/PLAN.md                architecture and roadmap
 - Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
 - After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
-- Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`.
+- Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
 - **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_labels` call (the dev HA may have the real printer configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
@@ -108,6 +108,8 @@ docker compose -f dev/docker-compose.yml run --rm test   # backend tests (see sk
 cd frontend && npm run build          # build panel bundle
 cd frontend && npm run dev            # watch build
 cd frontend && npm run test:e2e       # Playwright against the running dev HA (local only)
+cd frontend && npm run typecheck:e2e  # type-check the E2E specs (runs in CI)
+docker compose -f dev/docker-compose.yml run --rm --entrypoint sh test -c "pip install -q -r requirements_test.txt && ruff check --fix . && ruff format ."   # Python lint + format (CI checks both)
 docker compose -f dev/docker-compose.yml up -d homeassistant   # dev HA on :8123
 ```
 

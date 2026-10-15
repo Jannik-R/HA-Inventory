@@ -7,10 +7,19 @@ import { join } from "node:path";
 
 const root = new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 const keys = Object.keys(JSON.parse(readFileSync(join(root, "src/i18n/de.json"), "utf8")));
-const files = readdirSync(join(root, "src"), { recursive: true })
-  .filter((f) => f.endsWith(".ts"))
-  .map((f) => readFileSync(join(root, "src", f), "utf8"));
+const names = readdirSync(join(root, "src"), { recursive: true }).filter((f) => f.endsWith(".ts"));
+const files = names.map((f) => readFileSync(join(root, "src", f), "utf8"));
 const code = files.join("\n");
+
+// Hardcoded German UI text: umlauts outside comments (blanked so line numbers stay).
+// shortcut: German without umlauts slips through; add a word list or lint rule if that bites.
+const german = names.flatMap((f, i) =>
+  files[i]
+    .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, ""))
+    .replace(/\/\/.*$/gm, "")
+    .split("\n")
+    .flatMap((line, n) => (/[äöüÄÖÜß]/.test(line) ? [`src/${f}:${n + 1}`] : [])),
+);
 
 const called = [...code.matchAll(/\bt\(\s*"([^"]+)"/g)].map((m) => m[1]);
 const literals = new Set([...code.matchAll(/"([a-z_]+(?:\.[a-z_]+)+)"/g)].map((m) => m[1]));
@@ -27,5 +36,6 @@ const unused = keys.filter((k) => !literals.has(k) && !prefixes.some((p) => k.st
 
 for (const k of new Set(missing)) console.error(`missing in de.json: ${k}`);
 for (const k of unused) console.error(`unused in de.json:  ${k}`);
-if (missing.length || unused.length) process.exit(1);
+for (const g of german) console.error(`hardcoded German text (use t()): ${g}`);
+if (missing.length || unused.length || german.length) process.exit(1);
 console.log(`i18n ok: ${keys.length} keys`);

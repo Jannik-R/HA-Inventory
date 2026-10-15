@@ -109,17 +109,35 @@ def png_data_urls(images: list[Image.Image]) -> list[str]:
     return urls
 
 
+def split_host(host_port: str, default_port: int) -> tuple[str, int]:
+    """"host", "host:port", "[v6]:port", "[v6]" or a bare IPv6 address -> (host, port); ValueError if bad."""
+    text = host_port.strip()
+    if text.startswith("["):
+        host, _, rest = text[1:].partition("]")
+        port = rest.removeprefix(":")  # anything else after "]" fails int()
+    elif text.count(":") == 1:
+        host, _, port = text.partition(":")
+    else:  # no port, or a bare IPv6 address (its colons are not a port separator)
+        host, port = text, ""
+    number = int(port) if port else default_port
+    if not host or not 0 < number < 65536:
+        raise ValueError(host_port)
+    return host, number
+
+
 async def send(host_port: str, data: bytes, default_port: int = 9100) -> None:
-    """Raw TCP to the print server ("host" or "host:port")."""
-    host, _, port = host_port.strip().partition(":")
+    """Raw TCP to the print server (see `split_host` for the formats)."""
     try:
+        host, port = split_host(host_port, default_port)
         async with asyncio.timeout(10):
-            _, writer = await asyncio.open_connection(host, int(port or default_port))
-            writer.write(data)
-            await writer.drain()
-            writer.close()
-            await writer.wait_closed()
-    except (OSError, TimeoutError, ValueError) as err:
+            _, writer = await asyncio.open_connection(host, port)
+            try:
+                writer.write(data)
+                await writer.drain()
+            finally:
+                writer.close()
+                await writer.wait_closed()
+    except (OSError, TimeoutError, ValueError, OverflowError) as err:
         raise HomeAssistantError(
             translation_domain=DOMAIN, translation_key="printer_unreachable"
         ) from err

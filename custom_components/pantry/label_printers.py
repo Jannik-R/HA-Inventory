@@ -8,7 +8,7 @@ from typing import Any
 
 from PIL import Image
 
-from .const import CONF_LABEL_PRINTER, CONF_LABEL_PRINTER_HOST, CONF_LEGACY_PRINTER
+from .const import CONF_LABEL_PRINTER, CONF_LABEL_PRINTER_HOST
 
 
 @dataclass(frozen=True)
@@ -61,9 +61,6 @@ MODELS: dict[str, Model] = {
 
 
 def printer_of(options: Any) -> tuple[str, str]:
-    """(model key, host) from the options; reads the pre-release `printer` key as the host."""
-    host = (
-        options.get(CONF_LABEL_PRINTER_HOST) or options.get(CONF_LEGACY_PRINTER) or ""
-    ).strip()
+    """(model key, host) from the options; an unknown or missing model is the browser."""
     key = options.get(CONF_LABEL_PRINTER)
-    return (key if key in MODELS else ("dymo_lw4xx" if host else "browser")), host
+    return (key if key in MODELS else "browser"), (options.get(CONF_LABEL_PRINTER_HOST) or "").strip()

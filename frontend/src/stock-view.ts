@@ -1,10 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { mdiMinusCircleOutline } from "@mdi/js";
-import { chevron, formStyles, icon, todayIso, toggled } from "./ui";
+import { chevron, formStyles, toggled } from "./ui";
 import {
-  bookIn,
-  bookOut,
   errorMessage,
   getMasterData,
   getStock,
@@ -16,6 +13,7 @@ import {
 } from "./api";
 import { expiryStatus, groupStock, type Item } from "./stock-data";
 import { fmtDate } from "./format";
+import { outButton, takeOutStyles, undoLine, type Taken } from "./take-out";
 
 /** Stock overview: category › product › batch/location, with search and location filter. */
 export class PantryStock extends LitElement {
@@ -37,7 +35,7 @@ export class PantryStock extends LitElement {
   declare location: number | null;
   declare open: Set<string>;
   declare error: string;
-  declare undo?: { name: string; row: StockRow };
+  declare undo?: Taken;
   private products = new Map<number, Product>();
 
   constructor() {
@@ -69,7 +67,6 @@ export class PantryStock extends LitElement {
     }
   }
 
-  /** Visible rows as products per category id. */
   /** Category tree (only branches with visible stock) with its products as leaves. */
   private tree(searching: boolean) {
     const cats = this.md?.categories ?? [];
@@ -149,16 +146,7 @@ export class PantryStock extends LitElement {
           ${(this.md?.locations ?? []).map((l) => html`<option value=${l.id} ?selected=${l.id === this.location}>${l.name}</option>`)}
         </select>
       </div>
-      <p class="done" role="status" data-testid="stock-done">
-        ${
-          this.undo
-            ? html`${t("stock.taken_one", { name: this.undo.name })}
-                <button class="undo" data-testid="stock-undo" @click=${this.undoTake}>
-                  ${t("stock.undo")}
-                </button>`
-            : nothing
-        }
-      </p>
+      ${undoLine(this, "stock")}
       ${
         !this.stock.length
           ? html`<p class="empty">${t("stock.empty")}</p>`
@@ -198,7 +186,7 @@ export class PantryStock extends LitElement {
                     <span class=${this.status(b)}>${this.date(b)}</span>
                     <span class="detail">${b.location}</span>
                     <span class="count">${t("book.count", { n: b.packages })}</span>
-                    ${this.outButton(p.name, () => this.takeOut(p.name, b))}
+                    ${outButton(this, p.name, b, "stock-batch-out")}
                   </li>`,
               )}
             </ul>`
@@ -207,60 +195,9 @@ export class PantryStock extends LitElement {
     </li>`;
   }
 
-  private outButton(name: string, onClick: () => void) {
-    const label = t("stock.take_one", { name });
-    return html`<button
-      class="icon-btn"
-      data-testid="stock-batch-out"
-      aria-label=${label}
-      title=${label}
-      @click=${onClick}
-    >
-      ${icon(mdiMinusCircleOutline)}
-    </button>`;
-  }
-
-  /** One package out of that batch and location; remembered for undo. */
-  private async takeOut(name: string, b: StockRow) {
-    await this.change(
-      () =>
-        bookOut(this.hass!, {
-          product_id: b.product_id,
-          packages: 1,
-          batch_id: b.batch_id,
-          location_id: b.location_id,
-        }),
-      { name, row: b },
-    );
-  }
-
-  /** Undo = book the package back in; same product, date and type merge into the same batch. */
-  private async undoTake() {
-    const { row } = this.undo!;
-    await this.change(() =>
-      bookIn(this.hass!, {
-        product_id: row.product_id,
-        packages: 1,
-        expires_on: row.expires_on,
-        expiry_type: row.expiry_type,
-        location_id: row.location_id,
-      }),
-    );
-  }
-
-  private async change(call: () => Promise<unknown>, undo?: { name: string; row: StockRow }) {
-    try {
-      await call();
-      this.undo = undo;
-      this.stock = await getStock(this.hass!);
-    } catch (err) {
-      this.undo = undefined;
-      this.error = await errorMessage(this.hass!, err);
-    }
-  }
-
   static styles = [
     formStyles,
+    takeOutStyles,
     css`
       .filters {
         display: grid;
@@ -276,21 +213,8 @@ export class PantryStock extends LitElement {
         display: flex;
         align-items: center;
       }
-      .undo {
-        padding: 4px 8px;
-        color: var(--primary-color);
-      }
       .head .row {
         padding-left: 0;
-      }
-      .done {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-height: 36px;
-        margin: 0 0 4px;
-        font-size: 0.875em;
-        color: var(--secondary-text-color);
       }
       .batches li {
         gap: 12px;

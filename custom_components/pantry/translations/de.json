@@ -10,6 +10,12 @@
       "single_instance_allowed": "Bereits eingerichtet. Nur eine einzige Konfiguration möglich."
     }
   },
+  "entity": {
+    "sensor": {
+      "expired": { "name": "Abgelaufen", "unit_of_measurement": "Pkg." },
+      "soon": { "name": "Läuft bald ab", "unit_of_measurement": "Pkg." }
+    }
+  },
   "exceptions": {
     "not_loaded": {
       "message": "Die Vorrat-Integration ist nicht geladen."

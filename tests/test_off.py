@@ -61,12 +61,8 @@ def test_normalize_prefers_language_name():
 
 
 def test_suggest_category(conn):
-    assert inv.suggest_category(conn, SPAGHETTI["categories_tags"]) == cat(
-        conn, "Nudeln"
-    )
-    assert inv.suggest_category(conn, ["en:beverages", "en:colas"]) == cat(
-        conn, "Getränke"
-    )
+    assert inv.suggest_category(conn, SPAGHETTI["categories_tags"]) == cat(conn, "Nudeln")
+    assert inv.suggest_category(conn, ["en:beverages", "en:colas"]) == cat(conn, "Getränke")
     # Same depth: the more specific (later) OFF tag wins.
     tags = ["en:meals", "en:durum-wheat-semolinas-for-couscous"]
     assert inv.suggest_category(conn, tags) == cat(conn, "Couscous")
@@ -159,12 +155,8 @@ def test_search_products(conn):
 
 
 def test_add_product_without_learnable_data(conn):
-    inv.add_product(
-        conn, {"name": "A", "category_id": cat(conn, "Obst"), "off_json": "x"}
-    )
-    inv.add_product(
-        conn, {"name": "B", "category_id": cat(conn, "Obst"), "off_json": "[]"}
-    )
+    inv.add_product(conn, {"name": "A", "category_id": cat(conn, "Obst"), "off_json": "x"})
+    inv.add_product(conn, {"name": "B", "category_id": cat(conn, "Obst"), "off_json": "[]"})
     assert inv.search_products(conn, "a")[0]["name"] == "A"
 
 

@@ -320,17 +320,13 @@ def migrate(conn: sqlite3.Connection) -> None:
     checked before its commit; a violation rolls the step back.
     """
     start = conn.execute("PRAGMA user_version").fetchone()[0]
-    conn.execute(
-        "PRAGMA foreign_keys=OFF"
-    )  # no effect inside a transaction, so set it here
+    conn.execute("PRAGMA foreign_keys=OFF")  # no effect inside a transaction, so set it here
     try:
         for i in range(start, len(MIGRATIONS)):
             conn.executescript(f"BEGIN;{MIGRATIONS[i]}PRAGMA user_version={i + 1};")
             if bad := conn.execute("PRAGMA foreign_key_check").fetchall():
                 conn.rollback()
-                raise sqlite3.IntegrityError(
-                    f"migration {i + 1}: foreign key violations {bad[:5]}"
-                )
+                raise sqlite3.IntegrityError(f"migration {i + 1}: foreign key violations {bad[:5]}")
             conn.commit()
     finally:
         conn.execute("PRAGMA foreign_keys=ON")

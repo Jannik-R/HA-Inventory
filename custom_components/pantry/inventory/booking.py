@@ -11,7 +11,15 @@ from .products import add_product
 
 
 def _booking(
-    conn, kind, batch_id, location_id, packages, source, user_id, to_location_id=None, reverts_id=None
+    conn,
+    kind,
+    batch_id,
+    location_id,
+    packages,
+    source,
+    user_id,
+    to_location_id=None,
+    reverts_id=None,
 ) -> int:
     """Write the log row; returns its id."""
     return conn.execute(
@@ -131,7 +139,12 @@ def book_out(
         _take(conn, r["batch_id"], r["location_id"], n)
         booking_id = _booking(conn, "out", r["batch_id"], r["location_id"], n, source, user_id)
         taken.append(
-            {"batch_id": r["batch_id"], "location_id": r["location_id"], "packages": n, "booking_id": booking_id}
+            {
+                "batch_id": r["batch_id"],
+                "location_id": r["location_id"],
+                "packages": n,
+                "booking_id": booking_id,
+            }
         )
         left -= n
         if not left:

@@ -31,9 +31,7 @@ async def test_shopping_todo(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    entity_id = er.async_get(hass).async_get_entity_id(
-        "todo", DOMAIN, f"{entry.entry_id}_shopping"
-    )
+    entity_id = er.async_get(hass).async_get_entity_id("todo", DOMAIN, f"{entry.entry_id}_shopping")
     assert hass.states.get(entity_id).state == "0"
 
     db = entry.runtime_data

@@ -53,9 +53,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
         " LEFT JOIN batch b ON b.product_id = p.id LEFT JOIN stock s ON s.batch_id = b.id GROUP BY p.id"
     ):
         products.setdefault(p["category_id"], []).append(p)
-    done = dict(
-        conn.execute("SELECT category_id, missing FROM shopping_done").fetchall()
-    )
+    done = dict(conn.execute("SELECT category_id, missing FROM shopping_done").fetchall())
     items: list[dict] = []
 
     def walk(cid: int) -> tuple[list, list[tuple[float, int]], int, bool]:
@@ -93,9 +91,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
                 ),
                 6,
             )
-            short_amount = [
-                (missing, unit_id)
-            ]  # replaces the children's: no double counting
+            short_amount = [(missing, unit_id)]  # replaces the children's: no double counting
             if missing:
                 amount = {
                     "missing": missing,
@@ -188,7 +184,9 @@ def add_shopping_item(
         category_id = save(conn, "category", category)
     if (product_id is None) == (category_id is None):
         raise ValueError("exactly one of product or category")
-    col, ref = ("product_id", product_id) if product_id is not None else ("category_id", category_id)
+    col, ref = (
+        ("product_id", product_id) if product_id is not None else ("category_id", category_id)
+    )
     row = conn.execute(f"SELECT id, done FROM shopping_item WHERE {col} = ?", (ref,)).fetchone()
     try:
         if row is None:
@@ -224,7 +222,9 @@ def update_shopping_item(
         if value is None:
             continue
         try:
-            cur = conn.execute(f"UPDATE shopping_item SET {col} = ? WHERE id = ?", (int(value), item_id))
+            cur = conn.execute(
+                f"UPDATE shopping_item SET {col} = ? WHERE id = ?", (int(value), item_id)
+            )
         except sqlite3.IntegrityError as err:
             raise InventoryError("invalid_value") from err
         if not cur.rowcount:

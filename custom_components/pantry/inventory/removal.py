@@ -49,9 +49,7 @@ def force_delete(
     Location: its stock moves to `move_to`, or is booked out as a correction.
     """
     if table == "category":
-        cats = conn.execute(
-            f"{_SUBTREE} SELECT id FROM sub ORDER BY depth DESC", (row_id,)
-        )
+        cats = conn.execute(f"{_SUBTREE} SELECT id FROM sub ORDER BY depth DESC", (row_id,))
         ids = [r[0] for r in cats]
         marks = ", ".join("?" * len(ids))
         conn.execute(f"DELETE FROM product WHERE category_id IN ({marks})", ids)
@@ -60,13 +58,9 @@ def force_delete(
     elif table == "unit":
         ids = _unit_ids(conn, row_id)
         marks = ", ".join("?" * len(ids))
-        if conn.execute(
-            f"SELECT 1 FROM defaults WHERE unit_id IN ({marks})", ids
-        ).fetchone():
+        if conn.execute(f"SELECT 1 FROM defaults WHERE unit_id IN ({marks})", ids).fetchone():
             raise InventoryError("unit_is_default")
-        conn.execute(
-            f"UPDATE category SET unit_id = NULL WHERE unit_id IN ({marks})", ids
-        )
+        conn.execute(f"UPDATE category SET unit_id = NULL WHERE unit_id IN ({marks})", ids)
         conn.execute(
             "UPDATE category SET min_stock = NULL, min_stock_unit_id = NULL"
             f" WHERE min_stock_unit_id IN ({marks})",
@@ -88,9 +82,7 @@ def force_delete(
             if move_to is None:
                 correct(conn, r["batch_id"], row_id, 0, user_id=user_id)
             else:
-                move(
-                    conn, r["batch_id"], row_id, move_to, r["packages"], user_id=user_id
-                )
+                move(conn, r["batch_id"], row_id, move_to, r["packages"], user_id=user_id)
         _deactivate_location(conn, row_id)
         return
     delete(conn, table, row_id)
@@ -98,9 +90,7 @@ def force_delete(
 
 def _watch(conn: sqlite3.Connection) -> None:
     """TEMP triggers that log OLD of every deleted / actually changed row (cascades included)."""
-    conn.execute(
-        "CREATE TEMP TABLE _dry_log(tbl TEXT, rid INTEGER, action TEXT, row TEXT)"
-    )
+    conn.execute("CREATE TEMP TABLE _dry_log(tbl TEXT, rid INTEGER, action TEXT, row TEXT)")
     tables = conn.execute(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
     ).fetchall()

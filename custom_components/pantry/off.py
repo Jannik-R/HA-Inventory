@@ -53,9 +53,7 @@ def _drained(text: object) -> tuple[float, str] | None:
     return None
 
 
-def parse_quantity(
-    amount: object, unit: object, text: object
-) -> tuple[float, str] | None:
+def parse_quantity(amount: object, unit: object, text: object) -> tuple[float, str] | None:
     """Package content: drained weight if stated (canned/jarred food), else product_quantity(+_unit),
     else a string like '6 x 1,5 l'."""
     if drained := _drained(text):
@@ -83,7 +81,11 @@ def _str(value: object) -> str:
 def normalize(p: dict, lang: str) -> dict:
     """OFF product -> {ean, name, brand, quantity, off_tags, image_url, off_json}."""
     name = next(
-        (s for k in (f"product_name_{lang}", "product_name", f"generic_name_{lang}") if (s := _str(p.get(k)).strip())),
+        (
+            s
+            for k in (f"product_name_{lang}", "product_name", f"generic_name_{lang}")
+            if (s := _str(p.get(k)).strip())
+        ),
         "",
     )
     tags = p.get("categories_tags")
@@ -121,7 +123,9 @@ async def _get(hass: HomeAssistant, path: str, params: dict) -> dict:
 async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | None:
     """Local product by EAN, else an OFF-based draft (not saved), else None."""
     ean = ean.strip()
-    if not (ean.isascii() and ean.isdigit() and 8 <= len(ean) <= 14):  # also keeps the URL path safe
+    if not (
+        ean.isascii() and ean.isdigit() and 8 <= len(ean) <= 14
+    ):  # also keeps the URL path safe
         raise InventoryError("invalid_ean")
     if local := await db.run(inventory.find_ean, ean):
         return local

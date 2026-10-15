@@ -11,9 +11,7 @@ from custom_components.pantry.inventory.inherit import category_tags
 
 
 def cat(conn, name):
-    return conn.execute("SELECT id FROM category WHERE name = ?", (name,)).fetchone()[
-        "id"
-    ]
+    return conn.execute("SELECT id FROM category WHERE name = ?", (name,)).fetchone()["id"]
 
 
 def unit(conn, name):
@@ -21,15 +19,11 @@ def unit(conn, name):
 
 
 def loc(conn, name="Kühlschrank"):
-    return conn.execute("SELECT id FROM location WHERE name = ?", (name,)).fetchone()[
-        "id"
-    ]
+    return conn.execute("SELECT id FROM location WHERE name = ?", (name,)).fetchone()["id"]
 
 
 def product(conn, name="Spaghetti", category="Nudeln", **kw):
-    return inv.save(
-        conn, "product", {"name": name, "category_id": cat(conn, category), **kw}
-    )
+    return inv.save(conn, "product", {"name": name, "category_id": cat(conn, category), **kw})
 
 
 def stock(conn):
@@ -43,11 +37,7 @@ def test_migrate_idempotent(conn):
     version = conn.execute("PRAGMA user_version").fetchone()[0]
     count = conn.execute("SELECT COUNT(*) FROM category").fetchone()[0]
     db.migrate(conn)
-    assert (
-        conn.execute("PRAGMA user_version").fetchone()[0]
-        == version
-        == len(db.MIGRATIONS)
-    )
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == version == len(db.MIGRATIONS)
     assert conn.execute("SELECT COUNT(*) FROM category").fetchone()[0] == count > 0
 
 
@@ -68,9 +58,7 @@ def test_book_out_fefo_across_batches_and_locations(conn):
     p = product(conn)
     late = inv.book_in(conn, p, 2, "2027-06-01", location_id=loc(conn))
     none = inv.book_in(conn, p, 1, None, location_id=loc(conn))
-    early = inv.book_in(
-        conn, p, 1, "2027-01-01", location_id=loc(conn, "Vorratsschrank")
-    )
+    early = inv.book_in(conn, p, 1, "2027-01-01", location_id=loc(conn, "Vorratsschrank"))
     taken = inv.book_out(conn, p, 4)
     assert [(t["batch_id"], t["packages"]) for t in taken] == [
         (early, 1),
@@ -95,8 +83,14 @@ def test_put_back_undoes_book_out_once(conn):
     assert stock(conn) == before
     kinds = [r[0] for r in conn.execute("SELECT kind FROM booking ORDER BY id")]
     assert kinds == ["in", "in", "out", "out", "in", "in"]
-    assert conn.execute("SELECT COUNT(*) FROM booking WHERE reverts_id IS NOT NULL").fetchone()[0] == 2
-    for bad, key in ((ids(taken), "already_undone"), ([999], "not_found"), ([1], "not_found")):  # 1 is an 'in'
+    assert (
+        conn.execute("SELECT COUNT(*) FROM booking WHERE reverts_id IS NOT NULL").fetchone()[0] == 2
+    )
+    for bad, key in (
+        (ids(taken), "already_undone"),
+        ([999], "not_found"),
+        ([1], "not_found"),
+    ):  # 1 is an 'in'
         with pytest.raises(inv.InventoryError) as err:
             inv.put_back(conn, bad)
         assert err.value.translation_key == key
@@ -137,9 +131,7 @@ def test_correct_to_zero_deletes_row(conn):
     b = inv.book_in(conn, p, 2, "2027-01-01", location_id=loc(conn))
     inv.correct(conn, b, loc(conn), 0)
     assert stock(conn) == {}
-    last = conn.execute(
-        "SELECT kind, packages FROM booking ORDER BY id DESC"
-    ).fetchone()
+    last = conn.execute("SELECT kind, packages FROM booking ORDER BY id DESC").fetchone()
     assert (last["kind"], last["packages"]) == ("correct", -2)
 
 
@@ -181,10 +173,7 @@ def test_effective_sources(conn):
     }
     e = inv.effective(conn, product(conn, "Vollmilch", "Milch"))
     assert e["warn_days"] == {"value": 4, "source": milk}
-    assert (
-        inv.effective(conn, category_id=cat(conn, "Nudeln"))["warn_days"]["source"]
-        == "default"
-    )
+    assert inv.effective(conn, category_id=cat(conn, "Nudeln"))["warn_days"]["source"] == "default"
 
 
 def test_expiring_with_and_without_override(conn):
@@ -271,12 +260,7 @@ def test_delete_product_removes_stock_batches_and_bookings(conn):
     count = lambda sql: conn.execute(sql).fetchone()[0]  # noqa: E731
     assert count("SELECT count(*) FROM batch") == 1
     assert count("SELECT count(*) FROM stock") == 1
-    assert (
-        count(
-            "SELECT count(*) FROM booking WHERE batch_id NOT IN (SELECT id FROM batch)"
-        )
-        == 0
-    )
+    assert count("SELECT count(*) FROM booking WHERE batch_id NOT IN (SELECT id FROM batch)") == 0
     assert count("SELECT count(*) FROM booking") == 1
     with pytest.raises(inv.InventoryError, match="not_found"):
         inv.delete(conn, "product", p)
@@ -299,13 +283,9 @@ def test_book_in_rejects_bad_date_and_unknown_location(conn):
 def test_unit_base_rules(conn):
     g, kg = unit(conn, "g"), unit(conn, "kg")
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
-        inv.save(
-            conn, "unit", {"name": "x", "symbol": "x", "base_unit_id": kg, "factor": 1}
-        )
+        inv.save(conn, "unit", {"name": "x", "symbol": "x", "base_unit_id": kg, "factor": 1})
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
-        inv.save(
-            conn, "unit", {"id": g, "base_unit_id": unit(conn, "ml")}
-        )  # g is a base already
+        inv.save(conn, "unit", {"id": g, "base_unit_id": unit(conn, "ml")})  # g is a base already
     with pytest.raises(inv.InventoryError, match="invalid_unit"):
         inv.save(conn, "unit", {"name": "y", "symbol": "y"})  # factor required
 
@@ -315,10 +295,7 @@ def test_stock_list_product_filter(conn):
     inv.book_in(conn, a, 1, location_id=loc(conn))
     inv.book_in(conn, b, 1, location_id=loc(conn))
     assert [r["product_id"] for r in inv.stock_list(conn, product_id=b)] == [b]
-    assert (
-        inv.stock_list(conn, product_id=b, location_id=loc(conn, "Vorratsschrank"))
-        == []
-    )
+    assert inv.stock_list(conn, product_id=b, location_id=loc(conn, "Vorratsschrank")) == []
 
 
 def test_seed_gives_every_category_a_location(conn):
@@ -384,7 +361,10 @@ def test_migration_3_normalizes_and_cleans_up():
     assert c.execute("SELECT COUNT(*) FROM off_tag").fetchone()[0] == 2  # en:y only once
     assert category_tags(c) == {1: ["en:x", "en:y"], 2: ["en:y"]}
     assert tuple(c.execute("SELECT is_count FROM unit WHERE id = 2").fetchone()) == (1,)
-    assert tuple(c.execute("SELECT content_amount, content_unit_id FROM product").fetchone()) == (None, None)
+    assert tuple(c.execute("SELECT content_amount, content_unit_id FROM product").fetchone()) == (
+        None,
+        None,
+    )
     # Booking of an unknown batch is gone, an unknown location is cleared.
     assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
     assert inv.defaults(c) == {
@@ -398,7 +378,9 @@ def test_shopping_items_by_hand(conn):
     nudeln = cat(conn, "Nudeln")
     inv.save(conn, "category", {"id": nudeln, "min_packages": 1})
     p = inv.add_shopping_item(conn, 2, product={"name": "Penne", "category_id": nudeln})
-    assert inv.add_shopping_item(conn, 1, product_id=inv.search_products(conn, "penne")[0]["id"]) == p
+    assert (
+        inv.add_shopping_item(conn, 1, product_id=inv.search_products(conn, "penne")[0]["id"]) == p
+    )
     reis = inv.add_shopping_by_name(conn, "reis")  # category by name, any case
     items = inv.shopping_list(conn)
     # The min stock item first, then the items by hand of that category.
@@ -438,7 +420,10 @@ def test_force_delete_category_with_subtree(conn):
     assert groups["delete.shopping_item"]["names"] == ["Vollkorn"]
     assert conn.execute("SELECT count(*) FROM product").fetchone()[0] == 1
     inv.force_delete(conn, "category", parent)
-    assert conn.execute("SELECT 1 FROM category WHERE name IN ('Nudeln', 'Vollkorn')").fetchone() is None
+    assert (
+        conn.execute("SELECT 1 FROM category WHERE name IN ('Nudeln', 'Vollkorn')").fetchone()
+        is None
+    )
     assert conn.execute("SELECT count(*) FROM product").fetchone()[0] == 0
     assert conn.execute("SELECT count(*) FROM booking").fetchone()[0] == 0
     assert inv.shopping_list(conn) == []
@@ -447,7 +432,9 @@ def test_force_delete_category_with_subtree(conn):
 def test_force_delete_unit_clears_references(conn):
     g, kg = unit(conn, "g"), unit(conn, "kg")
     nudeln = cat(conn, "Nudeln")
-    inv.save(conn, "category", {"id": nudeln, "unit_id": kg, "min_stock": 1, "min_stock_unit_id": kg})
+    inv.save(
+        conn, "category", {"id": nudeln, "unit_id": kg, "min_stock": 1, "min_stock_unit_id": kg}
+    )
     p = product(conn, content_amount=500, content_unit_id=g)
     impact = inv.delete_impact(conn, "unit", g)
     names = {g_["kind"]: g_["names"] for g_ in impact["groups"]}
@@ -456,7 +443,9 @@ def test_force_delete_unit_clears_references(conn):
     inv.force_delete(conn, "unit", g)
     row = conn.execute("SELECT unit_id, min_stock FROM category WHERE id = ?", (nudeln,)).fetchone()
     assert tuple(row) == (None, None)
-    assert conn.execute("SELECT content_unit_id FROM product WHERE id = ?", (p,)).fetchone()[0] is None
+    assert (
+        conn.execute("SELECT content_unit_id FROM product WHERE id = ?", (p,)).fetchone()[0] is None
+    )
     assert conn.execute("SELECT 1 FROM unit WHERE id IN (?, ?)", (g, kg)).fetchone() is None
     default = inv.defaults(conn)["unit_id"]
     assert inv.delete_impact(conn, "unit", default)["blocked"] == "unit_is_default"
@@ -526,7 +515,10 @@ def test_location_is_deactivated_not_deleted(conn):
     md = inv.master_data(conn)
     assert fridge not in [x["id"] for x in md["locations"]]
     assert next(c for c in md["categories"] if c["name"] == "Nudeln")["default_location_id"] is None
-    assert conn.execute("SELECT COUNT(*) FROM booking WHERE location_id = ?", (fridge,)).fetchone()[0] == 2
+    assert (
+        conn.execute("SELECT COUNT(*) FROM booking WHERE location_id = ?", (fridge,)).fetchone()[0]
+        == 2
+    )
     with pytest.raises(inv.InventoryError, match="not_found"):
         inv.book_in(conn, p, 1, location_id=fridge)
     # Adding the name again brings the same location back.
@@ -576,7 +568,9 @@ def test_root_category_names_are_unique(conn):
     with pytest.raises(inv.InventoryError, match="duplicate"):
         inv.save(conn, "category", {"name": "Wurzel"})
     parent = inv.save(conn, "category", {"name": "Anders"})
-    inv.save(conn, "category", {"name": "Wurzel", "parent_id": parent})  # same name below another parent
+    inv.save(
+        conn, "category", {"name": "Wurzel", "parent_id": parent}
+    )  # same name below another parent
 
 
 def test_migration_6_dedupes_roots_and_nodate_batches():
@@ -637,7 +631,9 @@ def test_delete_impact_logs_only_touched_rows(conn):
     assert "delete.category" in groups and "delete.batch" not in groups
     # nothing left behind: no temp objects, no open savepoint
     assert conn.execute("SELECT count(*) FROM sqlite_temp_master").fetchone()[0] == 0
-    assert conn.execute("SELECT count(*) FROM product WHERE name = 'Dinkelnudeln'").fetchone()[0] == 1
+    assert (
+        conn.execute("SELECT count(*) FROM product WHERE name = 'Dinkelnudeln'").fetchone()[0] == 1
+    )
     # blocked path cleans up too
     default = inv.defaults(conn)["unit_id"]
     assert inv.delete_impact(conn, "unit", default)["blocked"] == "unit_is_default"

@@ -38,9 +38,13 @@ def book_out_code(conn: sqlite3.Connection, code: str, user_id: str | None = Non
     product = conn.execute(
         "SELECT id, name FROM product WHERE " + ("id" if by_id else "ean") + " = ?", (key,)
     ).fetchone()
-    batch = product and conn.execute(
-        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ?", (product["id"], expires_on)
-    ).fetchone()
+    batch = (
+        product
+        and conn.execute(
+            "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ?",
+            (product["id"], expires_on),
+        ).fetchone()
+    )
     if not batch:
         raise InventoryError("not_found")
     taken = book_out(conn, product["id"], 1, batch["id"], source="label", user_id=user_id)

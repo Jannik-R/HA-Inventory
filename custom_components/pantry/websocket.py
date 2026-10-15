@@ -46,9 +46,7 @@ MASTER_SCHEMAS = {
             vol.Optional("parent_id"): NULL_ID,
             vol.Optional("unit_id"): NULL_ID,
             vol.Optional("default_location_id"): NULL_ID,
-            vol.Optional("expiry_type"): vol.Any(
-                None, vol.In(("best_before", "use_by"))
-            ),
+            vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by"))),
             vol.Optional("warn_days"): vol.Any(None, DAYS),
             # amount and its unit only together (DB CHECK as well)
             vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
@@ -111,9 +109,7 @@ def async_register(hass: HomeAssistant) -> None:
 def _db(hass: HomeAssistant):
     entries = hass.config_entries.async_loaded_entries(DOMAIN)
     if not entries:
-        raise HomeAssistantError(
-            translation_domain=DOMAIN, translation_key="not_loaded"
-        )
+        raise HomeAssistantError(translation_domain=DOMAIN, translation_key="not_loaded")
     return entries[0].runtime_data
 
 
@@ -221,7 +217,9 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
 async def ws_delete_impact(hass: HomeAssistant, connection, msg: dict) -> None:
     """What deleting a row would take with it, for the question before deleting."""
     with _translated():  # rolled back: write=False, so no entity refresh
-        result = await _db(hass).run(inventory.delete_impact, msg["table"], msg["row_id"], write=False)
+        result = await _db(hass).run(
+            inventory.delete_impact, msg["table"], msg["row_id"], write=False
+        )
     connection.send_result(msg["id"], result)
 
 
@@ -272,9 +270,10 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
             msg["id"], websocket_api.ERR_INVALID_FORMAT, "need product_id or product"
         )
         return
-    opts = {
-        k: msg[k] for k in ("expires_on", "location_id") if k in msg
-    } | {"source": "panel", "user_id": connection.user.id}
+    opts = {k: msg[k] for k in ("expires_on", "location_id") if k in msg} | {
+        "source": "panel",
+        "user_id": connection.user.id,
+    }
     try:
         if "product_id" in msg:
             batch_id = await _run(
@@ -332,9 +331,7 @@ async def ws_book_out(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.async_response
 async def ws_put_back(hass: HomeAssistant, connection, msg: dict) -> None:
     """Undo book-outs by the `booking_id`s of the `taken` rows; each can be undone once."""
-    await _run(
-        hass, partial(inventory.put_back, user_id=connection.user.id), msg["booking_ids"]
-    )
+    await _run(hass, partial(inventory.put_back, user_id=connection.user.id), msg["booking_ids"])
     connection.send_result(msg["id"])
 
 

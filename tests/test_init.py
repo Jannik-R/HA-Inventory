@@ -71,7 +71,12 @@ async def test_options_flow_browser(hass: HomeAssistant) -> None:
 async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
     """Dymo: limits of the model, host required, test print reports an unreachable printer (nothing real is sent)."""
     entry = await _options_entry(hass)
-    form = {"label_printer_host": "10.0.0.5", "label_width": 57, "label_height": 32, "print_on_book_in": False}
+    form = {
+        "label_printer_host": "10.0.0.5",
+        "label_width": 57,
+        "label_height": 32,
+        "print_on_book_in": False,
+    }
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(

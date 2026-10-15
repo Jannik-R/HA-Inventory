@@ -50,10 +50,13 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
                 f"INSERT INTO {table} ({', '.join(names)}) VALUES ({', '.join('?' * len(names))})",
                 list(data.values()),
             ).lastrowid
-        elif names and not conn.execute(
-            f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
-            [*data.values(), row_id],
-        ).rowcount:
+        elif (
+            names
+            and not conn.execute(
+                f"UPDATE {table} SET {', '.join(f'{n} = ?' for n in names)} WHERE id = ?",
+                [*data.values(), row_id],
+            ).rowcount
+        ):
             raise InventoryError("not_found")
     except sqlite3.IntegrityError as err:
         raise InventoryError("duplicate" if "UNIQUE" in str(err) else "invalid_value") from err
@@ -68,7 +71,12 @@ def _check_ean(ean: object) -> str | None:
     """None / blank -> no EAN; otherwise 8 to 14 ASCII digits."""
     if ean is None or (isinstance(ean, str) and not ean.strip()):
         return None
-    if not (isinstance(ean, str) and (ean := ean.strip()).isascii() and ean.isdigit() and 8 <= len(ean) <= 14):
+    if not (
+        isinstance(ean, str)
+        and (ean := ean.strip()).isascii()
+        and ean.isdigit()
+        and 8 <= len(ean) <= 14
+    ):
         raise InventoryError("invalid_ean")
     return ean
 
@@ -106,9 +114,10 @@ def _check_unit(conn: sqlite3.Connection, unit_id: int | None, data: dict) -> No
     if base_id is None:
         return
     base = conn.execute("SELECT base_unit_id FROM unit WHERE id = ?", (base_id,)).fetchone()
-    used_as_base = unit_id is not None and conn.execute(
-        "SELECT 1 FROM unit WHERE base_unit_id = ?", (unit_id,)
-    ).fetchone()
+    used_as_base = (
+        unit_id is not None
+        and conn.execute("SELECT 1 FROM unit WHERE base_unit_id = ?", (unit_id,)).fetchone()
+    )
     if base is None or base_id == unit_id or base["base_unit_id"] is not None or used_as_base:
         raise InventoryError("invalid_unit")
 
@@ -157,7 +166,11 @@ def master_data(conn: sqlite3.Connection) -> dict:
         "units": list_rows(conn, "unit"),
         "locations": list_rows(conn, "location"),
         "categories": [
-            {**c, "off_tags": tags.get(c["id"], []), "effective": _resolve(cats, None, c["id"], dflt)}
+            {
+                **c,
+                "off_tags": tags.get(c["id"], []),
+                "effective": _resolve(cats, None, c["id"], dflt),
+            }
             for c in list_rows(conn, "category")
         ],
         "defaults": dflt,

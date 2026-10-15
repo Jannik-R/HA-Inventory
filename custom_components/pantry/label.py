@@ -103,14 +103,12 @@ def png_data_urls(images: list[Image.Image]) -> list[str]:
     for img in images:
         buf = io.BytesIO()
         img.save(buf, "PNG")
-        urls.append(
-            "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-        )
+        urls.append("data:image/png;base64," + base64.b64encode(buf.getvalue()).decode())
     return urls
 
 
 def split_host(host_port: str, default_port: int) -> tuple[str, int]:
-    """"host", "host:port", "[v6]:port", "[v6]" or a bare IPv6 address -> (host, port); ValueError if bad."""
+    """ "host", "host:port", "[v6]:port", "[v6]" or a bare IPv6 address -> (host, port); ValueError if bad."""
     text = host_port.strip()
     if text.startswith("["):
         host, _, rest = text[1:].partition("]")

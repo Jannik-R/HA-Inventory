@@ -39,9 +39,10 @@ def _now() -> str:
 def _exists(conn: sqlite3.Connection, table: str, row_id: int | None) -> None:
     """Row exists (None passes); a location must also be active (deactivated ones take no stock)."""
     active = " AND active" if table == "location" else ""
-    if row_id is not None and not conn.execute(
-        f"SELECT 1 FROM {table} WHERE id = ?{active}", (row_id,)
-    ).fetchone():
+    if (
+        row_id is not None
+        and not conn.execute(f"SELECT 1 FROM {table} WHERE id = ?{active}", (row_id,)).fetchone()
+    ):
         raise InventoryError("not_found")
 
 

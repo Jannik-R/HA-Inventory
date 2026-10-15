@@ -8,7 +8,7 @@ from .master import delete, list_rows, master_data, save
 from .inherit import defaults, effective
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_by_name, suggest_category
-from .booking import book_in, book_in_new, book_out, correct, move
+from .booking import book_in, book_in_new, book_out, correct, edit_stock, move
 from .queries import expiring, shopping_list, stock_list
 
 __all__ = [
@@ -22,6 +22,7 @@ __all__ = [
     "correct",
     "defaults",
     "delete",
+    "edit_stock",
     "effective",
     "expiring",
     "find_ean",

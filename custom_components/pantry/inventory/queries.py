@@ -14,11 +14,11 @@ def stock_list(
     location_id: int | None = None,
     product_id: int | None = None,
 ) -> list[dict]:
-    """One row per batch and location."""
-    cats = _categories(conn)
+    """One row per batch and location; expiry_type is the product's (own or inherited)."""
+    cats, dflt = _categories(conn), defaults(conn)
     sql = (
-        "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on, b.expiry_type,"
-        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id"
+        "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on,"
+        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"
         " JOIN location l ON l.id = s.location_id"
     )
@@ -37,6 +37,7 @@ def stock_list(
     ):
         row = dict(r)
         row["category_path"] = _path(cats, r["category_id"])
+        row["expiry_type"] = _resolve(cats, row, r["category_id"], dflt)["expiry_type"]["value"]
         rows.append(row)
     if search:
         needle = search.casefold()

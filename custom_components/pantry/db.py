@@ -87,6 +87,39 @@ MIGRATIONS: list[str] = [
         user_id TEXT
     );
     """,
+    # 2: the date type belongs to the product (own or inherited), not to a batch.
+    # Batches that differed only by type merge (lowest id wins; stock summed, bookings repointed).
+    # The new tables reference each other before the renames, so dropping the old ones cascades nothing.
+    """
+    CREATE TABLE batch_new (
+        id INTEGER PRIMARY KEY,
+        product_id INTEGER NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+        expires_on TEXT,
+        created_at TEXT NOT NULL,
+        UNIQUE (product_id, expires_on)
+    );
+    INSERT INTO batch_new (id, product_id, expires_on, created_at)
+        SELECT MIN(id), product_id, expires_on, MIN(created_at) FROM batch GROUP BY product_id, expires_on;
+    CREATE TEMP TABLE batch_map AS
+        SELECT b.id AS old_id, k.id AS new_id FROM batch b
+        JOIN batch_new k ON k.product_id = b.product_id AND k.expires_on IS b.expires_on;
+    CREATE TABLE stock_new (
+        batch_id INTEGER NOT NULL REFERENCES batch_new(id) ON DELETE CASCADE,
+        location_id INTEGER NOT NULL REFERENCES location(id) ON DELETE RESTRICT,
+        packages INTEGER NOT NULL CHECK (packages > 0),
+        PRIMARY KEY (batch_id, location_id)
+    );
+    INSERT INTO stock_new (batch_id, location_id, packages)
+        SELECT m.new_id, s.location_id, SUM(s.packages) FROM stock s
+        JOIN batch_map m ON m.old_id = s.batch_id GROUP BY m.new_id, s.location_id;
+    UPDATE booking SET batch_id = (SELECT new_id FROM batch_map WHERE old_id = booking.batch_id)
+        WHERE batch_id IN (SELECT old_id FROM batch_map);
+    DROP TABLE stock;
+    DROP TABLE batch;
+    DROP TABLE batch_map;
+    ALTER TABLE batch_new RENAME TO batch;
+    ALTER TABLE stock_new RENAME TO stock;
+    """,
 ]
 
 

@@ -43,7 +43,7 @@ const takeOut = (host: TakeOutHost, name: string, b: StockRow) =>
     { name, row: b },
   );
 
-/** Undo = book the package back in; same product, date and type merge into the same batch. */
+/** Undo = book the package back in; the same product and date merge into the same batch. */
 const undoTake = (host: TakeOutHost) => {
   const { row } = host.undo!;
   return apply(host, () =>
@@ -51,7 +51,6 @@ const undoTake = (host: TakeOutHost) => {
       product_id: row.product_id,
       packages: 1,
       expires_on: row.expires_on,
-      expiry_type: row.expiry_type,
       location_id: row.location_id,
     }),
   );

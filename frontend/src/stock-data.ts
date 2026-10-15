@@ -1,5 +1,5 @@
 import type { MasterData, Product, StockRow } from "./api";
-import { categoryDefault } from "./inherit";
+import { categoryDefault, categoryPath } from "./inherit";
 import { todayIso } from "./ui";
 
 /** A product in the stock overview with its batches (earliest expiry first). */
@@ -12,18 +12,22 @@ export interface Item {
   batches: StockRow[];
 }
 
-/** Stock rows matching search and location, as products per category id. */
+/** Stock rows matching search and location, as products per category id.
+ * `products` without stock are added (0 Pkg.) when they match the search; only for all locations. */
 export function groupStock(
   stock: StockRow[],
   filter: string,
   location: number | null,
+  products: Iterable<Product> = [],
+  md?: MasterData,
 ): Map<number, Item[]> {
   const q = filter.trim().toLocaleLowerCase();
+  const hit = (parts: (string | null | undefined)[]) =>
+    parts.join(" ").toLocaleLowerCase().includes(q);
   const items = new Map<number, Item>();
   for (const r of stock) {
     if (location != null && r.location_id !== location) continue;
-    const text = [r.name, r.brand, r.ean, r.location, ...r.category_path].join(" ");
-    if (q && !text.toLocaleLowerCase().includes(q)) continue;
+    if (q && !hit([r.name, r.brand, r.ean, r.location, ...r.category_path])) continue;
     let item = items.get(r.product_id);
     if (!item) {
       item = {
@@ -39,6 +43,20 @@ export function groupStock(
     item.packages += r.packages;
     item.batches.push(r); // backend sorts by expiry, earliest first
   }
+  if (location == null)
+    for (const p of products)
+      if (
+        !items.has(p.id!) &&
+        (!q || hit([p.name, p.brand, p.ean, categoryPath(md, p.category_id)]))
+      )
+        items.set(p.id!, {
+          id: p.id!,
+          category_id: p.category_id!,
+          name: p.name,
+          brand: p.brand,
+          packages: 0,
+          batches: [],
+        });
   const out = new Map<number, Item[]>();
   for (const i of items.values()) out.set(i.category_id, [...(out.get(i.category_id) ?? []), i]);
   return out;

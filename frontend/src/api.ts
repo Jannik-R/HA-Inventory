@@ -102,6 +102,7 @@ export interface StockRow {
   location: string;
   packages: number;
   expires_on: string | null;
+  /** The product's date type (own or inherited); batches have none of their own. */
   expiry_type: "best_before" | "use_by";
   product_id: number;
   name: string;
@@ -113,7 +114,6 @@ export interface StockRow {
 export interface BookIn {
   packages: number;
   expires_on?: string | null;
-  expiry_type?: "best_before" | "use_by";
   location_id?: number | null;
   product_id?: number;
   product?: Record<string, unknown>;
@@ -129,8 +129,19 @@ export const bookOut = (
   hass: Hass,
   data: { product_id: number; packages: number; batch_id?: number; location_id?: number },
 ) => hass.callWS<{ taken: unknown[] }>({ type: "pantry/book_out", ...data });
+export const editStock = (
+  hass: Hass,
+  data: {
+    batch_id: number;
+    location_id: number;
+    expires_on: string | null;
+    packages: number;
+  },
+) => hass.callWS<{ batch_id: number }>({ type: "pantry/stock_edit", ...data });
 export const getStock = (hass: Hass, product_id?: number) =>
   hass.callWS<StockRow[]>({ type: "pantry/stock", product_id });
 export const listProducts = (hass: Hass) => hass.callWS<Product[]>({ type: "pantry/products" });
+export const deleteProduct = (hass: Hass, row_id: number) =>
+  hass.callWS<unknown>({ type: "pantry/delete", table: "product", row_id });
 export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "pantry/product_save", data });

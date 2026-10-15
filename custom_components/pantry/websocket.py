@@ -76,6 +76,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_search,
         ws_book_in,
         ws_book_out,
+        ws_stock_edit,
         ws_stock,
         ws_products,
         ws_product_save,
@@ -188,7 +189,6 @@ async def ws_search(hass: HomeAssistant, connection, msg: dict) -> None:
         vol.Required("type"): "pantry/book_in",
         vol.Required("packages"): vol.All(int, vol.Range(min=1)),
         vol.Optional("expires_on"): vol.Any(None, str),
-        vol.Optional("expiry_type"): _EXPIRY_TYPE,
         vol.Optional("location_id"): _ID,
         vol.Exclusive("product_id", "product"): int,
         vol.Exclusive("product", "product"): _NEW_PRODUCT,
@@ -203,7 +203,7 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
         )
         return
     opts = {
-        k: msg[k] for k in ("expires_on", "expiry_type", "location_id") if k in msg
+        k: msg[k] for k in ("expires_on", "location_id") if k in msg
     } | {"source": "panel", "user_id": connection.user.id}
     try:
         if "product_id" in msg:
@@ -251,6 +251,29 @@ async def ws_book_out(hass: HomeAssistant, connection, msg: dict) -> None:
         msg["packages"],
     )
     connection.send_result(msg["id"], {"taken": taken})
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/stock_edit",
+        vol.Required("batch_id"): int,
+        vol.Required("location_id"): int,
+        vol.Required("expires_on"): vol.Any(None, str),
+        vol.Required("packages"): vol.All(int, vol.Range(min=0)),
+    }
+)
+@websocket_api.async_response
+async def ws_stock_edit(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Fix a stock row (wrong date or count); any user, like booking."""
+    batch_id = await _run(
+        hass,
+        partial(inventory.edit_stock, source="panel", user_id=connection.user.id),
+        msg["batch_id"],
+        msg["location_id"],
+        msg["expires_on"],
+        msg["packages"],
+    )
+    connection.send_result(msg["id"], {"batch_id": batch_id})
 
 
 @websocket_api.websocket_command(

@@ -1,5 +1,5 @@
 import { openPage } from "./helpers";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 // Live validation: errors show while typing and block saving; nothing is saved here.
 test("booking form validates while typing", async ({ page }) => {

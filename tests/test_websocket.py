@@ -1,7 +1,10 @@
 """Websocket commands: master data round trip, validation and translated errors."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -280,3 +283,46 @@ async def test_delete_impact_and_force(ws, hass_admin_user) -> None:
         "blocked": None, "groups": [{"kind": "delete.category", "count": 1, "names": ["WS Kind"]}]
     }  # fmt: skip
     assert (await ws.call({**delete, "force": True}))["success"]
+
+
+async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
+    """Without a printer the images come back; with one the raw stream is sent. Scanning books out."""
+    data = await master(ws)
+    cat_id = by_name(data["categories"], "Nudeln")["id"]
+    loc_id = data["locations"][0]["id"]
+    res = await ws.call(
+        {
+            "type": "pantry/book_in",
+            "packages": 2,
+            "location_id": loc_id,
+            "product": {"name": "Etikett-Nudeln", "category_id": cat_id},
+        }
+    )
+    batch_id = res["result"]["batch_id"]
+    msg = {"type": "pantry/print_labels", "batch_id": batch_id, "count": 2}
+
+    cfg = (await ws.call({"type": "pantry/label_config"}))["result"]
+    assert cfg == {"printer": False, "print_on_book_in": True, "width_mm": 57, "height_mm": 32}
+    out = (await ws.call(msg))["result"]
+    assert len(out["images"]) == 2 and out["width_mm"] == 57
+
+    hass.config_entries.async_update_entry(
+        hass.config_entries.async_entries(DOMAIN)[0], options={"label_printer": "dymo_lw4xx", "label_printer_host": "10.0.0.5"}
+    )
+    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+        out = (await ws.call({**msg, "count": 3}))["result"]
+    assert out == {"printed": 3}
+    assert send.await_args.args[0] == "10.0.0.5" and send.await_args.args[2] == 9100
+    assert (await ws.call({"type": "pantry/label_config"}))["result"]["printer"] is True
+
+    with patch(
+        "custom_components.pantry.label.send", side_effect=HomeAssistantError("x")
+    ):
+        assert (await ws.call(msg))["success"] is False
+
+    for bad in (0, 100):
+        assert (await ws.call({**msg, "count": bad}))["success"] is False
+    pid = res["result"]["product_id"]  # no EAN, no date
+    out = await ws.call({"type": "pantry/book_out_label", "code": f"P{pid}:"})
+    assert out["result"]["name"] == "Etikett-Nudeln"
+    assert (await ws.call({"type": "pantry/book_out_label", "code": "x"}))["success"] is False

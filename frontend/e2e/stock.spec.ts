@@ -1,5 +1,5 @@
 import { apiPage, openPage, ws } from "./helpers";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const NAME = `E2E Bestand ${Date.now()}`;
 
@@ -107,4 +107,32 @@ test("overview groups by category, searches and filters by location", async ({ p
   await product.click();
   await expect(page.locator("pantry-product-dialog dialog > form > h2")).toContainText(NAME);
   await page.keyboard.press("Escape");
+});
+
+test("reprint asks for the count and shows the stock", async ({ page, printCalls }) => {
+  await openPage(page, "/pantry/stock", "Bestand");
+  // The test above books everything out.
+  await ws(page, {
+    type: "pantry/book_in",
+    product_id: productId,
+    packages: 3,
+    expires_on: "2099-12-31",
+    location_id: locations[1].id,
+  });
+  await openPage(page, "/pantry/stock", "Bestand");
+  await page.getByTestId("stock-filter").fill(NAME);
+  const batches = page.getByTestId("stock-batch");
+  await expect(batches).toHaveCount(1);
+  await batches.first().getByTestId("stock-batch-label").click();
+  const count = page.getByTestId("label-count");
+  await expect(count).toBeFocused();
+  await expect(count).toHaveValue("1");
+  await expect(page.locator("pantry-label-dialog")).toContainText("3 Packungen im Lager");
+  await count.fill("0");
+  await expect(page.getByTestId("label-print")).toBeDisabled();
+  // Up to 2 labels print without asking (the fixture blocks the request).
+  await count.fill("2");
+  await page.getByTestId("label-print").click();
+  await expect.poll(() => printCalls.length).toBe(1);
+  await expect(page.locator("pantry-confirm")).toHaveCount(0);
 });

@@ -16,7 +16,7 @@ websocket.py ── services (planned, Phase 9) ── LLM API tools (later)
                          db.py (stdlib sqlite3, <config>/pantry.db)
                                    │
               off.py (Open Food Facts lookup, result cached in `product`)
-              label.py (planned, Phase 8: render label, raw to a network print server or IPP to CUPS)
+              label.py (render label, raw to a network print server)
               receipt.py (planned: ESC/POS receipt printer, see 4a)
 
 Entities: sensor (expired / expiring soon), todo (shopping list; its state = open items, so no extra below-min sensor)
@@ -75,7 +75,6 @@ stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_
 shopping_done (category_id PK → category (cascade), missing)   -- checked shopping item + its shortage then
 shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL → category,   -- added by hand,
             packages > 0, done 0|1, created_at)   -- exactly one of product / category (CHECK); both cascade
-label      (id TEXT short random, batch_id, location_id, printed_at, used_at NULL)   -- added in Phase 8 migration
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
 category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
 booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascade), location_id → location,
@@ -167,10 +166,10 @@ Global defaults (integration options): warn 7 days, best-before, unit Stück.
 → local `product` lookup → else OFF lookup → else manual form. Unknown product: choose
 category (suggested from OFF categories). Then: expiry date (its type comes from the product/category),
 packages, location (default inherited / last used). "Print labels" toggle (default from options)
-→ one label per package, printed immediately.
+→ one label per package, printed immediately (labels carry no table: see Label printing).
 
 **Book out**: the same single input.
-- `PTRY:<label_id>` → that package, that batch, that location. Label marked used.
+- `PTRY:<key>:<date>` (key = product EAN, or `P<id>` without EAN; date = batch expiry, empty without) → one package of that batch, booked out like a normal book-out (location chosen as usual). A label can be scanned again; it names a batch, it does not track single packages.
 - EAN / name → product → batch with **earliest expiry first** (FEFO),
   location = only one / last used. Override possible.
 
@@ -205,8 +204,9 @@ HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print se
   `SYN` + one line of 1-bit pixels per dot row, `ESC E` form feed). `label.py` renders the label
   with Pillow (QR via `segno`), converts it to 1-bit rows at 300 dpi and writes them to
   `<print server>:9100` (asyncio socket). No CUPS, no driver, no extra host.
+  `label_printers.py` is the registry of label printer models (options flow step 1 picks one): per model the size limits, default port, blank bottom reserve (Dymo 450: 3 mm) and the stream encoder; `browser` has no encoder (browser print). A new network model = a new entry with its encoder. The receipt printer (4a) will be a separate setting, not a model here.
   `shortcut: own small raster encoder for LabelWriter 4xx; other label printers need their own encoder or the CUPS path.`
-- **Fallback path: CUPS** (for printers without an own encoder): a CUPS server (Pi container or
+- **Fallback path: CUPS (NOT built; the browser print covers the no-printer case)** (for printers without an own encoder): a CUPS server (Pi container or
   HA add-on) with `printer-driver-dymo`, its queue pointing to `socket://<print server>:9100`;
   HA sends the PNG via IPP Print-Job to that queue.
 - Check first: TP-Link print servers have a compatibility list and some USB label printers fail
@@ -215,7 +215,7 @@ HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print se
 
 Options (config flow → options): transport (`raw` print server host[:port] | `ipp` CUPS queue URI),
 label width/height mm, auto-print on book-in. Test print button in options.
-Label content: QR `PTRY:<id>`, product name, expiry date, short ID as text.
+Label content: QR `PTRY:<key>:<date>`, product name, brand, expiry date. No label table; reprint = `count` identical labels of a batch (1..99).
 README documents the print server setup (fixed IP, port 9100 enabled) and the optional CUPS setup.
 
 Network printing is **optional**: no printer configured → labels still work, the panel
@@ -292,7 +292,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 6a | Stock + products | done | "Produkte" tab merged into "Bestand": product rows get edit/delete, batch rows an edit dialog (`inventory.edit_stock`: date and count of one batch at one location, date type stays a product property; another date moves the packages to that batch, logged as two corrections); products without stock only via an opt-in checkbox |
 | 6b | Maintenance | done | migration 3 (OFF tags normalized, CHECKs, location deactivation + booking FKs, `defaults` table editable in settings), styled confirm dialog, Prettier + i18n check in CI, skills `db-migration` and `feature-checklist` |
 | 7 | Min stock | done | migration 4 (`min_stock_unit_id`: the minimum keeps its unit; `min_packages`; `shopping_done`), both minimums in the category dialog, *Einkauf* tab, todo entity *Einkaufsliste*; items by hand (migration 5 `shopping_item`, panel dialog with search and create, todo create/delete); deleting master data in use (`delete_impact` = dry run of the delete in a savepoint, diff of all tables, rolled back: lists every row deleted or changed; `force_delete` cascades or clears references, a location's stock moves or is booked out) |
-| 8 | Labels | open | `label.py`, raw printing via TP-Link print server (Dymo raster), CUPS/IPP fallback, options, scan-to-consume |
+| 8 | Labels | done | `inventory/labels.py` (`label_info`, `book_out_code`: one package of the batch the code names; no schema change), `label.py` (QR + text with Pillow/segno, Dymo stream, raw TCP send), options flow in two steps (printer model via `label_printers.py`, then host, size, print on book-in, test print), confirm before printing more than 2 labels, `websocket_label.py`, panel: print on book-in, reprint dialog per batch row, scan `PTRY:` to book out, browser print when no printer. CUPS/IPP not built |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
 | 9 | Release | open | services, README, HACS release |
 

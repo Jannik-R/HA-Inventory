@@ -151,7 +151,15 @@ export const bookIn = (hass: Hass, data: BookIn) =>
 export const bookOut = (
   hass: Hass,
   data: { product_id: number; packages: number; batch_id?: number; location_id?: number },
-) => hass.callWS<{ taken: unknown[] }>({ type: "pantry/book_out", ...data });
+) => hass.callWS<{ taken: Taken[] }>({ type: "pantry/book_out", ...data });
+/** What a book-out took, per batch and location; `putBack` undoes it. */
+export interface Taken {
+  batch_id: number;
+  location_id: number;
+  packages: number;
+}
+export const putBack = (hass: Hass, taken: Taken[]) =>
+  hass.callWS<null>({ type: "pantry/put_back", taken });
 export const editStock = (
   hass: Hass,
   data: {
@@ -208,3 +216,21 @@ export const updateShoppingItem = (
 ) => hass.callWS<unknown>({ type: "pantry/shopping_item", item_id, ...data });
 export const deleteShoppingItem = (hass: Hass, item_id: number) =>
   hass.callWS<unknown>({ type: "pantry/shopping_item_delete", item_id });
+
+export interface LabelConfig {
+  printer: boolean;
+  print_on_book_in: boolean;
+  width_mm: number;
+  height_mm: number;
+}
+export type PrintResult =
+  { printed: number } | { images: string[]; width_mm: number; height_mm: number };
+export const getLabelConfig = (hass: Hass) =>
+  hass.callWS<LabelConfig>({ type: "pantry/label_config" });
+export const printLabelsWs = (hass: Hass, data: { batch_id: number; count: number }) =>
+  hass.callWS<PrintResult>({ type: "pantry/print_labels", ...data });
+export const bookOutLabel = (hass: Hass, code: string) =>
+  hass.callWS<{ name: string; location: string; taken: Taken[] }>({
+    type: "pantry/book_out_label",
+    code,
+  });

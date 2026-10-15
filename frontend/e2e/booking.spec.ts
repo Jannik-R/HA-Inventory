@@ -1,5 +1,5 @@
 import { apiPage, openPage, openTab, ws } from "./helpers";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 const NAME = `E2E Testprodukt ${Date.now()}`;
 
@@ -17,7 +17,7 @@ test.afterAll(async ({ browser }) => {
   await page.close();
 });
 
-test("book a new product in and out again", async ({ page }) => {
+test("book a new product in and out again", async ({ page, printCalls }) => {
   await openPage(page, "/pantry/in", "Einbuchen");
   const code = page.getByTestId("code-input");
   await expect(code).toBeFocused();
@@ -52,8 +52,14 @@ test("book a new product in and out again", async ({ page }) => {
   await expect(page.getByTestId("make-default")).toBeChecked();
   await page.getByTestId("expires").fill("2030-01-31");
   await page.getByTestId("packages").fill("3");
+  await expect(page.getByTestId("print-labels")).toBeChecked();
   await page.getByTestId("submit").click();
+  // More than 2 labels are confirmed first.
+  await expect(page.locator("pantry-confirm")).toContainText("3 Etiketten drucken?");
+  await page.getByTestId("confirm-ok").click();
   await expect(page.getByTestId("message")).toContainText(`3 × ${NAME}`);
+  // The print request was sent, and blocked by the fixture (never reaches the printer).
+  expect(printCalls).toEqual([expect.objectContaining({ type: "pantry/print_labels", count: 3 })]);
   await expect(code).toBeFocused();
 
   // Known product: date, packages and location only; the location default is now the product's own.
@@ -90,6 +96,10 @@ test("book a new product in and out again", async ({ page }) => {
   await page.getByTestId("packages").fill("2");
   await page.getByTestId("submit").click();
   await expect(page.getByTestId("message")).toContainText(`2 × ${NAME}`);
+  // Undo puts both packages back.
+  await page.getByTestId("undo").click();
+  await expect(page.getByTestId("message")).toContainText("Rückgängig");
+  await expect(page.getByTestId("undo")).toHaveCount(0);
 
   // Admin deletes the product with its remaining stock.
   await openTab(page, "Bestand");
@@ -97,6 +107,7 @@ test("book a new product in and out again", async ({ page }) => {
   // Delete icon in the list, only on the row with the test's own product name.
   const row = page.locator("pantry-stock li.item").filter({ hasText: NAME });
   await expect(row).toHaveCount(1);
+  await expect(row).toContainText("4 Pkg.");
   await row.getByTestId("product-delete").click();
   await expect(page.locator("pantry-confirm h2")).toHaveText(`„${NAME}“ löschen?`);
   await page.getByTestId("confirm-ok").click();

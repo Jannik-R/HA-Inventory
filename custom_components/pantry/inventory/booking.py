@@ -150,6 +150,18 @@ def book_out(
     return taken
 
 
+def put_back(
+    conn, taken: list[dict], source: str = "manual", user_id: str | None = None
+) -> None:
+    """Undo a book-out: the `taken` rows of `book_out` go back to their batch and location."""
+    for r in taken:
+        _exists(conn, "batch", r["batch_id"])
+        _exists(conn, "location", r["location_id"])
+        _positive(r["packages"])
+        _add(conn, r["batch_id"], r["location_id"], r["packages"])
+        _booking(conn, "in", r["batch_id"], r["location_id"], r["packages"], source, user_id)
+
+
 def _stock_of(conn, batch_id: int, location_id: int) -> int:
     row = conn.execute(
         "SELECT packages FROM stock WHERE batch_id = ? AND location_id = ?",

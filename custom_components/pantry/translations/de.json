@@ -64,6 +64,47 @@
     },
     "off_unavailable": {
       "message": "Open Food Facts ist nicht erreichbar. Bitte später erneut versuchen."
+    },
+    "printer_unreachable": {
+      "message": "Der Drucker ist nicht erreichbar."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Etikettendrucker",
+        "description": "Etikettendrucker wählen (kein Bon-Drucker; der kommt später als eigene Einstellung).",
+        "data": {
+          "label_printer": "Modell des Etikettendruckers"
+        }
+      },
+      "label": {
+        "title": "Einstellungen des Etikettendruckers",
+        "description": "Host, Etikettengröße und Druck für den gewählten Etikettendrucker.",
+        "data": {
+          "label_printer_host": "Host (oder Host:Port)",
+          "label_width": "Etikettenbreite",
+          "label_height": "Etikettenhöhe",
+          "print_on_book_in": "Beim Einbuchen Etiketten drucken",
+          "test_print": "Testetikett drucken"
+        },
+        "data_description": {
+          "label_printer_host": "Netzwerkadresse des Druckservers. Port {port}, wenn nur der Host angegeben wird.",
+          "test_print": "Sendet beim Speichern ein Testetikett an den Drucker."
+        }
+      }
+    },
+    "error": {
+      "host_required": "Bitte den Host des Druckers eingeben.",
+      "printer_unreachable": "Der Drucker ist nicht erreichbar."
+    }
+  },
+  "selector": {
+    "label_printer": {
+      "options": {
+        "browser": "Kein Netzwerkdrucker – Druck über den Browser",
+        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (Raw-Port 9100, z. B. über USB-Druckserver)"
+      }
     }
   }
 }

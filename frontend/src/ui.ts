@@ -61,6 +61,8 @@ export const editDialog = (o: {
   body: unknown;
   error?: string;
   invalid: boolean;
+  /** Primary button text and testid (default: "Speichern"). */
+  submit?: { label: string; testid: string };
   dirty: () => boolean;
   onSubmit: (e: Event) => void;
   onClosed: () => void;
@@ -81,8 +83,13 @@ export const editDialog = (o: {
         >
           ${t("common.cancel")}
         </button>
-        <button class="primary" type="submit" data-testid="save" ?disabled=${o.invalid}>
-          ${t("common.save")}
+        <button
+          class="primary"
+          type="submit"
+          data-testid=${o.submit?.testid ?? "save"}
+          ?disabled=${o.invalid}
+        >
+          ${o.submit?.label ?? t("common.save")}
         </button>
       </div>
     </form>

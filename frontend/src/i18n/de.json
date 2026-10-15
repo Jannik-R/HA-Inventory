@@ -49,6 +49,7 @@
   "settings.day": "{n} Tag",
   "book.camera": "Kamera",
   "book.unknown": "Produkt nicht gefunden.",
+  "book.label_out_only": "Etiketten zum Ausbuchen im Tab „Auslagern“ scannen.",
   "book.no_hits": "Keine Treffer.",
   "book.search_online": "Online suchen",
   "book.new_product": "Neues Produkt",
@@ -70,6 +71,7 @@
   "book.submit_out": "Auslagern",
   "book.done_in": "{n} × {name} eingebucht",
   "book.done_out": "{n} × {name} ausgelagert",
+  "book.undone": "Rückgängig gemacht: wieder im Bestand.",
   "scan.title": "Barcode scannen",
   "scan.https": "Die Kamera braucht HTTPS (oder localhost).",
   "scan.no_camera": "Kein Kamerazugriff. Bitte Berechtigung prüfen.",
@@ -157,5 +159,15 @@
   "delete.kind.change.category": "Kategorien, die darauf verweisen ({n})",
   "delete.kind.change.product": "Produkte, die darauf verweisen ({n})",
   "delete.kind.change.defaults": "Standards verweisen darauf",
-  "delete.kind.other": "Weitere Daten in „{table}“ ({n})"
+  "delete.kind.other": "Weitere Daten in „{table}“ ({n})",
+  "label.print": "Etiketten drucken",
+  "label.print_name": "Etiketten für {name} drucken",
+  "label.title": "Etiketten für „{name}“ drucken",
+  "label.count": "Anzahl",
+  "label.in_stock": "{n} Packungen im Lager",
+  "label.submit": "Drucken",
+  "valid.label_count": "Bitte eine ganze Zahl von 1 bis 99 eingeben.",
+  "label.confirm_many": "{n} Etiketten drucken?",
+  "label.printed": "{n} Etiketten gedruckt",
+  "book.done_label": "1 × {name} aus {where} ausgebucht"
 }

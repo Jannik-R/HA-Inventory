@@ -22,6 +22,10 @@ Available:
 Planned:
 
 - Receipt printer (ESC/POS) for the shopping list and later recipes
+- Recipes (with import from Chefkoch and other recipe sites), shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
+- Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
+
+Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
 ## Usage
 

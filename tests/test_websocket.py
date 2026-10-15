@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.setup import async_setup_component
@@ -409,7 +409,8 @@ async def test_input_validation(ws) -> None:
 async def test_delete_impact_is_silent(hass: HomeAssistant, ws) -> None:
     """A dry run is rolled back and must not make the entities refresh."""
     calls = []
-    unsub = async_dispatcher_connect(hass, SIGNAL_CHANGED, lambda: calls.append(1))
+    # @callback: a plain lambda runs in the executor, so a count could lag behind the reply
+    unsub = async_dispatcher_connect(hass, SIGNAL_CHANGED, callback(lambda: calls.append(1)))
     msg = await ws.call({"type": "pantry/save", "table": "category", "data": {"name": "Dry"}})
     parent = msg["result"]["id"]
     await ws.call(

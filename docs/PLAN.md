@@ -11,7 +11,7 @@ HA sidebar panel (Lit web component, one bundled JS file)
         ▼
 websocket.py ── services (services.yaml) ── LLM API tools (later)
         │                │                        │
-        └────────────────┴──── inventory.py ──────┘   ← all business logic, one place
+        └────────────────┴──── inventory/ ────────┘   ← all business logic, one place
                                    │
                          db.py (stdlib sqlite3, <config>/pantry.db)
                                    │
@@ -22,7 +22,7 @@ Entities: sensor (expiring / expired / below-min counts), todo (shopping list)
 ```
 
 Rule: **every** entry point (panel, services, automations, future AI tools) calls
-`inventory.py`. No logic in websocket handlers or entities.
+the `inventory` package (public API in its `__init__`, one submodule per concern). No logic in websocket handlers or entities.
 
 ### Key decisions
 
@@ -245,7 +245,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | Week planner | `meal_plan(date, slot, recipe_id, servings)` |
 | Shopping list from plan | plan demand − stock − forecast from `booking` consumption rate → same todo entity |
 | Recipe suggestions for expiring items | expiry query returns category ids → match recipes |
-| AI interface | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory.py` → usable by Assist agents and HA's built-in **MCP Server** integration. No own MCP server. |
+| AI interface | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → usable by Assist agents and HA's built-in **MCP Server** integration. No own MCP server. |
 | Recipe import | websites: schema.org `Recipe` JSON-LD; Instagram etc.: caption text → LLM parse |
 | Shopping by recipes / offers | separate module; source TBD (no stable public API for app discounts) |
 | Category mapping feedback | log each product whose OFF tags matched no category or whose suggestion the user changed (EAN, OFF `categories_tags`, suggested and chosen category) in a `mapping_log` table; export/view it to improve the seed `off_tags` in code (`add_product` already knows both cases) |

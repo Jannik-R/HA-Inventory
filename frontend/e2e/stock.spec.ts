@@ -1,21 +1,13 @@
-import { openPage } from "./helpers";
-import { expect, test, type Page } from "@playwright/test";
+import { apiPage, openPage, ws } from "./helpers";
+import { expect, test } from "@playwright/test";
 
 const NAME = `E2E Bestand ${Date.now()}`;
-
-const ws = (page: Page, msg: Record<string, unknown>) =>
-  page.evaluate(
-    (m) => (document.querySelector("home-assistant") as unknown as { hass: { callWS: (m: unknown) => Promise<unknown> } }).hass.callWS(m),
-    msg,
-  );
 
 let productId: number | undefined;
 let locations: { id: number; name: string }[] = [];
 
 test.beforeAll(async ({ browser }) => {
-  const page = await browser.newPage();
-  await openPage(page, "/pantry/in", "Einbuchen");
-  await page.waitForFunction(() => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass);
+  const page = await apiPage(browser);
   const md = (await ws(page, { type: "pantry/master_data" })) as {
     categories: { id: number; name: string }[];
     locations: { id: number; name: string }[];
@@ -30,15 +22,19 @@ test.beforeAll(async ({ browser }) => {
     location_id: locations[0].id,
   })) as { product_id: number };
   productId = res.product_id;
-  await ws(page, { type: "pantry/book_in", product_id: productId, packages: 3, expires_on: "2099-12-31", location_id: locations[1].id });
+  await ws(page, {
+    type: "pantry/book_in",
+    product_id: productId,
+    packages: 3,
+    expires_on: "2099-12-31",
+    location_id: locations[1].id,
+  });
   await page.close();
 });
 
 test.afterAll(async ({ browser }) => {
   if (productId == null) return;
-  const page = await browser.newPage();
-  await openPage(page, "/pantry/in", "Einbuchen");
-  await page.waitForFunction(() => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass);
+  const page = await apiPage(browser);
   await ws(page, { type: "pantry/delete", table: "product", row_id: productId });
   await page.close();
 });

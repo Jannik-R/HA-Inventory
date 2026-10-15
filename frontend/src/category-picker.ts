@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
-import { mdiChevronDown, mdiChevronRight, mdiMenuDown } from "@mdi/js";
+import { mdiMenuDown } from "@mdi/js";
 import { t } from "./i18n";
-import { backdropClick, formStyles, icon } from "./ui";
+import { backdropClick, chevron, formStyles, icon, toggled } from "./ui";
 import type { Category } from "./api";
 
 /** Category field: shows the chosen path, opens a tree (with a filter) in a dialog. Fires `change`. */
@@ -72,7 +72,8 @@ export class PantryCategoryPicker extends LitElement {
 
   private confirm() {
     this.renderRoot.querySelector("dialog")!.close();
-    if (this.draft !== undefined) this.dispatchEvent(new CustomEvent("change", { detail: this.draft }));
+    if (this.draft !== undefined)
+      this.dispatchEvent(new CustomEvent("change", { detail: this.draft }));
   }
 
   /** Mark a category; a closed parent also opens, so its children can be picked next. */
@@ -82,9 +83,7 @@ export class PantryCategoryPicker extends LitElement {
   }
 
   private toggle(id: number) {
-    const s = new Set(this.expanded);
-    if (!s.delete(id)) s.add(id);
-    this.expanded = s;
+    this.expanded = toggled(this.expanded, id);
   }
 
   /** Visible rows: the expanded tree, or all matches (with path) while filtering. */
@@ -163,15 +162,7 @@ export class PantryCategoryPicker extends LitElement {
             return html`<li style="padding-left: ${depth * 20}px">
               ${
                 kids
-                  ? html`<button
-                      type="button"
-                      class="chev"
-                      aria-expanded=${open}
-                      aria-label=${t(open ? "common.collapse" : "common.expand")}
-                      @click=${() => this.toggle(c.id)}
-                    >
-                      ${icon(open ? mdiChevronDown : mdiChevronRight)}
-                    </button>`
+                  ? chevron(open, () => this.toggle(c.id))
                   : filtering
                     ? nothing
                     : html`<span class="chev"></span>`
@@ -233,16 +224,6 @@ export class PantryCategoryPicker extends LitElement {
         max-height: 55vh;
         overflow-y: auto;
         margin-bottom: 12px;
-      }
-      .chev {
-        flex: none;
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        border: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
       .row[aria-current="true"] {
         color: var(--primary-color);

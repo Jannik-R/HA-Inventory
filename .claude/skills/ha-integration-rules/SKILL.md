@@ -3,7 +3,7 @@ name: ha-integration-rules
 description: Condensed Home Assistant integration rules as applied in this repo - manifest, config flow, setup/unload, panel, translations, services, websocket, entities, tests, hassfest/HACS. Use before adding or changing anything in custom_components/pantry instead of looking up HA developer docs.
 ---
 
-Applies to `custom_components/pantry/`. Business logic stays in `inventory.py` (see CLAUDE.md).
+Applies to `custom_components/pantry/`. Business logic stays in the `inventory` package (see CLAUDE.md).
 
 ## Manifest
 - `version` required (custom integration). Bump it for every release; it also busts the panel cache (`?v=`).

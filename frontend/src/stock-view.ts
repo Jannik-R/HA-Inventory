@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { mdiChevronDown, mdiChevronRight, mdiMinusCircleOutline } from "@mdi/js";
-import { formStyles, icon, todayIso } from "./ui";
+import { mdiMinusCircleOutline } from "@mdi/js";
+import { chevron, formStyles, icon, todayIso, toggled } from "./ui";
 import {
   bookIn,
   bookOut,
@@ -14,16 +14,8 @@ import {
   type Product,
   type StockRow,
 } from "./api";
-import { categoryDefault } from "./inherit";
-
-interface Item {
-  id: number;
-  category_id: number;
-  name: string;
-  brand: string | null;
-  packages: number;
-  batches: StockRow[];
-}
+import { expiryStatus, groupStock, type Item } from "./stock-data";
+import { fmtDate } from "./format";
 
 /** Stock overview: category › product › batch/location, with search and location filter. */
 export class PantryStock extends LitElement {
@@ -77,35 +69,11 @@ export class PantryStock extends LitElement {
     }
   }
 
-  private get locale() {
-    return this.hass?.locale?.language ?? this.hass?.language;
-  }
-
   /** Visible rows as products per category id. */
-  private byCategory(): Map<number, Item[]> {
-    const q = this.filter.trim().toLocaleLowerCase();
-    const items = new Map<number, Item>();
-    for (const r of this.stock ?? []) {
-      if (this.location != null && r.location_id !== this.location) continue;
-      const text = [r.name, r.brand, r.ean, r.location, ...r.category_path].join(" ");
-      if (q && !text.toLocaleLowerCase().includes(q)) continue;
-      let item = items.get(r.product_id);
-      if (!item) {
-        item = { id: r.product_id, category_id: r.category_id, name: r.name, brand: r.brand, packages: 0, batches: [] };
-        items.set(r.product_id, item);
-      }
-      item.packages += r.packages;
-      item.batches.push(r); // backend sorts by expiry, earliest first
-    }
-    const out = new Map<number, Item[]>();
-    for (const i of items.values()) out.set(i.category_id, [...(out.get(i.category_id) ?? []), i]);
-    return out;
-  }
-
   /** Category tree (only branches with visible stock) with its products as leaves. */
   private tree(searching: boolean) {
     const cats = this.md?.categories ?? [];
-    const items = this.byCategory();
+    const items = groupStock(this.stock ?? [], this.filter, this.location);
     const total = new Map<number, number>();
     const sum = (id: number): number => {
       const n =
@@ -122,59 +90,39 @@ export class PantryStock extends LitElement {
         rows.push(this.renderCategory(c.id, c.name, total.get(c.id)!, depth, open));
         if (!open) continue;
         walk(c.id, depth + 1);
-        for (const i of items.get(c.id) ?? []) rows.push(this.renderItem(i, depth + 1, searching || this.open.has(`p${i.id}`)));
+        for (const i of items.get(c.id) ?? [])
+          rows.push(this.renderItem(i, depth + 1, searching || this.open.has(`p${i.id}`)));
       }
     };
     walk(null, 0);
     return rows;
   }
 
-  private chev(key: string, open: boolean) {
-    return html`<button
-      class="chev"
-      aria-expanded=${open}
-      aria-label=${t(open ? "common.collapse" : "common.expand")}
-      @click=${() => this.toggle(key)}
-    >
-      ${icon(open ? mdiChevronDown : mdiChevronRight)}
-    </button>`;
-  }
-
   private renderCategory(id: number, name: string, packages: number, depth: number, open: boolean) {
     return html`<li style="padding-left:${depth * 24}px">
-      ${this.chev(`c${id}`, open)}
-      <button class="row" data-testid="stock-category" aria-expanded=${open} @click=${() => this.toggle(`c${id}`)}>
+      ${chevron(open, () => this.toggle(`c${id}`))}
+      <button
+        class="row"
+        data-testid="stock-category"
+        aria-expanded=${open}
+        @click=${() => this.toggle(`c${id}`)}
+      >
         <span>${name}</span>
         <span class="detail">${t("book.count", { n: packages })}</span>
       </button>
     </li>`;
   }
 
-  /** "expired" / "soon" by the product's effective warn days, for color only. */
-  private status(r: StockRow): "expired" | "soon" | "" {
-    if (!r.expires_on) return "";
-    const today = todayIso();
-    if (r.expires_on < today) return "expired";
-    const p = this.products.get(r.product_id);
-    const warn = Number(
-      p?.warn_days ?? categoryDefault(this.md, p?.category_id, "warn_days")?.value ?? 0,
-    );
-    const limit = new Date(`${today}T00:00`);
-    limit.setDate(limit.getDate() + warn);
-    return new Date(`${r.expires_on}T00:00`) <= limit ? "soon" : "";
+  private status(r: StockRow) {
+    return expiryStatus(r, this.products.get(r.product_id), this.md);
   }
 
   private date(r: StockRow) {
-    if (!r.expires_on) return t("stock.no_date");
-    return new Intl.DateTimeFormat(this.locale, { dateStyle: "medium" }).format(
-      new Date(`${r.expires_on}T00:00`),
-    );
+    return r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
   }
 
   private toggle(id: string) {
-    const open = new Set(this.open);
-    if (!open.delete(id)) open.add(id);
-    this.open = open;
+    this.open = toggled(this.open, id);
   }
 
   render() {
@@ -205,7 +153,9 @@ export class PantryStock extends LitElement {
         ${
           this.undo
             ? html`${t("stock.taken_one", { name: this.undo.name })}
-                <button class="undo" data-testid="stock-undo" @click=${this.undoTake}>${t("stock.undo")}</button>`
+                <button class="undo" data-testid="stock-undo" @click=${this.undoTake}>
+                  ${t("stock.undo")}
+                </button>`
             : nothing
         }
       </p>
@@ -213,7 +163,9 @@ export class PantryStock extends LitElement {
         !this.stock.length
           ? html`<p class="empty">${t("stock.empty")}</p>`
           : rows.length
-            ? html`<ul>${rows}</ul>`
+            ? html`<ul>
+                ${rows}
+              </ul>`
             : html`<p class="empty">${t("book.no_hits")}</p>`
       }
     `;
@@ -223,8 +175,13 @@ export class PantryStock extends LitElement {
     const first = p.batches[0];
     return html`<li class="item" style="padding-left:${depth * 24}px">
       <div class="head">
-        ${this.chev(`p${p.id}`, expanded)}
-        <button class="row" data-testid="stock-product" aria-expanded=${expanded} @click=${() => this.toggle(`p${p.id}`)}>
+        ${chevron(expanded, () => this.toggle(`p${p.id}`))}
+        <button
+          class="row"
+          data-testid="stock-product"
+          aria-expanded=${expanded}
+          @click=${() => this.toggle(`p${p.id}`)}
+        >
           <span>${p.name}</span>
           <span class="detail">
             ${[p.brand, t("book.count", { n: p.packages })].filter(Boolean).join(" · ")} ·
@@ -252,21 +209,42 @@ export class PantryStock extends LitElement {
 
   private outButton(name: string, onClick: () => void) {
     const label = t("stock.take_one", { name });
-    return html`<button class="icon-btn" data-testid="stock-batch-out" aria-label=${label} title=${label} @click=${onClick}>
+    return html`<button
+      class="icon-btn"
+      data-testid="stock-batch-out"
+      aria-label=${label}
+      title=${label}
+      @click=${onClick}
+    >
       ${icon(mdiMinusCircleOutline)}
     </button>`;
   }
 
   /** One package out of that batch and location; remembered for undo. */
   private async takeOut(name: string, b: StockRow) {
-    await this.change(() => bookOut(this.hass!, { product_id: b.product_id, packages: 1, batch_id: b.batch_id, location_id: b.location_id }), { name, row: b });
+    await this.change(
+      () =>
+        bookOut(this.hass!, {
+          product_id: b.product_id,
+          packages: 1,
+          batch_id: b.batch_id,
+          location_id: b.location_id,
+        }),
+      { name, row: b },
+    );
   }
 
   /** Undo = book the package back in; same product, date and type merge into the same batch. */
   private async undoTake() {
     const { row } = this.undo!;
     await this.change(() =>
-      bookIn(this.hass!, { product_id: row.product_id, packages: 1, expires_on: row.expires_on, expiry_type: row.expiry_type, location_id: row.location_id }),
+      bookIn(this.hass!, {
+        product_id: row.product_id,
+        packages: 1,
+        expires_on: row.expires_on,
+        expiry_type: row.expiry_type,
+        location_id: row.location_id,
+      }),
     );
   }
 
@@ -304,16 +282,6 @@ export class PantryStock extends LitElement {
       }
       .head .row {
         padding-left: 0;
-      }
-      .chev {
-        flex: none;
-        width: 36px;
-        height: 36px;
-        padding: 0;
-        border: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
       .done {
         display: flex;

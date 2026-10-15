@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { backdropClick, escGuard, fieldMsg, formStyles, rowActions } from "./ui";
+import { editDialog, fieldMsg, formStyles, rowActions } from "./ui";
 import {
   errorMessage,
   getMasterData,
@@ -12,6 +12,7 @@ import {
 } from "./api";
 import { categoryDefault, categoryPath, inheritNumber, inheritSelect } from "./inherit";
 import { productErrors, productFields, type Errors } from "./product-fields";
+import { fmtDays } from "./format";
 
 // Columns sent on save (packages is derived, image/off data are not edited here).
 const COLUMNS = [
@@ -66,10 +67,6 @@ export class PantryProducts extends LitElement {
     }
   }
 
-  private get locale() {
-    return this.hass?.locale?.language ?? this.hass?.language;
-  }
-
   private visible(): Product[] {
     const q = this.filter.trim().toLocaleLowerCase();
     const all = this.products ?? [];
@@ -105,7 +102,8 @@ export class PantryProducts extends LitElement {
     if (p.ean && !/^\d{8,14}$/.test(p.ean)) e.ean = t("valid.ean");
     const owner = p.ean && this.products?.find((x) => x.ean === p.ean && x.id !== p.id);
     if (owner) e.ean = t("valid.ean_taken", { name: owner.name });
-    if (p.warn_days != null && !(Number.isInteger(p.warn_days) && p.warn_days >= 0)) e.warn_days = t("valid.days");
+    if (p.warn_days != null && !(Number.isInteger(p.warn_days) && p.warn_days >= 0))
+      e.warn_days = t("valid.days");
     return e;
   }
 
@@ -136,14 +134,6 @@ export class PantryProducts extends LitElement {
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
-  }
-
-  private days(v: number | string) {
-    const n = Number(v);
-    return t(
-      new Intl.PluralRules(this.locale).select(n) === "one" ? "settings.day" : "settings.days",
-      { n },
-    );
   }
 
   render() {
@@ -196,14 +186,9 @@ export class PantryProducts extends LitElement {
     const dflt = (field: "default_location_id" | "expiry_type" | "warn_days") =>
       categoryDefault(this.md, p.category_id, field);
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
-    return html`<dialog
-      @close=${() => (this.edit = undefined)}
-      @click=${backdropClick(dirty)}
-      @cancel=${escGuard(dirty)}
-    >
-      <form @submit=${this.save}>
-        <h2>${t("common.edit_name", { name: this.orig?.name ?? p.name })}</h2>
-        ${productFields(this.md, p, (f, v) => this.set(f, v), err)}
+    return editDialog({
+      title: t("common.edit_name", { name: this.orig?.name ?? p.name }),
+      body: html`${productFields(this.md, p, (f, v) => this.set(f, v), err)}
         <label>
           <span class="lbl">${t("products.ean")}</span>
           <input
@@ -244,22 +229,19 @@ export class PantryProducts extends LitElement {
             testid: "warn-days",
             own: p.warn_days,
             dflt: dflt("warn_days"),
-            format: (v) => this.days(v),
+            format: (v) => fmtDays(this.hass, v),
             suffix: t("common.days_unit"),
             invalid: !!err.warn_days,
             onChange: (v) => this.set("warn_days", v),
           })}
           ${fieldMsg(err.warn_days, "warn-days")}
-        </label>
-        ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
-        <div class="actions">
-          <button type="button" @click=${this.close}>${t("common.cancel")}</button>
-          <button class="primary" type="submit" data-testid="save" ?disabled=${Object.keys(err).length > 0}>
-            ${t("common.save")}
-          </button>
-        </div>
-      </form>
-    </dialog>`;
+        </label>`,
+      error: this.error,
+      invalid: Object.keys(err).length > 0,
+      dirty,
+      onSubmit: (e) => this.save(e),
+      onClosed: () => (this.edit = undefined),
+    });
   }
 
   static styles = [

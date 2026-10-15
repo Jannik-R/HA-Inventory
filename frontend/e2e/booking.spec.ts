@@ -1,22 +1,15 @@
-import { openPage, openTab } from "./helpers";
-import { expect, test, type Page } from "@playwright/test";
+import { apiPage, openPage, openTab, ws } from "./helpers";
+import { expect, test } from "@playwright/test";
 
 const NAME = `E2E Testprodukt ${Date.now()}`;
 
-/** Websocket call through the logged-in HA frontend. */
-const ws = (page: Page, msg: Record<string, unknown>) =>
-  page.evaluate(
-    (m) => (document.querySelector("home-assistant") as unknown as { hass: { callWS: (m: unknown) => Promise<unknown> } }).hass.callWS(m),
-    msg,
-  );
-
 test.afterAll(async ({ browser }) => {
-  const page = await browser.newPage();
-  await openPage(page, "/pantry/stock", "Bestand");
-  await page.waitForFunction(() => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass);
+  const page = await apiPage(browser);
   const hits = (await ws(page, { type: "pantry/search", query: NAME })) as { id: number }[];
   for (const { id } of hits) {
-    const stock = (await ws(page, { type: "pantry/stock", product_id: id })) as { packages: number }[];
+    const stock = (await ws(page, { type: "pantry/stock", product_id: id })) as {
+      packages: number;
+    }[];
     const left = stock.reduce((n, r) => n + r.packages, 0);
     if (left) await ws(page, { type: "pantry/book_out", product_id: id, packages: left });
     await ws(page, { type: "pantry/delete", table: "product", row_id: id });
@@ -40,15 +33,21 @@ test("book a new product in and out again", async ({ page }) => {
   await expect(page.getByTestId("category")).toContainText("Nudeln");
   // Reopening shows the tree expanded down to the chosen category.
   await page.getByTestId("category").click();
-  await expect(page.locator('[data-testid=category-option][aria-current=true]')).toHaveText("Nudeln");
+  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(
+    "Nudeln",
+  );
   // Clicking a parent only marks and opens it; the dialog stays open until confirmed.
   await page.getByTestId("category-option").filter({ hasText: "Obst & Gemüse" }).click();
   await expect(page.getByTestId("category-confirm")).toBeVisible();
-  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText("Obst & Gemüse");
+  await expect(page.locator("[data-testid=category-option][aria-current=true]")).toHaveText(
+    "Obst & Gemüse",
+  );
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("category")).toContainText("Nudeln");
   // The date label names the product's date type; the chosen location becomes its default.
-  await expect(page.locator("label", { has: page.getByTestId("expires") })).toContainText("Ablaufdatum (");
+  await expect(page.locator("label", { has: page.getByTestId("expires") })).toContainText(
+    "Ablaufdatum (",
+  );
   await page.getByTestId("location").selectOption({ index: 1 });
   await expect(page.getByTestId("make-default")).toBeChecked();
   await page.getByTestId("expires").fill("2030-01-31");
@@ -75,7 +74,9 @@ test("book a new product in and out again", async ({ page }) => {
   await expect(page.getByTestId("product")).toContainText("4 Pkg.");
   await page.getByTestId("product-edit").click();
   // Safety: only ever edit or delete the test's own product.
-  await expect(page.locator("pantry-products dialog > form > h2")).toHaveText(`„${NAME}“ bearbeiten`);
+  await expect(page.locator("pantry-products dialog > form > h2")).toHaveText(
+    `„${NAME}“ bearbeiten`,
+  );
   await page.getByTestId("brand").fill("E2E Marke");
   await page.getByTestId("warn-days").fill("4");
   await page.getByTestId("save").click();

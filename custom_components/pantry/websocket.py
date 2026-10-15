@@ -1,4 +1,4 @@
-"""Websocket commands for the panel. Thin: validate input, call inventory.py, return the result."""
+"""Websocket commands for the panel. Thin: validate input, call inventory, return the result."""
 
 from __future__ import annotations
 

@@ -10,6 +10,7 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 - **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.
 - **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change.
 - **Branches**: every phase, feature or fix gets its own branch from current `main` (`phase-<n>-<topic>`, `feature/<topic>`, `fix/<topic>`) and ends with a PR to `main`. `main` is protected (ruleset "Protect main"): merge only via PR with green CI (hassfest, hacs, tests, frontend). Delete the branch after merge.
+- **Small, encapsulated files.** One responsibility per module; aim for under ~300 lines per file. When a file grows past that or mixes concerns (list + dialog, search flow + form), split it into its own module or Lit element instead of adding to it. Shared helpers go into a module both use, not into one of the users. Splitting is part of the change, not a later cleanup.
 - Do not commit unless asked. Short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
 - Never commit dev/runtime data (`dev/config/`, `*.db`, `.env`). Check `.gitignore` when adding anything that writes files.
 
@@ -32,7 +33,8 @@ Avoid expensive actions unless they are really needed. When a task would need th
 
 ```
 custom_components/pantry/   integration (Python)
-  inventory.py              ALL business logic. Websocket, services, entities, AI tools only call this.
+  inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, queries
   db.py                     sqlite3 schema + migrations (PRAGMA user_version)
   off.py                    Open Food Facts client
   label.py                  label PNG rendering + optional IPP printing
@@ -75,8 +77,8 @@ Calm, functional, looks like a tool, not like a demo.
 - Color only for meaning: expired (error), expiring soon (warning), below min stock.
 - Icons: MDI only, sparingly, always with text or `aria-label`.
 - Mobile first (phone in the kitchen), works on tablet/desktop. Keyboard accessible, visible focus.
-- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon. Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first and names what goes with it (e.g. stock).
-- **Dialogs** (all modal `<dialog>`, helpers in `frontend/src/ui.ts`):
+- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon and start with the open/close arrow (`chevron`, state via `toggled`). Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first and names what goes with it (e.g. stock).
+- **Dialogs** (all modal `<dialog>`, helpers in `frontend/src/ui.ts`; edit/add dialogs use `editDialog`, which already implements the rules below):
   - Title = action + object: "„Kühlschrank“ bearbeiten", "Lagerort hinzufügen", "Kategorie wählen".
   - Labels above fields (placeholders never replace a label); units as text after the input ("Tage", "g").
   - First field focused on open; Enter submits; field errors live (see forms).

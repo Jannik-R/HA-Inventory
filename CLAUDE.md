@@ -35,7 +35,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, queries, shopping, removal
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, shopping, removal
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   off.py                    Open Food Facts client
@@ -43,6 +43,7 @@ custom_components/pantry/   integration (Python)
   sensor.py                 expired / expiring-soon sensors (no polling)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
+  services.py               HA services (book_in / book_out by code, print_labels) + services.yaml
   websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server

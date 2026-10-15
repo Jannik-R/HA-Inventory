@@ -1,0 +1,54 @@
+book_in:
+  fields:
+    code:
+      required: true
+      example: "4006040053026"
+      selector:
+        text:
+    packages:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    expires_on:
+      selector:
+        date:
+    location:
+      example: Kühlschrank
+      selector:
+        text:
+book_out:
+  fields:
+    code:
+      required: true
+      example: "4006040053026"
+      selector:
+        text:
+    packages:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    location:
+      example: Kühlschrank
+      selector:
+        text:
+print_labels:
+  fields:
+    batch_id:
+      required: true
+      selector:
+        number:
+          min: 1
+          mode: box
+    count:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box

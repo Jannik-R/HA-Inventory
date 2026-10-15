@@ -1,7 +1,6 @@
 """Shopping list todo entity: items from min stock, checking holds until the shortage changes."""
 
 from datetime import timedelta
-from pathlib import Path
 
 import pytest
 from homeassistant.components.todo import DOMAIN as TODO_DOMAIN
@@ -25,8 +24,6 @@ async def refreshed(hass: HomeAssistant, seconds: int) -> None:
 
 
 async def test_shopping_todo(hass: HomeAssistant) -> None:
-    # The test config dir is shared within a run: start without stock from other tests.
-    Path(hass.config.path("pantry.db")).unlink(missing_ok=True)
     entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)

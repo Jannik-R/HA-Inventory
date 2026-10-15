@@ -1,0 +1,41 @@
+import { t } from "./i18n";
+import { fmtDays } from "./format";
+import type { Hass, InheritField, MasterData, Source } from "./api";
+
+export function catName(md: MasterData, id: number) {
+  return md.categories.find((c) => c.id === id)?.name ?? "";
+}
+
+export function sourceLabel(md: MasterData, s: Source) {
+  return s === "default"
+    ? t("settings.inherit_default")
+    : t("settings.inherit_from", { name: catName(md, s as number) });
+}
+
+/** Value a category inherits from the (draft) parent, or from the defaults. */
+export function inherited(
+  md: MasterData,
+  field: InheritField,
+  parentId: number | null,
+): { value: number | string | null; source: Source } {
+  const p = md.categories.find((c) => c.id === parentId);
+  if (!p) return { value: md.defaults[field], source: "default" };
+  return p[field] != null ? { value: p[field], source: p.id } : p.effective[field];
+}
+
+export function fmt(
+  md: MasterData,
+  hass: Hass | undefined,
+  field: InheritField,
+  v: number | string | null,
+): string {
+  if (v == null) return "–";
+  const { units, locations } = md;
+  if (field === "unit_id") {
+    const u = units.find((x) => x.id === v);
+    return u ? u.symbol || u.name : "–";
+  }
+  if (field === "default_location_id") return locations.find((x) => x.id === v)?.name ?? "–";
+  if (field === "expiry_type") return t(`settings.expiry.${v}`);
+  return fmtDays(hass, v);
+}

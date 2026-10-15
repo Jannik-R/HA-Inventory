@@ -7,6 +7,8 @@ export interface ConfirmOptions {
   title: string;
   /** Optional detail, e.g. what goes with it ("… mit 3 Pkg. Bestand"). */
   message?: string;
+  /** Optional content below the message, e.g. a list of what goes with it or a choice. */
+  body?: unknown;
   /** Verb on the confirm button ("Löschen", "Verwerfen"). */
   action: string;
   /** Destructive action: button in the error color. */
@@ -49,7 +51,7 @@ class PantryConfirm extends LitElement {
       }}
     >
       <h2 id="title">${this.o.title}</h2>
-      ${this.o.message ? html`<p>${this.o.message}</p>` : nothing}
+      ${this.o.message ? html`<p>${this.o.message}</p>` : nothing} ${this.o.body ?? nothing}
       <div class="actions">
         <button data-testid="confirm-cancel" @click=${() => this.answer(false)}>
           ${t("common.cancel")}
@@ -77,6 +79,22 @@ class PantryConfirm extends LitElement {
       }
       .actions {
         justify-content: flex-end;
+      }
+      ul.impact {
+        margin: -8px 0 16px;
+      }
+      ul.impact li {
+        display: block;
+        padding: 6px 0;
+      }
+      .kind {
+        display: block;
+        font-weight: 500;
+      }
+      .names {
+        display: block;
+        font-size: 0.875em;
+        color: var(--secondary-text-color);
       }
       .danger {
         background: var(--error-color);

@@ -8,9 +8,8 @@ import type { PantrySettingsDialog } from "./settings-dialog";
 import { ADD } from "./settings-dialog";
 import { fmt } from "./settings-format";
 import { fmtNumber } from "./format";
-import { confirmDelete } from "./confirm-dialog";
+import { deleteMasterRow } from "./delete-flow";
 import {
-  deleteRow,
   errorMessage,
   getMasterData,
   type Category,
@@ -124,13 +123,13 @@ export class PantrySettings extends LitElement {
       .filter((f) => c[f] != null)
       .map((f) => fmt(md, this.hass, f, c[f]));
     if (c.min_stock != null) {
-      const u = fmt(md, this.hass, "unit_id", c.effective.unit_id.value);
+      const u = fmt(md, this.hass, "unit_id", c.min_stock_unit_id);
       parts.push(
-        t("settings.category.min", {
-          value: `${fmtNumber(this.hass, c.min_stock)} ${u === "–" ? "" : u}`.trim(),
-        }),
+        t("settings.category.min", { value: `${fmtNumber(this.hass, c.min_stock)} ${u}` }),
       );
     }
+    if (c.min_packages != null)
+      parts.push(t("settings.category.min", { value: t("book.count", { n: c.min_packages }) }));
     return parts.join(" · ");
   }
 
@@ -208,10 +207,8 @@ export class PantrySettings extends LitElement {
 
   /** Delete straight from the list; errors (e.g. still in use) show above the list. */
   private async delRow(table: Table, row: { id: number; name: string }) {
-    const hint = table === "location" ? t("settings.location.delete_hint") : undefined;
-    if (!(await confirmDelete(row.name, hint))) return;
     try {
-      await deleteRow(this.hass!, table, row.id);
+      if (!(await deleteMasterRow(this.hass!, this.data!, table, row))) return;
       this.pageError = "";
     } catch (err) {
       this.pageError = await errorMessage(this.hass!, err);

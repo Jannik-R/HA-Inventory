@@ -13,6 +13,7 @@ import {
   type Table,
 } from "./api";
 import { catName, fmt, inherited, sourceLabel } from "./settings-format";
+import { minErrors, minFields } from "./min-stock";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Draft = Record<string, any>;
@@ -29,6 +30,8 @@ export const COLUMNS: Record<Table, string[]> = {
     "expiry_type",
     "warn_days",
     "min_stock",
+    "min_stock_unit_id",
+    "min_packages",
   ],
 };
 export const ADD: Record<Table, string> = {
@@ -111,7 +114,7 @@ export class PantrySettingsDialog extends LitElement {
     if (table === "category") {
       if (d.warn_days != null && !(Number.isInteger(d.warn_days) && d.warn_days >= 0))
         e.warn_days = t("valid.days");
-      if (d.min_stock != null && !(d.min_stock > 0)) e.min_stock = t("valid.positive");
+      Object.assign(e, minErrors(d));
     }
     return e;
   }
@@ -163,9 +166,7 @@ export class PantrySettingsDialog extends LitElement {
           ?disabled=${key === "factor" && (d.base_unit_id == null || this.usedAsBase(d))}
           @input=${(e: Event) => {
             const v = (e.target as HTMLInputElement).value;
-            let n = v === "" ? null : Number(v);
-            if (key === "min_stock" && !n) n = null;
-            this.set(key, n);
+            this.set(key, v === "" ? null : Number(v));
           }}
         />${suffix ? html`<span class="detail">${suffix}</span>` : nothing}</span
       >${key === "warn_days" ? nothing : fieldMsg(this.errs[key], key)}`;
@@ -240,7 +241,6 @@ export class PantrySettingsDialog extends LitElement {
         ${this.field(t("settings.unit.factor"), this.numInput("factor"))}`;
     } else {
       const unit = d.unit_id ?? inherited(md, "unit_id", d.parent_id).value;
-      const suffix = fmt(md, this.hass, "unit_id", unit);
       const tags = md.categories.find((x) => x.id === d.id)?.off_tags ?? [];
       fields = html`${this.field(t("common.name"), this.text("name"))}
         <div class="field">
@@ -270,7 +270,7 @@ export class PantrySettingsDialog extends LitElement {
           false,
         )}
         ${this.inh("warn_days", t("settings.category.warn_days"), [])}
-        ${this.field(t("settings.category.min_stock"), this.numInput("min_stock", "", suffix === "–" ? "" : suffix))}
+        ${minFields({ md, d, errs: this.errs, unitId: unit as number | null, set: (k, v) => this.set(k, v) })}
         ${tags.length ? html`<p class="detail">${t("settings.category.off_tags", { tags: tags.join(", ") })}</p>` : nothing}`;
     }
     const dirty = () => COLUMNS[table].some((c) => (d[c] ?? null) !== (orig[c] ?? null));

@@ -35,11 +35,13 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, queries
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, queries, shopping, removal
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   off.py                    Open Food Facts client
+  coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
   sensor.py                 expired / expiring-soon sensors (no polling)
+  todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
   websocket.py              websocket commands for the panel
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
@@ -84,7 +86,7 @@ Calm, functional, looks like a tool, not like a demo.
 - Color only for meaning: expired (error), expiring soon (warning), below min stock.
 - Icons: MDI only, sparingly, always with text or `aria-label`.
 - Mobile first (phone in the kitchen), works on tablet/desktop. Keyboard accessible, visible focus.
-- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon and start with the open/close arrow (`chevron`, state via `toggled`). Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first (`confirmDelete` in `frontend/src/confirm-dialog.ts`, never the browser's `confirm()`) and names what goes with it (e.g. stock).
+- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon and start with the open/close arrow (`chevron`, state via `toggled`). Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first (`confirmDelete` in `frontend/src/confirm-dialog.ts`, never the browser's `confirm()`) and names what goes with it (e.g. stock). Master data that may be in use is deleted via `deleteMasterRow` (`frontend/src/delete-flow.ts`): the backend dry-runs the delete and the question lists every row it removes or changes, then deletes it along; never a dead-end "in use" error. New cascades need no extra code there.
 - **Dialogs** (all modal `<dialog>`, helpers in `frontend/src/ui.ts`; edit/add dialogs use `editDialog`, which already implements the rules below):
   - Title = action + object: "„Kühlschrank“ bearbeiten", "Lagerort hinzufügen", "Kategorie wählen".
   - Labels above fields (placeholders never replace a label); units as text after the input ("Tage", "g").

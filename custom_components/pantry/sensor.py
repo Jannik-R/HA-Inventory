@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
@@ -18,7 +14,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from . import inventory
-from .const import DOMAIN, SIGNAL_CHANGED
+from .coordinator import async_coordinator, device_info
 
 if TYPE_CHECKING:
     from . import PantryConfigEntry
@@ -36,22 +32,7 @@ async def async_setup_entry(
     async def update() -> list[dict]:
         return await db.run(inventory.expiring, dt_util.now().date())
 
-    # No polling: refresh after every DB write and right after midnight (days left change).
-    coordinator = DataUpdateCoordinator(
-        hass,
-        logging.getLogger(__name__),
-        config_entry=entry,
-        name=DOMAIN,
-        update_method=update,
-    )
-    await coordinator.async_config_entry_first_refresh()
-
-    @callback
-    def refresh(*_) -> None:
-        hass.async_create_task(coordinator.async_request_refresh())
-
-    entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_CHANGED, refresh))
-    entry.async_on_unload(async_track_time_change(hass, refresh, 0, 0, 1))
+    coordinator = await async_coordinator(hass, entry, update, midnight=True)
     async_add_entities(ExpirySensor(coordinator, entry, s) for s in STATUSES)
 
 
@@ -67,12 +48,7 @@ class ExpirySensor(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], SensorE
         self._status = status
         self._attr_translation_key = status
         self._attr_unique_id = f"{entry.entry_id}_{status}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            # shortcut: German like the sidebar title; translate when needed.
-            name="Vorrat",
-            entry_type=DeviceEntryType.SERVICE,
-        )
+        self._attr_device_info = device_info(entry)
 
     @property
     def _rows(self) -> list[dict]:

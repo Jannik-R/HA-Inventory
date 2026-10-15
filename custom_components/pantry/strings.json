@@ -14,9 +14,18 @@
     "sensor": {
       "expired": { "name": "Expired", "unit_of_measurement": "packages" },
       "soon": { "name": "Expiring soon", "unit_of_measurement": "packages" }
+    },
+    "todo": {
+      "shopping": { "name": "Shopping list" }
     }
   },
   "exceptions": {
+    "unit_is_default": {
+      "message": "This unit (or one defined on it) is the default unit. Change the default under Settings › Defaults first."
+    },
+    "shopping_unknown": {
+      "message": "“{name}” is neither a product nor a category. Add new ones in the Pantry panel under Einkauf."
+    },
     "location_has_stock": {
       "message": "The location still holds stock. Move or take it out first."
     },

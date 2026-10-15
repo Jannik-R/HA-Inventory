@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (phases 0–6a done: booking, stock and products, expiry view, sensors; next: minimum stock and shopping list). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (phases 0–7 done: booking, stock and products, expiry view, sensors, minimum stock and shopping list; next: labels). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -15,10 +15,10 @@ Available:
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
+- Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 
 Planned:
 
-- Minimum stock per category in any unit (e.g. "2 kg Nudeln", any brand) and a shopping list (HA to-do entity); the *Einkauf* tab is a placeholder until then
 - Labels per package (QR code), printed via network (optional; e.g. Dymo LabelWriter 450 behind a USB print server such as TP-Link, or CUPS/IPP) without a print dialog or via browser print; scan a label to book out
 - Receipt printer (ESC/POS) for the shopping list and later recipes
 
@@ -51,6 +51,28 @@ with the days left ("vor 2 Tagen", "morgen"), location and packages. The warning
 product's *Warnung vor Ablauf* (own or inherited). *Warnschwelle* overrides it for all products
 while the page is open (e.g. 14 days when planning meals); empty = per product. Nothing is saved.
 The minus button takes one package out of that batch, with *Rückgängig* like in *Bestand*.
+
+### Einkauf (shopping list)
+
+The list is shown as the category tree (same order as everywhere). Only rows with something to buy
+have a checkbox: a category below its minimum stock, e.g. "Nudeln – 500 g und 2 Pkg. fehlen", or an
+item added by hand; the other categories are just the way there. The minimum counts the whole category including its subcategories; a minimum further up
+only lists what is missing beyond the minimums below ("weitere 0,2 kg fehlen (beliebig aus der
+Kategorie)"), so a category only shows up as an item when something beyond its subcategories is
+needed. Products without a content (e.g. 500 g) count for the package minimum only. A ticked item is
+struck through and stays in place; a minimum stock item is unticked again by itself as soon as the
+missing amount changes (e.g. after booking in only part of it).
+
+*Zur Einkaufsliste hinzufügen* puts something on the list by hand: type a name, pick a matching
+product or category (a category means "any of it"), set *Anzahl* (packages) and save. Without a match,
+*Neues Produkt „…“ anlegen* creates the product with its category; admins can also create a new
+category. Adding the same product or category again adds to its packages. Items added by hand have a
+pencil (change the packages) and a bin; ticked ones stay (struck through) until deleted.
+
+The same list is the to-do entity *Einkaufsliste* (`todo.vorrat_einkaufsliste`) in HA's to-do
+dashboard and the companion app: ticking works there too; *Eintrag hinzufügen* takes the exact name of
+an existing product or category (new ones only in the panel); *Erledigte entfernen* deletes ticked
+items added by hand (minimum stock items stay until the stock is there).
 
 ### Sensors
 
@@ -102,17 +124,28 @@ barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use;
 - **Kategorien**: tree of main category → category → food type. Each category can set a unit,
   default storage location, expiry type (best before / use by) and warning days; empty fields are
   inherited from the parent category or the global defaults and are shown in grey with their source
-  ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not inherited.
+  ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not
+  inherited: *Mindestmenge* (amount with its own unit, kept when the category's unit changes) and/or
+  *Mindestanzahl* (packages); both set = both must be met. See *Einkauf*.
   Tapping a category with subcategories opens it; the plus adds a subcategory, the pencil edits,
-  the bin deletes (only when the category is not in use). The parent category is picked in a tree with a filter field.
+  the bin deletes (see below). The parent category is picked in a tree with a filter field.
 - Every list row has a pencil (edit) and a bin (delete) icon; forms check entries while you type
   and only allow saving when everything is valid.
 - **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
-  it (its booking history stays); it must be empty first. Adding the same name again brings it back.
+  it (its booking history stays); its stock is moved to another location of your choice or booked
+  out. Adding the same name again brings it back.
 - **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
   location, date type, warning days; initially Packung, none, best before, 7 days).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
+- **Deleting something that is still in use** works too. Before asking, the integration runs the
+  delete as a dry run (rolled back) and lists everything it would remove or change, grouped (e.g.
+  subcategories, products, stock, bookings, shopping list entries, categories pointing to it), with up
+  to five names each and a count for the rest. Category: its subcategories and their products (with
+  stock and bookings) are deleted (*Alles löschen*). Unit: units defined on it (kg on g) are deleted;
+  categories and products only lose it (unit inherited again, minimum amount or package content
+  removed). The default unit cannot be deleted (change it under *Standards* first). Deleting a product
+  in *Bestand* asks the same way.
 
 ## Installation
 

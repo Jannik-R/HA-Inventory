@@ -1,4 +1,4 @@
-"""Bookings: book in/out, move, correct. Every change writes a booking row."""
+"""Bookings: book in/out, move, correct, edit a stock row. Every change writes a booking row."""
 
 from __future__ import annotations
 
@@ -52,26 +52,8 @@ def _positive(packages: int) -> None:
         raise ValueError("packages must be >= 1")
 
 
-def book_in(
-    conn: sqlite3.Connection,
-    product_id: int,
-    packages: int,
-    expires_on: date | str | None = None,
-    expiry_type: str | None = None,
-    location_id: int | None = None,
-    source: str = "manual",
-    user_id: str | None = None,
-) -> int:
-    """Book packages in; the same product+date+type merges into one batch. Returns batch id."""
-    _positive(packages)
-    eff = effective(conn, product_id)  # raises not_found
-    expiry_type = expiry_type or eff["expiry_type"]["value"]
-    if expiry_type not in ("best_before", "use_by"):
-        raise InventoryError("invalid_value")
-    location_id = location_id or eff["default_location_id"]["value"]
-    if location_id is None:
-        raise InventoryError("location_required")
-    _exists(conn, "location", location_id)
+def _batch(conn, product_id: int, expires_on: date | str | None) -> int:
+    """Id of the batch with this product and date; created if missing."""
     if expires_on:
         try:
             expires_on = date.fromisoformat(str(expires_on)).isoformat()
@@ -80,16 +62,34 @@ def book_in(
     else:
         expires_on = None
     row = conn.execute(
-        "SELECT id FROM batch WHERE product_id = ? AND expiry_type = ? AND expires_on IS ?",
-        (product_id, expiry_type, expires_on),
+        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ?",
+        (product_id, expires_on),
     ).fetchone()
     if row:
-        batch_id = row["id"]
-    else:
-        batch_id = conn.execute(
-            "INSERT INTO batch (product_id, expires_on, expiry_type, created_at) VALUES (?, ?, ?, ?)",
-            (product_id, expires_on, expiry_type, _now()),
-        ).lastrowid
+        return row["id"]
+    return conn.execute(
+        "INSERT INTO batch (product_id, expires_on, created_at) VALUES (?, ?, ?)",
+        (product_id, expires_on, _now()),
+    ).lastrowid
+
+
+def book_in(
+    conn: sqlite3.Connection,
+    product_id: int,
+    packages: int,
+    expires_on: date | str | None = None,
+    location_id: int | None = None,
+    source: str = "manual",
+    user_id: str | None = None,
+) -> int:
+    """Book packages in; the same product+date merges into one batch. Returns batch id."""
+    _positive(packages)
+    eff = effective(conn, product_id)  # raises not_found
+    location_id = location_id or eff["default_location_id"]["value"]
+    if location_id is None:
+        raise InventoryError("location_required")
+    _exists(conn, "location", location_id)
+    batch_id = _batch(conn, product_id, expires_on)
     _add(conn, batch_id, location_id, packages)
     _booking(conn, "in", batch_id, location_id, packages, source, user_id)
     return batch_id
@@ -214,3 +214,30 @@ def correct(
             (batch_id, location_id),
         )
     _booking(conn, "correct", batch_id, location_id, diff, source, user_id)
+
+
+def edit_stock(
+    conn: sqlite3.Connection,
+    batch_id: int,
+    location_id: int,
+    expires_on: date | str | None,
+    packages: int,
+    source: str = "manual",
+    user_id: str | None = None,
+) -> int:
+    """Fix one stock row (batch at a location): date and count. Returns its batch id.
+
+    Another date moves the packages to that batch (merging with an existing one); the log gets a 'correct' out of the
+    old and into the new batch. Other locations keep the old batch.
+    """
+    if packages < 0:
+        raise ValueError("packages must be >= 0")
+    row = conn.execute("SELECT product_id FROM batch WHERE id = ?", (batch_id,)).fetchone()
+    if not row or not _stock_of(conn, batch_id, location_id):
+        raise InventoryError("not_found")
+    target = _batch(conn, row["product_id"], expires_on)
+    if target != batch_id:
+        correct(conn, batch_id, location_id, 0, source, user_id)
+        packages += _stock_of(conn, target, location_id)  # merge into what is already there
+    correct(conn, target, location_id, packages, source, user_id)
+    return target

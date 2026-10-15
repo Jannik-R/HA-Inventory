@@ -18,16 +18,25 @@ and get a brand-independent shopping list from minimum stock levels.
 
 ## Usage
 
-### Bestand (stock overview)
+### Bestand (stock and products)
 
 The category tree (only branches with stock, each with its package count), products as leaves
 with their total packages and earliest date. Tap a row (arrow on the left) to open it; a product
 shows its batches (date, location, packages). The search field (focused, so a
 scanner can type an EAN) matches name, brand, EAN, category and location and opens the tree down to all hits;
+*Auch Produkte ohne Bestand* (off by default) also lists products with 0 Pkg. (all locations
+only), so they can still be edited or deleted; their row opens the edit dialog.
 *Alle Lagerorte* filters by location. Expired dates are red, dates within the warning period
-(the product's or category's *Warnung vor Ablauf*) orange. The minus button on a batch row takes one package out of
-that batch and location (only there, so you look at the batches first); *Rückgängig* books it
-back in.
+(the product's or category's *Warnung vor Ablauf*) orange.
+
+- **Product row**: pencil = change name, brand, EAN, category, content, and the product's own
+  defaults (location, date type, warning days) that override the category's. Admins also get a
+  bin: deletes the product with its stock and booking history (asks first, naming the stock).
+- **Batch row**: minus = take one package out of that batch and location (only there, so you
+  look at the batches first); *Rückgängig* books it back in. Pencil = fix this batch at this
+  location: date and packages (e.g. a mistyped date; 0 removes it). The date type
+  (best before / use by) is set on the product, not per batch. A date that another
+  batch of the product already has merges into that batch. The change is logged as a correction.
 
 ### Ablauf (expiry)
 
@@ -78,13 +87,6 @@ the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name a
   Open Food Facts, *Neues Produkt* creates one by hand.
 - **Auslagern**: pick the product; by default the packages with the earliest date are taken first,
   or choose one batch and location.
-
-### Produkte
-
-All saved products with their stock, filterable. Tap one to change name, brand, EAN, category,
-content, and its own defaults (location, date type, warning days) that override the category's.
-Admins can delete a product (bin icon in the list); its stock and booking history
-are deleted with it.
 
 The camera scanner needs HTTPS (or `localhost`) and camera permission. Browsers without a built-in
 barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.

@@ -4,11 +4,10 @@ import { setLanguage, t } from "./i18n";
 import type { Hass } from "./api";
 import "./settings-view";
 import "./booking-view";
-import "./products-view";
 import "./stock-view";
 import "./expiry-view";
 
-const TABS = ["stock", "in", "out", "products", "expiry", "shopping", "settings"] as const;
+const TABS = ["stock", "in", "out", "expiry", "shopping", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
 export class PantryPanel extends LitElement {
@@ -83,15 +82,13 @@ export class PantryPanel extends LitElement {
         ${
           active === "settings"
             ? html`<pantry-settings .hass=${this.hass} .section=${this.sub}></pantry-settings>`
-            : active === "products"
-              ? html`<pantry-products .hass=${this.hass}></pantry-products>`
-              : active === "in" || active === "out"
-                ? html`<pantry-booking .hass=${this.hass} .mode=${active}></pantry-booking>`
-                : active === "stock"
-                  ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
-                  : active === "expiry"
-                    ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
-                    : html`<p>${t("common.not_ready")}</p>`
+            : active === "in" || active === "out"
+              ? html`<pantry-booking .hass=${this.hass} .mode=${active}></pantry-booking>`
+              : active === "stock"
+                ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
+                : active === "expiry"
+                  ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
+                  : html`<p>${t("common.not_ready")}</p>`
         }
       </main>
     `;

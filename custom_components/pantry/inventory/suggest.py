@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import json
 import re
 import sqlite3
 
 from ..keywords import KEYWORDS
-from .inherit import _categories, _chain
+from .inherit import _categories, _chain, category_tags
 
 
 def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
@@ -16,8 +15,8 @@ def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
     cats = _categories(conn)
     found = [
         ((len(_chain(cats, cid)), max(hits)), cid)
-        for cid, row in cats.items()
-        if (hits := [pos[t] for t in json.loads(row["off_tags"]) if t in pos])
+        for cid, tags_of in category_tags(conn).items()
+        if (hits := [pos[t] for t in tags_of if t in pos])
     ]
     return max(found)[1] if found else None
 
@@ -59,8 +58,8 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
     Basilikum"); within it the best score wins, then the deeper category."""
     cats = _categories(conn)
     tag_cats: dict[str, list[int]] = {}
-    for cid, row in cats.items():
-        for tag in json.loads(row["off_tags"]):
+    for cid, tags in category_tags(conn).items():
+        for tag in tags:
             tag_cats.setdefault(tag, []).append(cid)
     for word in _words(name):
         found = [

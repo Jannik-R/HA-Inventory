@@ -1,11 +1,14 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, formStyles, rowActions, toggled } from "./ui";
+import { chevron, rowActions, toggled } from "./ui";
+import { formStyles } from "./styles";
 import "./settings-dialog";
+import "./defaults-view";
 import type { PantrySettingsDialog } from "./settings-dialog";
 import { ADD } from "./settings-dialog";
 import { fmt } from "./settings-format";
 import { fmtNumber } from "./format";
+import { confirmDelete } from "./confirm-dialog";
 import {
   deleteRow,
   errorMessage,
@@ -16,7 +19,13 @@ import {
   type Table,
 } from "./api";
 
-const SECTIONS = { categories: "category", locations: "location", units: "unit" } as const;
+// Section -> table it edits; "defaults" is one record with its own element.
+const SECTIONS = {
+  categories: "category",
+  locations: "location",
+  units: "unit",
+  defaults: null,
+} as const;
 type Section = keyof typeof SECTIONS;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Draft = Record<string, any>;
@@ -141,10 +150,16 @@ export class PantrySettings extends LitElement {
       ${this.pageError ? html`<p class="error" role="alert">${this.pageError}</p>` : nothing}
       ${
         this.data
-          ? html`<div class="bar">
-                <button class="primary" @click=${() => this.open(table)}>${t(ADD[table])}</button>
-              </div>
-              ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
+          ? table
+            ? html`<div class="bar">
+                  <button class="primary" @click=${() => this.open(table)}>${t(ADD[table])}</button>
+                </div>
+                ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
+            : html`<pantry-defaults
+                .hass=${this.hass}
+                .data=${this.data}
+                @pantry-saved=${this.load}
+              ></pantry-defaults>`
           : nothing
       }
       <pantry-settings-dialog
@@ -193,7 +208,8 @@ export class PantrySettings extends LitElement {
 
   /** Delete straight from the list; errors (e.g. still in use) show above the list. */
   private async delRow(table: Table, row: { id: number; name: string }) {
-    if (!confirm(t("common.confirm_delete", { name: row.name }))) return;
+    const hint = table === "location" ? t("settings.location.delete_hint") : undefined;
+    if (!(await confirmDelete(row.name, hint))) return;
     try {
       await deleteRow(this.hass!, table, row.id);
       this.pageError = "";

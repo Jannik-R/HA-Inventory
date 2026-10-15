@@ -4,17 +4,23 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (Phase 6: database, inventory logic, Open Food Facts lookup, settings, booking in/out, stock overview, expiry view and sensors; minimum stock follows). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development (phases 0–6a done: booking, stock and products, expiry view, sensors; next: minimum stock and shopping list). See [docs/PLAN.md](docs/PLAN.md).
 
-## Planned features
+## Features
+
+Available:
 
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts
-- Category tree (main category → category → food type) with inherited defaults (unit, location, expiry warning)
+- Category tree (main category → category → food type) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
-- Labels per package (QR code), printed via network (optional, CUPS/IPP, e.g. Dymo LabelWriter 450) without a print dialog or via browser print; scan a label to book out
-- Stock overview with search
-- Expiry overview with configurable "expiring soon" threshold
-- Minimum stock per category in any unit (e.g. "2 kg Nudeln", any brand) and a shopping list (HA to-do entity)
+- Stock overview with search, take-out and batch correction
+- Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
+
+Planned:
+
+- Minimum stock per category in any unit (e.g. "2 kg Nudeln", any brand) and a shopping list (HA to-do entity); the *Einkauf* tab is a placeholder until then
+- Labels per package (QR code), printed via network (optional; e.g. Dymo LabelWriter 450 behind a USB print server such as TP-Link, or CUPS/IPP) without a print dialog or via browser print; scan a label to book out
+- Receipt printer (ESC/POS) for the shopping list and later recipes
 
 ## Usage
 
@@ -101,8 +107,12 @@ barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use;
   the bin deletes (only when the category is not in use). The parent category is picked in a tree with a filter field.
 - Every list row has a pencil (edit) and a bin (delete) icon; forms check entries while you type
   and only allow saving when everything is valid.
-- **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...).
+- **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
+  it (its booking history stays); it must be empty first. Adding the same name again brings it back.
 - **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages.
+- **Standards**: the global defaults every category and product falls back to (unit, storage
+  location, date type, warning days; initially Packung, none, best before, 7 days).
+- Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
 
 ## Installation
 

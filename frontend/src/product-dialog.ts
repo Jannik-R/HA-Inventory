@@ -1,6 +1,7 @@
 import { LitElement, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, formStyles } from "./ui";
+import { editDialog, fieldMsg } from "./ui";
+import { formStyles } from "./styles";
 import { errorMessage, saveProduct, type Hass, type MasterData, type Product } from "./api";
 import { categoryDefault, inheritNumber, inheritSelect } from "./inherit";
 import { productErrors, productFields, type Errors } from "./product-fields";

@@ -1,0 +1,8 @@
+# Generated or local files: never format.
+node_modules/
+package-lock.json
+test-results/
+playwright-report/
+e2e/.auth/
+# Built bundle lives outside this folder (custom_components/pantry/www/); listed for clarity.
+../custom_components/

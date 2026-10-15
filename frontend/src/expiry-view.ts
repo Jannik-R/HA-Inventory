@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg, formStyles } from "./ui";
+import { fieldMsg } from "./ui";
+import { formStyles } from "./styles";
 import {
   errorMessage,
   getMasterData,

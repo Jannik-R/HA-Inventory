@@ -1,7 +1,8 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiMenuDown } from "@mdi/js";
 import { t } from "./i18n";
-import { backdropClick, chevron, formStyles, icon, toggled } from "./ui";
+import { backdropClick, chevron, icon, toggled } from "./ui";
+import { formStyles } from "./styles";
 import type { Category } from "./api";
 
 /** Category field: shows the chosen path, opens a tree (with a filter) in a dialog. Fires `change`. */

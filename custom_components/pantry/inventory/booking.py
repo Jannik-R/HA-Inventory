@@ -43,7 +43,11 @@ def _take(conn, batch_id: int, location_id: int, packages: int) -> None:
 
 
 def _exists(conn, table: str, row_id: int | None) -> None:
-    if row_id is not None and not conn.execute(f"SELECT 1 FROM {table} WHERE id = ?", (row_id,)).fetchone():
+    """Row exists; a location must also be active (deactivated ones take no stock)."""
+    active = " AND active" if table == "location" else ""
+    if row_id is not None and not conn.execute(
+        f"SELECT 1 FROM {table} WHERE id = ?{active}", (row_id,)
+    ).fetchone():
         raise InventoryError("not_found")
 
 

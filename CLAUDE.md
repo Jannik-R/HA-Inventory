@@ -33,15 +33,21 @@ Avoid expensive actions unless they are really needed. When a task would need th
 
 ```
 custom_components/pantry/   integration (Python)
+  __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
     __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, queries
-  db.py                     sqlite3 schema + migrations (PRAGMA user_version)
+  db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
+  seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   off.py                    Open Food Facts client
-  label.py                  label PNG rendering + optional IPP printing
+  sensor.py                 expired / expiring-soon sensors (no polling)
+  backup.py                 locks the DB during HA backups
   websocket.py              websocket commands for the panel
-  www/pantry-panel.js       BUILT frontend bundle (committed, do not edit by hand)
+  www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
+  (planned) label.py        label rendering + network printing (print server raw, or CUPS) (Phase 8)
 frontend/                   panel source (Lit + TypeScript, Vite)
   src/i18n/de.json          UI strings
+  e2e/                      Playwright specs (local only)
+  scripts/check-i18n.mjs    missing/unused UI keys (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
 docs/PLAN.md                architecture and roadmap
@@ -53,7 +59,7 @@ docs/PLAN.md                architecture and roadmap
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
-- Schema change = new migration step in `db.py`. Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
+- Schema change = new migration step in `db.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 
@@ -63,7 +69,8 @@ docs/PLAN.md                architecture and roadmap
 - Dates/numbers via `Intl` with `hass.locale`, never manual formatting.
 - Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
-- After frontend changes run the build so `www/pantry-panel.js` is updated.
+- After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
+- Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`.
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
 
 ## UI / UX
@@ -77,7 +84,7 @@ Calm, functional, looks like a tool, not like a demo.
 - Color only for meaning: expired (error), expiring soon (warning), below min stock.
 - Icons: MDI only, sparingly, always with text or `aria-label`.
 - Mobile first (phone in the kitchen), works on tablet/desktop. Keyboard accessible, visible focus.
-- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon and start with the open/close arrow (`chevron`, state via `toggled`). Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first and names what goes with it (e.g. stock).
+- **Lists**: every row ends with an edit (pencil) and a delete (bin) icon button, via `rowActions` in `frontend/src/ui.ts` (delete only where the user may delete, e.g. admin); tree rows also get an add-child (plus) icon and start with the open/close arrow (`chevron`, state via `toggled`). Clicking the row opens/closes it when it has children (tree), otherwise it opens the edit dialog. Delete always asks first (`confirmDelete` in `frontend/src/confirm-dialog.ts`, never the browser's `confirm()`) and names what goes with it (e.g. stock).
 - **Dialogs** (all modal `<dialog>`, helpers in `frontend/src/ui.ts`; edit/add dialogs use `editDialog`, which already implements the rules below):
   - Title = action + object: "„Kühlschrank“ bearbeiten", "Lagerort hinzufügen", "Kategorie wählen".
   - Labels above fields (placeholders never replace a label); units as text after the input ("Tage", "g").

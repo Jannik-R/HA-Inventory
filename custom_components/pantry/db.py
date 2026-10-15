@@ -120,6 +120,99 @@ MIGRATIONS: list[str] = [
     ALTER TABLE batch_new RENAME TO batch;
     ALTER TABLE stock_new RENAME TO stock;
     """,
+    # 3: normalization and integrity. Runs with foreign keys off (see migrate), so tables can be
+    # rebuilt; the foreign key check before the commit catches anything left dangling.
+    # - OFF tags in their own table (each tag once), linked to categories (n:m)
+    # - unit.is_count / factor and product content pair as CHECKs
+    # - locations are deactivated instead of deleted, so bookings can reference them (FKs)
+    # - integration-wide defaults in a one-row table (editable in the settings)
+    """
+    CREATE TABLE off_tag (
+        id INTEGER PRIMARY KEY,
+        tag TEXT NOT NULL UNIQUE
+    );
+    CREATE TABLE category_off_tag (
+        category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
+        off_tag_id INTEGER NOT NULL REFERENCES off_tag(id) ON DELETE CASCADE,
+        PRIMARY KEY (category_id, off_tag_id)
+    );
+    INSERT OR IGNORE INTO off_tag (tag)
+        SELECT DISTINCT j.value FROM category c, json_each(c.off_tags) j;
+    INSERT OR IGNORE INTO category_off_tag (category_id, off_tag_id)
+        SELECT c.id, t.id FROM category c, json_each(c.off_tags) j JOIN off_tag t ON t.tag = j.value;
+    ALTER TABLE category DROP COLUMN off_tags;
+
+    UPDATE unit SET is_count = (is_count <> 0);
+    CREATE TABLE unit_new (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL UNIQUE,
+        symbol TEXT NOT NULL,
+        base_unit_id INTEGER REFERENCES unit(id),
+        factor REAL NOT NULL DEFAULT 1 CHECK (factor > 0),
+        is_count INTEGER NOT NULL DEFAULT 0 CHECK (is_count IN (0, 1))
+    );
+    INSERT INTO unit_new (id, name, symbol, base_unit_id, factor, is_count)
+        SELECT id, name, symbol, base_unit_id, factor, is_count FROM unit;
+    DROP TABLE unit;
+    ALTER TABLE unit_new RENAME TO unit;
+
+    UPDATE product SET content_amount = NULL, content_unit_id = NULL
+        WHERE (content_amount IS NULL) <> (content_unit_id IS NULL);
+    CREATE TABLE product_new (
+        id INTEGER PRIMARY KEY,
+        ean TEXT UNIQUE,
+        name TEXT NOT NULL,
+        brand TEXT,
+        category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE RESTRICT,
+        content_amount REAL CHECK (content_amount > 0),
+        content_unit_id INTEGER REFERENCES unit(id),
+        default_location_id INTEGER REFERENCES location(id),
+        expiry_type TEXT CHECK (expiry_type IN ('best_before', 'use_by')),
+        warn_days INTEGER CHECK (warn_days >= 0),
+        image_url TEXT,
+        off_json TEXT,
+        updated_at TEXT NOT NULL,
+        CHECK ((content_amount IS NULL) = (content_unit_id IS NULL))
+    );
+    INSERT INTO product_new SELECT id, ean, name, brand, category_id, content_amount, content_unit_id,
+        default_location_id, expiry_type, warn_days, image_url, off_json, updated_at FROM product;
+    DROP TABLE product;
+    ALTER TABLE product_new RENAME TO product;
+
+    ALTER TABLE location ADD COLUMN active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1));
+
+    -- Bookings of deleted batches / locations cannot be kept with foreign keys.
+    DELETE FROM booking WHERE batch_id IS NULL OR batch_id NOT IN (SELECT id FROM batch);
+    UPDATE booking SET location_id = NULL WHERE location_id NOT IN (SELECT id FROM location);
+    UPDATE booking SET to_location_id = NULL WHERE to_location_id NOT IN (SELECT id FROM location);
+    CREATE TABLE booking_new (
+        id INTEGER PRIMARY KEY,
+        ts TEXT NOT NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('in', 'out', 'move', 'correct')),
+        batch_id INTEGER NOT NULL REFERENCES batch(id) ON DELETE CASCADE,
+        location_id INTEGER REFERENCES location(id),
+        to_location_id INTEGER REFERENCES location(id),
+        packages INTEGER NOT NULL,
+        source TEXT NOT NULL,
+        user_id TEXT
+    );
+    INSERT INTO booking_new SELECT id, ts, kind, batch_id, location_id, to_location_id, packages,
+        source, user_id FROM booking;
+    DROP TABLE booking;
+    ALTER TABLE booking_new RENAME TO booking;
+    CREATE INDEX booking_batch ON booking (batch_id);
+
+    CREATE TABLE defaults (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        unit_id INTEGER NOT NULL REFERENCES unit(id),
+        default_location_id INTEGER REFERENCES location(id),
+        expiry_type TEXT NOT NULL CHECK (expiry_type IN ('best_before', 'use_by')),
+        warn_days INTEGER NOT NULL CHECK (warn_days >= 0)
+    );
+    -- Same values as the former hard-coded ones; a new DB gets its row from the seed.
+    INSERT INTO defaults (id, unit_id, expiry_type, warn_days)
+        SELECT 1, id, 'best_before', 7 FROM unit ORDER BY is_count DESC, id LIMIT 1;
+    """,
 ]
 
 
@@ -132,10 +225,26 @@ def connect(path: str) -> sqlite3.Connection:
 
 
 def migrate(conn: sqlite3.Connection) -> None:
-    """Apply missing steps, one transaction each; seed while there are no units."""
+    """Apply missing steps, one transaction each; seed while there are no units.
+
+    Foreign keys are off during a step (SQLite's way to rebuild a referenced table) and
+    checked before its commit; a violation rolls the step back.
+    """
     start = conn.execute("PRAGMA user_version").fetchone()[0]
-    for i in range(start, len(MIGRATIONS)):
-        conn.executescript(f"BEGIN;{MIGRATIONS[i]}PRAGMA user_version={i + 1};COMMIT;")
+    conn.execute(
+        "PRAGMA foreign_keys=OFF"
+    )  # no effect inside a transaction, so set it here
+    try:
+        for i in range(start, len(MIGRATIONS)):
+            conn.executescript(f"BEGIN;{MIGRATIONS[i]}PRAGMA user_version={i + 1};")
+            if bad := conn.execute("PRAGMA foreign_key_check").fetchall():
+                conn.rollback()
+                raise sqlite3.IntegrityError(
+                    f"migration {i + 1}: foreign key violations {bad[:5]}"
+                )
+            conn.commit()
+    finally:
+        conn.execute("PRAGMA foreign_keys=ON")
     if conn.execute("SELECT 1 FROM unit").fetchone() is None:
         seed(conn, "de")
         conn.commit()

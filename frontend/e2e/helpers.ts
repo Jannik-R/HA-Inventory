@@ -1,4 +1,5 @@
 import { expect, type Browser, type Page } from "@playwright/test";
+import { blockPrinting } from "./fixtures";
 
 /** Click a panel tab and wait until the panel shows it (the route update is async). */
 export async function openTab(page: Page, name: string) {
@@ -28,6 +29,7 @@ export const ws = (page: Page, msg: Record<string, unknown>) =>
 /** A fresh page with HA's connection ready, for `ws` calls in beforeAll/afterAll. */
 export async function apiPage(browser: Browser) {
   const page = await browser.newPage();
+  await blockPrinting(page.context());
   await openPage(page, "/pantry/stock", "Bestand");
   await page.waitForFunction(
     () => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass,

@@ -1,17 +1,21 @@
 default_config:
 
 homeassistant:
-  # Dev only: no login for requests from this machine (port is bound to 127.0.0.1 in
-  # docker-compose.yml). Docker Desktop forwards them from its gateway, hence the private ranges.
+  # Dev only: no login for requests from this machine (port 8123 is bound to 127.0.0.1 in
+  # docker-compose.yml). Docker Desktop forwards them from the network gateway 10.123.45.1.
+  # Never trust a LAN range here: the proxy port 8124 is reachable from the LAN.
   auth_providers:
     - type: trusted_networks
       trusted_networks:
         - 127.0.0.1
         - ::1
-        - 172.16.0.0/12
-        - 192.168.65.0/24
+        - 10.123.45.1/32
       allow_bypass_login: true
     - type: homeassistant
+
+# Proxy container (docker-compose.yml, profile "proxy"): HA keeps HTTP settings in its storage, not
+# here. Settings > System > Network (or dev/config/.storage/http): use_x_forwarded_for = true,
+# trusted_proxies = 10.123.45.3.
 
 logger:
   default: info

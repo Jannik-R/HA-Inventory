@@ -1,6 +1,7 @@
 # Dev Home Assistant. Runtime data lives in dev/config/ (git-ignored).
 # Start:  docker compose -f dev/docker-compose.yml up -d
 # Tests:  docker compose -f dev/docker-compose.yml run --rm test [pytest args]
+# Phone (HTTPS proxy on another host -> this PC:8124): docker compose -f dev/docker-compose.yml --profile proxy up -d
 services:
   homeassistant:
     image: ghcr.io/home-assistant/home-assistant:stable
@@ -13,6 +14,24 @@ services:
       - ./config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
       - ../custom_components/pantry:/config/custom_components/pantry:ro
+    networks:
+      default:
+        ipv4_address: 10.123.45.2
+
+  # Entry for an external HTTPS reverse proxy (phone camera needs HTTPS). Docker Desktop shows every
+  # client as the gateway (a trusted network), so the client is set to a fixed untrusted address
+  # (192.0.2.1, documentation range): requests through this port always need the HA login.
+  proxy:
+    image: caddy:2
+    profiles: [proxy]
+    command:
+      ["caddy", "reverse-proxy", "--from", ":8124", "--to", "homeassistant:8123",
+       "--header-up", "X-Forwarded-For: 192.0.2.1"]
+    ports:
+      - "8124:8124"
+    networks:
+      default:
+        ipv4_address: 10.123.45.3
 
   # Same image as HA, so the Python version always matches.
   test:
@@ -24,6 +43,14 @@ services:
       - pip-cache:/root/.cache/pip
     entrypoint: ["sh", "-c", "pip install -q -r requirements_test.txt && pytest \"$@\"", "--"]
     command: ["tests"]
+
+# Fixed subnet: configuration.yaml trusts only its gateway (= requests from this PC).
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.123.45.0/24
+          gateway: 10.123.45.1
 
 volumes:
   pip-cache:

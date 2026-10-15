@@ -15,11 +15,11 @@ Available:
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
+- Labels (QR code of product + expiry date), printed on a network label printer (Dymo LabelWriter 450 behind a USB print server) or through the browser; scan a label to book out
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 
 Planned:
 
-- Labels per package (QR code), printed via network (optional; e.g. Dymo LabelWriter 450 behind a USB print server such as TP-Link, or CUPS/IPP) without a print dialog or via browser print; scan a label to book out
 - Receipt printer (ESC/POS) for the shopping list and later recipes
 
 ## Usage
@@ -114,10 +114,34 @@ the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name a
   name or from similar saved products). A name search lists local products; *Online suchen* searches
   Open Food Facts, *Neues Produkt* creates one by hand.
 - **Auslagern**: pick the product; by default the packages with the earliest date are taken first,
-  or choose one batch and location.
+  or choose one batch and location. After booking out (also by scanning a label), *Rückgängig*
+  next to the message puts exactly those packages back into their batch and location.
 
 The camera scanner needs HTTPS (or `localhost`) and camera permission. Browsers without a built-in
 barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.
+
+### Etiketten (labels)
+
+Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN), product name, brand and expiry date.
+Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an option), and a tag
+button on every batch row in *Bestand* opens a dialog to print any number of labels (1 to 99) for that batch.
+
+- **Label printer setup** (this is the label printer; a receipt printer will be a separate setting later).
+  In Home Assistant open *Settings > Devices & services > Pantry > Configure*. Step 1: choose the
+  *Modell des Etikettendruckers*. Step 2: the settings of that model, label size in mm and whether
+  to print on book-in. Models:
+  - *Dymo LabelWriter 450 / 4xx* (raw port 9100, e.g. via a USB print server such as TP-Link with a
+    fixed IP and raw printing enabled): enter the printer as `host` or `host:port` (port defaults
+    to 9100). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints the last
+    ~3 mm of a 57 x 32 label, so that space stays blank. *Testetikett drucken* sends one label when you
+    save; if the printer is not reachable the form says so.
+  - *Kein Netzwerkdrucker*: the browser print dialog opens with one page per label (choose the
+    label printer there; the page size is the label size, 10 to 200 mm).
+- **Many labels**: printing more than 2 labels at once (after book-in or in the reprint dialog) asks
+  "n Etiketten drucken?" first; cancelling prints nothing (the booking itself is kept).
+- **Scan to book out**: type or scan a label (scanner or camera) into the input of *Einbuchen* or
+  *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
+  booking out. Labels are not single-use: they name the batch, not one package.
 
 ### Settings (Einstellungen)
 
@@ -169,6 +193,19 @@ The dev HA is reachable only from this machine (port bound to `127.0.0.1`) and l
 password (`trusted_networks` in `dev/configuration.yaml`), so browser tests need no credentials.
 Never use this configuration for a real installation.
 The camera barcode scanner needs HTTPS or `localhost`.
+
+**Phone tests (camera over HTTPS):** an HTTPS reverse proxy on another host (with WebSockets enabled)
+forwards to `http://<this PC>:8124`, served by the `proxy` service:
+
+```bash
+docker compose -f dev/docker-compose.yml --profile proxy up -d
+```
+
+Requests through port 8124 always need the HA login (the proxy sets a fixed untrusted client
+address; Docker Desktop would otherwise show every LAN client as the trusted gateway). HA keeps
+its HTTP settings in storage, not in YAML: set *use X-Forwarded-For* and the trusted proxy
+`10.123.45.3` once (Settings › System › Network, or `dev/config/.storage/http`). Stop the proxy
+when done: `docker compose -f dev/docker-compose.yml --profile proxy stop proxy`.
 
 Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/pantry/www/` (the built file is committed):
 

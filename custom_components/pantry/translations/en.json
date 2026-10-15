@@ -64,6 +64,47 @@
     },
     "off_unavailable": {
       "message": "Open Food Facts is not reachable. Please try again later."
+    },
+    "printer_unreachable": {
+      "message": "The printer is not reachable."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Label printer",
+        "description": "Choose the label printer (not a receipt printer; that will be a separate setting later).",
+        "data": {
+          "label_printer": "Label printer model"
+        }
+      },
+      "label": {
+        "title": "Label printer settings",
+        "description": "Host, label size and printing for the chosen label printer.",
+        "data": {
+          "label_printer_host": "Host (or host:port)",
+          "label_width": "Label width",
+          "label_height": "Label height",
+          "print_on_book_in": "Print labels when booking in",
+          "test_print": "Print a test label"
+        },
+        "data_description": {
+          "label_printer_host": "Network address of the print server. Port {port} if you give only the host.",
+          "test_print": "Sends one test label to the printer when you save."
+        }
+      }
+    },
+    "error": {
+      "host_required": "Please enter the printer host.",
+      "printer_unreachable": "The printer is not reachable."
+    }
+  },
+  "selector": {
+    "label_printer": {
+      "options": {
+        "browser": "No network printer - print via the browser",
+        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (raw port 9100, e.g. via a USB print server)"
+      }
     }
   }
 }

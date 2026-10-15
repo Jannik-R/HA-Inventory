@@ -1,12 +1,30 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg, plausibleDate, todayIso } from "./ui";
+import { fieldMsg, plausibleDate } from "./ui";
 import { formStyles } from "./styles";
-import { bookIn, bookOut, type Hass, type MasterData, type Product, type StockRow } from "./api";
-import { categoryDefault, categoryPath, inheritSelect, type Dflt } from "./inherit";
+import {
+  bookIn,
+  bookOut,
+  getLabelConfig,
+  type Hass,
+  type LabelConfig,
+  type MasterData,
+  type Product,
+  type StockRow,
+  type Taken,
+} from "./api";
+import { printLabels } from "./label-print";
+import { categoryDefault, categoryPath, type Dflt } from "./inherit";
+import { dateField, locationFields, printField, type InForm } from "./booking-in-fields";
 import { productErrors, productFields, productSummary, type Errors } from "./product-fields";
 import { lang } from "./format";
 import { AUTO, maxPackages, pickedRow, pickStyles, renderPick } from "./booking-pick";
+
+/** `booked` event: the done message, and for a book-out what it took (for undo). */
+export interface Booked {
+  message: string;
+  taken?: Taken[];
+}
 
 const blankForm = () => ({
   packages: 1,
@@ -15,6 +33,7 @@ const blankForm = () => ({
   makeDefault: true,
   dateBad: false,
   pick: AUTO,
+  print: null as boolean | null,
 });
 type Inherit = "default_location_id" | "expiry_type";
 // shortcut: last used location lives until the page reloads; persist it if users ask for it.
@@ -31,6 +50,7 @@ export class PantryBookingForm extends LitElement {
     busy: { attribute: false },
     run: { attribute: false },
     draft: { state: true },
+    labels: { state: true },
     f: { state: true },
   };
 
@@ -44,16 +64,13 @@ export class PantryBookingForm extends LitElement {
   declare run: <T>(fn: () => Promise<T>) => Promise<T | undefined>;
   // Editable copy of the product (a new product is filled in here).
   declare draft?: Product;
+  declare labels?: LabelConfig;
   // Form values; null = use the product's / category's default.
-  declare f: {
+  declare f: InForm & {
     packages: number;
-    expires_on: string;
-    makeDefault: boolean;
-    // The date input reports incomplete input only via validity, its value is then "".
-    dateBad: boolean;
-    location_id: number | null;
     pick: string;
   };
+  private set = (patch: Partial<InForm>) => (this.f = { ...this.f, ...patch });
 
   constructor() {
     super();
@@ -67,6 +84,11 @@ export class PantryBookingForm extends LitElement {
     if (changed.has("product")) {
       this.draft = this.product;
       this.f = blankForm();
+      if (this.hass && this.mode === "in")
+        getLabelConfig(this.hass).then(
+          (c) => (this.labels = c),
+          () => undefined,
+        );
     }
   }
 
@@ -96,6 +118,8 @@ export class PantryBookingForm extends LitElement {
     const hass = this.hass!;
     const { packages } = this.f;
     let where = "";
+    let printed = 0;
+    let taken: Taken[] | undefined;
     if (Object.keys(this.errors(p)).length) return;
     if (this.mode === "in") {
       const location_id =
@@ -135,6 +159,10 @@ export class PantryBookingForm extends LitElement {
       );
       if (!res) return;
       lastLocation = location_id;
+      if (this.f.print ?? this.labels?.print_on_book_in) {
+        const n = await this.run(() => printLabels(hass, res.batch_id, Math.min(packages, 99)));
+        if (n) printed = n;
+      }
       where = this.md?.locations.find((l) => l.id === location_id)?.name ?? "";
     } else {
       const row = pickedRow(this.stock, this.f.pick);
@@ -146,13 +174,15 @@ export class PantryBookingForm extends LitElement {
         }),
       );
       if (!res) return;
+      taken = res.taken;
     }
-    const message = t(where ? "book.done_in_at" : `book.done_${this.mode}`, {
-      n: packages,
-      name: p.name,
-      where,
-    });
-    this.dispatchEvent(new CustomEvent("booked", { detail: message }));
+    const message =
+      t(where ? "book.done_in_at" : `book.done_${this.mode}`, {
+        n: packages,
+        name: p.name,
+        where,
+      }) + (printed ? ` · ${t("label.printed", { n: printed })}` : "");
+    this.dispatchEvent(new CustomEvent<Booked>("booked", { detail: { message, taken } }));
   }
 
   render() {
@@ -180,7 +210,7 @@ export class PantryBookingForm extends LitElement {
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }
-      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err)}${this.renderDate(err)}`}
+      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value)}`}
       <label>
         <span class="lbl">${t("book.packages")}</span>
         <input
@@ -198,7 +228,7 @@ export class PantryBookingForm extends LitElement {
         />
         ${fieldMsg(err.packages, "packages")}
       </label>
-      ${out ? nothing : this.renderLocation(p, err)}
+      ${out ? nothing : html`${locationFields(this.md, p, this.f, this.set, err, this.dflt("default_location_id"))}${printField(this.f, this.set, !!this.labels?.print_on_book_in)}`}
       <div class="actions">
         <button
           class="primary"
@@ -232,68 +262,6 @@ export class PantryBookingForm extends LitElement {
     if (!Number.isInteger(packages) || packages < 1) e.packages = t("valid.packages");
     else if (max != null && packages > max) e.packages = t("valid.max_packages", { n: max });
     return e;
-  }
-
-  private renderDate(err: Errors) {
-    const past = !err.expires && this.f.expires_on && this.f.expires_on < todayIso();
-    return html`<label>
-      <span class="lbl">${this.dateLabel()}</span>
-      <input
-        id="expires"
-        data-testid="expires"
-        type="date"
-        min="2000-01-01"
-        max="2099-12-31"
-        aria-invalid=${!!err.expires}
-        .value=${this.f.expires_on}
-        @input=${(e: Event) => {
-          const el = e.target as HTMLInputElement;
-          this.f = { ...this.f, expires_on: el.value, dateBad: el.validity.badInput };
-        }}
-      />
-      ${
-        err.expires || past
-          ? html`${fieldMsg(err.expires, "expires")}${past ? fieldMsg(t("valid.past"), "expires", true) : ""}`
-          : html`<span class="detail">${t("book.no_date_hint")}</span>`
-      }
-    </label>`;
-  }
-
-  /** "Ablaufdatum (Mindesthaltbarkeit)": the product's date type, set on the product or category. */
-  private dateLabel() {
-    const type = this.dflt("expiry_type")?.value;
-    return type
-      ? t("book.expires_on_type", { type: t(`settings.expiry.${type}`) })
-      : t("book.expires_on");
-  }
-
-  /** Location for this booking (default from product / category); a new product can keep it as its default. */
-  private renderLocation(p: Product, err: Errors) {
-    return html`<label>
-        <span class="lbl">${t("book.location")}</span>
-        ${inheritSelect({
-          testid: "location",
-          own: this.f.location_id,
-          dflt: this.dflt("default_location_id"),
-          options: (this.md?.locations ?? []).map((l) => [l.id, l.name]),
-          numeric: true,
-          invalid: !!err.location,
-          onChange: (v) => (this.f = { ...this.f, location_id: v as number | null }),
-        })}
-        ${fieldMsg(err.location, "location")}
-      </label>
-      ${
-        p.id
-          ? nothing
-          : html`<label class="check">
-              <input
-                type="checkbox"
-                data-testid="make-default"
-                .checked=${this.f.makeDefault}
-                @change=${(e: Event) => (this.f = { ...this.f, makeDefault: (e.target as HTMLInputElement).checked })}
-              />${t("book.make_default")}
-            </label>`
-      }`;
   }
 
   static styles = [

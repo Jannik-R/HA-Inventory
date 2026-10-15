@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
+import { mdiTagOutline } from "@mdi/js";
 import { t } from "./i18n";
-import { chevron, rowActions, toggled } from "./ui";
+import { chevron, icon, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -19,8 +20,10 @@ import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
 import { deleteMasterRow } from "./delete-flow";
+import type { PantryLabelDialog } from "./label-dialog";
 import "./product-dialog";
 import "./batch-dialog";
+import "./label-dialog";
 
 /** Stock and products: category › product › batch/location, search, location filter, edit/delete. */
 export class PantryStock extends LitElement {
@@ -34,6 +37,7 @@ export class PantryStock extends LitElement {
     open: { state: true },
     error: { state: true },
     undo: { state: true },
+    message: { state: true },
   };
 
   declare hass?: Hass;
@@ -46,6 +50,7 @@ export class PantryStock extends LitElement {
   declare open: Set<string>;
   declare error: string;
   declare undo?: Taken;
+  declare message: string;
   private products = new Map<number, Product>();
 
   constructor() {
@@ -55,6 +60,7 @@ export class PantryStock extends LitElement {
     this.withEmpty = false;
     this.open = new Set();
     this.error = "";
+    this.message = "";
   }
 
   willUpdate(changed: PropertyValues) {
@@ -152,6 +158,7 @@ export class PantryStock extends LitElement {
     const rows = this.tree(this.filter.trim() !== "");
     return html`
       ${stockFilters(this)} ${undoLine(this, "stock")}
+      ${this.message ? html`<p class="done" role="status" data-testid="label-done">${this.message}</p>` : nothing}
       ${
         rows.length
           ? html`<ul>
@@ -167,6 +174,11 @@ export class PantryStock extends LitElement {
         @pantry-saved=${this.reload}
       ></pantry-product-dialog>
       <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.reload}></pantry-batch-dialog>
+      <pantry-label-dialog
+        .hass=${this.hass}
+        @pantry-printed=${(e: CustomEvent<number>) =>
+          (this.message = e.detail ? t("label.printed", { n: e.detail }) : "")}
+      ></pantry-label-dialog>
     `;
   }
 
@@ -184,6 +196,16 @@ export class PantryStock extends LitElement {
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
+  }
+
+  /** Reprint dialog; the batch may be stocked at several locations. */
+  private printBatch(b: StockRow, batches: StockRow[]) {
+    const packages = batches
+      .filter((x) => x.batch_id === b.batch_id)
+      .reduce((sum, x) => sum + x.packages, 0);
+    this.renderRoot
+      .querySelector<PantryLabelDialog>("pantry-label-dialog")!
+      .open({ id: b.batch_id, name: b.name, packages });
   }
 
   private editBatch(b: StockRow) {
@@ -226,6 +248,15 @@ export class PantryStock extends LitElement {
                     <span class="detail">${b.location}</span>
                     <span class="count">${t("book.count", { n: b.packages })}</span>
                     ${outButton(this, p.name, b, "stock-batch-out")}
+                    <button
+                      class="icon-btn"
+                      data-testid="stock-batch-label"
+                      aria-label=${t("label.print_name", { name: p.name })}
+                      title=${t("label.print")}
+                      @click=${() => this.printBatch(b, p.batches)}
+                    >
+                      ${icon(mdiTagOutline)}
+                    </button>
                     ${rowActions({
                       testid: "batch",
                       name: `${p.name}, ${this.date(b)}`,

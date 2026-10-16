@@ -39,6 +39,7 @@ custom_components/pantry/   integration (Python)
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
+  seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   off.py                    Open Food Facts client
   recipe_fetch.py           recipe page fetch for the import (HA session, on user click only)
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
@@ -108,7 +109,7 @@ Calm, functional, looks like a tool, not like a demo.
 ## Commands
 
 ```bash
-docker compose -f dev/docker-compose.yml run --rm test   # backend tests (see skill ha-dev)
+docker compose -f dev/docker-compose.yml run --rm test   # backend tests, parallel (pytest-xdist; see skill ha-dev)
 cd frontend && npm run build          # build panel bundle
 cd frontend && npm run dev            # watch build
 cd frontend && npm run test:e2e       # Playwright against the running dev HA (local only)

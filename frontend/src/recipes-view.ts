@@ -52,8 +52,13 @@ export class PantryRecipes extends LitElement {
     this.error = "";
   }
 
+  private started = false;
+
   willUpdate(changed: PropertyValues) {
-    if (changed.has("hass") && this.hass && !this.recipes) this.load();
+    if (changed.has("hass") && this.hass && !this.started) {
+      this.started = true; // once: `hass` changes on every state event
+      this.load();
+    }
   }
 
   private async load() {
@@ -176,7 +181,11 @@ export class PantryRecipes extends LitElement {
             .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
             .open(this.md!, undefined, e.detail)}
       ></pantry-recipe-import>
-      <pantry-recipe-dialog .hass=${this.hass} @pantry-saved=${() => this.load()}>
+      <pantry-recipe-dialog
+        .hass=${this.hass}
+        @pantry-saved=${() => this.load()}
+        @master=${(e: CustomEvent<MasterData>) => (this.md = e.detail)}
+      >
       </pantry-recipe-dialog>
       ${
         list.length
@@ -210,11 +219,6 @@ export class PantryRecipes extends LitElement {
       .head {
         display: flex;
         align-items: center;
-      }
-      .chev {
-        border: 0;
-        padding: 8px;
-        display: flex;
       }
       .detail-box {
         padding: 0 8px 12px 44px;

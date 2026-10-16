@@ -10,7 +10,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from . import inventory, label
-from .const import CONF_LABEL_HEIGHT, CONF_LABEL_WIDTH, CONF_PRINT_ON_BOOK_IN, DOMAIN
+from .const import (
+    CONF_LABEL_HEIGHT,
+    CONF_LABEL_WIDTH,
+    CONF_PRINT_ON_BOOK_IN,
+    DOMAIN,
+    MAX_LABELS,
+)
 from .label_printers import MODELS, printer_of
 from .websocket import _db, _run
 from .ws_validate import CODE, ID
@@ -47,7 +53,7 @@ async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
     {
         vol.Required("type"): "pantry/print_labels",
         vol.Required("batch_id"): ID,
-        vol.Required("count"): vol.All(int, vol.Range(min=1, max=99)),
+        vol.Required("count"): vol.All(int, vol.Range(min=1, max=MAX_LABELS)),
     }
 )
 @websocket_api.async_response

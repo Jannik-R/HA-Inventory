@@ -3,6 +3,7 @@
 DOMAIN = "pantry"
 PANEL_URL = "/pantry_static"
 SIGNAL_CHANGED = f"{DOMAIN}_changed"  # dispatcher: the DB was written
+MAX_LABELS = 20  # per print call (any user may print); also in the panel (label-print.ts)
 
 # Options (config entry); label size in mm. A receipt printer will be a separate setting later.
 CONF_LABEL_PRINTER = "label_printer"  # model key, see label_printers.MODELS

@@ -335,6 +335,7 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
         and out["width_mm"] == 57
     )
     assert "images" not in out
+    assert (await ws.call({**msg, "count": 21}))["error"]["code"] == "invalid_format"  # max 20
 
     hass.config_entries.async_update_entry(
         hass.config_entries.async_entries(DOMAIN)[0],

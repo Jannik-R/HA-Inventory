@@ -12,10 +12,9 @@ from .common import InventoryError
 from .ingredient_line import parse_ingredient, unit_lookup
 from .suggest import suggest, suggest_type
 
-_LD_JSON = re.compile(
-    r"<script[^>]*type\s*=\s*[\"']application/ld\+json[\"'][^>]*>(.*?)</script>", re.S | re.I
-)
-_TAGS = re.compile(r"<[^>]+>")
+_LD_TYPE = re.compile(r"type\s*=\s*[\"']?application/ld\+json")
+# `[^<>]`: a page full of "<" stays linear (`[^>]+` rescans to the end from every "<")
+_TAGS = re.compile(r"<[^<>]+>")
 _AND = re.compile(r"\s+(?:und|&)\s+")
 
 
@@ -33,14 +32,29 @@ def _is_recipe(node: dict) -> bool:
     return kind == "Recipe" or (isinstance(kind, list) and "Recipe" in kind)
 
 
+def _ld_blocks(page: str) -> Iterator[str]:
+    """Contents of the <script type="application/ld+json"> tags, in one pass over the page
+    (a regex with a lazy body backtracks quadratically on hostile pages)."""
+    low, pos = page.lower(), 0
+    while (start := low.find("<script", pos)) != -1:
+        open_end = low.find(">", start)
+        close = low.find("</script", open_end)
+        if open_end == -1 or close == -1:
+            return
+        if _LD_TYPE.search(low, start, open_end):
+            yield page[open_end + 1 : close]
+        pos = close
+
+
 def extract_recipe(page: str) -> dict | None:
     """The first schema.org Recipe object in the page's JSON-LD blocks."""
-    for block in _LD_JSON.findall(page):
+    for block in _ld_blocks(page):
         try:
             data = json.loads(block, strict=False)
-        except ValueError:
+            found = next((n for n in _walk(data) if _is_recipe(n)), None)
+        except (ValueError, RecursionError):  # broken or absurdly nested JSON-LD
             continue
-        if found := next((n for n in _walk(data) if _is_recipe(n)), None):
+        if found:
             ref = (found.get("image") or {}) if isinstance(found.get("image"), dict) else {}
             if "url" not in ref and isinstance(ref.get("@id"), str):  # Chefkoch: image by @id
                 nodes = {n.get("@id"): n for n in _walk(data) if len(n) > 1}
@@ -95,7 +109,7 @@ def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
     lines = recipe.get("recipeIngredient") or recipe.get("ingredients") or []
     ingredients = []
     for line in [x for x in lines if isinstance(x, str) and x.strip()][:100]:
-        row = parse_ingredient(line, units, piece["id"] if piece else None)
+        row = parse_ingredient(line[:500], units, piece["id"] if piece else None)
         word = row.pop("unit_word")
         hint = row["unit_hint"]
         # an unknown word that is itself an ingredient ("Zwiebeln rot", "Pak Choi") is no unit

@@ -164,6 +164,13 @@ export const formStyles = css`
     opacity: 0.5;
     cursor: not-allowed;
   }
+  /* a submit is running (editDialog ignores further submits meanwhile) */
+  form[data-busy] .primary {
+    opacity: 0.5;
+    cursor: progress;
+  }
+  /* tree open/close arrow (chevron() in ui.ts); the empty span keeps rows without one aligned */
+  .chev,
   .icon-btn {
     flex: none;
     width: 40px;

@@ -48,6 +48,30 @@ def test_migration_10_skip_stock_defaults_to_off():
     assert c.execute("SELECT skip_stock FROM recipe_ingredient").fetchone()[0] == 0
 
 
+def test_upgrade_from_7_keeps_user_data():
+    """A 0.0.x DB with stock, a recipe and user edits goes through every later migration."""
+    c = db.connect(":memory:")
+    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
+    seed(c, "de")
+    c.execute("UPDATE category SET name = 'Teigwaren' WHERE name = 'Nudeln'")
+    c.commit()
+    p = inv.save(c, "product", {"name": "Penne", "category_id": cat(c, "Teigwaren")})
+    inv.book_in(c, p, 2, location_id=loc(c))
+    c.execute(
+        "INSERT INTO recipe (name, servings) VALUES ('R', 2)"
+    )  # today's code needs skip_stock
+    c.execute("INSERT INTO recipe_ingredient (recipe_id, category_id, text) VALUES (1, ?, 'x')",
+              (cat(c, "Teigwaren"),))  # fmt: skip
+    c.commit()
+    db.migrate(c)
+    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
+    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
+    assert c.execute("SELECT min_packages FROM product").fetchone()[0] is None
+    assert inv.recipe_availability(c, 1, 2)[0]["status"] == "available"
+    inv.save(c, "product", {"id": p, "min_packages": 3})
+    assert [i["name"] for i in inv.shopping_list(c)] == ["Penne"]
+
+
 def test_save_keeps_order_and_replaces(conn):
     rid = recipe(conn, [ing(conn, "Nudeln", text="Spaghetti"), ing(conn, "Reis", text="")])
     rows = inv.recipes(conn)[0]["ingredients"]

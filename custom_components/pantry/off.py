@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
+import time
 
 import aiohttp
 from homeassistant.core import HomeAssistant
@@ -78,6 +80,12 @@ def _str(value: object) -> str:
     return value if isinstance(value, str) else ""
 
 
+def _image(value: object) -> str | None:
+    """Only http(s) URLs the product schema accepts (`IMAGE_URL`); anything else is dropped."""
+    url = _str(value)
+    return url if re.match(r"https?://", url) and len(url) <= 2000 else None
+
+
 def normalize(p: dict, lang: str) -> dict:
     """OFF product -> {ean, name, brand, quantity, off_tags, image_url, off_json}."""
     name = next(
@@ -98,7 +106,7 @@ def normalize(p: dict, lang: str) -> dict:
             p.get("product_quantity"), p.get("product_quantity_unit"), p.get("quantity")
         ),
         "off_tags": [t for t in tags if isinstance(t, str)] if isinstance(tags, list) else [],
-        "image_url": _str(p.get("image_front_small_url")) or None,
+        "image_url": _image(p.get("image_front_small_url")),
         "off_json": json.dumps(p, ensure_ascii=False),
     }
 
@@ -138,10 +146,21 @@ async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | No
     return await db.run(inventory.product_draft, normalize(data["product"], lang))
 
 
+# OFF allows 10 searches/min per IP: space them out, so no user can get HA's IP blocked.
+SEARCH_INTERVAL = 6.0
+_last_search = -SEARCH_INTERVAL  # monotonic time of the latest search slot handed out
+
+
 async def async_search(hass: HomeAssistant, query: str) -> list[dict]:
-    """OFF full-text search by name (rate limit 10/min: call on explicit user action only)."""
+    """OFF full-text search by name (call on explicit user action only; spaced, see above)."""
+    global _last_search
     if not query.strip():
         return []
+    # Reserve the next free slot before waiting, so concurrent calls queue up (one event loop).
+    now = time.monotonic()
+    wait = max(0.0, _last_search + SEARCH_INTERVAL - now)
+    _last_search = now + wait
+    await asyncio.sleep(wait)
     lang = hass.config.language.split("-")[0]
     data = await _get(
         hass,

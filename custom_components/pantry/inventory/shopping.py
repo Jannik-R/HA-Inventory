@@ -123,12 +123,11 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
     for root in children.get(None, []):
         walk(root)
     # A check whose shortage is gone or changed is stale: drop it, or it would come back later.
-    for cid in done.keys() - {
-        i["category_id"] for i in items if i["done"] and i["product_id"] is None
-    }:
+    # (`items` holds only min stock items here; items by hand are added below.)
+    checked = [i for i in items if i["done"]]
+    for cid in done.keys() - {i["category_id"] for i in checked if i["product_id"] is None}:
         conn.execute("DELETE FROM shopping_done WHERE category_id = ?", (cid,))
-    open_p = {i["product_id"] for i in items if i["done"] and not i["manual"]}
-    for pid in done_p.keys() - open_p:
+    for pid in done_p.keys() - {i["product_id"] for i in checked}:
         conn.execute("DELETE FROM shopping_done_product WHERE product_id = ?", (pid,))
     for r in conn.execute(
         "SELECT i.*, p.name AS product, p.brand, p.category_id AS product_category"
@@ -197,7 +196,7 @@ def add_shopping_item(
     if category is not None:
         category_id = save(conn, "category", category)
     if (product_id is None) == (category_id is None):
-        raise ValueError("exactly one of product or category")
+        raise InventoryError("invalid_value")
     col, ref = (
         ("product_id", product_id) if product_id is not None else ("category_id", category_id)
     )

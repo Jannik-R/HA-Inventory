@@ -16,7 +16,7 @@ C="docker compose -f dev/docker-compose.yml"
 | Pantry log lines only | `$C logs homeassistant --since 5m 2>&1 \| grep -iE "pantry\|Traceback" \| tail -40` |
 | Errors only | `$C logs homeassistant --since 5m 2>&1 \| grep -E "ERROR\|Traceback" -A5 \| tail -60` |
 | One test file | `$C run --rm test tests/test_inventory.py -q` |
-| All tests | `$C run --rm test tests -q` |
+| All tests (parallel) | `$C run --rm test` (default: `-n 8 tests`) |
 | Build panel | `cd frontend && npm run build` (then hard-reload the browser, no HA restart) |
 | Stop | `$C down` |
 

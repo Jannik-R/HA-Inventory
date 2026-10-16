@@ -10,7 +10,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 
 from . import inventory
-from .const import DOMAIN
+from .const import DOMAIN, MAX_LABELS
 from .websocket import _db, _translated
 from .websocket_label import async_print_labels
 from .ws_validate import ID, NAME, PACKAGES
@@ -39,7 +39,9 @@ BOOK_OUT = vol.Schema(
 PRINT_LABELS = vol.Schema(
     {
         vol.Required("batch_id"): vol.All(vol.Coerce(int), ID),
-        vol.Optional("count", default=1): vol.All(vol.Coerce(int), vol.Range(min=1, max=99)),
+        vol.Optional("count", default=1): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=MAX_LABELS)
+        ),
     }
 )
 

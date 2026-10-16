@@ -1,6 +1,7 @@
 """Open Food Facts parsing, category suggestion and lookup (HTTP mocked)."""
 
 import json
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -202,8 +203,12 @@ async def test_async_search(hass: HomeAssistant, aioclient_mock) -> None:
     aioclient_mock.get(f"{off.BASE}/cgi/search.pl", json={"products": products})
     assert await off.async_search(hass, "  ") == []
     assert aioclient_mock.call_count == 0
-    hits = await off.async_search(hass, "a")
+    with patch.object(off, "asyncio") as aio:  # only off's asyncio, not HA's loop
+        sleep = aio.sleep = AsyncMock()
+        hits = await off.async_search(hass, "a")
+        await off.async_search(hass, "b")  # right after: waits for its slot
     assert [h["ean"] for h in hits] == ["1"]
+    assert sleep.call_args_list[-1].args[0] > off.SEARCH_INTERVAL - 1
 
 
 def test_normalize_survives_odd_fields():

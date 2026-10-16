@@ -10,7 +10,7 @@ book_in:
       selector:
         number:
           min: 1
-          max: 9999
+          max: 2099
           mode: box
     expires_on:
       selector:

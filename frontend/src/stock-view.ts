@@ -65,8 +65,13 @@ export class PantryStock extends LitElement {
     this.message = "";
   }
 
+  private started = false;
+
   willUpdate(changed: PropertyValues) {
-    if (changed.has("hass") && this.hass && !this.md) this.load();
+    if (changed.has("hass") && this.hass && !this.started) {
+      this.started = true; // once: `hass` changes on every state event
+      this.load();
+    }
     // The "label printed" note belongs to the moment of printing.
     if (["filter", "location", "withEmpty", "stock"].some((k) => changed.has(k))) this.message = "";
   }

@@ -212,6 +212,25 @@ def test_no_recipe(conn):
     assert err.value.translation_key == "recipe_not_found"
 
 
+def test_hostile_pages_stay_fast(conn):
+    """No quadratic regex: these took minutes to hours at a few MB before."""
+    import time
+
+    nested = '{"@type": "Recipe", "name": "R", "x": ' + "[" * 100_000 + "]" * 100_000 + "}"
+    start = time.monotonic()
+    for bad in (
+        "<script " * 50_000,
+        "<script type='application/ld+json'>" * 12_000,
+        page(json.dumps({"@type": "Recipe", "name": "<" * 400_000})),
+        page(nested),
+    ):
+        try:
+            inv.recipe_import(conn, bad, "https://x.test")
+        except inv.InventoryError:
+            pass
+    assert time.monotonic() - start < 3
+
+
 async def test_ws_import(ws, aioclient_mock):  # noqa: F811
     html = {"Content-Type": "text/html; charset=utf-8"}
     aioclient_mock.get("https://x.test/ok", text=page(json.dumps(RECIPE)), headers=html)

@@ -164,7 +164,7 @@ barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use;
 
 Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN), product name, brand and expiry date.
 Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an option), and a tag
-button on every batch row in *Bestand* opens a dialog to print any number of labels (1 to 99) for that batch.
+button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
 
 - **Label printer setup** (this is the label printer; a receipt printer will be a separate setting later).
   In Home Assistant open *Settings > Devices & services > Pantry > Configure*. Step 1: choose the
@@ -192,7 +192,7 @@ barcode, unknown location, not enough stock, printer not reachable) make the act
 |---|---|---|
 | `pantry.book_in` | `code` (EAN of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
 | `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
-| `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 99, default 1) | `printed` |
+| `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).

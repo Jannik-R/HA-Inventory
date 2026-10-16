@@ -174,7 +174,7 @@
   "label.count": "Anzahl",
   "label.in_stock": "{n} Packungen im Lager",
   "label.submit": "Drucken",
-  "valid.label_count": "Bitte eine ganze Zahl von 1 bis 99 eingeben.",
+  "valid.label_count": "Bitte eine ganze Zahl von 1 bis {max} eingeben.",
   "label.confirm_many": "{n} Etiketten drucken?",
   "label.printed": "{n} Etiketten gedruckt",
   "book.done_label": "1 × {name} aus {where} ausgebucht",

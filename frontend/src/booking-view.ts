@@ -81,13 +81,16 @@ export class PantryBooking extends LitElement {
     this.error = "";
   }
 
+  private started = false;
+
   willUpdate(changed: PropertyValues) {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
       this.undo = undefined;
     }
-    if (changed.has("hass") && this.hass && !this.md) {
+    if (changed.has("hass") && this.hass && !this.started) {
+      this.started = true; // once: `hass` changes on every state event
       getMasterData(this.hass).then(
         (md) => ((this.md = md), this.requestUpdate()),
         (err) => this.fail(err),
@@ -270,8 +273,11 @@ export class PantryBooking extends LitElement {
   /** Put back what the last book-out took. */
   private async putBack() {
     const taken = this.undo!;
-    this.undo = undefined;
-    if ((await this.run(() => putBack(this.hass!, taken))) === undefined) return;
+    this.undo = undefined; // a second click cannot undo twice
+    if ((await this.run(() => putBack(this.hass!, taken))) === undefined) {
+      this.undo = taken; // failed: still undoable
+      return;
+    }
     this.message = t("book.undone");
     this.focusInput();
   }

@@ -35,7 +35,7 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 | DB access | executor jobs, one connection + lock | `shortcut:` single lock, fine for a household |
 | Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
-| Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only; recipes: any user creates and edits, admin deletes | the kitchen phone may use a non-admin account |
+| Permissions | booking, lookup, search, stock, product edits, shopping list, label printing (max 20 per call): every HA user; any user may also add a category below an existing one (`product_type_add`), a unit (`unit_add`) and import recipes; master data writes otherwise and product delete: admin only; recipes: any user creates and edits, admin deletes | the kitchen phone may use a non-admin account |
 | Automations | HA services `pantry.book_in` / `pantry.book_out` (by EAN or label code + location name, `inventory/codes.py`) and `pantry.print_labels` (network printer only), all with a response; unknown EANs fail (new products need a category: panel only, no OFF call from automations) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
 | Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → committed `www/` (main file + lazy chunks with hashed names); panel URL `?v=<bundle mtime>` busts the browser cache on every build | HACS needs built file |
@@ -75,11 +75,12 @@ batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expi
            -- at most one batch without a date per product (partial unique index, migration 6)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
 shopping_done (category_id PK → category (cascade), missing)   -- checked shopping item + its shortage then
+shopping_done_product (product_id PK → product (cascade), missing)   -- same for a product minimum (migration 11)
 shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL → category,   -- added by hand,
             packages > 0, done 0|1, created_at)   -- exactly one of product / category (CHECK); both cascade
 recipe     (id, name, servings > 0, instructions, source_url, image_url)   -- migration 7
 recipe_ingredient (id, recipe_id → recipe (cascade), category_id NULL → category (set null: text stays,
-            ingredient unmatched), amount > 0, unit_id → unit, text, optional 0|1, skip_stock 0|1)
+            ingredient unmatched), amount > 0, unit_id → unit, text, note, optional 0|1, skip_stock 0|1)
             -- skip_stock (migration 10): never checked against the stock, status "skipped", not in the summary,
             -- never on the shopping list (phase 12); amount and unit both or none; order = id order (saving a recipe replaces all ingredients)
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
@@ -128,7 +129,7 @@ the type's name yet, so user renames and deletions stay). It also sets default u
   Items are grouped by main category. A node without its own min stock passes its children's
   shortage up to its parent.
 - **Product minimum** (`product.min_packages`, migration 11): packages only (the content is fixed,
-  an amount adds nothing). Below it the product is its own item ("Barilla – 2 Pkg. fehlen"), and
+  an amount adds nothing). Below it the product is its own item ("Spaghetti (Barilla) – 2 Packungen fehlen"; panel: "Barilla · 2 Pkg. fehlen"), and
   its shortfall counts like a child's shortage toward its category and above: packages as is,
   the amount as packages × content (not if the content is unknown). Checks in `shopping_done_product`.
 - **Automatic category assignment**: each category node has `off_tags` (OFF category
@@ -238,9 +239,9 @@ HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print se
   behind them (no bidirectional status). Test the 450 with one raw test label (via
   `nc <print server> 9100 < test.bin`) before building on it; if it fails, use CUPS on a Pi with USB.
 
-Options (config flow → options): transport (`raw` print server host[:port] | `ipp` CUPS queue URI),
-label width/height mm, auto-print on book-in. Test print button in options.
-Label content: QR `PTRY:<key>:<date>`, product name, brand, expiry date. No label table; reprint = `count` identical labels of a batch (1..99); `pantry/print_labels` renders once: network printer `{printed}`, browser `{image, count, width_mm, height_mm}` (the panel repeats the image).
+Options (config flow → options): printer model (or none), print server host[:port], label width/height mm,
+auto-print on book-in, test print. (IPP/CUPS is not built.)
+Label content: QR `PTRY:<key>:<date>`, product name, brand, expiry date. No label table; reprint = `count` identical labels of a batch (1..20, `MAX_LABELS`); `pantry/print_labels` renders once: network printer `{printed}`, browser `{image, count, width_mm, height_mm}` (the panel repeats the image).
 README documents the print server setup (fixed IP, port 9100 enabled) and the optional CUPS setup.
 
 Network printing is **optional**: no printer configured → labels still work, the panel

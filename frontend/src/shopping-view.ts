@@ -41,8 +41,13 @@ export class PantryShopping extends LitElement {
     this.error = "";
   }
 
+  private started = false;
+
   willUpdate(changed: PropertyValues) {
-    if (changed.has("hass") && this.hass && !this.items) this.load();
+    if (changed.has("hass") && this.hass && !this.started) {
+      this.started = true; // once: `hass` changes on every state event
+      this.load();
+    }
   }
 
   private async load(keepError = false) {

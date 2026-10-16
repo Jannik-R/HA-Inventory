@@ -149,7 +149,15 @@ export const formStyles = css`
   .field-hint {
     color: var(--warning-color);
   }
-  [aria-invalid="true"] {
+  /* Errors only after the field was edited or left (data-touched, set in pantry-panel.ts):
+     an empty form does not open in red; the primary button is disabled anyway. */
+  .field-error {
+    display: none;
+  }
+  :has([data-touched]) > .field-error {
+    display: block;
+  }
+  [aria-invalid="true"][data-touched] {
     border-color: var(--error-color) !important;
   }
   button:disabled {

@@ -28,7 +28,7 @@ test.afterAll(async ({ browser }) => {
   await page.close();
 });
 
-// Live validation: errors show while typing and block saving; nothing is saved here.
+// Live validation: errors show once a field is edited or left and block saving; nothing is saved here.
 test("booking form validates while typing", async ({ page }) => {
   await openPage(page, "/pantry/in", "Einbuchen");
   const code = page.getByTestId("code-input");
@@ -37,7 +37,8 @@ test("booking form validates while typing", async ({ page }) => {
   await page.getByTestId("new-product").click();
   const submit = page.getByTestId("submit");
 
-  await expect(page.getByTestId("category-error")).toBeVisible();
+  // Untouched fields show no error yet, but the missing category still blocks saving.
+  await expect(page.getByTestId("category-error")).toBeHidden();
   await expect(submit).toBeDisabled();
 
   await page.getByTestId("name").fill("");

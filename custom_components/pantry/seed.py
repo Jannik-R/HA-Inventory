@@ -3,6 +3,7 @@
 import sqlite3
 
 from .inventory.inherit import set_tags
+from .seed_types import add_seed_extras
 
 # Category: (name, off_tags, defaults, [(sub-category, off_tags[, location]), ...]).
 # defaults keys: warn_days, expiry_type, location, unit (names resolved at seed time).
@@ -208,3 +209,4 @@ def seed(conn: sqlite3.Connection, lang: str) -> None:
                 (parent, child, j, locations.get(next(iter(location), None))),
             ).lastrowid
             set_tags(conn, child_id, child_tags)
+    add_seed_extras(conn)

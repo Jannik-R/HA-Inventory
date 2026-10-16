@@ -35,16 +35,17 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, shopping, removal
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, recipes, removal
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
+  seed_types.py             seeded product types (lowest category level), shared by seed and migration 8
   off.py                    Open Food Facts client
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
   sensor.py                 expired / expiring-soon sensors (no polling)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
   services.py               HA services (book_in / book_out by code, print_labels) + services.yaml
-  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; ws_validate.py: shared input validators
+  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe commands; ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
@@ -100,7 +101,7 @@ Calm, functional, looks like a tool, not like a demo.
   - Closing: a click beside it (`backdropClick`) or Esc (`escGuard`) closes it; with unsaved changes both ask "Änderungen verwerfen?" first. "Abbrechen" discards without asking (deliberate).
   - Backend errors show above the actions; width `min(480px, 100vw - 32px)`, content scrolls inside on small screens.
 - **Wording for inherited values**: always "Geerbt: <Wert> (<Quelle>)" (key `common.default`), never "Vorgabe" or "Erben"; source "von <Kategorie>", "vom Produkt", "Standard" or "zuletzt benutzt".
-- **Forms validate live**: every form computes its field errors on each render (an `errors()` function), shows them under the field (`fieldMsg`, `aria-invalid` red border) and disables its primary button while any exist. Warnings that must not block (e.g. a past date) use the hint style. The submit handler re-checks; the backend still validates (trust boundary).
+- **Forms validate live**: every form computes its field errors on each render (an `errors()` function), shows them under the field (`fieldMsg`, `aria-invalid` red border) and disables its primary button while any exist. A field shows its error only once it was edited or left (`data-touched`, set globally in `pantry-panel.ts`, cleared when an `editDialog` closes), so a new form does not open in red. Warnings that must not block (e.g. a past date) use the hint style. The submit handler re-checks; the backend still validates (trust boundary).
 
 ## Commands
 

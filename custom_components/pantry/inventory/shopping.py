@@ -4,34 +4,11 @@ from __future__ import annotations
 
 import sqlite3
 
+from .amounts import _amount, _convert, _stock_by_category, _units
 from .common import InventoryError, _now
 from .inherit import _categories, _chain, _path
 from .master import save
 from .products import add_product
-
-
-def _units(conn: sqlite3.Connection) -> dict[int, sqlite3.Row]:
-    return {r["id"]: r for r in conn.execute("SELECT * FROM unit")}
-
-
-def _convert(units: dict, value: float, from_id: int, to_id: int) -> float | None:
-    if from_id == to_id:
-        return value
-    a, b = units[from_id], units[to_id]
-    base_a, base_b = a["base_unit_id"] or a["id"], b["base_unit_id"] or b["id"]
-    if base_a != base_b:
-        return None
-    return value * a["factor"] / b["factor"]
-
-
-def _amount(
-    units: dict, packages: int, content_amount, content_unit_id, unit_id: int
-) -> float | None:
-    if units[unit_id]["is_count"]:
-        return packages
-    if content_amount is None or content_unit_id is None:
-        return None
-    return _convert(units, packages * content_amount, content_unit_id, unit_id)
 
 
 def _key(item: dict) -> str:
@@ -46,13 +23,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
     children: dict[int | None, list[int]] = {}
     for c in cats.values():
         children.setdefault(c["parent_id"], []).append(c["id"])
-    products: dict[int, list[sqlite3.Row]] = {}
-    for p in conn.execute(
-        "SELECT p.id, p.category_id, p.content_amount, p.content_unit_id,"
-        " COALESCE(SUM(s.packages), 0) AS packages FROM product p"
-        " LEFT JOIN batch b ON b.product_id = p.id LEFT JOIN stock s ON s.batch_id = b.id GROUP BY p.id"
-    ):
-        products.setdefault(p["category_id"], []).append(p)
+    products = _stock_by_category(conn)
     done = dict(conn.execute("SELECT category_id, missing FROM shopping_done").fetchall())
     items: list[dict] = []
 

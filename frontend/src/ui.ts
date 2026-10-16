@@ -68,7 +68,12 @@ export const editDialog = (o: {
   onClosed: () => void;
 }) =>
   html`<dialog
-    @close=${o.onClosed}
+    @close=${(e: Event) => {
+      // A reopened dialog starts untouched again (see data-touched in formStyles).
+      for (const el of (e.target as Element).querySelectorAll("[data-touched]"))
+        el.removeAttribute("data-touched");
+      o.onClosed();
+    }}
     @click=${backdropClick(o.dirty)}
     @keydown=${escGuard(o.dirty)}
     @cancel=${escGuard(o.dirty)}

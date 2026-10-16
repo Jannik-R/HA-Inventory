@@ -20,6 +20,7 @@ COLUMNS = {
         "ean", "name", "brand", "category_id", "content_amount", "content_unit_id",
         "default_location_id", "expiry_type", "warn_days", "image_url", "off_json",
     ),
+    "recipe": ("name", "servings", "instructions", "source_url", "image_url"),
 }  # fmt: skip
 
 

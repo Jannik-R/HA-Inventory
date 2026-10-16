@@ -86,12 +86,12 @@ def test_keyword_score(word, keyword, expected):
     ("name", "category"),
     [
         ("Cornichons", "Gemüsekonserven"),
-        ("Feine Gewürzgurken", "Gemüsekonserven"),
-        ("Tomatensauce Basilikum", "Saucen"),
+        ("Feine Gewürzgurken", "Gewürzgurken"),
+        ("Tomatensauce Basilikum", "Tomatensauce"),
         ("Erdbeerkonfitüre extra", "Marmelade"),
-        ("Milchreis", "Reis"),
+        ("Milchreis", "Milchreis"),
         ("Joghurt Erdbeere", "Joghurt"),
-        ("Erdnussbutter crunchy", "Nussaufstrich"),
+        ("Erdnussbutter crunchy", "Erdnussbutter"),
         ("Weißwein trocken", None),
     ],
 )
@@ -110,7 +110,7 @@ def test_suggest_falls_back_to_similar_names(conn):
     assert inv.suggest(conn, [], "Viva las tapas") == cat(conn, "Fertiggerichte")
     # OFF tags and keywords come first.
     assert inv.suggest(conn, ["en:pastas"], "Tapas") == cat(conn, "Nudeln")
-    assert inv.suggest(conn, [], "Tapas Oliven") == cat(conn, "Gemüsekonserven")
+    assert inv.suggest(conn, [], "Tapas Oliven") == cat(conn, "Oliven")
 
 
 def test_product_draft(conn):

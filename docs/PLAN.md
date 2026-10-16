@@ -35,7 +35,7 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 | DB access | executor jobs, one connection + lock | `shortcut:` single lock, fine for a household |
 | Product data | Open Food Facts API v2 (EAN), `cgi/search.pl` for names (10 req/min: explicit search only); local products first; OFF result stored in `product` table on first booking | free, good DE coverage; local copy = cache |
 | Frontend → backend | HA websocket commands | panel already has authenticated `hass` |
-| Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only | the kitchen phone may use a non-admin account |
+| Permissions | booking, lookup, search, stock: every HA user; master data writes and product delete: admin only; recipes: any user creates and edits, admin deletes | the kitchen phone may use a non-admin account |
 | Automations | HA services `pantry.book_in` / `pantry.book_out` (by EAN or label code + location name, `inventory/codes.py`) and `pantry.print_labels` (network printer only), all with a response; unknown EANs fail (new products need a category: panel only, no OFF call from automations) | scanners/NFC/ESPHome can call them |
 | Shopping list | own `todo` entity | native HA list UI, mobile app, Assist |
 | Panel | `panel_custom` + static path, Lit + TypeScript, Vite build → committed `www/` (main file + lazy chunks with hashed names); panel URL `?v=<bundle mtime>` busts the browser cache on every build | HACS needs built file |
@@ -76,6 +76,10 @@ stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_
 shopping_done (category_id PK → category (cascade), missing)   -- checked shopping item + its shortage then
 shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL → category,   -- added by hand,
             packages > 0, done 0|1, created_at)   -- exactly one of product / category (CHECK); both cascade
+recipe     (id, name, servings > 0, instructions, source_url, image_url)   -- migration 7
+recipe_ingredient (id, recipe_id → recipe (cascade), category_id NULL → category (set null: text stays,
+            ingredient unmatched), amount > 0, unit_id → unit, text, optional 0|1)
+            -- amount and unit both or none; order = id order (saving a recipe replaces all ingredients)
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
 category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
 booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascade), location_id → location,
@@ -90,7 +94,12 @@ booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascad
 
 One self-referencing `category` table, any depth. Convention (not enforced):
 **main category → category → food type**, e.g. `Nudeln, Reis & Getreide → Nudeln → Spaghetti`.
-Products attach to any node, normally the leaf.
+Products attach to any node, normally the leaf. The lowest level is called **Produktart** (product type)
+in the UI: brand-independent, e.g. Tomatenmark. No separate table: a product type is a category.
+The seed (`seed_types.py`, ~320 types under the sub-categories) fills it for a new DB; migration 8 adds
+the missing ones to existing DBs (only under a parent with that exact name, only when no category has
+the type's name yet, so user renames and deletions stay). It also sets default units (`_DE_UNITS`: Milch l, Käse g, Fleisch g, ...) on categories without an own unit. Any user can add a type from a recipe
+(`pantry/product_type_add`). Name keywords also match single-word type names (`suggest.py`).
 
 - **Inheritance**: `unit`, `default_location`, `expiry_type`, `warn_days` resolve
   product → its category → parent … → root → integration defaults (`defaults` table).
@@ -135,9 +144,14 @@ Products attach to any node, normally the leaf.
   seed fixes for existing DBs need a migration step.
 - **Amounts**: stock is counted in packages (one label per package). For min stock and
   display, packages × `content_amount` are converted into the node's effective unit
-  via `unit.base_unit_id/factor`. Unit `Stück`/`Packung` = count packages.
+  via `unit.base_unit_id/factor`. A count unit (`Stück`/`Packung`) uses the content when it converts
+  (10 Eier per package), else counts packages.
   Product without convertible content → counted as unknown, flagged in UI.
-- Recipes later reference a category node: "Nudeln" accepts any pasta, "Spaghetti" only spaghetti.
+- **Recipe availability**: an ingredient references a category node: "Nudeln" accepts any pasta, "Spaghetti"
+  only spaghetti. Stock of the node and all descendants counts (converted like min stock, scaled by
+  servings / recipe servings). Status: `available`, `partial`, `missing`, `unknown` (only products with
+  unconvertible content), `unmatched` (no category). No amount: available when any product of the subtree
+  is in stock. Optional ingredients are left out of the summary.
 
 ### Seeded main categories (editable)
 
@@ -298,7 +312,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 8 | Labels | done | `inventory/labels.py` (`label_info`, `book_out_code`: one package of the batch the code names; no schema change), `label.py` (QR + text with Pillow/segno, Dymo stream, raw TCP send), options flow in two steps (printer model via `label_printers.py`, then host, size, print on book-in, test print), confirm before printing more than 2 labels, `websocket_label.py`, panel: print on book-in, reprint dialog per batch row, scan `PTRY:` to book out, browser print when no printer. CUPS/IPP not built |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
 | 9 | Release | done | services `pantry.book_in` / `book_out` / `print_labels`, README, `release` skill, CHANGELOG, first release 0.1.0 (HACS once the repo is public) |
-| 10 | Recipe DB | open | `recipe` (name, servings, instructions, source URL, image URL), `recipe_ingredient` (category node as the ingredient key, amount, unit, original text, optional flag); tab *Rezepte*: list with search, edit dialog, availability per ingredient from stock (category subtree, unit conversion like min stock). Cooking does **not** book out (booking stays manual) |
+| 10 | Recipe DB | done | `recipe` (name, servings, instructions, source URL, image URL), `recipe_ingredient` (category node = product type or a more general category as the ingredient key, amount, unit, `text` = name snapshot of the category (typed only while unmatched), optional `note`, optional flag); tab *Rezepte*: list with search, edit dialog, availability per ingredient from stock (category subtree, unit conversion like min stock). Cooking does **not** book out (booking stays manual). Migration 7 (migration 8: seeded product types); `inventory/recipes.py` + `amounts.py` (shared with min stock; a count unit now uses the package content); `websocket_recipe.py`; servings scaling per view (household default comes with phase 13); delete via `deleteMasterRow` |
 | 11 | Recipe import | open | URL → schema.org `Recipe` JSON-LD (Chefkoch and most recipe sites), fetched via HA's session on user action only; ingredient lines parsed (amount, unit, name) → category suggested (`suggest_by_name` / keywords), confirmed in a dialog. Sources without JSON-LD (Instagram caption, free text) need an LLM: added in phase 19 |
 | 12 | Shopping by recipes | open | pick recipes + servings → missing amounts (demand − stock per category) → items on the shopping list (same todo entity), source shown. Offers (supermarket discounts) deferred: see 7 |
 | 13 | Week planner | open | `meal_plan(date, slot, recipe_id or free text, servings)`; slots flexible per day (default one per day, more added as needed); default servings = option *Portionen im Haushalt* (3); panel week view; HA `calendar` entity shows the plan |
@@ -310,6 +324,11 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task` |
 
 Order decided 2026-10-16. Data model details are designed (agent `architect`) at the start of each phase.
+
+**Open todos** (check before starting the next phase):
+
+- Before phase 11: fix the flaky E2E `booking.spec.ts` (the message after booking out / undo is sometimes cleared; also fails with the phase 9 bundle).
+- Ongoing: extend the seeded product types (`seed.py`, lowest category level) whenever everyday products are missing; existing DBs get new ones by a migration step (released since 0.1.0).
 
 ## 7. Extension points (not built now)
 

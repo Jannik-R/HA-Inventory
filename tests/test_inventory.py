@@ -638,3 +638,16 @@ def test_delete_impact_logs_only_touched_rows(conn):
     default = inv.defaults(conn)["unit_id"]
     assert inv.delete_impact(conn, "unit", default)["blocked"] == "unit_is_default"
     assert conn.execute("SELECT count(*) FROM sqlite_temp_master").fetchone()[0] == 0
+
+
+def test_min_stock_count_unit_uses_package_content(conn):
+    """A 10-pack of eggs counts 10 Stück; a product without convertible content counts packages."""
+    stk, nudeln = unit(conn, "Stück"), cat(conn, "Nudeln")
+    inv.save(conn, "category", {"id": nudeln, "min_stock": 12, "min_stock_unit_id": stk})
+    eggs = product(conn, "Eier", content_amount=10, content_unit_id=stk)
+    inv.book_in(conn, eggs, 1, location_id=loc(conn))
+    item = {i["name"]: i for i in inv.shopping_list(conn)}["Nudeln"]
+    assert item["amount"]["missing"] == pytest.approx(2)
+    inv.book_in(conn, product(conn, "Lose"), 1, location_id=loc(conn))  # no content: 1 package
+    item = {i["name"]: i for i in inv.shopping_list(conn)}["Nudeln"]
+    assert item["amount"]["missing"] == pytest.approx(1)

@@ -67,6 +67,8 @@ export interface MasterData {
   defaults: Record<InheritField, number | string | null>;
 }
 export type Table = "unit" | "location" | "category";
+/** What `pantry/delete` accepts: master data plus products and recipes. */
+export type DeleteTable = Table | "product" | "recipe";
 
 export const getMasterData = (hass: Hass) =>
   hass.callWS<MasterData>({ type: "pantry/master_data" });
@@ -77,7 +79,7 @@ export const saveDefaults = (hass: Hass, data: MasterData["defaults"]) =>
 /** `force`: also delete what uses the row (see getDeleteImpact); `move_to`: target for a location's stock. */
 export const deleteRow = (
   hass: Hass,
-  table: Table | "product",
+  table: DeleteTable,
   row_id: number,
   opts: { force?: boolean; move_to?: number | null } = {},
 ) => hass.callWS<unknown>({ type: "pantry/delete", table, row_id, ...opts });
@@ -89,7 +91,7 @@ export interface DeleteGroup {
   names: string[];
   packages?: number;
 }
-export const getDeleteImpact = (hass: Hass, table: Table | "product", row_id: number) =>
+export const getDeleteImpact = (hass: Hass, table: DeleteTable, row_id: number) =>
   hass.callWS<{ blocked: string | null; groups: DeleteGroup[] }>({
     type: "pantry/delete_impact",
     table,
@@ -118,7 +120,11 @@ export interface SearchHit {
   ean: string | null;
   name: string;
   brand: string | null;
+  category_id?: number | null;
 }
+/** A new lowest-level category ("Produktart") under `parent_id`. */
+export const addProductType = (hass: Hass, name: string, parent_id: number) =>
+  hass.callWS<{ id: number }>({ type: "pantry/product_type_add", name, parent_id });
 export interface StockRow {
   batch_id: number;
   location_id: number;
@@ -239,3 +245,38 @@ export const bookOutLabel = (hass: Hass, code: string) =>
     type: "pantry/book_out_label",
     code,
   });
+
+export type IngredientStatus = "available" | "partial" | "missing" | "unknown" | "unmatched";
+export interface Ingredient {
+  id?: number;
+  category_id: number | null;
+  amount: number | null;
+  unit_id: number | null;
+  text: string;
+  note?: string | null;
+  optional: boolean;
+  status?: IngredientStatus;
+  /** With an amount (matched): need/have/missing in `unit_symbol`. */
+  need?: number;
+  have?: number;
+  missing?: number;
+  unit_symbol?: string;
+  unknown_products?: number;
+  /** Without an amount (matched): packages. */
+  packages?: number;
+}
+export interface Recipe {
+  id: number;
+  name: string;
+  servings: number;
+  instructions: string | null;
+  source_url: string | null;
+  image_url: string | null;
+  ingredients: Ingredient[];
+  summary: { available: number; total: number };
+}
+export const getRecipes = (hass: Hass) => hass.callWS<Recipe[]>({ type: "pantry/recipes" });
+export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: number) =>
+  hass.callWS<Ingredient[]>({ type: "pantry/recipe_availability", recipe_id, servings });
+export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
+  hass.callWS<{ id: number }>({ type: "pantry/recipe_save", data });

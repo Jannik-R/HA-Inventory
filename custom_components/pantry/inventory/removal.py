@@ -20,6 +20,7 @@ _ORDER = (
     "stock",
     "booking",
     "shopping_item",
+    "recipe_ingredient",
     "unit",
     "location",
     "defaults",
@@ -69,6 +70,10 @@ def force_delete(
         conn.execute(
             "UPDATE product SET content_amount = NULL, content_unit_id = NULL"
             f" WHERE content_unit_id IN ({marks})",
+            ids,
+        )
+        conn.execute(
+            f"UPDATE recipe_ingredient SET amount = NULL, unit_id = NULL WHERE unit_id IN ({marks})",
             ids,
         )
         conn.execute("DELETE FROM unit WHERE base_unit_id = ?", (row_id,))
@@ -125,6 +130,8 @@ def _label(conn: sqlite3.Connection, table: str, row: dict) -> str | None:
             else ("category", row["category_id"])
         )
         r = conn.execute(f"SELECT name FROM {ref[0]} WHERE id = ?", (ref[1],)).fetchone()
+    elif table == "recipe_ingredient":
+        r = conn.execute("SELECT name FROM recipe WHERE id = ?", (row["recipe_id"],)).fetchone()
     else:
         return None
     return r[0] if r else None
@@ -152,7 +159,11 @@ def delete_impact(conn: sqlite3.Connection, table: str, row_id: int) -> dict:
     deleted = {(t, rid) for t, rid, action, _ in log if action == "delete"}
     found: dict[tuple[str, str], dict[int, dict]] = {}
     for t, rid, action, row in log:
-        if t in _HIDDEN or (action == "change" and (t, rid) in deleted):
+        if (
+            t in _HIDDEN
+            or (t == "recipe_ingredient" and action == "delete")
+            or (action == "change" and (t, rid) in deleted)
+        ):
             continue
         r = json.loads(row)
         if t == table and r.get("id") == row_id:

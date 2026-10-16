@@ -6,13 +6,14 @@ import asyncio
 import sqlite3
 import threading
 from collections.abc import Callable
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
 from .seed import seed
-from .seed_types import add_seed_extras
+from .seed_types import NEW_IN_9, add_seed_extras
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -333,6 +334,11 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     """,
     # 8: seeded product types for existing DBs (a new DB gets them from the seed).
     add_seed_extras,
+    # 9: units cl/dl and a few product types for existing DBs (only those, deleted ones stay gone).
+    partial(add_seed_extras, only=NEW_IN_9),
+    # 10: ingredient never checked against the stock (salt, water): no status, not on the shopping list.
+    "ALTER TABLE recipe_ingredient ADD COLUMN skip_stock INTEGER NOT NULL DEFAULT 0"
+    " CHECK (skip_stock IN (0, 1));",
 ]
 
 

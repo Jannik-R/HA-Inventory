@@ -35,17 +35,18 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, recipes, removal
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, recipes, recipe_import, ingredient_line, removal
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
-  seed_types.py             seeded product types (lowest category level), shared by seed and migration 8
+  seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   off.py                    Open Food Facts client
+  recipe_fetch.py           recipe page fetch for the import (HA session, on user click only)
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
   sensor.py                 expired / expiring-soon sensors (no polling)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
   services.py               HA services (book_in / book_out by code, print_labels) + services.yaml
-  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe commands; ws_validate.py: shared input validators
+  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
@@ -56,6 +57,7 @@ frontend/                   panel source (Lit + TypeScript, Vite)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
+scripts/import_check.py     recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/)
 docs/PLAN.md                architecture and roadmap
 ```
 

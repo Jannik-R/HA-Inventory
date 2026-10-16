@@ -65,6 +65,12 @@
     "invalid_ean": {
       "message": "Ungültiger Barcode (8 bis 14 Ziffern)."
     },
+    "recipe_unreachable": {
+      "message": "Die Seite konnte nicht geladen werden."
+    },
+    "recipe_not_found": {
+      "message": "Auf dieser Seite wurde kein Rezept gefunden (benötigt Rezeptdaten nach schema.org)."
+    },
     "off_unavailable": {
       "message": "Open Food Facts ist nicht erreichbar. Bitte später erneut versuchen."
     },

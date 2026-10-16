@@ -38,6 +38,16 @@ def test_migration_7_upgrade():
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
+def test_migration_10_skip_stock_defaults_to_off():
+    c = db.connect(":memory:")
+    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
+    c.execute("INSERT INTO recipe (name, servings) VALUES ('R', 2)")
+    c.execute("INSERT INTO recipe_ingredient (recipe_id, text) VALUES (1, 'Salz')")
+    c.commit()
+    db.migrate(c)
+    assert c.execute("SELECT skip_stock FROM recipe_ingredient").fetchone()[0] == 0
+
+
 def test_save_keeps_order_and_replaces(conn):
     rid = recipe(conn, [ing(conn, "Nudeln", text="Spaghetti"), ing(conn, "Reis", text="")])
     rows = inv.recipes(conn)[0]["ingredients"]
@@ -103,6 +113,45 @@ def test_product_types_seed_and_migration_8():
     assert up.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
 
 
+def test_migration_9_adds_only_new_items():
+    up = db.connect(":memory:")
+    up.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
+    seed(up, "de")
+    for name in (
+        "Blätterteig",
+        "Maronen",
+        "Schattenmorellen",
+        "Schweineschmalz",
+        "Spaghetti",
+        "Pak Choi",
+    ):
+        up.execute("DELETE FROM category WHERE name = ?", (name,))
+    up.execute(
+        "DELETE FROM category WHERE parent_id = (SELECT id FROM category WHERE name = 'Alkohol')"
+    )
+    up.execute(
+        "DELETE FROM category WHERE name = 'Alkohol'"
+    )  # as an older DB without the sub-category
+    up.execute("DELETE FROM unit WHERE name IN ('cl', 'dl', 'Tasse')")
+    up.execute("PRAGMA user_version=8")  # as a 0.1.0 DB: a user also deleted Spaghetti
+    up.commit()
+    db.migrate(up)
+    names = {r[0] for r in up.execute("SELECT name FROM category")}
+    assert {"Blätterteig", "Maronen", "Schattenmorellen", "Schweineschmalz"} <= names
+    assert {"Pak Choi", "Rum", "Alkohol"} <= names and "Spaghetti" not in names
+    assert tuple(
+        up.execute(
+            "SELECT a.name, u.name FROM category c JOIN category a ON a.id = c.parent_id"
+            " LEFT JOIN unit u ON u.id = a.unit_id WHERE c.name = 'Rum'"
+        ).fetchone()
+    ) == ("Alkohol", "ml")
+    assert up.execute("SELECT 1 FROM unit WHERE name = 'Tasse'").fetchone()
+    assert (
+        up.execute("SELECT base_unit_id, factor FROM unit WHERE name = 'dl'").fetchone()[1] == 100
+    )
+    assert up.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
+
+
 def test_default_units(conn):
     def unit_of(c, name):
         return c.execute(
@@ -126,6 +175,18 @@ def test_default_units(conn):
 
 def test_suggest_lands_on_product_type(conn):
     assert inv.suggest(conn, [], "Mutti Tomatenmark") == cat(conn, "Tomatenmark")
+    for name, expected in {
+        "Ei": "Eier",
+        "Kirsche": "Kirschen",
+        "Marone": "Maronen",
+        "Schalotte": "Schalotten",
+        "Pak Choi": "Pak Choi",
+        "Joghurt Erdbeere": "Joghurt",
+        "Fett": "Öl",
+        "Crème fraîche": "Crème fraîche",
+        "Schweineschmalz": "Schweineschmalz",
+    }.items():
+        assert inv.suggest(conn, [], name) == cat(conn, expected), name
 
 
 def test_availability_subtree_units_and_scaling(conn):
@@ -154,8 +215,11 @@ def test_availability_unknown_unmatched_no_amount_optional(conn):
         ing(conn, "Reis", text="Reis"),               # no amount, in stock
         ing(conn, None, text="Salz"),                 # unmatched
         ing(conn, "Nudeln", 1, "g", optional=True),   # optional: not in the summary
+        ing(conn, "Nudeln", 1, "g", skip_stock=True), # skipped: no lookup, not in the summary
     ])  # fmt: skip
-    assert status(conn, rid, 2) == ["unknown", "missing", "available", "unmatched", "missing"]
+    assert status(conn, rid, 2) == [
+        "unknown", "missing", "available", "unmatched", "missing", "skipped"
+    ]  # fmt: skip
     (r,) = inv.recipes(conn)
     assert r["summary"] == {"available": 1, "total": 4}
 

@@ -4,6 +4,7 @@ import { test as base, type BrowserContext } from "@playwright/test";
 export type { Browser, Page } from "@playwright/test";
 
 const callsByContext = new WeakMap<BrowserContext, unknown[]>();
+const stubsByContext = new WeakMap<BrowserContext, Map<string, unknown>>();
 
 /**
  * E2E tests must never print: the dev HA may have the real label printer configured.
@@ -13,6 +14,8 @@ const callsByContext = new WeakMap<BrowserContext, unknown[]>();
 export async function blockPrinting(context: BrowserContext) {
   const calls: unknown[] = [];
   callsByContext.set(context, calls);
+  const stubs = new Map<string, unknown>();
+  stubsByContext.set(context, stubs);
   await context.route("**/api/config/config_entries/options/flow**", (route) =>
     route.request().method() === "POST" ? route.abort() : route.fallback(),
   );
@@ -26,6 +29,15 @@ export async function blockPrinting(context: BrowserContext) {
           JSON.stringify({ id: msg.id, type: "result", success: true, result: { printed: 0 } }),
         );
       }
+      if (msg && stubs.has(msg.type))
+        return ws.send(
+          JSON.stringify({
+            id: msg.id,
+            type: "result",
+            success: true,
+            result: stubs.get(msg.type),
+          }),
+        );
       server.send(raw);
     });
     server.onMessage((raw) => ws.send(raw));
@@ -35,7 +47,7 @@ export async function blockPrinting(context: BrowserContext) {
 /** Use this `test` in every spec (not the one from @playwright/test).
  *  `printCalls`: the print requests this test's page made (all blocked). */
 export const test = base.extend<
-  { printCalls: unknown[] },
+  { printCalls: unknown[]; wsStub: (type: string, result: unknown) => void },
   { browser: import("@playwright/test").Browser }
 >({
   // Every context made from the browser (fixtures, `browser.newPage()`, `browser.newContext()`)
@@ -52,6 +64,8 @@ export const test = base.extend<
     },
     { scope: "worker" },
   ],
+  wsStub: ({ context }, use) =>
+    use((type, result) => stubsByContext.get(context)?.set(type, result)),
   printCalls: [({ context }, use) => use(callsByContext.get(context) ?? []), { auto: true }],
 });
 export { expect } from "@playwright/test";

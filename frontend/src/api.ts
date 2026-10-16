@@ -246,7 +246,8 @@ export const bookOutLabel = (hass: Hass, code: string) =>
     code,
   });
 
-export type IngredientStatus = "available" | "partial" | "missing" | "unknown" | "unmatched";
+export type IngredientStatus =
+  "available" | "partial" | "missing" | "unknown" | "unmatched" | "skipped";
 export interface Ingredient {
   id?: number;
   category_id: number | null;
@@ -255,6 +256,10 @@ export interface Ingredient {
   text: string;
   note?: string | null;
   optional: boolean;
+  skip_stock: boolean;
+  /** Import only: the original line and the unit word that matched no unit. */
+  line?: string;
+  unit_hint?: string | null;
   status?: IngredientStatus;
   /** With an amount (matched): need/have/missing in `unit_symbol`. */
   need?: number;
@@ -280,3 +285,8 @@ export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: n
   hass.callWS<Ingredient[]>({ type: "pantry/recipe_availability", recipe_id, servings });
 export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "pantry/recipe_save", data });
+export type RecipeDraft = Omit<Recipe, "id" | "summary">;
+export const importRecipe = (hass: Hass, url: string) =>
+  hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", url });
+export const addUnit = (hass: Hass, name: string, symbol?: string) =>
+  hass.callWS<{ id: number }>({ type: "pantry/unit_add", name, symbol });

@@ -17,13 +17,13 @@ Available:
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a network label printer (Dymo LabelWriter 450 behind a USB print server) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
-- Recipe database with ingredients matched to categories: see what is in stock, scale the servings
+- Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 
 Planned:
 
 - Receipt printer (ESC/POS) for the shopping list and later recipes
-- Recipe import from Chefkoch and other recipe sites, shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
+- Shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
@@ -89,16 +89,24 @@ their status, instructions, source link and image. *Portionen* in the open row s
 this is only shown, never saved.
 
 An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
-optional amount with a unit, or none ("optional" ingredients are not counted in the summary).
+optional amount with a unit, or none ("optional" ingredients and those marked *Nicht gegen den Vorrat prüfen*, e.g. Salz or Wasser, are not counted in the summary; the latter show "nicht geprüft" instead of a status and are never put on a shopping list).
 Status: *vorhanden*, *teilweise: 50 von 200 g*, *fehlt 150 g*, *Menge unbekannt* (stock has products
 without a content in a matching unit), *keine Zutat zugeordnet* (counts as not available). Without an
 amount, any package in the category is enough. Cooking does not book anything out: take the
 ingredients out in *Auslagern* as usual.
 
 *Rezept hinzufügen* and the pencil are open to every user: name, portions, instructions, links and the ingredient rows
-(Produktart or category, *Hinweis*, amount and unit together or neither, optional). The *Zutat* field is a search: type a Produktart or category name, or a product name ("Mutti" finds Tomatenmark, shown as "über Mutti Tomatenmark"). If nothing fits, *Neue Produktart „…“ anlegen* asks for the parent category and creates it right there. Picking a category fills an empty
+(Produktart or category, *Hinweis*, amount and unit together or neither, optional, *Nicht gegen den Vorrat prüfen*). The *Zutat* field is a search: type a Produktart or category name, or a product name ("Mutti" finds Tomatenmark, shown as "über Mutti Tomatenmark"). If nothing fits, *Neue Produktart „…“ anlegen* asks for the parent category and creates it right there. Picking a category fills an empty
 unit with its unit. Only admins can delete a recipe (the bin).
 Deleting a category or unit that recipes use asks first and lists those recipes. The ingredients stay: without the category they show *keine Zutat zugeordnet*; deleting a unit also clears their amount (amount and unit only go together).
+
+Every unit select in a recipe ingredient row has *Neue Einheit …*: any user can add a unit there. Spelling variants (Tasse, Tassen, tasse) map to one unit; an existing match is reused instead of a duplicate.
+
+*Importieren* on the tab reads a recipe from a URL. Home Assistant loads that page only when you click (15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads the schema.org recipe data that most recipe sites publish. Nothing is saved yet: the recipe dialog opens prefilled with name, portions, instructions, source link, image and ingredients. Each ingredient shows its original line ("Original: …") and a suggested Produktart or category; check them before saving. Pages without recipe data show "Auf dieser Seite wurde kein Rezept gefunden". Instagram posts and free text need the AI interface (planned, phase 19).
+
+Imported ingredient lines are read in German: fractions (½, 1/2), ranges take the upper value (2-3 becomes 3), "Zehe/n", units by name, symbol or plural, an amount without unit is Stück, text after a comma or in brackets becomes the *Hinweis* (also "1 TL, gestr. Salz" and "Mehl für die Form"), Eigelb / Eiweiß count as Ei with the part as *Hinweis*, "n. B." / "nach Belieben" means no amount, "evtl." means optional.
+
+Lines without an amount like "Salz und Pfeffer" become one ingredient each; a size word (klein, groß, mittel) goes into the note. An unknown unit (e.g. "1 ½ Tassen Mehl") shows *Einheit „Tasse“ ist unbekannt* on that row: create it with *Anlegen* (the name is editable) or pick an existing unit. Saving stays blocked until every such row is decided.
 
 ### Sensors
 
@@ -221,7 +229,7 @@ actions:
 - **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
   it (its booking history stays); its stock is moved to another location of your choice or booked
   out. Adding the same name again brings it back.
-- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher). A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
+- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
   location, date type, warning days; initially Packung, none, best before, 7 days).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.

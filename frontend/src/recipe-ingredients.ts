@@ -1,10 +1,12 @@
-import { LitElement, css, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { mdiClose } from "@mdi/js";
 import { t } from "./i18n";
 import { fieldMsg, icon } from "./ui";
 import { formStyles } from "./styles";
 import type { Category, Hass, Ingredient, MasterData, Unit } from "./api";
 import "./ingredient-pick";
+import "./unit-add-dialog";
+import type { PantryUnitAddDialog } from "./unit-add-dialog";
 
 type RowErrors = { text?: string; amount?: string; pair?: string };
 
@@ -21,11 +23,14 @@ export const ingredientErrors = (list: Ingredient[]): RowErrors[] =>
     if (!i.text.trim() && i.category_id == null) e.text = t("valid.ingredient_what");
     if (i.amount != null && !(i.amount > 0)) e.amount = t("valid.positive");
     // A unit without an amount is only the suggestion from the category; it is dropped on save.
-    else if (i.amount != null && i.unit_id == null) e.pair = t("valid.amount_pair");
+    else if (i.amount != null && i.unit_id == null)
+      e.pair = i.unit_hint
+        ? t("recipes.ingredient.unit_unknown", { unit: i.unit_hint ?? "" })
+        : t("valid.amount_pair");
     return e;
   });
 
-/** Ingredient rows of the recipe dialog. Fires `change` with the whole array, `master` after a new Produktart. */
+/** Ingredient rows of the recipe dialog. Fires `change` with the whole array, `master` after a new Produktart or unit. */
 export class PantryRecipeIngredients extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -44,6 +49,28 @@ export class PantryRecipeIngredients extends LitElement {
     this.value = [];
     this.categories = [];
     this.units = [];
+  }
+
+  /** Row that asked for a new unit; its hint (if any) is resolved for all rows sharing it. */
+  private unitFor = 0;
+
+  private newUnit(n: number, name = "") {
+    this.unitFor = n;
+    this.renderRoot.querySelector<PantryUnitAddDialog>("pantry-unit-add-dialog")!.open(name);
+  }
+
+  private unitAdded(e: CustomEvent<{ id: number; md: MasterData }>) {
+    const { id, md } = e.detail;
+    this.units = md.units;
+    this.dispatchEvent(new CustomEvent("master", { detail: md }));
+    const hint = this.value[this.unitFor]?.unit_hint;
+    this.emit(
+      this.value.map((x, k) =>
+        k === this.unitFor || (hint && x.unit_hint === hint && x.unit_id == null)
+          ? { ...x, unit_id: id, unit_hint: null }
+          : x,
+      ),
+    );
   }
 
   private emit(list: Ingredient[]) {
@@ -72,6 +99,7 @@ export class PantryRecipeIngredients extends LitElement {
   }
 
   private row(i: Ingredient, n: number, err: RowErrors) {
+    const hint = !!i.unit_hint && i.unit_id == null; // its warning line below already says it
     return html`<li data-testid="ingredient-row" class="ing">
       <pantry-ingredient-pick
         .hass=${this.hass}
@@ -108,8 +136,12 @@ export class PantryRecipeIngredients extends LitElement {
             data-testid="ingredient-unit"
             aria-invalid=${!!err.pair}
             @change=${(e: Event) => {
-              const v = (e.target as HTMLSelectElement).value;
-              this.set(n, { unit_id: v ? Number(v) : null });
+              const sel = e.target as HTMLSelectElement;
+              if (sel.value === "new") {
+                sel.value = i.unit_id == null ? "" : String(i.unit_id);
+                return this.newUnit(n);
+              }
+              this.set(n, { unit_id: sel.value ? Number(sel.value) : null, unit_hint: null });
             }}
           >
             <option value="" ?selected=${i.unit_id == null}>${t("recipes.ingredient.none")}</option>
@@ -117,10 +149,36 @@ export class PantryRecipeIngredients extends LitElement {
               (u) =>
                 html`<option value=${u.id} ?selected=${u.id === i.unit_id}>${u.symbol}</option>`,
             )}
+            <option value="new">${t("recipes.ingredient.unit_new")}</option>
           </select>
         </label>
       </div>
-      ${fieldMsg(err.amount ?? err.pair, "ingredient-amount")}
+      ${fieldMsg(err.amount ?? (hint ? undefined : err.pair), "ingredient-amount")}
+      ${
+        hint
+          ? html`<div class="hintline">
+              ${fieldMsg(
+                t("recipes.ingredient.unit_unknown", { unit: i.unit_hint ?? "" }),
+                "ingredient-unit",
+                true,
+              )}
+              <button
+                type="button"
+                data-testid="ingredient-unit-create"
+                @click=${() => this.newUnit(n, i.unit_hint ?? "")}
+              >
+                ${t("recipes.ingredient.unit_create")}
+              </button>
+            </div>`
+          : nothing
+      }
+      ${
+        i.line
+          ? html`<div class="orig" data-testid="ingredient-line">
+              ${t("recipes.ingredient.line", { line: i.line })}
+            </div>`
+          : nothing
+      }
       <label>
         <span class="lbl">${t("recipes.ingredient.note")}</span>
         <input
@@ -140,6 +198,15 @@ export class PantryRecipeIngredients extends LitElement {
           />
           ${t("recipes.ingredient.optional")}
         </label>
+        <label class="check">
+          <input
+            type="checkbox"
+            data-testid="ingredient-skip-stock"
+            .checked=${i.skip_stock}
+            @change=${(e: Event) => this.set(n, { skip_stock: (e.target as HTMLInputElement).checked })}
+          />
+          ${t("recipes.ingredient.skip_stock")}
+        </label>
         <button
           type="button"
           class="icon-btn"
@@ -155,7 +222,11 @@ export class PantryRecipeIngredients extends LitElement {
 
   render() {
     const errs = ingredientErrors(this.value);
-    return html`<div class="lbl">${t("recipes.ingredients")}</div>
+    return html`<pantry-unit-add-dialog
+        .hass=${this.hass}
+        @unit-added=${(e: CustomEvent<{ id: number; md: MasterData }>) => this.unitAdded(e)}
+      ></pantry-unit-add-dialog>
+      <div class="lbl">${t("recipes.ingredients")}</div>
       <ul>
         ${this.value.map((i, n) => this.row(i, n, errs[n]))}
       </ul>
@@ -173,6 +244,7 @@ export class PantryRecipeIngredients extends LitElement {
               text: "",
               note: null,
               optional: false,
+              skip_stock: false,
             },
           ])}
       >
@@ -192,10 +264,28 @@ export class PantryRecipeIngredients extends LitElement {
         grid-template-columns: 1fr 1fr;
         gap: 8px;
       }
+      .hintline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 4px 0;
+      }
+      .hintline button {
+        flex: none;
+      }
+      .orig {
+        font-size: 0.875em;
+        color: var(--secondary-text-color);
+        margin-bottom: 4px;
+      }
       .foot {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+      }
+      .foot .icon-btn {
+        margin-left: auto;
       }
       .foot .check {
         margin: 0;

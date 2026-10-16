@@ -26,6 +26,8 @@ export default defineConfig({
     // Installed Edge/Chrome instead of a downloaded browser; override with PW_CHANNEL.
     channel: process.env.PW_CHANNEL ?? "msedge",
     trace: "retain-on-failure",
+    // HA registers a service worker on localhost; its first activation reloads the page mid-test.
+    serviceWorkers: "block",
   },
   projects: [
     { name: "setup", testMatch: /auth\.setup\.ts/ },

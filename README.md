@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development (phases 0–8 done: booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels; now: services and first release). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services; next: recipes). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -214,9 +214,11 @@ actions:
 
 ## Installation
 
-HACS: add this repository as a custom repository (category *Integration*), install *Pantry (Vorrat)*, restart Home Assistant.
+Requires Home Assistant 2026.10.1 or newer.
 
-Manual: copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
+HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Pantry (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
+
+Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
 
 Then: *Settings → Devices & services → Add integration → Pantry*. The panel *Vorrat* appears in the sidebar.
 

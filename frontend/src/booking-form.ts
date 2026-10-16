@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg, plausibleDate } from "./ui";
+import { fieldMsg, dateInvalid } from "./ui";
 import { formStyles } from "./styles";
 import {
   bookIn,
@@ -17,7 +17,6 @@ import { MAX_LABELS, printLabels } from "./label-print";
 import { categoryDefault, categoryPath, type Dflt } from "./inherit";
 import { dateField, locationFields, printField, type InForm } from "./booking-in-fields";
 import { productErrors, productFields, productSummary, type Errors } from "./product-fields";
-import { lang } from "./format";
 import { AUTO, maxPackages, pickedRow, pickStyles, renderPick } from "./booking-pick";
 
 /** `booked` event: the done message, and for a book-out what it took (for undo). */
@@ -209,7 +208,7 @@ export class PantryBookingForm extends LitElement {
             </h2>`
           : html`<h2>${t("book.title_in")}</h2>
               <p class="summary" data-testid="summary">
-                ${productSummary(this.md, p, categoryPath(this.md?.categories, p.category_id), lang(this.hass)) || t("book.new_product")}
+                ${productSummary(this.md, p, categoryPath(this.md?.categories, p.category_id), this.hass) || t("book.new_product")}
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }
@@ -257,7 +256,7 @@ export class PantryBookingForm extends LitElement {
     const e: Errors = this.mode === "in" && !p.id ? productErrors(p) : {};
     const { packages, expires_on, dateBad } = this.f;
     if (this.mode === "in") {
-      if (dateBad || (expires_on && !plausibleDate(expires_on))) e.expires = t("valid.date");
+      if (dateInvalid(dateBad, expires_on)) e.expires = t("valid.date");
       if (this.f.location_id == null && !this.dflt("default_location_id"))
         e.location = t("valid.location");
     }

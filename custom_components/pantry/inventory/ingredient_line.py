@@ -7,9 +7,8 @@ import re
 import sqlite3
 from fractions import Fraction
 
-from .common import InventoryError
+from .common import _SUFFIX, InventoryError, unit_key
 
-_SUFFIX = re.compile(r"(?:/\w+|\(\w+\))$")  # Chefkoch plural hint: Tasse/n, Tasse(n)
 _PLURAL_SUFFIX = re.compile(r"(?<=\w)\((?:e|n|en|s|se|er|nen)\)")  # Zwiebel(n), Ei(er): no note
 _SIZE = re.compile(
     r"(klein(?:e[nrs]?)?|kl\.|(?:m\.-?|mittel)?(?:groß(?:e[nrs]?)?|gr\.)|mittlere[nrs]?)\s+", re.I
@@ -22,7 +21,6 @@ _UNIT_QUALIFIER = re.compile(
 )
 _FOR_CLAUSE = re.compile(r"(.+?)\s+((?:für|zum|zur)\s.*)", re.I)  # "Mehl für die Form"
 _EGG_PART = re.compile(r"(eigelb|eidotter|eiweiß|eiweiss|eiklar)e?s?", re.I)  # not a product
-_PLURALS = ("en", "n", "e", "s")
 # alias -> unit name it stands for (used only when that unit exists)
 _ALIASES = {
     "stück": "Stück", "stk": "Stück", "pck": "Packung", "pkg": "Packung", "pkt": "Packung",
@@ -55,15 +53,6 @@ def _parens(s: str) -> tuple[str, list[str]]:
     if depth:  # unclosed: keep its text as a note
         groups.append(s[start:])
     return out, groups
-
-
-def unit_key(s: str) -> str:
-    """Normal form for matching units: Tasse, Tassen, tasse and Tasse/n are the same."""
-    s = _SUFFIX.sub("", s.casefold().strip().rstrip(".")).strip()
-    for end in _PLURALS:
-        if s.endswith(end) and len(s) - len(end) >= 3:
-            return s[: -len(end)]
-    return s
 
 
 def unit_lookup(conn: sqlite3.Connection) -> dict[str, int]:

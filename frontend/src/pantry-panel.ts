@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
-import type { Hass } from "./api";
+import { isAdmin, type Hass } from "./api";
 import "./settings-view";
 import "./booking-view";
 import "./stock-view";
@@ -40,7 +40,7 @@ export class PantryPanel extends LitElement {
 
   private get tab(): Tab {
     const seg = (this.route?.path ?? "").split("/").filter(Boolean)[0];
-    if (seg === "settings" && !this.hass?.user?.is_admin) return "stock";
+    if (seg === "settings" && !isAdmin(this.hass)) return "stock";
     return (TABS as readonly string[]).includes(seg) ? (seg as Tab) : "stock";
   }
 
@@ -71,7 +71,7 @@ export class PantryPanel extends LitElement {
         <h1>${t("panel.title")}</h1>
       </header>
       <div role="tablist">
-        ${TABS.filter((tab) => tab !== "settings" || this.hass?.user?.is_admin).map(
+        ${TABS.filter((tab) => tab !== "settings" || isAdmin(this.hass)).map(
           (tab) =>
             html`<button
               role="tab"

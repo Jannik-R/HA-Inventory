@@ -81,7 +81,7 @@ def _str(value: object) -> str:
 
 
 def _image(value: object) -> str | None:
-    """Only http(s) URLs the product schema accepts (`IMAGE_URL`); anything else is dropped."""
+    """Only http(s) URLs the product schema accepts (`HTTP_URL`); anything else is dropped."""
     url = _str(value)
     return url if re.match(r"https?://", url) and len(url) <= 2000 else None
 
@@ -130,10 +130,7 @@ async def _get(hass: HomeAssistant, path: str, params: dict) -> dict:
 
 async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | None:
     """Local product by EAN, else an OFF-based draft (not saved), else None."""
-    ean = ean.strip()
-    if not (
-        ean.isascii() and ean.isdigit() and 8 <= len(ean) <= 14
-    ):  # also keeps the URL path safe
+    if not (ean := inventory.check_ean(ean)):  # also keeps the URL path safe
         raise InventoryError("invalid_ean")
     if local := await db.run(inventory.find_ean, ean):
         return local

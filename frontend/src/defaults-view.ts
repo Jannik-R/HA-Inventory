@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, rowActions } from "./ui";
+import { editDialog, fieldMsg, numOrNull, rowActions } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, saveDefaults, type Hass, type InheritField, type MasterData } from "./api";
 import { fmt } from "./settings-format";
@@ -137,7 +137,7 @@ export class PantryDefaults extends LitElement {
               .value=${String(d.warn_days ?? "")}
               @input=${(e: Event) => {
                 const v = (e.target as HTMLInputElement).value;
-                this.set("warn_days", v === "" ? null : Number(v));
+                this.set("warn_days", numOrNull(v));
               }}
             />
             ${t("common.days_unit")}

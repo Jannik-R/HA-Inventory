@@ -26,7 +26,6 @@ const SECTIONS = {
   defaults: null,
 } as const;
 type Section = keyof typeof SECTIONS;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 
 export class PantrySettings extends LitElement {
   static properties = {
@@ -192,7 +191,7 @@ export class PantrySettings extends LitElement {
   ) {
     return html`<li style="padding-left:${depth * 24}px">
       ${lead}
-      <button class="row" @click=${onClick}>
+      <button class="row" data-testid="settings-row" @click=${onClick}>
         <span>${name}</span>${detail ? html`<span class="detail">${detail}</span>` : nothing}
       </button>
       ${trail}

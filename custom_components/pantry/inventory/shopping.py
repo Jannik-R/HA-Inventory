@@ -6,8 +6,8 @@ from __future__ import annotations
 import sqlite3
 
 from .amounts import _amount, _convert, _stock_by_category, _units
-from .common import InventoryError, _now
-from .inherit import _categories, _chain, _path
+from .common import InventoryError, _now, id_by_name
+from .inherit import _categories, _chain, _path, children
 from .master import save
 from .products import add_product
 
@@ -21,9 +21,7 @@ def _key(item: dict) -> str:
 def shopping_list(conn: sqlite3.Connection) -> list[dict]:
     """Missing amount / packages per node, bottom-up, each dimension apart (see docs/PLAN.md)."""
     cats, units = _categories(conn), _units(conn)
-    children: dict[int | None, list[int]] = {}
-    for c in cats.values():
-        children.setdefault(c["parent_id"], []).append(c["id"])
+    kids = children(cats)
     products = _stock_by_category(conn)
     done = dict(conn.execute("SELECT category_id, missing FROM shopping_done").fetchall())
     done_p = dict(conn.execute("SELECT product_id, missing FROM shopping_done_product").fetchall())
@@ -59,7 +57,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
             }
             item["done"] = done_p.get(p["id"]) == _key(item)
             items.append(item)
-        for child in children.get(cid, []):
+        for child in kids.get(cid, []):
             c_products, c_amount, c_packages, c_any = walk(child)
             subtree += c_products
             short_amount += c_amount
@@ -120,7 +118,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
         has_min = row["min_stock"] is not None or row["min_packages"] is not None
         return subtree, short_amount, short_packages, any_min or has_min
 
-    for root in children.get(None, []):
+    for root in kids.get(None, []):
         walk(root)
     # A check whose shortage is gone or changed is stale: drop it, or it would come back later.
     # (`items` holds only min stock items here; items by hand are added below.)
@@ -219,11 +217,9 @@ def add_shopping_item(
 
 def add_shopping_by_name(conn: sqlite3.Connection, name: str) -> int:
     """Free text (e.g. from HA's to-do card): a product, else a category, with exactly this name."""
-    key = name.strip().casefold()
     for table, col in (("product", "product_id"), ("category", "category_id")):
-        for r in conn.execute(f"SELECT id, name FROM {table} ORDER BY id"):
-            if r["name"].casefold() == key:
-                return add_shopping_item(conn, **{col: r["id"]})
+        if found := id_by_name(conn.execute(f"SELECT id, name FROM {table} ORDER BY id"), name):
+            return add_shopping_item(conn, **{col: found})
     raise InventoryError("shopping_unknown", name=name.strip())
 
 

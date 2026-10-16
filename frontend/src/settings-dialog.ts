@@ -1,7 +1,7 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, icon } from "./ui";
+import { editDialog, fieldMsg, icon, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import "./category-picker";
 import {
@@ -166,7 +166,7 @@ export class PantrySettingsDialog extends LitElement {
           ?disabled=${key === "factor" && (d.base_unit_id == null || this.usedAsBase(d))}
           @input=${(e: Event) => {
             const v = (e.target as HTMLInputElement).value;
-            this.set(key, v === "" ? null : Number(v));
+            this.set(key, numOrNull(v));
           }}
         />${suffix ? html`<span class="detail">${suffix}</span>` : nothing}</span
       >${key === "warn_days" ? nothing : fieldMsg(this.errs[key], key)}`;

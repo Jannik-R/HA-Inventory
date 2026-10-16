@@ -34,10 +34,11 @@ test("parent category is picked in a tree without the own subtree", async ({ pag
   await openPage(page, "/pantry/settings/categories", "Einstellungen");
   const main = page.locator("pantry-settings li").filter({ hasText: MAIN_NAME });
   // Clicking a main category opens it; editing has its own button.
-  await main.locator("button.row").click();
+  await main.getByTestId("settings-row").click();
   await expect(
     page
-      .locator("pantry-settings li button.row")
+      .locator("pantry-settings li")
+      .getByTestId("settings-row")
       .filter({ hasText: new RegExp("^\\s*" + SUB_NAME) }),
   ).toBeVisible();
   // Plus icon: new subcategory with this parent; dialogs only have save and cancel.

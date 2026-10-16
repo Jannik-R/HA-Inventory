@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing, type PropertyValues } from "lit";
+import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { mdiTagOutline } from "@mdi/js";
 import { t } from "./i18n";
 import { chevron, icon, rowActions, toggled } from "./ui";
@@ -12,6 +12,7 @@ import {
   type MasterData,
   type Product,
   type StockRow,
+  isAdmin,
 } from "./api";
 import { expiryStatus, groupStock, type Item } from "./stock-data";
 import { stockTree } from "./stock-tree";
@@ -21,6 +22,7 @@ import { doneLine, doneStyles } from "./booking-done";
 import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
+import { stockStyles } from "./stock-styles";
 import { deleteMasterRow } from "./delete-flow";
 import type { PantryLabelDialog } from "./label-dialog";
 import "./product-dialog";
@@ -232,7 +234,7 @@ export class PantryStock extends LitElement {
           testid: "product",
           name: p.name,
           onEdit: () => this.editProduct(p.id),
-          onDelete: this.hass?.user?.is_admin ? () => this.deleteProduct(p) : undefined,
+          onDelete: isAdmin(this.hass) ? () => this.deleteProduct(p) : undefined,
         })}
       </div>
       ${
@@ -267,38 +269,7 @@ export class PantryStock extends LitElement {
     </li>`;
   }
 
-  static styles = [
-    formStyles,
-    doneStyles,
-    stockFilterStyles,
-    css`
-      li.item {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .head {
-        display: flex;
-        align-items: center;
-      }
-      .head .row {
-        padding-left: 0;
-      }
-      .batches li {
-        gap: 12px;
-        padding: 0 0 0 36px;
-        border-bottom: 0;
-      }
-      .batches .detail {
-        flex: 1;
-      }
-      .expired {
-        color: var(--error-color);
-      }
-      .soon {
-        color: var(--warning-color);
-      }
-    `,
-  ];
+  static styles = [formStyles, doneStyles, stockFilterStyles, stockStyles];
 }
 
 customElements.define("pantry-stock", PantryStock);

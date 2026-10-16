@@ -6,7 +6,7 @@ import sqlite3
 from datetime import date
 
 from .booking import book_in, book_out
-from .common import InventoryError
+from .common import InventoryError, id_by_name
 from .labels import book_out_code
 from .master import list_rows
 from .products import find_ean
@@ -22,11 +22,9 @@ def _product(conn: sqlite3.Connection, ean: str) -> dict:
 def _location(conn: sqlite3.Connection, name: str | None) -> int | None:
     if name is None:
         return None
-    key = name.strip().casefold()
-    for row in list_rows(conn, "location"):  # active ones only
-        if row["name"].casefold() == key:
-            return row["id"]
-    raise InventoryError("location_unknown", name=name)
+    if (found := id_by_name(list_rows(conn, "location"), name)) is None:  # active ones only
+        raise InventoryError("location_unknown", name=name)
+    return found
 
 
 def book_in_by_code(

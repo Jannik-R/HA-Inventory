@@ -8,6 +8,7 @@ import {
 } from "@mdi/js";
 import { t } from "./i18n";
 import { confirmDialog } from "./confirm-dialog";
+import { clickedBackdrop } from "./backdrop";
 
 export const icon = (path: string) =>
   html`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -31,12 +32,7 @@ async function closeUnlessKept(dlg: HTMLDialogElement, isDirty?: () => boolean) 
 
 /** Click handler: close the modal dialog on a click on its backdrop (the click targets the dialog). */
 export const backdropClick = (isDirty?: () => boolean) => (e: MouseEvent) => {
-  const dlg = e.target as HTMLDialogElement;
-  if (dlg.tagName !== "DIALOG") return;
-  const r = dlg.getBoundingClientRect();
-  const outside =
-    e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
-  if (outside) closeUnlessKept(dlg, isDirty);
+  if (clickedBackdrop(e)) closeUnlessKept(e.target as HTMLDialogElement, isDirty);
 };
 
 /**
@@ -44,7 +40,7 @@ export const backdropClick = (isDirty?: () => boolean) => (e: MouseEvent) => {
  * Esc is caught on keydown: browsers ignore preventDefault() on a repeated `cancel` without a
  * click in between (close watcher rule), which closed the dialog behind the question.
  */
-export const escGuard = (isDirty: () => boolean) => (e: Event) => {
+const escGuard = (isDirty: () => boolean) => (e: Event) => {
   if (e instanceof KeyboardEvent && e.key !== "Escape") return;
   // Esc in a dialog nested inside this one (e.g. the category picker) belongs to that dialog.
   if (e.composedPath().find((n) => n instanceof HTMLDialogElement) !== e.currentTarget) return;
@@ -193,4 +189,13 @@ export const todayIso = () => {
 };
 
 /** Plausible ISO date (the date input gives "" for incomplete input; that is checked via validity). */
-export const plausibleDate = (iso: string) => iso >= "2000-01-01" && iso <= "2099-12-31";
+const plausibleDate = (iso: string) => iso >= "2000-01-01" && iso <= "2099-12-31";
+
+/** A date input is invalid when the browser says so (`bad`) or the date is implausible. */
+export const dateInvalid = (bad: boolean, iso?: string | null) =>
+  bad || (!!iso && !plausibleDate(iso));
+
+/** Number input value to API value: empty means unset. */
+export const numOrNull = (v: string) => (v === "" ? null : Number(v));
+
+export const URL_RE = /^https?:\/\//i;

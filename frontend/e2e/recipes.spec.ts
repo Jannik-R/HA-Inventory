@@ -74,7 +74,7 @@ test("create a recipe with a category ingredient, scale servings, delete it", as
 
   const row = page.getByTestId("recipe-row").filter({ hasText: NAME });
   await expect(row).toContainText("0 von 1 vorhanden");
-  await row.locator("button.row").click();
+  await row.getByTestId("recipe-toggle").click();
   await expect(row.getByTestId("ingredient-row").first()).toContainText("fehlt 200 g");
   await expect(row.getByTestId("ingredient-row").nth(1)).toContainText("nicht geprüft");
   await expect(row.getByTestId("ingredient-row").first()).toContainText("fein gewürfelt");

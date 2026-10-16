@@ -1,6 +1,7 @@
 import type { MasterData, Product, StockRow } from "./api";
 import { categoryDefault, categoryPath } from "./inherit";
 import { todayIso } from "./ui";
+import { includesCI } from "./format";
 
 /** A product in the stock overview with its batches (earliest expiry first). */
 export interface Item {
@@ -21,9 +22,8 @@ export function groupStock(
   products: Iterable<Product> = [],
   md?: MasterData,
 ): Map<number, Item[]> {
-  const q = filter.trim().toLocaleLowerCase();
-  const hit = (parts: (string | null | undefined)[]) =>
-    parts.join(" ").toLocaleLowerCase().includes(q);
+  const q = filter.trim();
+  const hit = (parts: (string | null | undefined)[]) => includesCI(parts.join(" "), q);
   const items = new Map<number, Item>();
   for (const r of stock) {
     if (location != null && r.location_id !== location) continue;

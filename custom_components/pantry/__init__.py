@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from . import services, websocket, websocket_label, websocket_recipe
+from . import services, websocket, websocket_label, websocket_recipe, websocket_stock
 from .const import DOMAIN, PANEL_URL
 from .db import Database
 
@@ -26,6 +26,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         [StaticPathConfig(PANEL_URL, str(Path(__file__).parent / "www"), False)]
     )
     websocket.async_register(hass)
+    websocket_stock.async_register(hass)
     websocket_label.async_register(hass)
     websocket_recipe.async_register(hass)
     services.async_register(hass)

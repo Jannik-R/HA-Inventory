@@ -1,9 +1,20 @@
 import { html } from "lit";
 import { t } from "./i18n";
-import { fieldMsg } from "./ui";
+import { fieldMsg, numOrNull } from "./ui";
+import { fmtNumber } from "./format";
 import { inheritNumber } from "./inherit";
 import type { Hass, MasterData, Product } from "./api";
 import "./category-picker";
+
+export const blankProduct = (p: Partial<Product> = {}): Product => ({
+  ean: null,
+  name: "",
+  brand: null,
+  category_id: null,
+  content_amount: null,
+  content_unit_id: null,
+  ...p,
+});
 
 export type Errors = Record<string, string>;
 
@@ -71,7 +82,7 @@ export function productFields(
           .value=${p.content_amount == null ? "" : String(p.content_amount)}
           @input=${(e: Event) => {
             const v = (e.target as HTMLInputElement).value;
-            set("content_amount", v === "" ? null : Number(v));
+            set("content_amount", numOrNull(v));
           }}
         />
       </label>
@@ -113,12 +124,12 @@ export function productSummary(
   md: MasterData | undefined,
   p: Product,
   path: string,
-  lang?: string,
+  hass?: Hass,
 ): string {
   const unit = md?.units.find((u) => u.id === p.content_unit_id);
   const content =
     p.content_amount != null && unit
-      ? `${new Intl.NumberFormat(lang).format(p.content_amount)} ${unit.symbol || unit.name}`
+      ? `${fmtNumber(hass, p.content_amount)} ${unit.symbol || unit.name}`
       : "";
   return [p.name, p.brand, content, path].filter(Boolean).join(" · ");
 }

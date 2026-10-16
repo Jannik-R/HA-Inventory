@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg } from "./ui";
+import { URL_RE, editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -11,10 +11,8 @@ import {
   type Recipe,
   type RecipeDraft,
 } from "./api";
-import { blankIngredient, ingredientErrors } from "./recipe-ingredients";
+import { blankIngredient, ingredientErrors } from "./ingredient-errors";
 import "./recipe-ingredients";
-
-const URL_RE = /^https?:\/\//i;
 
 interface Draft {
   name: string;
@@ -168,7 +166,7 @@ export class PantryRecipeDialog extends LitElement {
             .value=${String(d.servings ?? "")}
             @input=${(ev: Event) => {
               const v = (ev.target as HTMLInputElement).value;
-              this.draft = { ...d, servings: v === "" ? null : Number(v) };
+              this.draft = { ...d, servings: numOrNull(v) };
             }}
           />
           ${fieldMsg(e.servings, "recipe-servings-input")}

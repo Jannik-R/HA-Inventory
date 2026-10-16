@@ -4,8 +4,6 @@ import { fieldMsg } from "./ui";
 import type { MasterData } from "./api";
 import type { Draft } from "./settings-dialog";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-
 /** Live errors of the two minimums (each optional; amount > 0, packages a whole number ≥ 1). */
 export function minErrors(d: Draft): Record<string, string> {
   const e: Record<string, string> = {};

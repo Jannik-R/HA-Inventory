@@ -7,7 +7,7 @@ import pytest
 
 from custom_components.pantry import db
 from custom_components.pantry import inventory as inv
-from custom_components.pantry.inventory.inherit import category_tags
+from custom_components.pantry.inventory.inherit import category_tags, set_tags
 
 
 def cat(conn, name):
@@ -520,8 +520,8 @@ def test_migration_4_min_stock_gets_its_effective_unit():
 
 def test_tags_are_shared_and_replaced(conn):
     a, b = cat(conn, "Nudeln"), cat(conn, "Reis")
-    inv.save(conn, "category", {"id": a, "off_tags": ["en:test-tag"]})
-    inv.save(conn, "category", {"id": b, "off_tags": ["en:test-tag", "en:other"]})
+    set_tags(conn, a, ["en:test-tag"])
+    set_tags(conn, b, ["en:test-tag", "en:other"])
     count = "SELECT COUNT(*) FROM off_tag WHERE tag = 'en:test-tag'"
     assert conn.execute(count).fetchone()[0] == 1
     assert category_tags(conn)[a] == ["en:test-tag"]

@@ -1,10 +1,8 @@
 import { LitElement, css, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg } from "./ui";
+import { URL_RE, editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, importRecipe, type Hass } from "./api";
-
-const URL_RE = /^https?:\/\//i;
 
 /** Ask for a recipe URL. `open()`; fires `pantry-imported` (detail: RecipeDraft) on success. */
 export class PantryRecipeImport extends LitElement {

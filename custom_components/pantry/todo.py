@@ -20,9 +20,8 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from . import inventory
-from .const import DOMAIN
 from .coordinator import async_coordinator, device_info
-from .inventory import InventoryError
+from .ws_common import translated
 
 if TYPE_CHECKING:
     from . import PantryConfigEntry
@@ -108,14 +107,8 @@ class ShoppingList(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], TodoLis
         ]
 
     async def _run(self, fn, *args) -> None:
-        try:
+        with translated(ServiceValidationError):
             await self._db.run(fn, *args)
-        except InventoryError as err:
-            raise ServiceValidationError(
-                translation_domain=DOMAIN,
-                translation_key=err.translation_key,
-                translation_placeholders={k: str(v) for k, v in err.placeholders.items()},
-            ) from err
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         await self._run(inventory.add_shopping_by_name, item.summary or "")

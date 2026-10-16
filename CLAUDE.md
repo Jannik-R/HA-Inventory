@@ -47,7 +47,7 @@ custom_components/pantry/   integration (Python)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   backup.py                 locks the DB during HA backups
   services.py               HA services (book_in / book_out by code, print_labels) + services.yaml
-  websocket.py              websocket commands for the panel; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; ws_validate.py: shared input validators
+  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)

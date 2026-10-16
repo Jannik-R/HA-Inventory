@@ -2,7 +2,7 @@ import type { Category } from "./api";
 import type { Item } from "./stock-data";
 
 /** A visible row of the stock tree: a category, or a product below it. */
-export type StockNode =
+type StockNode =
   | { kind: "category"; id: number; name: string; packages: number; depth: number; open: boolean }
   | { kind: "item"; item: Item; depth: number; open: boolean };
 

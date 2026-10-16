@@ -1,7 +1,5 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
-import { mdiBarcodeScan } from "@mdi/js";
 import { t } from "./i18n";
-import { icon } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -18,8 +16,9 @@ import {
   type SearchHit,
   type StockRow,
 } from "./api";
-import type { PantryScanner } from "./scanner";
-import "./scanner";
+import "./booking-scan";
+import type { PantryBookingScan } from "./booking-scan";
+import { blankProduct } from "./product-fields";
 import "./booking-form";
 import { doneLine, doneStyles } from "./booking-done";
 import { hitList } from "./booking-hits";
@@ -103,9 +102,7 @@ export class PantryBooking extends LitElement {
   }
 
   private focusInput() {
-    this.updateComplete.then(() =>
-      this.renderRoot.querySelector<HTMLInputElement>("#code")?.focus(),
-    );
+    this.renderRoot.querySelector<PantryBookingScan>("pantry-booking-scan")?.focusInput();
   }
 
   private async fail(err: unknown) {
@@ -126,8 +123,7 @@ export class PantryBooking extends LitElement {
     }
   };
 
-  private async find(e?: Event) {
-    e?.preventDefault();
+  private async find() {
     const q = this.query.trim();
     if (!q || !this.hass) return;
     const hass = this.hass;
@@ -145,7 +141,7 @@ export class PantryBooking extends LitElement {
       if (!res || id !== this.seq) return;
       if (res.product) return this.choose(res.product);
       if (this.mode === "out") return void (this.error = t("book.unknown"));
-      return this.choose(this.blank({ ean: q }));
+      return this.choose(blankProduct({ ean: q }));
     }
     const hits = await this.run(() => search(hass, q));
     if (!hits || id !== this.seq) return;
@@ -172,18 +168,6 @@ export class PantryBooking extends LitElement {
     if (hits && id === this.seq) ((this.hits = hits), (this.online = true));
   }
 
-  private blank(p: Partial<Product>): Product {
-    return {
-      ean: null,
-      name: "",
-      brand: null,
-      category_id: null,
-      content_amount: null,
-      content_unit_id: null,
-      ...p,
-    };
-  }
-
   /** Online hits are only a name + EAN: load the full draft (category suggestion) first. */
   private async pick(hit: SearchHit | Product) {
     if (hit.id || !hit.ean) return this.choose(hit as Product);
@@ -208,34 +192,13 @@ export class PantryBooking extends LitElement {
     form?.focusFirst();
   }
 
-  private openScanner() {
-    this.renderRoot.querySelector<PantryScanner>("pantry-scanner")?.open();
-  }
-
-  private scanned(e: CustomEvent<string>) {
-    this.query = e.detail;
-    this.find();
-  }
-
   render() {
     return html`
-      <form class="scan" @submit=${this.find}>
-        <input
-          id="code"
-          data-testid="code-input"
-          type="search"
-          enterkeyhint="search"
-          autocomplete="off"
-          aria-label=${t("book.input")}
-          placeholder=${t("book.input")}
-          .value=${this.query}
-          @input=${(e: Event) => (this.query = (e.target as HTMLInputElement).value)}
-        />
-        <button type="button" data-testid="camera" @click=${this.openScanner}>
-          ${icon(mdiBarcodeScan)}<span>${t("book.camera")}</span>
-        </button>
-      </form>
-      <pantry-scanner @scan=${this.scanned}></pantry-scanner>
+      <pantry-booking-scan
+        .value=${this.query}
+        @query=${(e: CustomEvent<string>) => (this.query = e.detail)}
+        @find=${() => this.find()}
+      ></pantry-booking-scan>
       ${doneLine(this.message, this.undo && (() => this.putBack()))}
       ${this.error ? html`<p class="error" role="alert" data-testid="error">${this.error}</p>` : nothing}
       ${
@@ -246,7 +209,7 @@ export class PantryBooking extends LitElement {
               busy: this.busy,
               pick: (h) => this.pick(h),
               searchOnline: () => this.searchOnline(),
-              create: () => this.choose(this.blank({ name: this.query.trim() })),
+              create: () => this.choose(blankProduct({ name: this.query.trim() })),
             })
           : nothing
       }
@@ -295,20 +258,6 @@ export class PantryBooking extends LitElement {
     formStyles,
     doneStyles,
     css`
-      .scan {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      .scan input {
-        flex: 1;
-      }
-      .scan button {
-        flex: none;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
       .after {
         margin-top: 12px;
       }

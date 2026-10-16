@@ -6,7 +6,8 @@ import json
 import sqlite3
 from itertools import islice
 
-from .common import COLUMNS
+from .common import COLUMNS, unit_key
+from .ingredient_line import unit_lookup
 from .inherit import category_tags, set_tags
 from .master import save
 from .suggest import suggest, suggest_category
@@ -43,12 +44,8 @@ def product_draft(conn: sqlite3.Connection, off: dict) -> dict:
     """Normalized OFF data (see off.normalize) -> unsaved product with suggested category."""
     amount = unit_id = None
     if off["quantity"]:
-        row = conn.execute(
-            "SELECT id FROM unit WHERE lower(symbol) = ? OR lower(name) = ?",
-            (off["quantity"][1],) * 2,
-        ).fetchone()
-        if row:
-            amount, unit_id = off["quantity"][0], row["id"]
+        if unit_id := unit_lookup(conn).get(unit_key(off["quantity"][1])):
+            amount = off["quantity"][0]
     return {
         "ean": off["ean"],
         "name": off["name"],

@@ -68,7 +68,8 @@ category   (id, parent_id NULL → category, name, sort,
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
             default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
-            image_url, off_json, updated_at)
+            image_url, off_json, updated_at,
+            min_packages NULL)                                        -- own minimum in packages (migration 11)
 batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
            -- date type is a product property (own or inherited), never per batch (migration 2)
            -- at most one batch without a date per product (partial unique index, migration 6)
@@ -97,6 +98,8 @@ One self-referencing `category` table, any depth. Convention (not enforced):
 **main category → category → food type**, e.g. `Nudeln, Reis & Getreide → Nudeln → Spaghetti`.
 Products attach to any node, normally the leaf. The lowest level is called **Produktart** (product type)
 in the UI: brand-independent, e.g. Tomatenmark. No separate table: a product type is a category.
+Any user can add a category below an existing one (`pantry/product_type_add`: recipe ingredient,
+category picker when booking in / editing a product); main categories and edits stay admin-only.
 The seed (`seed_types.py`, ~320 types under the sub-categories) fills it for a new DB; migration 8 adds
 the missing ones to existing DBs (only under a parent with that exact name, only when no category has
 the type's name yet, so user renames and deletions stay). It also sets default units (`_DE_UNITS`: Milch l, Käse g, Fleisch g, ...) on categories without an own unit. Any user can add a type from a recipe
@@ -124,6 +127,10 @@ the type's name yet, so user renames and deletions stay). It also sets default u
   "Nudeln 0,5 kg", "Reis 500 g", "Nudeln, Reis & Getreide: weitere 0,2 kg (beliebig)".
   Items are grouped by main category. A node without its own min stock passes its children's
   shortage up to its parent.
+- **Product minimum** (`product.min_packages`, migration 11): packages only (the content is fixed,
+  an amount adds nothing). Below it the product is its own item ("Barilla – 2 Pkg. fehlen"), and
+  its shortfall counts like a child's shortage toward its category and above: packages as is,
+  the amount as packages × content (not if the content is unknown). Checks in `shopping_done_product`.
 - **Automatic category assignment**: each category node has `off_tags` (OFF category
   tags, e.g. `en:spaghetti`, `en:pastas`). A product gets the deepest node whose tag
   appears in its OFF `categories_tags` (tie: the later, more specific OFF tag). No match → user picks; the product's most specific
@@ -205,7 +212,7 @@ the same again adds packages (a checked one starts again). The panel searches lo
 categories and can create a new product (any user) or category (admin) in the same transaction.
 Todo entity: create = exact name of a product, else a category (no creation from free text: a
 product needs a category); update = check mark only; delete = items by hand only (min stock items
-come from the stock). Todo uids: `c<category id>` (min stock), `m<item id>` (by hand).
+come from the stock). Todo uids: `c<category id>` (min stock), `p<product id>` (product minimum), `m<item id>` (by hand).
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
@@ -328,6 +335,8 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 
 **Open todos** (check before starting the next phase):
 
+- Next (own branch after `fix/booking-feedback`): localized tooltips (`title` / `aria-label` via `t()`) on icon buttons and fields whose meaning is not obvious.
+- After the tooltips: user guide (Anleitung) in German and English; decide first how (e.g. `docs/guide.de.md` + `docs/guide.en.md`, linked from README and the panel, or help texts inside the panel).
 - Ongoing: extend the seeded product types (`seed.py`, lowest category level) whenever everyday products are missing; existing DBs get new ones by a migration step (released since 0.1.0).
 
 ## 7. Extension points (not built now)
@@ -335,6 +344,8 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 | Later feature | Prepared by |
 |---|---|
 | Shopping by offers (supermarket discounts) | phase 12 shopping by recipes; no stable public API for offers (Marktguru, kaufDA: scraping only), so deferred |
+| User feedback with AI evaluation (users send feedback from the panel; the AI interface groups and summarizes it into issues / plan items) | phase 19 AI interface; needs a feedback table and a panel entry point |
+| Best-before date from the camera (read the printed date when booking in) | `expires_on` field and the camera scanner of the booking form; on-device OCR or the AI interface (phase 19) |
 | Remaining amount of opened packages / book out by cooking | phase 18 marks opened packages only; cooking does not book out (manual booking) |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

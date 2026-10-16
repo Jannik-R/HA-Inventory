@@ -186,8 +186,8 @@ export class PantrySettingsDialog extends LitElement {
         this.set(key, v === "" ? null : numeric ? Number(v) : v);
       }}
     >
-      <option value="" ?selected=${cur == null}>${first}</option>
-      ${options.map(([v, l]) => html`<option value=${v} ?selected=${cur === v}>${l}</option>`)}
+      <option value="" .selected=${cur == null}>${first}</option>
+      ${options.map(([v, l]) => html`<option value=${v} .selected=${cur === v}>${l}</option>`)}
     </select>`;
   }
 

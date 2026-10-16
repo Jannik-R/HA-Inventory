@@ -61,7 +61,7 @@ export class PantryShopping extends LitElement {
     this.error = "";
     try {
       if (item.manual) await updateShoppingItem(this.hass!, item.id!, { done });
-      else await setShoppingDone(this.hass!, item.category_id, done);
+      else await setShoppingDone(this.hass!, item, done);
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
       return this.load(true); // the checkbox springs back; the error stays
@@ -93,9 +93,10 @@ export class PantryShopping extends LitElement {
     const parts = [];
     if (i.amount) parts.push(`${fmtNumber(this.hass, i.amount.missing)} ${i.amount.unit_symbol}`);
     if (i.packages) parts.push(t("book.count", { n: i.packages }));
-    return t(i.any_of_subtree ? "shopping.missing_more" : "shopping.missing", {
+    const what = t(i.any_of_subtree ? "shopping.missing_more" : "shopping.missing", {
       what: parts.join(t("shopping.and")),
     });
+    return [i.brand, what].filter(Boolean).join(" · ");
   }
 
   /** A row with something to buy; `name` shows a category item under its category's name. */

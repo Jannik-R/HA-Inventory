@@ -339,6 +339,15 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     # 10: ingredient never checked against the stock (salt, water): no status, not on the shopping list.
     "ALTER TABLE recipe_ingredient ADD COLUMN skip_stock INTEGER NOT NULL DEFAULT 0"
     " CHECK (skip_stock IN (0, 1));",
+    # 11: min packages per product (counts toward its categories' minimums); its checked
+    # shopping items, like shopping_done for categories.
+    """
+    ALTER TABLE product ADD COLUMN min_packages INTEGER CHECK (min_packages > 0);
+    CREATE TABLE shopping_done_product (
+        product_id INTEGER PRIMARY KEY REFERENCES product(id) ON DELETE CASCADE,
+        missing TEXT NOT NULL
+    );
+    """,
 ]
 
 

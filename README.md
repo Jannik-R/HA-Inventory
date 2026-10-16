@@ -42,7 +42,8 @@ only), so they can still be edited or deleted; their row opens the edit dialog.
 (the product's or category's *Warnung vor Ablauf*) orange.
 
 - **Product row**: pencil = change name, brand, EAN, category, content, and the product's own
-  defaults (location, date type, warning days) that override the category's. Admins also get a
+  defaults (location, date type, warning days) that override the category's, and its own
+  *Mindestanzahl* (optional, packages; also when creating it on *Einbuchen*; below it the product goes on the shopping list). Admins also get a
   bin: deletes the product with its stock and booking history (asks first, naming the stock).
 - **Batch row**: minus = take one package out of that batch and location (only there, so you
   look at the batches first); *Rückgängig* books it back in. Pencil = fix this batch at this
@@ -65,7 +66,9 @@ have a checkbox: a category below its minimum stock, e.g. "Nudeln – 500 g und 
 item added by hand; the other categories are just the way there. The minimum counts the whole category including its subcategories; a minimum further up
 only lists what is missing beyond the minimums below ("weitere 0,2 kg fehlen (beliebig aus der
 Kategorie)"), so a category only shows up as an item when something beyond its subcategories is
-needed. Products without a content (e.g. 500 g) count for the package minimum only. A ticked item is
+needed. A product with its own *Mindestanzahl* (set on *Bestand*) is listed by itself
+("Barilla · 2 Pkg. fehlen") below its category, and what it lacks counts toward its categories'
+minimums too. Products without a content (e.g. 500 g) count for the package minimum only. A ticked item is
 struck through and stays in place; a minimum stock item is unticked again by itself as soon as the
 missing amount changes (e.g. after booking in only part of it).
 A count unit (*Stück*) uses the package content, so a 10er pack of eggs is 10 Stück, for the minimum stock too.
@@ -143,6 +146,8 @@ the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name a
   "Geerbt: … (von Nudeln)"; without one the last used one is used); another choice applies to this
   booking only, *Zurücksetzen* returns to the default. A new product also shows its name, brand,
   category and content; *Wird Standardlager* (on by default) keeps the chosen location as its default.
+  If no category fits, type its name in the category filter and choose *„…“ neu anlegen*, then the
+  parent category; it is created right there (also when editing a product on *Bestand*).
   An unknown EAN is looked up on Open Food Facts (name, brand, content - drained weight for jars and
   cans - and a suggested category; without OFF categories the category comes from keywords in the
   name or from similar saved products). A name search lists local products; *Online suchen* searches

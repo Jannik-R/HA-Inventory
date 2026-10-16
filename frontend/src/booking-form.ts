@@ -139,6 +139,7 @@ export class PantryBookingForm extends LitElement {
                 "content_unit_id",
                 "image_url",
                 "off_json",
+                "min_packages",
               ] as const
             ).map((k) => [k, p[k] === "" ? null : (p[k] ?? null)]),
           );
@@ -210,7 +211,7 @@ export class PantryBookingForm extends LitElement {
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }
-      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value)}`}
+      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err, this.hass)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value)}`}
       <label>
         <span class="lbl">${t("book.packages")}</span>
         <input

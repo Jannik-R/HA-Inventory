@@ -27,9 +27,9 @@ export const stockFilters = (h: StockFilterHost) =>
         aria-label=${t("stock.location")}
         @change=${(e: Event) => (h.location = Number((e.target as HTMLSelectElement).value) || null)}
       >
-        <option value="" ?selected=${h.location == null}>${t("stock.all_locations")}</option>
+        <option value="" .selected=${h.location == null}>${t("stock.all_locations")}</option>
         ${(h.md?.locations ?? []).map(
-          (l) => html`<option value=${l.id} ?selected=${l.id === h.location}>${l.name}</option>`,
+          (l) => html`<option value=${l.id} .selected=${l.id === h.location}>${l.name}</option>`,
         )}
       </select>
     </div>

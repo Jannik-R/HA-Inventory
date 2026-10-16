@@ -54,12 +54,16 @@ def summary(item: dict) -> str:
     if count:
         parts.append(count)
     more = "weitere " if item["any_of_subtree"] else ""
+    if item["product_id"] and item["brand"]:
+        more = f"{item['brand']}: {more}"
     return f"{item['name']} – {more}{' und '.join(parts)} fehlen"
 
 
 def uid(item: dict) -> str:
-    """'m<id>' for items added by hand, 'c<category id>' for min stock shortages."""
-    return f"m{item['id']}" if item["manual"] else f"c{item['category_id']}"
+    """'m<id>' for items added by hand, 'c<category id>' / 'p<product id>' for min stock shortages."""
+    if item["manual"]:
+        return f"m{item['id']}"
+    return f"p{item['product_id']}" if item["product_id"] else f"c{item['category_id']}"
 
 
 class ShoppingList(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], TodoListEntity):
@@ -110,6 +114,8 @@ class ShoppingList(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], TodoLis
         kind, ref = item.uid[0], int(item.uid[1:])
         if kind == "m":
             await self._run(partial(inventory.update_shopping_item, done=done), ref)
+        elif kind == "p":
+            await self._run(partial(inventory.set_shopping_done, product_id=ref), None, done)
         else:
             await self._run(inventory.set_shopping_done, ref, done)
 

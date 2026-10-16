@@ -77,3 +77,12 @@ async def test_shopping_todo(hass: HomeAssistant) -> None:
         )  # fmt: skip
 
     assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+def test_uid_kinds() -> None:
+    from custom_components.pantry.todo import uid
+
+    base = {"id": None, "manual": False, "product_id": None, "category_id": 4}
+    assert uid(base) == "c4"
+    assert uid({**base, "product_id": 7}) == "p7"
+    assert uid({**base, "id": 3, "manual": True, "product_id": 7}) == "m3"

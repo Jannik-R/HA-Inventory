@@ -67,6 +67,7 @@ _NEW_PRODUCT = vol.Schema(
         vol.Optional("image_url"): vol.Any(None, IMAGE_URL),
         vol.Optional("off_json"): vol.Any(None, OFF_JSON),
         vol.Optional("default_location_id"): NULL_ID,
+        vol.Optional("min_packages"): vol.Any(None, PACKAGES),
     }
 )
 
@@ -408,14 +409,20 @@ async def ws_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/shopping_done",
-        vol.Required("category_id"): ID,
+        vol.Exclusive("category_id", "what"): ID,
+        vol.Exclusive("product_id", "what"): ID,
         vol.Required("done"): bool,
     }
 )
 @websocket_api.async_response
 async def ws_shopping_done(hass: HomeAssistant, connection, msg: dict) -> None:
     """Check / uncheck a shopping item; any user."""
-    await _run(hass, inventory.set_shopping_done, msg["category_id"], msg["done"])
+    await _run(
+        hass,
+        partial(inventory.set_shopping_done, product_id=msg.get("product_id")),
+        msg.get("category_id"),
+        msg["done"],
+    )
     connection.send_result(msg["id"])
 
 

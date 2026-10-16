@@ -35,7 +35,7 @@ def _stock_by_category(conn: sqlite3.Connection) -> dict[int, list[sqlite3.Row]]
     """Products (with their package count, 0 when out of stock) per category id."""
     products: dict[int, list[sqlite3.Row]] = {}
     for p in conn.execute(
-        "SELECT p.id, p.category_id, p.content_amount, p.content_unit_id,"
+        "SELECT p.id, p.name, p.brand, p.min_packages, p.category_id, p.content_amount, p.content_unit_id,"
         " COALESCE(SUM(s.packages), 0) AS packages FROM product p"
         " LEFT JOIN batch b ON b.product_id = p.id LEFT JOIN stock s ON s.batch_id = b.id GROUP BY p.id"
     ):

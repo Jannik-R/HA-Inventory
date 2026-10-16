@@ -67,6 +67,11 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await expect(page.getByTestId("location")).toHaveValue("");
   await page.getByTestId("location").selectOption({ label: LOCATION });
   await expect(page.getByTestId("make-default")).toBeChecked();
+  // Non-obvious fields explain themselves in a tooltip.
+  await expect(page.locator("label", { has: page.getByTestId("make-default") })).toHaveAttribute(
+    "title",
+    /Standard-Lagerort/,
+  );
   // Optional minimum, set right when creating the product.
   await expect(page.getByTestId("min-packages")).toHaveValue("");
   await page.getByTestId("min-packages").fill("2");

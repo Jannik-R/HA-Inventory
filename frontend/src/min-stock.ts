@@ -30,7 +30,7 @@ export function minFields(o: {
     return v === "" || Number(v) === 0 ? null : Number(v);
   };
   return html`<label>
-      <span class="lbl">${t("settings.category.min_stock")}</span>
+      <span class="lbl" title=${t("tip.min_stock")}>${t("settings.category.min_stock")}</span>
       <span class="num">
         <input
           type="number"
@@ -63,7 +63,7 @@ export function minFields(o: {
       ${fieldMsg(errs.min_stock, "min_stock")}
     </label>
     <label>
-      <span class="lbl">${t("settings.category.min_packages")}</span>
+      <span class="lbl" title=${t("tip.min_packages")}>${t("settings.category.min_packages")}</span>
       <span class="num">
         <input
           type="number"

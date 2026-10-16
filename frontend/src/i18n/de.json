@@ -228,5 +228,17 @@
   "valid.servings": "Bitte eine ganze Zahl von 1 bis 99 eingeben.",
   "valid.url": "Bitte einen Link mit http:// oder https:// angeben.",
   "valid.ingredient_what": "Bitte eine Produktart oder Kategorie wählen.",
-  "valid.amount_pair": "Menge und Einheit nur zusammen angeben."
+  "valid.amount_pair": "Menge und Einheit nur zusammen angeben.",
+  "tip.unit_id": "Einheit für Mengen in dieser Kategorie, z. B. für Mindestmenge und Rezepte.",
+  "tip.default_location_id": "Hier landen neue Packungen beim Einbuchen, wenn du keinen anderen Lagerort wählst.",
+  "tip.expiry_type": "Mindesthaltbarkeit: danach oft noch gut. Verbrauchsdatum: danach nicht mehr essen.",
+  "tip.warn_days": "So viele Tage vor dem Datum gilt eine Packung als bald ablaufend (orange, Tab „Ablauf“).",
+  "tip.min_stock": "Ist weniger da (diese Kategorie samt Unterkategorien), kommt der Rest auf die Einkaufsliste.",
+  "tip.min_packages": "Sind weniger Packungen da (samt Unterkategorien), kommt der Rest auf die Einkaufsliste.",
+  "tip.product_min_packages": "Sind weniger Packungen dieses Produkts da, kommt es auf die Einkaufsliste. Zählt auch für die Mindestmengen seiner Kategorien.",
+  "tip.content": "Inhalt einer Packung, z. B. 500 g (bei Konserven das Abtropfgewicht). Damit rechnen Mindestmengen und Rezepte.",
+  "tip.make_default": "Der gewählte Lagerort wird zum Standard-Lagerort dieses Produkts.",
+  "tip.print": "Druckt pro Packung ein Etikett mit QR-Code (höchstens 20).",
+  "tip.optional": "Optionale Zutaten zählen nicht zur Verfügbarkeit des Rezepts.",
+  "tip.skip_stock": "Für Zutaten, die du nicht im Vorrat führst (z. B. Salz, Wasser): keine Prüfung, nie auf der Einkaufsliste."
 }

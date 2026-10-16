@@ -71,7 +71,7 @@ export function productFields(
     </div>
     <div class="pair">
       <label>
-        <span class="lbl">${t("book.content")}</span>
+        <span class="lbl" title=${t("tip.content")}>${t("book.content")}</span>
         <input
           data-testid="content-amount"
           type="number"
@@ -105,7 +105,7 @@ export function productFields(
     </div>
     ${fieldMsg(errors.content, "content")}
     <label>
-      <span class="lbl">${t("products.min_packages")}</span>
+      <span class="lbl" title=${t("tip.product_min_packages")}>${t("products.min_packages")}</span>
       ${inheritNumber({
         testid: "min-packages",
         own: p.min_packages,

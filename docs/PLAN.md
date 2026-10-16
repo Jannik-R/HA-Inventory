@@ -336,7 +336,6 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 
 **Open todos** (check before starting the next phase):
 
-- Next (own branch after `fix/booking-feedback`): localized tooltips (`title` / `aria-label` via `t()`) on icon buttons and fields whose meaning is not obvious.
 - After the tooltips: user guide (Anleitung) in German and English; decide first how (e.g. `docs/guide.de.md` + `docs/guide.en.md`, linked from README and the panel, or help texts inside the panel).
 - Ongoing: extend the seeded product types (`seed.py`, lowest category level) whenever everyday products are missing; existing DBs get new ones by a migration step (released since 0.1.0).
 

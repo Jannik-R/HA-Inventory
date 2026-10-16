@@ -139,8 +139,8 @@ export class PantrySettingsDialog extends LitElement {
     this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
   }
 
-  private field(label: string, control: unknown) {
-    return html`<label><span class="lbl">${label}</span>${control}</label>`;
+  private field(label: string, control: unknown, tip?: string) {
+    return html`<label><span class="lbl" title=${tip ?? nothing}>${label}</span>${control}</label>`;
   }
 
   private text(key: string) {
@@ -212,6 +212,7 @@ export class PantrySettingsDialog extends LitElement {
       label,
       html`<span class="inh">${control}${this.reset(field)}</span
         >${fieldMsg(this.errs[field], field)}`,
+      t(`tip.${field}`),
     );
   }
 

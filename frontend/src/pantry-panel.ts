@@ -62,6 +62,7 @@ export class PantryPanel extends LitElement {
             ? html`<button
                 class="menu"
                 aria-label=${t("panel.menu")}
+                title=${t("panel.menu")}
                 @click=${() => this.dispatchEvent(new Event("hass-toggle-menu", { bubbles: true, composed: true }))}
               >
                 ${icon(mdiMenu)}

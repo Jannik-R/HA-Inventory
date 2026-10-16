@@ -118,6 +118,7 @@ export const chevron = (open: boolean, onToggle: () => void) =>
     class="chev"
     aria-expanded=${open}
     aria-label=${t(open ? "common.collapse" : "common.expand")}
+    title=${t(open ? "common.collapse" : "common.expand")}
     @click=${onToggle}
   >
     ${icon(open ? mdiChevronDown : mdiChevronRight)}
@@ -146,6 +147,7 @@ export const rowActions = (o: {
             class="icon-btn"
             data-testid=${`${o.testid}-add`}
             aria-label=${o.addLabel ?? ""}
+            title=${o.addLabel ?? ""}
             @click=${o.onAdd}
           >
             ${icon(mdiPlus)}
@@ -155,6 +157,7 @@ export const rowActions = (o: {
       class="icon-btn"
       data-testid=${`${o.testid}-edit`}
       aria-label=${t("common.edit_name", { name: o.name })}
+      title=${t("common.edit_name", { name: o.name })}
       @click=${o.onEdit}
     >
       ${icon(mdiPencilOutline)}
@@ -165,6 +168,7 @@ export const rowActions = (o: {
             class="icon-btn"
             data-testid=${`${o.testid}-delete`}
             aria-label=${t("common.delete_name", { name: o.name })}
+            title=${t("common.delete_name", { name: o.name })}
             @click=${o.onDelete}
           >
             ${icon(mdiDeleteOutline)}

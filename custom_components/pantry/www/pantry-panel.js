@@ -755,7 +755,19 @@ var ze = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16
 	"valid.servings": "Bitte eine ganze Zahl von 1 bis 99 eingeben.",
 	"valid.url": "Bitte einen Link mit http:// oder https:// angeben.",
 	"valid.ingredient_what": "Bitte eine Produktart oder Kategorie wählen.",
-	"valid.amount_pair": "Menge und Einheit nur zusammen angeben."
+	"valid.amount_pair": "Menge und Einheit nur zusammen angeben.",
+	"tip.unit_id": "Einheit für Mengen in dieser Kategorie, z. B. für Mindestmenge und Rezepte.",
+	"tip.default_location_id": "Hier landen neue Packungen beim Einbuchen, wenn du keinen anderen Lagerort wählst.",
+	"tip.expiry_type": "Mindesthaltbarkeit: danach oft noch gut. Verbrauchsdatum: danach nicht mehr essen.",
+	"tip.warn_days": "So viele Tage vor dem Datum gilt eine Packung als bald ablaufend (orange, Tab „Ablauf“).",
+	"tip.min_stock": "Ist weniger da (diese Kategorie samt Unterkategorien), kommt der Rest auf die Einkaufsliste.",
+	"tip.min_packages": "Sind weniger Packungen da (samt Unterkategorien), kommt der Rest auf die Einkaufsliste.",
+	"tip.product_min_packages": "Sind weniger Packungen dieses Produkts da, kommt es auf die Einkaufsliste. Zählt auch für die Mindestmengen seiner Kategorien.",
+	"tip.content": "Inhalt einer Packung, z. B. 500 g (bei Konserven das Abtropfgewicht). Damit rechnen Mindestmengen und Rezepte.",
+	"tip.make_default": "Der gewählte Lagerort wird zum Standard-Lagerort dieses Produkts.",
+	"tip.print": "Druckt pro Packung ein Etikett mit QR-Code (höchstens 20).",
+	"tip.optional": "Optionale Zutaten zählen nicht zur Verfügbarkeit des Rezepts.",
+	"tip.skip_stock": "Für Zutaten, die du nicht im Vorrat führst (z. B. Salz, Wasser): keine Prüfung, nie auf der Einkaufsliste."
 }, Ze = { de: A }, Qe = A;
 function $e(e) {
 	let t = e ?? "";
@@ -925,6 +937,13 @@ var M = o`
   }
   [aria-invalid="true"][data-touched] {
     border-color: var(--error-color) !important;
+  }
+  /* a field label with a tooltip (title) explaining it */
+  .lbl[title],
+  label.check[title] {
+    text-decoration: underline dotted var(--secondary-text-color);
+    text-underline-offset: 3px;
+    cursor: help;
   }
   button:disabled {
     opacity: 0.5;
@@ -1108,6 +1127,7 @@ var F = (e) => S`<dialog
     class="chev"
     aria-expanded=${e}
     aria-label=${j(e ? "common.collapse" : "common.expand")}
+    title=${j(e ? "common.collapse" : "common.expand")}
     @click=${t}
   >
     ${P(e ? Be : Ve)}
@@ -1120,6 +1140,7 @@ var R = (e) => S`${e.onAdd ? S`<button
             class="icon-btn"
             data-testid=${`${e.testid}-add`}
             aria-label=${e.addLabel ?? ""}
+            title=${e.addLabel ?? ""}
             @click=${e.onAdd}
           >
             ${P(Je)}
@@ -1127,6 +1148,7 @@ var R = (e) => S`${e.onAdd ? S`<button
       class="icon-btn"
       data-testid=${`${e.testid}-edit`}
       aria-label=${j("common.edit_name", { name: e.name })}
+      title=${j("common.edit_name", { name: e.name })}
       @click=${e.onEdit}
     >
       ${P(qe)}
@@ -1135,6 +1157,7 @@ var R = (e) => S`${e.onAdd ? S`<button
             class="icon-btn"
             data-testid=${`${e.testid}-delete`}
             aria-label=${j("common.delete_name", { name: e.name })}
+            title=${j("common.delete_name", { name: e.name })}
             @click=${e.onDelete}
           >
             ${P(Ue)}
@@ -1549,7 +1572,7 @@ function Jt(e) {
 		return t === "" || Number(t) === 0 ? null : Number(t);
 	};
 	return S`<label>
-      <span class="lbl">${j("settings.category.min_stock")}</span>
+      <span class="lbl" title=${j("tip.min_stock")}>${j("settings.category.min_stock")}</span>
       <span class="num">
         <input
           type="number"
@@ -1577,7 +1600,7 @@ function Jt(e) {
       ${z(n.min_stock, "min_stock")}
     </label>
     <label>
-      <span class="lbl">${j("settings.category.min_packages")}</span>
+      <span class="lbl" title=${j("tip.min_packages")}>${j("settings.category.min_packages")}</span>
       <span class="num">
         <input
           type="number"
@@ -1672,8 +1695,8 @@ var Yt = {
 			composed: !0
 		}));
 	}
-	field(e, t) {
-		return S`<label><span class="lbl">${e}</span>${t}</label>`;
+	field(e, t, n) {
+		return S`<label><span class="lbl" title=${n ?? w}>${e}</span>${t}</label>`;
 	}
 	text(e) {
 		return S`<input
@@ -1733,7 +1756,7 @@ var Yt = {
 			source: s
 		}), r);
 		return this.field(t, S`<span class="inh">${c}${this.reset(e)}</span
-        >${z(this.errs[e], e)}`);
+        >${z(this.errs[e], e)}`, j(`tip.${e}`));
 	}
 	render() {
 		let e = this.edit;
@@ -1875,19 +1898,23 @@ var Qt = [
 		return F({
 			title: j("settings.defaults.edit"),
 			body: S`<label>
-          <span class="lbl">${j("settings.category.unit")}</span>
+          <span class="lbl" title=${j("tip.unit_id")}>${j("settings.category.unit")}</span>
           ${this.select("unit_id", e.units.map((e) => [e.id, e.name]))}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.location")}</span>
+          <span class="lbl" title=${j("tip.default_location_id")}
+            >${j("settings.category.location")}</span
+          >
           ${this.select("default_location_id", [[null, j("settings.defaults.no_location")], ...e.locations.map((e) => [e.id, e.name])])}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.expiry_type")}</span>
+          <span class="lbl" title=${j("tip.expiry_type")}
+            >${j("settings.category.expiry_type")}</span
+          >
           ${this.select("expiry_type", ["best_before", "use_by"].map((e) => [e, j(`settings.expiry.${e}`)]))}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.warn_days")}</span>
+          <span class="lbl" title=${j("tip.warn_days")}>${j("settings.category.warn_days")}</span>
           <span class="num">
             <input
               data-testid="default-warn_days"
@@ -2359,7 +2386,7 @@ function fn(e, t, n, r = {}, i) {
     </div>
     <div class="pair">
       <label>
-        <span class="lbl">${j("book.content")}</span>
+        <span class="lbl" title=${j("tip.content")}>${j("book.content")}</span>
         <input
           data-testid="content-amount"
           type="number"
@@ -2390,7 +2417,7 @@ function fn(e, t, n, r = {}, i) {
     </div>
     ${z(r.content, "content")}
     <label>
-      <span class="lbl">${j("products.min_packages")}</span>
+      <span class="lbl" title=${j("tip.product_min_packages")}>${j("products.min_packages")}</span>
       ${Ht({
 		testid: "min-packages",
 		own: t.min_packages,
@@ -2480,7 +2507,7 @@ function _n(e, t, n, r, i, a) {
 	})}
       ${z(i.location, "location")}
     </label>
-    ${t.id ? w : S`<label class="check">
+    ${t.id ? w : S`<label class="check" title=${j("tip.make_default")}>
             <input
               type="checkbox"
               data-testid="make-default"
@@ -2490,7 +2517,7 @@ function _n(e, t, n, r, i, a) {
           </label>`}`;
 }
 function vn(e, t, n) {
-	return S`<label class="check">
+	return S`<label class="check" title=${j("tip.print")}>
     <input
       type="checkbox"
       data-testid="print-labels"
@@ -3176,7 +3203,9 @@ var Rn = (e, t, n) => Ln(e, async () => {
           ${z(t.ean, "ean")}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.location")}</span>
+          <span class="lbl" title=${j("tip.default_location_id")}
+            >${j("settings.category.location")}</span
+          >
           ${Vt({
 				testid: "location",
 				own: e.default_location_id,
@@ -3188,7 +3217,9 @@ var Rn = (e, t, n) => Ln(e, async () => {
 			})}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.expiry_type")}</span>
+          <span class="lbl" title=${j("tip.expiry_type")}
+            >${j("settings.category.expiry_type")}</span
+          >
           ${Vt({
 				testid: "expiry-type",
 				own: e.expiry_type,
@@ -3199,7 +3230,7 @@ var Rn = (e, t, n) => Ln(e, async () => {
 			})}
         </label>
         <label>
-          <span class="lbl">${j("settings.category.warn_days")}</span>
+          <span class="lbl" title=${j("tip.warn_days")}>${j("settings.category.warn_days")}</span>
           ${Ht({
 				testid: "warn-days",
 				own: e.warn_days,
@@ -4475,7 +4506,7 @@ var gr = class extends k {
         />
       </label>
       <div class="foot">
-        <label class="check">
+        <label class="check" title=${j("tip.optional")}>
           <input
             type="checkbox"
             data-testid="ingredient-optional"
@@ -4484,7 +4515,7 @@ var gr = class extends k {
           />
           ${j("recipes.ingredient.optional")}
         </label>
-        <label class="check">
+        <label class="check" title=${j("tip.skip_stock")}>
           <input
             type="checkbox"
             data-testid="ingredient-skip-stock"
@@ -4498,6 +4529,7 @@ var gr = class extends k {
           class="icon-btn"
           data-testid="ingredient-remove"
           aria-label=${j("recipes.ingredient.remove")}
+          title=${j("recipes.ingredient.remove")}
           @click=${() => this.emit(this.value.filter((e, n) => n !== t))}
         >
           ${P(He)}
@@ -5053,6 +5085,7 @@ var xr = [
         ${this.narrow ? S`<button
                 class="menu"
                 aria-label=${j("panel.menu")}
+                title=${j("panel.menu")}
                 @click=${() => this.dispatchEvent(new Event("hass-toggle-menu", {
 			bubbles: !0,
 			composed: !0

@@ -327,7 +327,6 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 
 **Open todos** (check before starting the next phase):
 
-- Before phase 11: fix the flaky E2E `booking.spec.ts` (the message after booking out / undo is sometimes cleared; also fails with the phase 9 bundle).
 - Ongoing: extend the seeded product types (`seed.py`, lowest category level) whenever everyday products are missing; existing DBs get new ones by a migration step (released since 0.1.0).
 
 ## 7. Extension points (not built now)

@@ -183,7 +183,7 @@ async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/delete",
-        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
+        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe")),
         vol.Required("row_id"): ID,
         # also delete what uses it (see pantry/delete_impact); locations: move the stock there
         vol.Optional("force", default=False): bool,
@@ -208,7 +208,7 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/delete_impact",
-        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product")),
+        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe")),
         vol.Required("row_id"): ID,
     }
 )

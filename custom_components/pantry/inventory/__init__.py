@@ -11,6 +11,7 @@ from .labels import book_out_code, label_info
 from .master import delete, list_rows, master_data, save, save_defaults
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
+from .recipes import recipe_availability, recipes, save_recipe
 from .removal import delete_impact, force_delete
 from .shopping import (
     add_shopping_by_name,
@@ -53,8 +54,11 @@ __all__ = [
     "move",
     "product_draft",
     "put_back",
+    "recipe_availability",
+    "recipes",
     "save",
     "save_defaults",
+    "save_recipe",
     "search_products",
     "set_shopping_done",
     "shopping_list",

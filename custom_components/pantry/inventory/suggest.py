@@ -57,6 +57,12 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
     (German names put the product before the variety: "Joghurt Erdbeere", "Tomatensauce
     Basilikum"); within it the best score wins, then the deeper category."""
     cats = _categories(conn)
+    # Single-word product types (third level) match by their own name, e.g. "Tomatenmark".
+    types = [
+        (c["name"].casefold(), cid)
+        for cid, c in cats.items()
+        if len(_chain(cats, cid)) >= 3 and " " not in c["name"]
+    ]
     tag_cats: dict[str, list[int]] = {}
     for cid, tags in category_tags(conn).items():
         for tag in tags:
@@ -67,6 +73,10 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
             for kw, tag in _KEYWORDS
             if (score := keyword_score(word, kw)) is not None and score >= _MIN_SCORE
             for cid in tag_cats.get(tag, [])
+        ] + [
+            (score, len(_chain(cats, cid)), cid)
+            for kw, cid in types
+            if (score := keyword_score(word, kw)) is not None and score >= _MIN_SCORE
         ]
         if found:
             return max(found)[2]

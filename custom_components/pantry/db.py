@@ -12,12 +12,14 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
 from .seed import seed
+from .seed_types import add_seed_extras
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 # Never edit an existing step; append a new one.
-MIGRATIONS: list[str] = [
+# A step is an SQL script or a callable(conn) run in the same transaction.
+MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     """
     CREATE TABLE unit (
         id INTEGER PRIMARY KEY,
@@ -302,6 +304,35 @@ MIGRATIONS: list[str] = [
     ALTER TABLE booking ADD COLUMN reverts_id INTEGER REFERENCES booking(id);
     CREATE UNIQUE INDEX booking_reverts ON booking (reverts_id);
     """,
+    # 7: recipes. An ingredient keys on a category node (any product in its subtree counts; the
+    # lowest level is the "Produktart"). `text` is a name snapshot: the category's name while it is
+    # set, the typed name when unmatched (kept when the category is deleted); `note` is a free hint.
+    # force_delete of a unit clears
+    # amount + unit together (both or none). Ingredient order = id order (save replaces them all).
+    """
+    CREATE TABLE recipe (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        servings INTEGER NOT NULL CHECK (servings > 0),
+        instructions TEXT,
+        source_url TEXT,
+        image_url TEXT
+    );
+    CREATE TABLE recipe_ingredient (
+        id INTEGER PRIMARY KEY,
+        recipe_id INTEGER NOT NULL REFERENCES recipe(id) ON DELETE CASCADE,
+        category_id INTEGER REFERENCES category(id) ON DELETE SET NULL,
+        amount REAL CHECK (amount > 0),
+        unit_id INTEGER REFERENCES unit(id),
+        text TEXT NOT NULL,
+        note TEXT,
+        optional INTEGER NOT NULL DEFAULT 0 CHECK (optional IN (0, 1)),
+        CHECK ((amount IS NULL) = (unit_id IS NULL))
+    );
+    CREATE INDEX recipe_ingredient_recipe ON recipe_ingredient (recipe_id);
+    """,
+    # 8: seeded product types for existing DBs (a new DB gets them from the seed).
+    add_seed_extras,
 ]
 
 
@@ -323,7 +354,13 @@ def migrate(conn: sqlite3.Connection) -> None:
     conn.execute("PRAGMA foreign_keys=OFF")  # no effect inside a transaction, so set it here
     try:
         for i in range(start, len(MIGRATIONS)):
-            conn.executescript(f"BEGIN;{MIGRATIONS[i]}PRAGMA user_version={i + 1};")
+            step = MIGRATIONS[i]
+            if callable(step):
+                conn.execute("BEGIN")
+                step(conn)
+                conn.execute(f"PRAGMA user_version={i + 1}")
+            else:
+                conn.executescript(f"BEGIN;{step}PRAGMA user_version={i + 1};")
             if bad := conn.execute("PRAGMA foreign_key_check").fetchall():
                 conn.rollback()
                 raise sqlite3.IntegrityError(f"migration {i + 1}: foreign key violations {bad[:5]}")

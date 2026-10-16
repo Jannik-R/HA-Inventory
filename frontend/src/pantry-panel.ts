@@ -8,8 +8,9 @@ import "./booking-view";
 import "./stock-view";
 import "./expiry-view";
 import "./shopping-view";
+import "./recipes-view";
 
-const TABS = ["stock", "in", "out", "expiry", "shopping", "settings"] as const;
+const TABS = ["stock", "in", "out", "expiry", "shopping", "recipes", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
 export class PantryPanel extends LitElement {
@@ -26,6 +27,11 @@ export class PantryPanel extends LitElement {
   constructor() {
     super();
     this.narrow = false;
+    // A field shows its error only once it was edited or left (see formStyles); both events
+    // cross shadow roots, so one listener here covers every view and dialog.
+    const touch = (e: Event) => (e.composedPath()[0] as Element).setAttribute?.("data-touched", "");
+    this.addEventListener("input", touch);
+    this.addEventListener("focusout", touch);
   }
 
   willUpdate(changed: PropertyValues) {
@@ -87,7 +93,9 @@ export class PantryPanel extends LitElement {
                 ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
                 : active === "expiry"
                   ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
-                  : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
+                  : active === "recipes"
+                    ? html`<pantry-recipes .hass=${this.hass}></pantry-recipes>`
+                    : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
         }
       </main>
     `;

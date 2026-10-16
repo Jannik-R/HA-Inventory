@@ -426,3 +426,46 @@ async def test_delete_impact_is_silent(hass: HomeAssistant, ws) -> None:
     assert (await ws.call(impact))["result"]["groups"]
     assert len(calls) == n
     unsub()
+
+
+async def test_recipes(ws, hass_admin_user) -> None:
+    cat_id = by_name((await master(ws))["categories"], "Nudeln")["id"]
+    hass_admin_user.groups = []
+    data = {"name": "Pasta", "servings": 2, "ingredients": [{"category_id": cat_id, "text": ""}]}
+    msg = await ws.call({"type": "pantry/recipe_save", "data": data})
+    rid = msg["result"]["id"]
+    (recipe,) = (await ws.call({"type": "pantry/recipes"}))["result"]
+    assert recipe["ingredients"][0]["text"] == "Nudeln" and recipe["summary"]["total"] == 1
+    msg = await ws.call({"type": "pantry/recipe_availability", "recipe_id": rid, "servings": 4})
+    assert msg["result"][0]["status"] == "missing"
+    msg = await ws.call({"type": "pantry/delete", "table": "recipe", "row_id": rid})
+    assert msg["error"]["code"] == "unauthorized"
+    msg = await ws.call({"type": "pantry/delete_impact", "table": "recipe", "row_id": rid})
+    assert msg["error"]["code"] == "unauthorized"
+    for bad in (
+        {"ingredients": [{"text": "x", "amount": -1}]},
+        {"ingredients": [{"text": "x", "note": "y" * 201}]},
+        {"ingredients": [{"text": "x"}] * 101},
+        {"servings": 0},
+        {"source_url": "javascript:x"},
+    ):
+        msg = await ws.call({"type": "pantry/recipe_save", "data": {**data, **bad}})
+        assert msg["error"]["code"] == "invalid_format", bad
+    msg = await ws.call(
+        {
+            "type": "pantry/recipe_save",
+            "data": {**data, "ingredients": [{"text": "x", "amount": 1}]},
+        }
+    )
+    assert msg["error"]["translation_key"] == "invalid_value"  # amount without unit
+    # product types: any user, as a category below a parent
+    add = {"type": "pantry/product_type_add", "name": "Bandnudeln", "parent_id": cat_id}
+    new_id = (await ws.call(add))["result"]["id"]
+    assert (await ws.call(add))["error"]["translation_key"] == "duplicate"
+    assert (await ws.call({**add, "parent_id": 99999}))["error"][
+        "translation_key"
+    ] == "invalid_value"
+    assert (await ws.call({"type": "pantry/product_type_add", "name": "X"}))["error"][
+        "code"
+    ] == "invalid_format"
+    assert new_id

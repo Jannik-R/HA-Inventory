@@ -4,25 +4,26 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services; next: recipes). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
 Available:
 
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts
-- Category tree (main category → category → food type) with inherited defaults (unit, location, date type, expiry warning)
+- Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a network label printer (Dymo LabelWriter 450 behind a USB print server) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
+- Recipe database with ingredients matched to categories: see what is in stock, scale the servings
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 
 Planned:
 
 - Receipt printer (ESC/POS) for the shopping list and later recipes
-- Recipes (with import from Chefkoch and other recipe sites), shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
+- Recipe import from Chefkoch and other recipe sites, shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
@@ -67,6 +68,7 @@ Kategorie)"), so a category only shows up as an item when something beyond its s
 needed. Products without a content (e.g. 500 g) count for the package minimum only. A ticked item is
 struck through and stays in place; a minimum stock item is unticked again by itself as soon as the
 missing amount changes (e.g. after booking in only part of it).
+A count unit (*Stück*) uses the package content, so a 10er pack of eggs is 10 Stück, for the minimum stock too.
 
 *Zur Einkaufsliste hinzufügen* puts something on the list by hand: type a name, pick a matching
 product or category (a category means "any of it"), set *Anzahl* (packages) and save. Without a match,
@@ -78,6 +80,25 @@ The same list is the to-do entity *Einkaufsliste* (`todo.vorrat_einkaufsliste`) 
 dashboard and the companion app: ticking works there too; *Eintrag hinzufügen* takes the exact name of
 an existing product or category (new ones only in the panel); *Erledigte entfernen* deletes ticked
 items added by hand (minimum stock items stay until the stock is there).
+
+### Rezepte (recipes)
+
+The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen". The search field (focused on
+open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
+their status, instructions, source link and image. *Portionen* in the open row scales the amounts;
+this is only shown, never saved.
+
+An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
+optional amount with a unit, or none ("optional" ingredients are not counted in the summary).
+Status: *vorhanden*, *teilweise: 50 von 200 g*, *fehlt 150 g*, *Menge unbekannt* (stock has products
+without a content in a matching unit), *keine Zutat zugeordnet* (counts as not available). Without an
+amount, any package in the category is enough. Cooking does not book anything out: take the
+ingredients out in *Auslagern* as usual.
+
+*Rezept hinzufügen* and the pencil are open to every user: name, portions, instructions, links and the ingredient rows
+(Produktart or category, *Hinweis*, amount and unit together or neither, optional). The *Zutat* field is a search: type a Produktart or category name, or a product name ("Mutti" finds Tomatenmark, shown as "über Mutti Tomatenmark"). If nothing fits, *Neue Produktart „…“ anlegen* asks for the parent category and creates it right there. Picking a category fills an empty
+unit with its unit. Only admins can delete a recipe (the bin).
+Deleting a category or unit that recipes use asks first and lists those recipes. The ingredients stay: without the category they show *keine Zutat zugeordnet*; deleting a unit also clears their amount (amount and unit only go together).
 
 ### Sensors
 
@@ -186,7 +207,8 @@ actions:
 
 ### Settings (Einstellungen)
 
-- **Kategorien**: tree of main category → category → food type. Each category can set a unit,
+- **Kategorien**: tree of main category → category → Produktart (product type, e.g. Tomatenmark;
+  about 320 are seeded, any user can add one from a recipe). Each category can set a unit,
   default storage location, expiry type (best before / use by) and warning days; empty fields are
   inherited from the parent category or the global defaults and are shown in grey with their source
   ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not
@@ -199,7 +221,7 @@ actions:
 - **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
   it (its booking history stays); its stock is moved to another location of your choice or booked
   out. Adding the same name again brings it back.
-- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages.
+- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher). A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
   location, date type, warning days; initially Packung, none, best before, 7 days).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.

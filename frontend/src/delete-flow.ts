@@ -5,9 +5,9 @@ import {
   deleteRow,
   getDeleteImpact,
   type DeleteGroup,
+  type DeleteTable,
   type Hass,
   type MasterData,
-  type Table,
 } from "./api";
 
 /** Names shown per group before "und N weitere". */
@@ -37,7 +37,7 @@ const names = (g: DeleteGroup) => {
 export async function deleteMasterRow(
   hass: Hass,
   md: MasterData,
-  table: Table | "product",
+  table: DeleteTable,
   row: { id: number; name: string },
 ): Promise<boolean> {
   const hint =

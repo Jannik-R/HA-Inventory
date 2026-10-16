@@ -65,6 +65,12 @@
     "invalid_ean": {
       "message": "Invalid barcode (8 to 14 digits)."
     },
+    "recipe_unreachable": {
+      "message": "The page could not be loaded."
+    },
+    "recipe_not_found": {
+      "message": "No recipe found on this page (schema.org recipe data is needed)."
+    },
     "off_unavailable": {
       "message": "Open Food Facts is not reachable. Please try again later."
     },

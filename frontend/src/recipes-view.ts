@@ -11,10 +11,13 @@ import {
   type Ingredient,
   type MasterData,
   type Recipe,
+  type RecipeDraft,
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
 import { fmtPortions, recipeDetail } from "./recipe-detail";
 import "./recipe-dialog";
+import "./recipe-import";
+import type { PantryRecipeImport } from "./recipe-import";
 import type { PantryRecipeDialog } from "./recipe-dialog";
 
 /** Recipe list: search (name and ingredients), open a row for ingredients with availability. */
@@ -96,6 +99,10 @@ export class PantryRecipes extends LitElement {
     this.renderRoot.querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!.open(this.md!, r);
   }
 
+  private importer() {
+    return this.renderRoot.querySelector<PantryRecipeImport>("pantry-recipe-import")!;
+  }
+
   private shown() {
     const q = this.query.trim().toLocaleLowerCase();
     return (this.recipes ?? []).filter(
@@ -155,10 +162,20 @@ export class PantryRecipes extends LitElement {
           .value=${this.query}
           @input=${(e: Event) => (this.query = (e.target as HTMLInputElement).value)}
         />
+        <button data-testid="recipe-import" @click=${() => this.importer().open()}>
+          ${t("recipes.import.open")}
+        </button>
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
           ${t("recipes.add")}
         </button>
       </div>
+      <pantry-recipe-import
+        .hass=${this.hass}
+        @pantry-imported=${(e: CustomEvent<RecipeDraft>) =>
+          this.renderRoot
+            .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
+            .open(this.md!, undefined, e.detail)}
+      ></pantry-recipe-import>
       <pantry-recipe-dialog .hass=${this.hass} @pantry-saved=${() => this.load()}>
       </pantry-recipe-dialog>
       ${

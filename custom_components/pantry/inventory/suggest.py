@@ -6,6 +6,7 @@ import re
 import sqlite3
 
 from ..keywords import KEYWORDS
+from .ingredient_line import unit_key
 from .inherit import _categories, _chain, category_tags
 
 
@@ -43,13 +44,34 @@ def keyword_score(word: str, keyword: str) -> int | None:
     """
     if word in (keyword + e for e in _ENDINGS):
         bonus = 10
-    elif any(word.endswith(keyword + e) for e in _ENDINGS):
+    # short keywords ("ei", "öl") as a compound end only without ending: "Weißwein" is no "ei"+"n"
+    elif any(word.endswith(keyword + e) for e in (_ENDINGS if len(keyword) > 2 else ("",))):
         bonus = 5
     elif word.startswith(keyword):
         bonus = 2
     else:
         return None
     return len(keyword) + bonus
+
+
+def _type_stems(cats: dict) -> list[tuple[tuple[str, ...], int]]:
+    """(plural-insensitive words, id) of every product type: "Schalotte" meets Schalotten."""
+    return [
+        (tuple(map(unit_key, _words(c["name"]))), cid)
+        for cid, c in cats.items()
+        if len(_chain(cats, cid)) >= 3
+    ]
+
+
+def _type_at(types: list, stems: list[str], i: int) -> int | None:
+    """Longest product type whose whole name (any word count) starts at word i."""
+    found = [(len(t), cid) for t, cid in types if tuple(stems[i : i + len(t)]) == t]
+    return max(found)[1] if found else None
+
+
+def suggest_type(conn: sqlite3.Connection, name: str) -> int | None:
+    """Product type that `name` starts with, by whole name ("Pak Choi", "Crème fraîche")."""
+    return _type_at(_type_stems(_categories(conn)), [unit_key(w) for w in _words(name)], 0)
 
 
 def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
@@ -67,7 +89,10 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
     for cid, tags in category_tags(conn).items():
         for tag in tags:
             tag_cats.setdefault(tag, []).append(cid)
-    for word in _words(name):
+    stems, phrases = [unit_key(w) for w in _words(name)], _type_stems(cats)
+    for i, word in enumerate(_words(name)):
+        if exact := _type_at(phrases, stems, i):
+            return exact
         found = [
             (score, len(_chain(cats, cid)), cid)
             for kw, tag in _KEYWORDS

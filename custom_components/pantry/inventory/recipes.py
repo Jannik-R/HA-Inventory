@@ -29,8 +29,8 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
                 raise InventoryError("invalid_value")
             conn.execute(
                 "INSERT INTO recipe_ingredient"
-                " (recipe_id, category_id, amount, unit_id, text, note, optional)"
-                " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                " (recipe_id, category_id, amount, unit_id, text, note, optional, skip_stock)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                 (
                     recipe_id,
                     ing.get("category_id"),
@@ -39,6 +39,7 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
                     text,
                     note,
                     int(bool(ing.get("optional"))),
+                    int(bool(ing.get("skip_stock"))),
                 ),
             )
     except sqlite3.IntegrityError as err:
@@ -65,6 +66,9 @@ def _availability(ctx: tuple, ingredients: list[dict], factor: float) -> list[di
     out = []
     for ing in ingredients:
         cid = ing["category_id"]
+        if ing["skip_stock"]:  # e.g. salt, water: never checked against the stock
+            out.append({**ing, "status": "skipped"})
+            continue
         if cid is None or cid not in cats:
             out.append({**ing, "status": "unmatched"})
             continue
@@ -106,7 +110,10 @@ def _ingredients(conn: sqlite3.Connection, recipe_id: int) -> list[dict]:
     rows = conn.execute(
         "SELECT * FROM recipe_ingredient WHERE recipe_id = ? ORDER BY id", (recipe_id,)
     )
-    return [{**r, "optional": bool(r["optional"])} for r in map(dict, rows)]
+    return [
+        {**r, "optional": bool(r["optional"]), "skip_stock": bool(r["skip_stock"])}
+        for r in map(dict, rows)
+    ]
 
 
 def recipe_availability(conn: sqlite3.Connection, recipe_id: int, servings: int) -> list[dict]:
@@ -119,12 +126,12 @@ def recipe_availability(conn: sqlite3.Connection, recipe_id: int, servings: int)
 
 def recipes(conn: sqlite3.Connection) -> list[dict]:
     """All recipes by name with ingredients, availability at their own servings and a summary
-    (available / total over the non-optional ingredients)."""
+    (available / total over the ingredients that are neither optional nor skipped)."""
     out, ctx = [], _ctx(conn)
     # shortcut: instructions travel with the list; split into a detail call if the list gets slow
     for r in map(dict, conn.execute("SELECT * FROM recipe")):
         ingredients = _availability(ctx, _ingredients(conn, r["id"]), 1.0)
-        required = [i for i in ingredients if not i["optional"]]
+        required = [i for i in ingredients if not i["optional"] and not i["skip_stock"]]
         r["ingredients"] = ingredients
         r["summary"] = {
             "available": sum(i["status"] == "available" for i in required),

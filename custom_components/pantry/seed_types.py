@@ -7,26 +7,29 @@ suggest.py match type names directly.
 
 import sqlite3
 
+from .seed_types_more import MORE_TYPES, MORE_UNITS
+
 # parent sub-category name -> types. Type names are unique across the tree (see add_seed_extras).
 _DE_TYPES: dict[str, list[str]] = {
     "Obst": [
         "Äpfel", "Birnen", "Bananen", "Orangen", "Zitronen", "Limetten", "Mandarinen",
         "Trauben", "Erdbeeren", "Himbeeren", "Heidelbeeren", "Kiwi", "Ananas", "Mango",
-        "Melone", "Pfirsiche", "Kirschen", "Pflaumen", "Avocado",
+        "Melone", "Pfirsiche", "Kirschen", "Pflaumen", "Avocado", "Schattenmorellen", "Preiselbeeren",
     ],
     "Gemüse": [
         "Frische Tomaten", "Zwiebeln", "Knoblauch", "Paprika", "Gurken", "Karotten",
         "Zucchini", "Brokkoli", "Blumenkohl", "Salat", "Spinat", "Champignons", "Lauch",
         "Auberginen", "Sellerie", "Kohlrabi", "Rotkohl", "Weißkohl", "Spargel", "Radieschen",
-        "Rote Bete", "Fenchel", "Ingwer", "Süßkartoffeln", "Kürbis",
+        "Rote Bete", "Fenchel", "Ingwer", "Süßkartoffeln", "Kürbis", "Peperoni", "Chilischoten",
+        "Grünkohl", "Pak Choi", "Schalotten",
     ],
     "Kräuter": [
         "Petersilie", "Basilikum", "Schnittlauch", "Dill", "Koriander", "Thymian",
-        "Rosmarin", "Minze", "Salbei",
+        "Rosmarin", "Minze", "Salbei", "Kerbel", "Estragon",
     ],
     "Kartoffeln": ["Festkochende Kartoffeln", "Mehligkochende Kartoffeln"],
     "Brot": ["Vollkornbrot", "Toastbrot", "Mischbrot", "Weißbrot", "Dinkelbrot", "Tortillas"],
-    "Brötchen": ["Weizenbrötchen", "Laugenbrötchen", "Baguette", "Croissants", "Aufbackbrötchen"],
+    "Brötchen": ["Weizenbrötchen", "Laugenbrötchen", "Baguette", "Croissants", "Aufbackbrötchen", "Ciabatta"],
     "Milch": [
         "Vollmilch", "H-Milch", "Frischmilch", "Laktosefreie Milch", "Hafermilch", "Sojamilch",
         "Mandelmilch", "Buttermilch", "Kondensmilch", "Sahne", "Schlagsahne", "Kochsahne",
@@ -61,7 +64,7 @@ _DE_TYPES: dict[str, list[str]] = {
     "Zucker": ["Haushaltszucker", "Puderzucker", "Brauner Zucker", "Vanillezucker"],
     "Backmischungen": [
         "Backpulver", "Natron", "Puddingpulver", "Tortenguss", "Gelatine", "Kakaopulver",
-        "Kuvertüre", "Backaroma", "Kuchenbackmischung",
+        "Kuvertüre", "Backaroma", "Kuchenbackmischung", "Blätterteig", "Marzipan",
     ],
     "Hefe": ["Trockenhefe", "Frischhefe"],
     "Gemüsekonserven": [
@@ -74,7 +77,7 @@ _DE_TYPES: dict[str, list[str]] = {
     ],
     "Suppen": ["Tomatensuppe", "Hühnersuppe", "Linsensuppe", "Gulaschsuppe", "Erbsensuppe"],
     "Fertiggerichte": ["Ravioli", "Chili con Carne", "Eintopf", "Instantnudeln", "Kartoffelpüree", "Knödel"],
-    "Öl": ["Olivenöl", "Rapsöl", "Sonnenblumenöl", "Kokosöl", "Sesamöl", "Butterschmalz"],
+    "Öl": ["Olivenöl", "Rapsöl", "Sonnenblumenöl", "Kokosöl", "Sesamöl", "Butterschmalz", "Schweineschmalz"],
     "Essig": ["Balsamico", "Apfelessig", "Weißweinessig", "Rotweinessig"],
     "Saucen": [
         "Ketchup", "Mayonnaise", "Senf", "Sojasauce", "Pesto", "Tomatensauce", "Grillsauce",
@@ -82,7 +85,7 @@ _DE_TYPES: dict[str, list[str]] = {
     ],
     "Gewürze": [
         "Salz", "Pfeffer", "Paprikapulver", "Curry", "Zimt", "Oregano", "Muskat", "Kümmel",
-        "Chilipulver", "Kurkuma", "Knoblauchpulver", "Lorbeer", "Vanille", "Majoran",
+        "Chilipulver", "Kurkuma", "Knoblauchpulver", "Lorbeer", "Vanille", "Majoran", "Sesam", "Mohn", "Nelken",
     ],
     "Brühe": ["Gemüsebrühe", "Hühnerbrühe", "Rinderbrühe", "Fond"],
     "Müsli": ["Knuspermüsli", "Cornflakes", "Granola", "Porridge"],
@@ -94,16 +97,21 @@ _DE_TYPES: dict[str, list[str]] = {
     "Nussaufstrich": ["Nuss-Nougat-Creme", "Erdnussbutter", "Mandelmus"],
     "Schokolade": [
         "Vollmilchschokolade", "Zartbitterschokolade", "Weiße Schokolade", "Schokoriegel", "Pralinen",
+        "Schokostreusel",
     ],
-    "Kekse": ["Butterkekse", "Schokokekse", "Lebkuchen", "Gummibärchen", "Cracker", "Salzstangen"],
+    "Kekse": ["Butterkekse", "Schokokekse", "Lebkuchen", "Gummibärchen", "Cracker", "Salzstangen", "Löffelbiskuits"],
     "Chips": ["Kartoffelchips", "Paprikachips", "Popcorn"],
     "Nüsse": [
         "Mandeln", "Walnüsse", "Haselnüsse", "Erdnüsse", "Cashewkerne", "Pistazien",
-        "Studentenfutter", "Rosinen",
+        "Studentenfutter", "Rosinen", "Maronen", "Kokosraspel", "Datteln",
     ],
     "Wasser": ["Mineralwasser", "Sprudel", "Stilles Wasser"],
     "Saft": ["Apfelsaft", "Orangensaft", "Multivitaminsaft", "Traubensaft", "Apfelschorle", "Limonade", "Cola"],
     "Kaffee": ["Kaffeebohnen", "Gemahlener Kaffee", "Kaffeekapseln", "Instantkaffee"],
+    "Alkohol": [
+        "Rotwein", "Weißwein", "Rum", "Bier", "Sekt", "Likör", "Amaretto", "Wermut", "Schnaps",
+        "Weinbrand", "Whiskey",
+    ],
     "Tee": ["Schwarztee", "Grüntee", "Kräutertee", "Früchtetee", "Kamillentee", "Pfefferminztee"],
     "Gemüse TK": ["Blattspinat", "Erbsen und Möhren", "Gemüsemischung", "Pommes frites", "Rosenkohl", "Beerenmischung"],
     "Fleisch & Fisch TK": ["Fischstäbchen", "Hähnchen-Nuggets", "Backfisch", "Hackbällchen"],
@@ -112,6 +120,8 @@ _DE_TYPES: dict[str, list[str]] = {
     "Spülmittel": ["Handspülmittel", "Spülmaschinentabs", "Klarspüler", "Spülmaschinensalz"],
     "Papier": ["Toilettenpapier", "Küchenrolle", "Taschentücher", "Servietten", "Backpapier"],
 }  # fmt: skip
+for _parent, _names in MORE_TYPES.items():
+    _DE_TYPES[_parent] = _DE_TYPES.get(_parent, []) + _names
 
 # Recipe units: (name, symbol, base unit name, factor, is_count). Count units without a base count
 # packages ("1 Bund Petersilie", "1 Dose Tomaten"); EL/TL convert to ml and otherwise count packages
@@ -122,6 +132,8 @@ _DE_RECIPE_UNITS = [
     ("Messerspitze", "Msp.", None, 1, 1),
     ("Esslöffel", "EL", "ml", 15, 1),
     ("Teelöffel", "TL", "ml", 5, 1),
+    ("cl", "cl", "ml", 10, 0),
+    ("dl", "dl", "ml", 100, 0),
     ("Zehe", "Zehe", None, 1, 1),
     ("Scheibe", "Scheibe", None, 1, 1),
     ("Stange", "Stange", None, 1, 1),
@@ -129,6 +141,18 @@ _DE_RECIPE_UNITS = [
     ("Dose", "Dose", None, 1, 1),
     ("Glas", "Glas", None, 1, 1),
     ("Becher", "Becher", None, 1, 1),
+    ("Handvoll", "Handvoll", None, 1, 1),
+    ("Zweig", "Zweig", None, 1, 1),
+    ("Würfel", "Würfel", None, 1, 1),
+    ("Beutel", "Beutel", None, 1, 1),
+    ("Schuss", "Schuss", None, 1, 1),
+    ("Kopf", "Kopf", None, 1, 1),
+    ("Stiel", "Stiel", None, 1, 1),
+    ("Kugel", "Kugel", None, 1, 1),
+    ("Flasche", "Flasche", None, 1, 1),
+    ("Tasse", "Tasse", None, 1, 1),
+    ("Spritzer", "Spritzer", None, 1, 1),
+    ("Tropfen", "Tropfen", None, 1, 1),
 ]
 
 # Seeded category -> unit (names), where the inherited unit does not fit (default: Stück).
@@ -140,7 +164,7 @@ _DE_UNITS: dict[str, str] = {
     "Gemüsekonserven": "g", "Tomaten": "g", "Suppen": "ml", "Fertiggerichte": "Packung",
     "Öl": "l", "Essig": "l", "Saucen": "ml", "Gewürze": "g", "Brühe": "g", "Müsli": "g",
     "Marmelade": "g", "Honig": "g", "Nussaufstrich": "g", "Schokolade": "g", "Kekse": "g",
-    "Chips": "g", "Nüsse": "g", "Kaffee": "g", "Tee": "Packung", "Gemüse TK": "g",
+    "Chips": "g", "Nüsse": "g", "Kaffee": "g", "Tee": "Packung", "Alkohol": "ml", "Gemüse TK": "g",
     "Fleisch & Fisch TK": "g", "Eis": "ml", "Haushalt & Drogerie": "Packung",
     # product types that differ from their sub-category
     "Erdbeeren": "g", "Himbeeren": "g", "Heidelbeeren": "g", "Trauben": "g", "Kirschen": "g",
@@ -149,30 +173,62 @@ _DE_UNITS: dict[str, str] = {
     "Saure Sahne": "g", "Crème fraîche": "g", "Schmand": "g",
     "Bratwurst": "Stück", "Wiener Würstchen": "Stück",
     "Vanillezucker": "Packung", "Kakaopulver": "g", "Kuvertüre": "g", "Trockenhefe": "Packung",
-    "Kokosmilch": "ml", "Butterschmalz": "g", "Senf": "g", "Mayonnaise": "g", "Pesto": "g",
+    "Kokosmilch": "ml", "Butterschmalz": "g", "Schweineschmalz": "g", "Senf": "g", "Mayonnaise": "g", "Pesto": "g",
     "Lorbeer": "Blatt", "Gelatine": "Blatt", "Vanille": "Stück", "Fond": "ml", "Ahornsirup": "ml",
     "Schokoriegel": "Stück", "Kaffeekapseln": "Stück", "Pizza": "Stück", "Eis am Stiel": "Stück",
     "Handspülmittel": "ml", "Klarspüler": "ml", "Spülmaschinentabs": "Stück",
     "Spülmaschinensalz": "kg",
 }  # fmt: skip
+_DE_UNITS = {**MORE_UNITS, **_DE_UNITS}
 
 
-def add_seed_extras(conn: sqlite3.Connection) -> None:
+# Added after 0.1.0 (migration 9): only these are inserted into existing DBs.
+NEW_IN_9 = {
+    "cl", "dl", "Schattenmorellen", "Blätterteig", "Schweineschmalz", "Maronen",
+    "Handvoll", "Zweig", "Würfel", "Beutel", "Schuss", "Kopf", "Stiel", "Kugel", "Flasche",
+    "Tasse", "Spritzer", "Tropfen", "Preiselbeeren", "Peperoni", "Chilischoten", "Grünkohl",
+    "Pak Choi", "Kerbel", "Estragon", "Ciabatta", "Marzipan", "Rotwein", "Weißwein", "Rum",
+    "Sesam", "Mohn", "Nelken", "Schalotten", "Alkohol", "Bier", "Sekt", "Likör", "Amaretto",
+    "Wermut", "Schnaps", "Weinbrand", "Whiskey", "Schokostreusel", "Löffelbiskuits", "Kokosraspel", "Datteln",
+}  # fmt: skip
+NEW_IN_9 |= {name for names in MORE_TYPES.values() for name in names}
+
+
+def add_seed_extras(conn: sqlite3.Connection, only: set[str] | None = None) -> None:
     """Insert the recipe units and product types missing in this DB, then the default units
-    (`_DE_UNITS`); the caller commits.
+    (`_DE_UNITS`); the caller commits. `only` limits it to these names (a later migration).
 
     Only under a parent that exists by exact name, and only when no category has the type's
     name yet, so renames and deletions by the user are respected and nothing is added twice.
     """
     if not conn.execute("SELECT 1 FROM unit").fetchone():
         return  # new DB (migration 8 runs before the seed): seed() calls this after the base data
-    for name, symbol, base, factor, is_count in _DE_RECIPE_UNITS:
+
+    def wanted(name: str) -> bool:
+        return only is None or name in only
+
+    for name, symbol, base, factor, is_count in filter(lambda u: wanted(u[0]), _DE_RECIPE_UNITS):
         conn.execute(
             "INSERT INTO unit (name, symbol, base_unit_id, factor, is_count)"
             " SELECT ?, ?, (SELECT id FROM unit WHERE name = ?), ?, ?"
             " WHERE NOT EXISTS (SELECT 1 FROM unit WHERE name = ?)",
             (name, symbol, base, factor, is_count, name),
         )
+    if (
+        wanted("Alkohol")
+        and not conn.execute("SELECT 1 FROM category WHERE name = 'Alkohol'").fetchone()
+    ):
+        from .inventory.inherit import set_tags  # local: inventory imports db, which imports this
+
+        drinks = conn.execute(
+            "SELECT id FROM category WHERE name = 'Getränke' ORDER BY id"
+        ).fetchone()
+        if drinks:
+            new = conn.execute(
+                "INSERT INTO category (parent_id, name, sort) VALUES (?, 'Alkohol', 99)",
+                (drinks[0],),
+            ).lastrowid
+            set_tags(conn, new, ["en:alcoholic-beverages"])
     for parent, names in _DE_TYPES.items():
         row = conn.execute(
             "SELECT id FROM category WHERE name = ? ORDER BY id", (parent,)
@@ -180,14 +236,18 @@ def add_seed_extras(conn: sqlite3.Connection) -> None:
         if row is None:
             continue
         for sort, name in enumerate(names):
-            if not conn.execute("SELECT 1 FROM category WHERE name = ?", (name,)).fetchone():
+            if (
+                wanted(name)
+                and not conn.execute("SELECT 1 FROM category WHERE name = ?", (name,)).fetchone()
+            ):
                 conn.execute(
                     "INSERT INTO category (parent_id, name, sort) VALUES (?, ?, ?)",
                     (row[0], name, sort),
                 )
     for name, unit in _DE_UNITS.items():  # only where no own unit is set yet
-        conn.execute(
-            "UPDATE category SET unit_id = (SELECT id FROM unit WHERE name = ?)"
-            " WHERE name = ? AND unit_id IS NULL AND EXISTS (SELECT 1 FROM unit WHERE name = ?)",
-            (unit, name, unit),
-        )
+        if wanted(name):
+            conn.execute(
+                "UPDATE category SET unit_id = (SELECT id FROM unit WHERE name = ?)"
+                " WHERE name = ? AND unit_id IS NULL AND EXISTS (SELECT 1 FROM unit WHERE name = ?)",
+                (unit, name, unit),
+            )

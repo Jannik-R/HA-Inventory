@@ -32,6 +32,8 @@ const status = (hass: Hass, i: Ingredient) => {
       });
     case "unknown":
       return t("recipes.status.unknown");
+    case "skipped":
+      return t("recipes.status.skipped");
     case "unmatched":
       return t("recipes.status.unmatched");
     default:

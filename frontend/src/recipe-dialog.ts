@@ -9,6 +9,7 @@ import {
   type Ingredient,
   type MasterData,
   type Recipe,
+  type RecipeDraft,
 } from "./api";
 import { blankIngredient, ingredientErrors } from "./recipe-ingredients";
 import "./recipe-ingredients";
@@ -24,7 +25,7 @@ interface Draft {
   ingredients: Ingredient[];
 }
 
-const fromRecipe = (r?: Recipe): Draft => ({
+const fromRecipe = (r?: Recipe | RecipeDraft): Draft => ({
   name: r?.name ?? "",
   servings: r?.servings ?? 4,
   instructions: r?.instructions ?? "",
@@ -37,10 +38,13 @@ const fromRecipe = (r?: Recipe): Draft => ({
     text: i.text,
     note: i.note ?? null,
     optional: i.optional,
+    skip_stock: i.skip_stock ?? false,
+    line: i.line,
+    unit_hint: i.unit_hint,
   })),
 });
 
-/** Add or edit a recipe. Call `open(md, recipe?)`; fires `pantry-saved` after saving. */
+/** Add or edit a recipe. Call `open(md, recipe?, imported?)` (an import is a new recipe); fires `pantry-saved` after saving. */
 export class PantryRecipeDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -64,11 +68,12 @@ export class PantryRecipeDialog extends LitElement {
     this.error = "";
   }
 
-  async open(md: MasterData, recipe?: Recipe) {
+  async open(md: MasterData, recipe?: Recipe, imported?: RecipeDraft) {
     this.md = md;
     this.recipe = recipe;
-    this.draft = fromRecipe(recipe);
-    this.initial = JSON.stringify(this.draft);
+    this.draft = fromRecipe(recipe ?? imported);
+    // An import counts as unsaved: closing asks first.
+    this.initial = JSON.stringify(imported ? fromRecipe() : this.draft);
     this.error = "";
     this.active = true;
     await this.updateComplete;
@@ -109,6 +114,7 @@ export class PantryRecipeDialog extends LitElement {
             // A unit without an amount is only the category's suggestion.
             unit_id: i.amount == null ? null : i.unit_id,
             optional: i.optional,
+            skip_stock: i.skip_stock,
             note: i.note?.trim() || null,
             // The backend takes the category's name; text only for rows without one.
             ...(i.category_id == null ? { text: i.text.trim() } : {}),

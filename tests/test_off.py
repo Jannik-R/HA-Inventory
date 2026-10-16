@@ -92,7 +92,15 @@ def test_keyword_score(word, keyword, expected):
         ("Milchreis", "Milchreis"),
         ("Joghurt Erdbeere", "Joghurt"),
         ("Erdnussbutter crunchy", "Erdnussbutter"),
-        ("Weißwein trocken", None),
+        ("Weißlack trocken", None),
+        ("Chiliflocken", "Chiliflocken"),
+        ("Pfifferlinge", "Pfifferlinge"),
+        ("Cointreau", "Cointreau"),
+        ("Baileys Irish Cream", "Baileys Irish Cream"),
+        ("Tabasco", "Tabasco"),
+        ("Rumpsteak", "Rumpsteak"),  # not Rum
+        ("Schweinebauch", "Schweinebauch"),  # not Wein
+        ("Ginger Ale", "Ginger Ale"),  # not Gin
     ],
 )
 def test_suggest_by_keywords(conn, name, category):

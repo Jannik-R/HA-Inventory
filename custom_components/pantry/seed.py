@@ -128,6 +128,7 @@ _DE_CATEGORIES = [
             ("Saft", ["en:fruit-juices"]),
             ("Kaffee", ["en:coffees"]),
             ("Tee", ["en:teas"]),
+            ("Alkohol", ["en:alcoholic-beverages"]),
         ],
     ),
     (

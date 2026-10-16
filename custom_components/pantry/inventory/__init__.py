@@ -1,16 +1,20 @@
 """All business logic. Plain sync functions on a sqlite3 connection (no HA imports).
 
-Callers use `inventory.<name>`; the submodules are an implementation detail.
+Callers use `inventory.<name>`; the submodules are an implementation detail
+(common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
+recipes, removal, ingredient_line, recipe_import).
 """
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
 from .codes import book_in_by_code, book_out_by_code
 from .common import COLUMNS, INHERITED, InventoryError
+from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info
 from .master import delete, list_rows, master_data, save, save_defaults
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
+from .recipe_import import extract_recipe, recipe_import
 from .recipes import recipe_availability, recipes, save_recipe
 from .removal import delete_impact, force_delete
 from .shopping import (
@@ -44,6 +48,7 @@ __all__ = [
     "edit_stock",
     "effective",
     "expiring",
+    "extract_recipe",
     "find_ean",
     "force_delete",
     "keyword_score",
@@ -52,9 +57,11 @@ __all__ = [
     "list_rows",
     "master_data",
     "move",
+    "parse_ingredient",
     "product_draft",
     "put_back",
     "recipe_availability",
+    "recipe_import",
     "recipes",
     "save",
     "save_defaults",
@@ -67,5 +74,6 @@ __all__ = [
     "suggest_by_keywords",
     "suggest_by_name",
     "suggest_category",
+    "unit_add",
     "update_shopping_item",
 ]

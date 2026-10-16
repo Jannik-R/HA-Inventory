@@ -274,7 +274,7 @@ browser tests (Claude's browser, later Playwright). The MCP Server uses its own 
 | `db-migration` skill: add a migration step, test upgrade from a DB of the previous version, backup note | ready | every schema change |
 | `off-api` skill: Open Food Facts endpoints, fields used, User-Agent, rate limits, seed tag check | ready | |
 | `ui-review` skill: check a view in the browser at phone width, light + dark theme, against the UX rules | ready | |
-| `release` skill: version bump in `manifest.json`, build, changelog, tag, GitHub release, HACS validation | planned | Phase 9 |
+| `release` skill: version bump in `manifest.json`, build, changelog, tag, GitHub release, HACS validation | ready | every release |
 
 Frontend build runs locally (Node LTS). Backend tests run in a container based on the HA
 image (Python version always matches HA; HA does not run on Windows natively).
@@ -297,7 +297,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 7 | Min stock | done | migration 4 (`min_stock_unit_id`: the minimum keeps its unit; `min_packages`; `shopping_done`), both minimums in the category dialog, *Einkauf* tab, todo entity *Einkaufsliste*; items by hand (migration 5 `shopping_item`, panel dialog with search and create, todo create/delete); deleting master data in use (`delete_impact` = dry run of the delete in a savepoint, diff of all tables, rolled back: lists every row deleted or changed; `force_delete` cascades or clears references, a location's stock moves or is booked out) |
 | 8 | Labels | done | `inventory/labels.py` (`label_info`, `book_out_code`: one package of the batch the code names; no schema change), `label.py` (QR + text with Pillow/segno, Dymo stream, raw TCP send), options flow in two steps (printer model via `label_printers.py`, then host, size, print on book-in, test print), confirm before printing more than 2 labels, `websocket_label.py`, panel: print on book-in, reprint dialog per batch row, scan `PTRY:` to book out, browser print when no printer. CUPS/IPP not built |
 | 8a | Receipt printer | open | `receipt.py`: print the shopping list on an ESC/POS receipt printer (see 4a); recipes once they exist |
-| 9 | Release | in progress | services (done: `pantry.book_in` / `book_out` / `print_labels`), README, `release` skill, HACS release |
+| 9 | Release | done | services `pantry.book_in` / `book_out` / `print_labels`, README, `release` skill, CHANGELOG, first release 0.1.0 (HACS once the repo is public) |
 | 10 | Recipe DB | open | `recipe` (name, servings, instructions, source URL, image URL), `recipe_ingredient` (category node as the ingredient key, amount, unit, original text, optional flag); tab *Rezepte*: list with search, edit dialog, availability per ingredient from stock (category subtree, unit conversion like min stock). Cooking does **not** book out (booking stays manual) |
 | 11 | Recipe import | open | URL → schema.org `Recipe` JSON-LD (Chefkoch and most recipe sites), fetched via HA's session on user action only; ingredient lines parsed (amount, unit, name) → category suggested (`suggest_by_name` / keywords), confirmed in a dialog. Sources without JSON-LD (Instagram caption, free text) need an LLM: added in phase 19 |
 | 12 | Shopping by recipes | open | pick recipes + servings → missing amounts (demand − stock per category) → items on the shopping list (same todo entity), source shown. Offers (supermarket discounts) deferred: see 7 |

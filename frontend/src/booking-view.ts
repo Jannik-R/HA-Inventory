@@ -262,6 +262,7 @@ export class PantryBooking extends LitElement {
       .busy=${this.busy}
       .run=${this.run}
       @booked=${this.booked}
+      @master=${(e: CustomEvent<MasterData>) => ((this.md = e.detail), this.requestUpdate())}
       @cancel=${() => (this.reset(), this.focusInput())}
     ></pantry-booking-form>`;
   }

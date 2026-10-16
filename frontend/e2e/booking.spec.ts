@@ -5,6 +5,7 @@ const STAMP = Date.now();
 const NAME = `E2E Testprodukt ${STAMP}`;
 const PARENT = `E2E Eltern ${STAMP}`;
 const CHILD = `E2E Sorte ${STAMP}`;
+const NEW_TYPE = `E2E Neue Sorte ${STAMP}`;
 const LOCATION = `E2E Regal ${STAMP}`;
 let parentId: number | undefined;
 let locationId: number | undefined;
@@ -61,7 +62,14 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
     "Ablaufdatum (",
   );
   await page.getByTestId("location").selectOption({ label: LOCATION });
+  // Reset shows the inherited choice again.
+  await page.getByTestId("location-reset").click();
+  await expect(page.getByTestId("location")).toHaveValue("");
+  await page.getByTestId("location").selectOption({ label: LOCATION });
   await expect(page.getByTestId("make-default")).toBeChecked();
+  // Optional minimum, set right when creating the product.
+  await expect(page.getByTestId("min-packages")).toHaveValue("");
+  await page.getByTestId("min-packages").fill("2");
   await page.getByTestId("expires").fill("2030-01-31");
   await page.getByTestId("packages").fill("3");
   await expect(page.getByTestId("print-labels")).toBeChecked();
@@ -97,9 +105,27 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
     `„${NAME}“ bearbeiten`,
   );
   await page.getByTestId("brand").fill("E2E Marke");
+  // A new category is created right from the picker, below a chosen parent.
+  await page.getByTestId("category").click();
+  await page.getByTestId("category-filter").fill(NEW_TYPE);
+  await page.getByTestId("category-create").click();
+  await page.getByTestId("category-option").filter({ hasText: PARENT }).click();
+  await page.getByTestId("category-confirm").click();
+  await expect(page.getByTestId("category")).toContainText(`${PARENT} › ${NEW_TYPE}`);
   await page.getByTestId("warn-days").fill("4");
   await page.getByTestId("save").click();
   await expect(product).toContainText("E2E Marke");
+
+  // Below its own minimum the product goes on the shopping list (4 in stock, 9 wanted).
+  await page.getByTestId("product-edit").click();
+  await page.getByTestId("min-packages").fill("9");
+  await page.getByTestId("save").click();
+  await openTab(page, "Einkauf");
+  await expect(page.getByTestId("shopping-row").filter({ hasText: NAME })).toContainText(
+    "E2E Marke · 5 Pkg. fehlen",
+  );
+  await openTab(page, "Bestand");
+  await page.getByTestId("stock-filter").fill(NAME);
 
   await openTab(page, "Auslagern");
   await code.fill(NAME);

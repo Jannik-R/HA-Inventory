@@ -152,6 +152,7 @@ export class PantryStock extends LitElement {
         .hass=${this.hass}
         .md=${this.md}
         @pantry-saved=${this.saved}
+        @master=${(e: CustomEvent<MasterData>) => (this.md = e.detail)}
       ></pantry-product-dialog>
       <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-batch-dialog>
       <pantry-label-dialog

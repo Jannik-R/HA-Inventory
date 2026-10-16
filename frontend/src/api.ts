@@ -110,6 +110,8 @@ export interface Product {
   default_location_id?: number | null;
   expiry_type?: "best_before" | "use_by" | null;
   warn_days?: number | null;
+  /** Below this many packages the product goes on the shopping list. */
+  min_packages?: number | null;
   /** Packages in stock (product list only). */
   packages?: number;
   image_url?: string | null;
@@ -207,8 +209,13 @@ export interface ShoppingItem {
   done: boolean;
 }
 export const getShopping = (hass: Hass) => hass.callWS<ShoppingItem[]>({ type: "pantry/shopping" });
-export const setShoppingDone = (hass: Hass, category_id: number, done: boolean) =>
-  hass.callWS<unknown>({ type: "pantry/shopping_done", category_id, done });
+/** Check a min stock item: a product's (`product_id`) or else a category's. */
+export const setShoppingDone = (hass: Hass, item: ShoppingItem, done: boolean) =>
+  hass.callWS<unknown>({
+    type: "pantry/shopping_done",
+    ...(item.product_id ? { product_id: item.product_id } : { category_id: item.category_id }),
+    done,
+  });
 export const addShopping = (
   hass: Hass,
   data: {

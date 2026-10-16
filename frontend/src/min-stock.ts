@@ -56,7 +56,7 @@ export function minFields(o: {
         >
           ${o.md.units.map(
             (u) =>
-              html`<option value=${u.id} ?selected=${u.id === (d.min_stock_unit_id ?? o.unitId)}>
+              html`<option value=${u.id} .selected=${u.id === (d.min_stock_unit_id ?? o.unitId)}>
                 ${u.symbol || u.name}
               </option>`,
           )}

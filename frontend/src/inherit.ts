@@ -69,10 +69,10 @@ export function inheritSelect(o: {
         o.onChange(v === "" ? null : o.numeric ? Number(v) : v);
       }}
     >
-      <option value="" ?selected=${own == null}>
+      <option value="" .selected=${own == null}>
         ${o.dflt ? t("common.default", { value: label(o.dflt.value), source: o.dflt.source }) : t(o.optional ? "common.none" : "book.choose")}
       </option>
-      ${o.options.map(([v, l]) => html`<option value=${v} ?selected=${own === v}>${l}</option>`)}
+      ${o.options.map(([v, l]) => html`<option value=${v} .selected=${own === v}>${l}</option>`)}
     </select>
     ${own == null ? nothing : reset(o.testid, () => o.onChange(null))}
   </span>`;

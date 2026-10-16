@@ -188,20 +188,29 @@ async def test_products_list_and_edit(ws, hass_admin_user) -> None:
                 "category_id": nudeln,
                 "ean": "4000000000001",
                 "off_json": "{}",
+                "min_packages": 2,
             },
         }
     )
     pid = msg["result"]["product_id"]
     rows = (await ws.call({"type": "pantry/products"}))["result"]
     row = by_name(rows, "Penne")
-    assert row["packages"] == 2 and "off_json" not in row
+    assert row["packages"] == 2 and "off_json" not in row and row["min_packages"] == 2
 
     msg = await ws.call(
-        {"type": "pantry/product_save", "data": {"id": pid, "name": "Penne Rigate", "warn_days": 5}}
+        {
+            "type": "pantry/product_save",
+            "data": {"id": pid, "name": "Penne Rigate", "warn_days": 5, "min_packages": 3},
+        }
     )
     assert msg["success"]
     row = by_name((await ws.call({"type": "pantry/products"}))["result"], "Penne Rigate")
-    assert row["warn_days"] == 5 and row["ean"] == "4000000000001"
+    assert row["warn_days"] == 5 and row["ean"] == "4000000000001" and row["min_packages"] == 3
+    msg = await ws.call({"type": "pantry/shopping_done", "product_id": pid, "done": True})
+    (item,) = (await ws.call({"type": "pantry/shopping"}))["result"]
+    assert (item["product_id"], item["packages"], item["done"]) == (pid, 1, True)
+    msg = await ws.call({"type": "pantry/shopping_done", "done": True})
+    assert msg["error"]["translation_key"] == "invalid_value"
 
     msg = await ws.call({"type": "pantry/product_save", "data": {"id": pid, "bogus": 1}})
     assert msg["error"]["code"] == "invalid_format"

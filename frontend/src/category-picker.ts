@@ -3,10 +3,14 @@ import { mdiMenuDown } from "@mdi/js";
 import { t } from "./i18n";
 import { backdropClick, chevron, icon, toggled } from "./ui";
 import { formStyles } from "./styles";
-import type { Category } from "./api";
+import { addProductType, errorMessage, getMasterData, type Category, type Hass } from "./api";
 import { categoryPath } from "./inherit";
 
-/** Category field: shows the chosen path, opens a tree (with a filter) in a dialog. Fires `change`. */
+/**
+ * Category field: shows the chosen path, opens a tree (with a filter) in a dialog. Fires `change`.
+ * With `hass`, a filter text without exact match can be created below a chosen category; then it
+ * also fires `master` (bubbling, MasterData) so the host can refresh its categories.
+ */
 export class PantryCategoryPicker extends LitElement {
   static properties = {
     categories: { attribute: false },
@@ -16,6 +20,10 @@ export class PantryCategoryPicker extends LitElement {
     expanded: { state: true },
     filter: { state: true },
     draft: { state: true },
+    hass: { attribute: false },
+    creating: { state: true },
+    failure: { state: true },
+    busy: { state: true },
   };
 
   declare categories: Category[];
@@ -28,6 +36,11 @@ export class PantryCategoryPicker extends LitElement {
   declare filter: string;
   // Marked in the dialog (null = "none", undefined = nothing marked); becomes the value on confirm.
   declare draft: number | null | undefined;
+  declare hass?: Hass;
+  /** Name of the category to create; the dialog then picks its parent. */
+  declare creating?: string;
+  declare failure?: string;
+  declare busy: boolean;
 
   constructor() {
     super();
@@ -36,6 +49,7 @@ export class PantryCategoryPicker extends LitElement {
     this.expanded = new Set();
     this.filter = "";
     this.draft = undefined;
+    this.busy = false;
   }
 
   /** Ids from the root down to id. */
@@ -54,6 +68,7 @@ export class PantryCategoryPicker extends LitElement {
 
   async open() {
     this.filter = "";
+    this.creating = this.failure = undefined;
     this.draft = this.value ?? (this.noneLabel ? null : undefined);
     this.expanded = new Set(this.chain(this.value));
     await this.updateComplete;
@@ -61,10 +76,33 @@ export class PantryCategoryPicker extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("[aria-current=true], input")?.focus();
   }
 
-  private confirm() {
+  private async confirm() {
+    if (this.creating) return this.create(this.draft);
     this.renderRoot.querySelector("dialog")!.close();
     if (this.draft !== undefined)
       this.dispatchEvent(new CustomEvent("change", { detail: this.draft }));
+  }
+
+  private startCreate(name: string) {
+    this.creating = name;
+    this.filter = "";
+    this.draft = undefined;
+  }
+
+  private async create(parent: number | null | undefined) {
+    if (parent == null || this.busy) return;
+    this.busy = true;
+    try {
+      const { id } = await addProductType(this.hass!, this.creating!, parent);
+      const md = await getMasterData(this.hass!);
+      this.dispatchEvent(new CustomEvent("master", { detail: md, bubbles: true, composed: true }));
+      this.renderRoot.querySelector("dialog")!.close();
+      this.dispatchEvent(new CustomEvent("change", { detail: id }));
+    } catch (err) {
+      this.failure = await errorMessage(this.hass!, err);
+    } finally {
+      this.busy = false;
+    }
   }
 
   /** Mark a category; a closed parent also opens, so its children can be picked next. */
@@ -105,7 +143,13 @@ export class PantryCategoryPicker extends LitElement {
 
   render() {
     const rows = this.rows();
-    const filtering = !!this.filter.trim();
+    const q = this.filter.trim();
+    const filtering = !!q;
+    const canCreate =
+      this.hass &&
+      !this.creating &&
+      filtering &&
+      !this.categories.some((c) => c.name.toLocaleLowerCase() === q.toLocaleLowerCase());
     return html`<button
         type="button"
         class="field"
@@ -119,7 +163,9 @@ export class PantryCategoryPicker extends LitElement {
         ${icon(mdiMenuDown)}
       </button>
       <dialog @click=${backdropClick()}>
-        <h2>${t("book.choose_category")}</h2>
+        <h2>
+          ${this.creating ? t("book.choose_parent", { name: this.creating }) : t("book.choose_category")}
+        </h2>
         <input
           type="search"
           data-testid="category-filter"
@@ -131,7 +177,7 @@ export class PantryCategoryPicker extends LitElement {
         />
         <ul>
           ${
-            this.noneLabel && !filtering
+            this.noneLabel && !filtering && !this.creating
               ? html`<li>
                   <span class="chev"></span>
                   <button
@@ -171,7 +217,21 @@ export class PantryCategoryPicker extends LitElement {
             </li>`;
           })}
         </ul>
-        ${rows.length ? nothing : html`<p class="empty">${t("book.no_hits")}</p>`}
+        ${
+          canCreate
+            ? html`<button
+                type="button"
+                class="reset"
+                data-testid="category-create"
+                @click=${() => this.startCreate(q)}
+              >
+                ${t("book.create_category", { name: q })}
+              </button>`
+            : rows.length
+              ? nothing
+              : html`<p class="empty">${t("book.no_hits")}</p>`
+        }
+        ${this.failure ? html`<p class="error" role="alert">${this.failure}</p>` : nothing}
         <div class="actions">
           <button type="button" @click=${() => this.renderRoot.querySelector("dialog")!.close()}>
             ${t("common.cancel")}
@@ -180,7 +240,7 @@ export class PantryCategoryPicker extends LitElement {
             type="button"
             class="primary"
             data-testid="category-confirm"
-            ?disabled=${this.draft === undefined}
+            ?disabled=${this.draft === undefined || this.busy}
             @click=${this.confirm}
           >
             ${t("book.apply")}

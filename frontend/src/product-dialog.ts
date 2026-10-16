@@ -18,6 +18,7 @@ const COLUMNS = [
   "default_location_id",
   "expiry_type",
   "warn_days",
+  "min_packages",
 ] as const;
 
 /** Edit dialog for a saved product. Call `open()`; fires `pantry-saved` after a successful save. */
@@ -91,7 +92,7 @@ export class PantryProductDialog extends LitElement {
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
     return editDialog({
       title: t("common.edit_name", { name: this.orig?.name ?? p.name }),
-      body: html`${productFields(this.md, p, (f, v) => this.set(f, v), err)}
+      body: html`${productFields(this.md, p, (f, v) => this.set(f, v), err, this.hass)}
         <label>
           <span class="lbl">${t("products.ean")}</span>
           <input
@@ -138,7 +139,7 @@ export class PantryProductDialog extends LitElement {
             onChange: (v) => this.set("warn_days", v),
           })}
           ${fieldMsg(err.warn_days, "warn-days")}
-        </label>`,
+        </label> `,
       error: this.error,
       invalid: Object.keys(err).length > 0,
       dirty,

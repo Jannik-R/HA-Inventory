@@ -1,4 +1,5 @@
-"""Shopping list: shortages from nested min stock (amount, packages) plus items added by hand."""
+"""Shopping list: shortages from nested min stock (amount, packages; products: packages)
+plus items added by hand."""
 
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
         children.setdefault(c["parent_id"], []).append(c["id"])
     products = _stock_by_category(conn)
     done = dict(conn.execute("SELECT category_id, missing FROM shopping_done").fetchall())
+    done_p = dict(conn.execute("SELECT product_id, missing FROM shopping_done_product").fetchall())
     items: list[dict] = []
 
     def walk(cid: int) -> tuple[list, list[tuple[float, int]], int, bool]:
@@ -32,6 +34,31 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
         subtree = list(products.get(cid, []))
         short_amount: list[tuple[float, int]] = []
         short_packages, any_min = 0, False
+        # A product's minimum: its own item; the shortfall counts toward the categories above.
+        for p in subtree:
+            if p["min_packages"] is None:
+                continue
+            any_min = True
+            missing = max(0, p["min_packages"] - p["packages"])
+            if not missing:
+                continue
+            short_packages += missing
+            if p["content_amount"] is not None:
+                short_amount.append((missing * p["content_amount"], p["content_unit_id"]))
+            item = {
+                "id": None,
+                "manual": False,
+                "product_id": p["id"],
+                "brand": p["brand"],
+                "category_id": cid,
+                "name": p["name"],
+                "path": _path(cats, cid),
+                "amount": None,
+                "packages": missing,
+                "any_of_subtree": False,
+            }
+            item["done"] = done_p.get(p["id"]) == _key(item)
+            items.append(item)
         for child in children.get(cid, []):
             c_products, c_amount, c_packages, c_any = walk(child)
             subtree += c_products
@@ -96,8 +123,13 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
     for root in children.get(None, []):
         walk(root)
     # A check whose shortage is gone or changed is stale: drop it, or it would come back later.
-    for cid in done.keys() - {i["category_id"] for i in items if i["done"]}:
+    for cid in done.keys() - {
+        i["category_id"] for i in items if i["done"] and i["product_id"] is None
+    }:
         conn.execute("DELETE FROM shopping_done WHERE category_id = ?", (cid,))
+    open_p = {i["product_id"] for i in items if i["done"] and not i["manual"]}
+    for pid in done_p.keys() - open_p:
+        conn.execute("DELETE FROM shopping_done_product WHERE product_id = ?", (pid,))
     for r in conn.execute(
         "SELECT i.*, p.name AS product, p.brand, p.category_id AS product_category"
         " FROM shopping_item i LEFT JOIN product p ON p.id = i.product_id"
@@ -125,18 +157,29 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
     )
 
 
-def set_shopping_done(conn: sqlite3.Connection, category_id: int, done: bool) -> None:
-    """Check / uncheck a shopping item; a check holds while the item's shortage stays the same."""
-    conn.execute("DELETE FROM shopping_done WHERE category_id = ?", (category_id,))
+def set_shopping_done(
+    conn: sqlite3.Connection, category_id: int | None, done: bool, product_id: int | None = None
+) -> None:
+    """Check / uncheck a min stock item of a category, or of a product (`product_id`);
+    a check holds while the item's shortage stays the same."""
+    if (category_id is None) == (product_id is None):
+        raise InventoryError("invalid_value")
+    table, col, ref = (
+        ("shopping_done", "category_id", category_id)
+        if product_id is None
+        else ("shopping_done_product", "product_id", product_id)
+    )
+    conn.execute(f"DELETE FROM {table} WHERE {col} = ?", (ref,))
     item = next(
-        (i for i in shopping_list(conn) if not i["manual"] and i["category_id"] == category_id),
+        (
+            i
+            for i in shopping_list(conn)
+            if not i["manual"] and i["product_id"] == product_id and i[col] == ref
+        ),
         None,
     )
     if done and item:
-        conn.execute(
-            "INSERT INTO shopping_done (category_id, missing) VALUES (?, ?)",
-            (category_id, _key(item)),
-        )
+        conn.execute(f"INSERT INTO {table} ({col}, missing) VALUES (?, ?)", (ref, _key(item)))
 
 
 def add_shopping_item(

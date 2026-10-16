@@ -92,7 +92,7 @@ export class PantryDefaults extends LitElement {
       }}
     >
       ${options.map(
-        ([v, name]) => html`<option value=${v ?? ""} ?selected=${v === d[f]}>${name}</option>`,
+        ([v, name]) => html`<option value=${v ?? ""} .selected=${v === d[f]}>${name}</option>`,
       )}
     </select>`;
   }

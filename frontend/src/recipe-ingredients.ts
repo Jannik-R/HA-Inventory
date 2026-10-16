@@ -144,10 +144,10 @@ export class PantryRecipeIngredients extends LitElement {
               this.set(n, { unit_id: sel.value ? Number(sel.value) : null, unit_hint: null });
             }}
           >
-            <option value="" ?selected=${i.unit_id == null}>${t("recipes.ingredient.none")}</option>
+            <option value="" .selected=${i.unit_id == null}>${t("recipes.ingredient.none")}</option>
             ${this.units.map(
               (u) =>
-                html`<option value=${u.id} ?selected=${u.id === i.unit_id}>${u.symbol}</option>`,
+                html`<option value=${u.id} .selected=${u.id === i.unit_id}>${u.symbol}</option>`,
             )}
             <option value="new">${t("recipes.ingredient.unit_new")}</option>
           </select>

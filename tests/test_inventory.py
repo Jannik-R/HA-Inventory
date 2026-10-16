@@ -251,6 +251,29 @@ def test_shopping_done_holds_until_shortage_changes(conn):
     assert not inv.shopping_list(conn)[0]["done"]
 
 
+def test_shopping_product_min_packages(conn):
+    g = unit(conn, "g")
+    nudeln = cat(conn, "Nudeln")
+    p = product(conn, "Barilla", content_amount=500, content_unit_id=g, min_packages=3)
+    inv.book_in(conn, p, 1, location_id=loc(conn))
+    (item,) = inv.shopping_list(conn)
+    assert (item["product_id"], item["name"], item["packages"]) == (p, "Barilla", 2)
+    # Its shortfall counts toward the category: 4 packages / 2 kg minus 1 in stock, 2 missing below.
+    inv.save(conn, "category", {"id": nudeln, "min_packages": 4, "min_stock": 2000,
+                                "min_stock_unit_id": g})  # fmt: skip
+    cat_item = next(i for i in inv.shopping_list(conn) if i["product_id"] is None)
+    assert cat_item["packages"] == 1 and cat_item["amount"]["missing"] == pytest.approx(500)
+    assert cat_item["any_of_subtree"]
+    # Checks are kept apart for product and category.
+    inv.set_shopping_done(conn, None, True, product_id=p)
+    done = {i["product_id"]: i["done"] for i in inv.shopping_list(conn)}
+    assert done == {p: True, None: False}
+    inv.book_in(conn, p, 1, location_id=loc(conn))  # shortage changes: open again
+    assert not any(i["done"] for i in inv.shopping_list(conn))
+    inv.book_in(conn, p, 1, location_id=loc(conn))
+    assert all(i["product_id"] is None for i in inv.shopping_list(conn))
+
+
 def test_delete_product_removes_stock_batches_and_bookings(conn):
     p, keep = product(conn), product(conn, name="Andere")
     inv.book_in(conn, p, 2, location_id=loc(conn))

@@ -27,7 +27,7 @@ _ORDER = (
 )
 # Bookkeeping that the question would only clutter: batches go with products / stock, OFF tag
 # links with their category, check marks with their shopping item.
-_HIDDEN = {"batch", "category_off_tag", "off_tag", "shopping_done"}
+_HIDDEN = {"batch", "category_off_tag", "off_tag", "shopping_done", "shopping_done_product"}
 
 
 def _unit_ids(conn: sqlite3.Connection, unit_id: int) -> list[int]:

@@ -8,7 +8,7 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 - **Always use Ponytail** (`/ponytail full`; plugin enabled in `.claude/settings.json`). Laziest solution that works; stdlib and native HA features first; no speculative abstractions.
 - **English** for code, comments, commits, docs. **German** only in UI strings (translation files) and in chat with the user.
 - **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.
-- **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change.
+- **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change, and the user guide (`docs/guide.de.md` + `docs/guide.en.md`, both languages) when it changes how something is used.
 - **Branches**: every phase, feature or fix gets its own branch from current `main` (`phase-<n>-<topic>`, `feature/<topic>`, `fix/<topic>`) and ends with a PR to `main`. `main` is protected (ruleset "Protect main"): merge only via PR with green CI (hassfest, hacs, tests, frontend), **squash merge only** (linear history; the PR title becomes the commit title, the PR body its message, so write both for `main`). GitHub deletes the remote branch on merge; afterwards update `main` and delete the local branch.
 - **Small, encapsulated files.** One responsibility per module; aim for under ~300 lines per file. When a file grows past that or mixes concerns (list + dialog, search flow + form), split it into its own module or Lit element instead of adding to it. Shared helpers go into a module both use, not into one of the users. Splitting is part of the change, not a later cleanup.
 - Do not commit unless asked. Short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
@@ -60,6 +60,7 @@ dev/                        dev HA (docker compose); runtime data in dev/config/
 tests/                      pytest (pytest-homeassistant-custom-component)
 scripts/import_check.py     recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/)
 docs/PLAN.md                architecture and roadmap
+docs/guide.de.md, guide.en.md  user guide (German, English), opened from the panel header
 ```
 
 ## Backend conventions

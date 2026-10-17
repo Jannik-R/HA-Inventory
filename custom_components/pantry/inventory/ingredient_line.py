@@ -67,7 +67,7 @@ def unit_lookup(conn: sqlite3.Connection) -> dict[str, int]:
 
 
 def unit_add(conn: sqlite3.Connection, name: str, symbol: str | None = None) -> int:
-    """New count unit, or the id of an existing one with the same unit_key (Tasse = Tassen)."""
+    """New count unit (recipe-only), or the id of an existing one with the same unit_key (Tasse = Tassen)."""
     name, symbol = name.strip(), (symbol or "").strip() or name.strip()
     if not name or len(name) > 200 or len(symbol) > 50:
         raise InventoryError("invalid_value")
@@ -75,7 +75,8 @@ def unit_add(conn: sqlite3.Connection, name: str, symbol: str | None = None) -> 
     if found := keys.get(unit_key(name)) or keys.get(unit_key(symbol)):
         return found
     return conn.execute(
-        "INSERT INTO unit (name, symbol, is_count, factor) VALUES (?, ?, 1, 1)", (name, symbol)
+        "INSERT INTO unit (name, symbol, is_count, factor, recipe_only) VALUES (?, ?, 1, 1, 1)",
+        (name, symbol),
     ).lastrowid
 
 

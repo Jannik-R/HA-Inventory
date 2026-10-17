@@ -39,9 +39,10 @@ Admins should take a quick look at **Einstellungen** first:
 1. **Lagerorte** (locations): adapt the list to your kitchen (rename, add, delete).
 2. **Standards** (defaults): what applies when a category or product sets nothing of its own
    (unit, location, date type, expiry warning).
-3. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
+3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
+4. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
    needs a location choice.
-4. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
+5. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
 
@@ -111,7 +112,7 @@ see the README, e.g. for a phone notification.
 
 ## 6. Shopping list
 
-**Einkauf** has two sources:
+**Einkauf** has three sources:
 
 - **Minimum stock**: on categories (settings) you set a *Mindestmenge* (amount, e.g. 2 kg pasta of
   any brand) and/or a *Mindestanzahl* (packages). A product can have its own *Mindestanzahl* for
@@ -120,6 +121,11 @@ see the README, e.g. for a phone notification.
   is counted twice.
 - **By hand**: **Zur Einkaufsliste hinzufügen**, type a name, pick a product or category, set the
   count. A new product is created on the spot.
+- **From recipes**: in a recipe tap **Auf die Einkaufsliste** (put on the shopping list), choose the
+  servings and the optional ingredients you need. The missing amounts of all recipes are added up per
+  category. The recipes are numbered 1, 2, 3 …; after each item, in smaller text, is which recipe needs how much ("1:300 g; 2:200 g"). A recipe stays on the
+  list until you remove it: in the **Einkauf** tab under **Für Rezepte**, use the bin, e.g. after
+  cooking. Change servings or optional ingredients there with the pencil. Amounts in recipe units such as EL, Tasse or Prise are converted when the unit fits the category: ml for volume, g for weight (3 EL oil → 45 ml); otherwise, if nothing of it is in stock, the base unit is used (2 EL capers → 30 ml); only Scheibe stays as written ("2 Scheiben"). An ingredient without an amount counts as 1 package.
 
 Ticking strikes an item through. A minimum stock item comes back by itself when the missing amount
 changes, e.g. after buying only part of it.
@@ -135,7 +141,8 @@ set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 **Rezepte** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
 and ingredients. Opening a row shows the ingredients with their status, instructions, source and
-image; **Portionen** (servings) scales the amounts (display only).
+image; **Portionen** (servings) scales the amounts (display only). **Auf die Einkaufsliste** (put on
+the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)).
 
 **Rezept hinzufügen** (add recipe):
 
@@ -146,6 +153,8 @@ image; **Portionen** (servings) scales the amounts (display only).
 4. **optional** for ingredients the recipe can do without; **Nicht gegen den Vorrat prüfen** (do
    not check against the stock) for things you do not keep in the inventory (salt, water).
 5. If a unit is missing, choose **Neue Einheit …** in the unit select.
+
+Units marked *Nur für Rezepte* (recipe only, e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb: Prise and Messerspitze 0.5 g, Zehe 0.1 piece (the shopping list rounds up: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0.05 ml, Spritzer 1 ml, Schuss 20 ml, Zweig and Stiel 0.1 Bund. Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). A unit created by a recipe import starts as recipe-only.
 
 **Importieren** (import): paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Pantry
 reads the page's recipe data and opens the recipe dialog prefilled; nothing is saved until you

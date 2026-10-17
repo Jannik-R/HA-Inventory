@@ -3,17 +3,15 @@ import { t } from "./i18n";
 import { editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import {
-  addShopping,
   errorMessage,
   getMasterData,
   listProducts,
-  updateShoppingItem,
   type Hass,
   type MasterData,
   type Product,
-  type ShoppingItem,
   isAdmin,
 } from "./api";
+import { addShopping, updateShoppingItem, type ShoppingItem } from "./api-shopping";
 import { includesCI } from "./format";
 import { blankProduct, productErrors, productFields, type Errors } from "./product-fields";
 import { categoryPath } from "./inherit";

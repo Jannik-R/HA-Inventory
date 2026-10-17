@@ -15,10 +15,12 @@ import {
   isAdmin,
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
-import { fmtPortions, recipeDetail } from "./recipe-detail";
-import { includesCI } from "./format";
+import { recipeDetail } from "./recipe-detail";
+import { fmtPortions, includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
+import "./shopping-recipe-dialog";
+import type { PantryShoppingRecipeDialog } from "./shopping-recipe-dialog";
 import type { PantryRecipeImport } from "./recipe-import";
 import type { PantryRecipeDialog } from "./recipe-dialog";
 
@@ -102,6 +104,30 @@ export class PantryRecipes extends LitElement {
     await this.load();
   }
 
+  private async toShopping(r: Recipe) {
+    this.error = "";
+    try {
+      await this.renderRoot
+        .querySelector<PantryShoppingRecipeDialog>("pantry-shopping-recipe-dialog")!
+        .request(r, this.servings.get(r.id));
+    } catch (err) {
+      this.error = await errorMessage(this.hass!, err);
+    }
+  }
+
+  /** The shopping list changed: refresh only "on the list" marks, not the shown servings or focus. */
+  private async refreshShopping() {
+    try {
+      const fresh = new Map((await getRecipes(this.hass!)).map((r) => [r.id, r.shopping_servings]));
+      this.recipes = this.recipes?.map((r) => ({
+        ...r,
+        shopping_servings: fresh.get(r.id) ?? null,
+      }));
+    } catch (err) {
+      this.error = await errorMessage(this.hass!, err);
+    }
+  }
+
   private edit(r?: Recipe) {
     this.renderRoot.querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!.open(this.md!, r);
   }
@@ -146,6 +172,7 @@ export class PantryRecipes extends LitElement {
               ingredients: this.scaled.get(r.id) ?? r.ingredients,
               servings: n,
               onServings: (v) => this.setServings(r, v),
+              onShopping: () => this.toShopping(r),
             })
           : nothing
       }
@@ -180,6 +207,10 @@ export class PantryRecipes extends LitElement {
             .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
             .open(this.md!, undefined, e.detail)}
       ></pantry-recipe-import>
+      <pantry-shopping-recipe-dialog
+        .hass=${this.hass}
+        @pantry-saved=${() => this.refreshShopping()}
+      ></pantry-shopping-recipe-dialog>
       <pantry-recipe-dialog
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -221,6 +252,12 @@ export class PantryRecipes extends LitElement {
       }
       .detail-box {
         padding: 0 8px 12px 44px;
+      }
+      .shopping {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 8px 0;
       }
       .servings {
         max-width: 140px;

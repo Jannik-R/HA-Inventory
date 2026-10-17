@@ -2,7 +2,14 @@ import { LitElement, html } from "lit";
 import { t } from "./i18n";
 import { editDialog, fieldMsg, numOrNull, rowActions } from "./ui";
 import { formStyles } from "./styles";
-import { errorMessage, saveDefaults, type Hass, type InheritField, type MasterData } from "./api";
+import {
+  errorMessage,
+  saveDefaults,
+  stockUnits,
+  type Hass,
+  type InheritField,
+  type MasterData,
+} from "./api";
 import { fmt } from "./settings-format";
 
 const FIELDS: [InheritField, string][] = [
@@ -107,7 +114,7 @@ export class PantryDefaults extends LitElement {
           <span class="lbl" title=${t("tip.unit_id")}>${t("settings.category.unit")}</span>
           ${this.select(
             "unit_id",
-            md.units.map((u) => [u.id, u.name]),
+            stockUnits(md.units, d.unit_id as number | null).map((u) => [u.id, u.name]),
           )}
         </label>
         <label>

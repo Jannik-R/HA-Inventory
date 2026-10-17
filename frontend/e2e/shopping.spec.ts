@@ -1,4 +1,4 @@
-import { apiPage, openPage, ws } from "./helpers";
+import { apiPage, openPage, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
 const NAME = `E2E Einkauf ${Date.now()}`;
@@ -130,4 +130,119 @@ test("add to the shopping list by hand: existing category, new product, new cate
   await dialog.getByTestId("shopping-new-category").click();
   await dialog.getByTestId("save").click();
   await expect(page.getByTestId("shopping-row").filter({ hasText: NEW_CATEGORY })).toBeVisible();
+});
+
+test("a recipe on the shopping list adds its ingredients and can be removed", async ({ page }) => {
+  const RECIPE = `E2E Einkaufsrezept ${Date.now()}`;
+  const api = await apiPage(page.context().browser()!);
+  const md = (await ws(api, { type: "pantry/master_data" })) as {
+    units: { id: number; symbol: string }[];
+  };
+  const { id } = (await ws(api, {
+    type: "pantry/recipe_save",
+    data: {
+      name: RECIPE,
+      servings: 2,
+      ingredients: [
+        {
+          category_id: categoryId,
+          amount: 300,
+          unit_id: md.units.find((u) => u.symbol === "g")!.id,
+          text: NAME,
+        },
+      ],
+    },
+  })) as { id: number };
+  try {
+    await openPage(page, "/pantry/recipes", "Rezepte");
+    const row = page.getByTestId("recipe-row").filter({ hasText: RECIPE });
+    await row.getByTestId("recipe-toggle").click();
+    await row.getByTestId("recipe-to-shopping").click(); // no optional ingredients: no dialog
+    await expect(row.getByTestId("recipe-on-shopping")).toContainText("2 Portionen");
+
+    await openPage(page, "/pantry/shopping", "Einkauf");
+    const entry = page.getByTestId("shopping-recipe").filter({ hasText: RECIPE });
+    const no = (await entry.getByTestId("shopping-recipe-no").textContent())!.trim();
+    // one line: "<category> – 300 g", small "<no>:300 g" (other recipes may be listed too)
+    const item = page
+      .getByTestId("shopping-row")
+      .filter({ hasText: `${NAME} – 300 g` })
+      .filter({ has: page.getByTestId("shopping-refs").filter({ hasText: `${no}:300 g` }) });
+    await expect(item).toHaveCount(1);
+    await item.getByTestId("shopping-check").check();
+    await expect(item).toHaveClass(/done/);
+
+    await entry.getByTestId("shopping-recipe-delete").click();
+    await page.getByTestId("confirm-ok").click();
+    await expect(item).toHaveCount(0);
+  } finally {
+    await ws(api, { type: "pantry/shopping_recipe_remove", recipe_id: id }).catch(() => undefined);
+    await remove(api, "recipe", id);
+    await api.close();
+  }
+});
+
+test("optional ingredients, editing servings in the list, shown servings survive", async ({
+  page,
+}) => {
+  const RECIPE = `E2E Optionalrezept ${Date.now()}`;
+  const REQ = `E2E Pflicht ${Date.now()}`;
+  const OPT = `E2E Optional ${Date.now()}`;
+  const api = await apiPage(page.context().browser()!);
+  const [req, opt] = [
+    await save(api, "category", { name: REQ }),
+    await save(api, "category", { name: OPT }),
+  ];
+  const md = (await ws(api, { type: "pantry/master_data" })) as {
+    units: { id: number; symbol: string }[];
+  };
+  const unit_id = md.units.find((u) => u.symbol === "g")!.id;
+  const { id } = (await ws(api, {
+    type: "pantry/recipe_save",
+    data: {
+      name: RECIPE,
+      servings: 2,
+      ingredients: [
+        { category_id: req, amount: 300, unit_id, text: REQ },
+        { category_id: opt, amount: 100, unit_id, text: OPT, optional: true },
+      ],
+    },
+  })) as { id: number };
+  try {
+    await openPage(page, "/pantry/recipes", "Rezepte");
+    const row = page.getByTestId("recipe-row").filter({ hasText: RECIPE });
+    await row.getByTestId("recipe-toggle").click();
+    await row.getByTestId("recipe-servings").fill("4");
+    await row.getByTestId("recipe-servings").press("Tab");
+    await row.getByTestId("recipe-to-shopping").click();
+
+    // The dialog starts with the servings shown in the detail; the optional one is ticked.
+    const dialog = page.locator("pantry-shopping-recipe-dialog dialog");
+    await expect(dialog.getByTestId("shopping-recipe-servings")).toHaveValue("4");
+    await dialog.getByTestId("shopping-recipe-optional").check();
+    await dialog.getByTestId("shopping-recipe-save").click();
+    await expect(row.getByTestId("recipe-on-shopping")).toContainText("4 Portionen");
+    // The shown servings were not reset by the refresh.
+    await expect(row.getByTestId("recipe-servings")).toHaveValue("4");
+
+    await openPage(page, "/pantry/shopping", "Einkauf");
+    const item = (name: string) => page.getByTestId("shopping-row").filter({ hasText: name });
+    await expect(item(REQ)).toContainText("600 g");
+    await expect(item(OPT)).toContainText("200 g");
+
+    // Edit the servings in "Für Rezepte": the amounts follow.
+    const entry = page.getByTestId("shopping-recipe").filter({ hasText: RECIPE });
+    await entry.getByTestId("shopping-recipe-edit").click();
+    const edit = page.locator("pantry-shopping-recipes pantry-shopping-recipe-dialog dialog");
+    await edit.getByTestId("shopping-recipe-servings").fill("2");
+    await edit.getByTestId("shopping-recipe-save").click();
+    await expect(item(REQ)).toContainText("300 g");
+    await expect(item(OPT)).toContainText("100 g");
+  } finally {
+    await ws(api, { type: "pantry/shopping_recipe_remove", recipe_id: id }).catch(() => undefined);
+    await remove(api, "recipe", id);
+    await remove(api, "category", req);
+    await remove(api, "category", opt);
+    await api.close();
+  }
 });

@@ -1,8 +1,8 @@
 import { html } from "lit";
 import { t } from "./i18n";
 import { fieldMsg } from "./ui";
-import type { MasterData } from "./api";
-import type { Draft } from "./settings-dialog";
+import { stockUnits, type MasterData } from "./api";
+import type { Draft } from "./settings-model";
 
 /** Live errors of the two minimums (each optional; amount > 0, packages a whole number ≥ 1). */
 export function minErrors(d: Draft): Record<string, string> {
@@ -52,7 +52,7 @@ export function minFields(o: {
           @change=${(e: Event) =>
             o.set("min_stock_unit_id", Number((e.target as HTMLSelectElement).value))}
         >
-          ${o.md.units.map(
+          ${stockUnits(o.md.units, d.min_stock_unit_id ?? o.unitId).map(
             (u) =>
               html`<option value=${u.id} .selected=${u.id === (d.min_stock_unit_id ?? o.unitId)}>
                 ${u.symbol || u.name}

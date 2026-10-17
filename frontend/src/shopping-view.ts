@@ -3,22 +3,27 @@ import { live } from "lit/directives/live.js";
 import { t } from "./i18n";
 import { formStyles } from "./styles";
 import {
-  deleteShoppingItem,
   errorMessage,
   getMasterData,
   getLabelConfig,
-  getShopping,
   printShoppingList,
-  setShoppingDone,
-  updateShoppingItem,
   type Category,
   type Hass,
-  type ShoppingItem,
 } from "./api";
-import { fmtNumber } from "./format";
+import {
+  deleteShoppingItem,
+  getShopping,
+  setShoppingDone,
+  setShoppingRecipeDone,
+  updateShoppingItem,
+  type ShoppingItem,
+} from "./api-shopping";
+import { missingText, refList } from "./shopping-text";
+import { rowStyles } from "./shopping-row-styles";
 import { rowActions } from "./ui";
 import { confirmDelete } from "./confirm-dialog";
 import "./shopping-add";
+import "./shopping-recipes";
 import type { PantryShoppingAdd } from "./shopping-add";
 
 /**
@@ -96,6 +101,7 @@ export class PantryShopping extends LitElement {
     this.error = "";
     try {
       if (item.manual) await updateShoppingItem(this.hass!, item.id!, { done });
+      else if (item.key) await setShoppingRecipeDone(this.hass!, item.key, done);
       else await setShoppingDone(this.hass!, item, done);
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -120,23 +126,11 @@ export class PantryShopping extends LitElement {
     this.renderRoot.querySelector<PantryShoppingAdd>("pantry-shopping-add")!.open(item);
   }
 
-  private missing(i: ShoppingItem) {
-    if (i.manual)
-      return [i.product_id ? i.brand : t("shopping.any"), t("book.count", { n: i.packages! })]
-        .filter(Boolean)
-        .join(" · ");
-    const parts = [];
-    if (i.amount) parts.push(`${fmtNumber(this.hass, i.amount.missing)} ${i.amount.unit_symbol}`);
-    if (i.packages) parts.push(t("book.count", { n: i.packages }));
-    const what = t(i.any_of_subtree ? "shopping.missing_more" : "shopping.missing", {
-      what: parts.join(t("shopping.and")),
-    });
-    return [i.brand, what].filter(Boolean).join(" · ");
-  }
-
   /** A row with something to buy; `name` shows a category item under its category's name. */
   private row(i: ShoppingItem, depth: number, category = false) {
-    const unknown = i.amount?.unknown_products;
+    const what = missingText(this.hass, i);
+    const refs = refList(this.hass, i);
+    const full = what ? `${i.name} – ${what}` : i.name;
     return html`<li
       data-testid="shopping-row"
       class="${i.done ? "done" : ""} ${category ? "cat" : ""}"
@@ -150,9 +144,26 @@ export class PantryShopping extends LitElement {
           @change=${(e: Event) => this.check(i, (e.target as HTMLInputElement).checked)}
         />
         <span class="what">
-          <span class="name">${i.name}</span>
-          <span class="detail">${this.missing(i)}</span>
-          ${unknown ? html`<span class="detail">${t("shopping.unknown", { n: unknown })}</span>` : nothing}
+          <span class="line" title=${full}
+            ><span class="name">${i.name}</span
+            >${what ? html`<span class="amt"> – ${what}</span>` : nothing}</span
+          >
+          ${
+            refs.uses.length || refs.unknown
+              ? html`<span class="refs" data-testid="shopping-refs"
+                  >${refs.uses.map(
+                    (u, n) =>
+                      html`<span title=${u.title} aria-label=${u.title}
+                        >${u.text}${n < refs.uses.length - 1 ? ";" : ""}</span
+                      >`,
+                  )}${
+                    refs.unknown
+                      ? html`<span class="unknown" title=${refs.unknown}>${refs.unknown}</span>`
+                      : nothing
+                  }</span
+                >`
+              : nothing
+          }
         </span>
       </label>
       ${
@@ -223,6 +234,10 @@ export class PantryShopping extends LitElement {
         }
       </div>
       ${this.note ? html`<p class="detail" role="status" data-testid="shopping-printed">${this.note}</p>` : nothing}
+      <pantry-shopping-recipes
+        .hass=${this.hass}
+        @pantry-saved=${() => this.load()}
+      ></pantry-shopping-recipes>
       <pantry-shopping-add
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -239,6 +254,7 @@ export class PantryShopping extends LitElement {
 
   static styles = [
     formStyles,
+    rowStyles,
     css`
       .bar {
         display: flex;
@@ -258,18 +274,9 @@ export class PantryShopping extends LitElement {
         align-items: center;
         gap: 12px;
         flex: 1;
+        min-width: 0;
         padding: 4px 0 4px 8px;
         cursor: pointer;
-      }
-      .what {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        min-width: 0;
-      }
-      .done .name {
-        text-decoration: line-through;
-        color: var(--secondary-text-color);
       }
     `,
   ];

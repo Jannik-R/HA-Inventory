@@ -28,6 +28,10 @@ def async_register(hass: HomeAssistant) -> None:
         ws_recipe_availability,
         ws_recipe_save,
         ws_recipe_import,
+        ws_shopping_recipes,
+        ws_shopping_recipe_set,
+        ws_shopping_recipe_remove,
+        ws_shopping_recipe_done,
         ws_product_type_add,
         ws_unit_add,
     ):
@@ -70,6 +74,50 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
 @websocket_api.async_response
 async def ws_recipe_save(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], {"id": await run(hass, inventory.save_recipe, msg["data"])})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "pantry/shopping_recipes"})
+@websocket_api.async_response
+async def ws_shopping_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
+    connection.send_result(msg["id"], await run(hass, inventory.shopping_recipes))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/shopping_recipe_set",
+        vol.Required("recipe_id"): ID,
+        vol.Required("servings"): SERVINGS,
+        vol.Optional("optional", default=[]): [ID],
+    }
+)
+@websocket_api.async_response
+async def ws_shopping_recipe_set(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Put a recipe on the shopping list; open to any user like the list itself."""
+    args = (msg["recipe_id"], msg["servings"], msg["optional"])
+    await run(hass, inventory.set_shopping_recipe, *args)
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "pantry/shopping_recipe_remove", vol.Required("recipe_id"): ID}
+)
+@websocket_api.async_response
+async def ws_shopping_recipe_remove(hass: HomeAssistant, connection, msg: dict) -> None:
+    await run(hass, inventory.remove_shopping_recipe, msg["recipe_id"])
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/shopping_recipe_done",
+        vol.Required("key"): vol.Match(r"^r\d+-\d*$"),
+        vol.Required("done"): bool,
+    }
+)
+@websocket_api.async_response
+async def ws_shopping_recipe_done(hass: HomeAssistant, connection, msg: dict) -> None:
+    await run(hass, inventory.set_recipe_done, msg["key"], msg["done"])
+    connection.send_result(msg["id"])
 
 
 @websocket_api.websocket_command(

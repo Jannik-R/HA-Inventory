@@ -7,6 +7,7 @@ import "./category-picker";
 import {
   errorMessage,
   saveRow,
+  stockUnits,
   type Hass,
   type InheritField,
   type MasterData,
@@ -14,31 +15,7 @@ import {
 } from "./api";
 import { catName, fmt, inherited, sourceLabel } from "./settings-format";
 import { minErrors, minFields } from "./min-stock";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type Draft = Record<string, any>;
-type Opts = [string | number, string][];
-// Columns sent on save (no sort, no derived fields).
-export const COLUMNS: Record<Table, string[]> = {
-  unit: ["name", "symbol", "base_unit_id", "factor", "is_count"],
-  location: ["name"],
-  category: [
-    "parent_id",
-    "name",
-    "unit_id",
-    "default_location_id",
-    "expiry_type",
-    "warn_days",
-    "min_stock",
-    "min_stock_unit_id",
-    "min_packages",
-  ],
-};
-export const ADD: Record<Table, string> = {
-  unit: "settings.unit.add",
-  location: "settings.location.add",
-  category: "settings.category.add",
-};
+import { ADD, COLUMNS, type Draft, type Opts } from "./settings-model";
 
 /** Add/edit dialog for one master-data row. Call `open()`; fires `pantry-saved` after a successful save. */
 export class PantrySettingsDialog extends LitElement {
@@ -66,6 +43,7 @@ export class PantrySettingsDialog extends LitElement {
     if (row) d.id = row.id;
     if (table === "unit") {
       d.is_count ??= 0;
+      d.recipe_only ??= 0;
       d.factor ??= 1;
       d.symbol ??= "";
     }
@@ -227,7 +205,7 @@ export class PantrySettingsDialog extends LitElement {
     if (table === "location") {
       fields = this.field(t("common.name"), this.text("name"));
     } else if (table === "unit") {
-      const bases: Opts = units
+      const bases: Opts = stockUnits(units, d.base_unit_id)
         .filter((u) => u.base_unit_id == null && u.id !== d.id)
         .map((u) => [u.id, u.name]);
       fields = html`${this.field(t("common.name"), this.text("name"))}${this.field(t("settings.unit.symbol"), this.text("symbol"))}
@@ -238,6 +216,15 @@ export class PantrySettingsDialog extends LitElement {
             @change=${(ev: Event) => this.set("is_count", (ev.target as HTMLInputElement).checked ? 1 : 0)}
           />${t("settings.unit.is_count")}</label
         >
+        <label class="check"
+          ><input
+            type="checkbox"
+            data-testid="unit-recipe-only"
+            .checked=${!!d.recipe_only}
+            @change=${(ev: Event) => this.set("recipe_only", (ev.target as HTMLInputElement).checked ? 1 : 0)}
+          />${t("settings.unit.recipe_only")}</label
+        >
+        ${fieldMsg(t("settings.unit.recipe_only_hint"), "unit-recipe-only", true)}
         ${this.field(t("settings.unit.base"), this.select("base_unit_id", bases, t("common.none"), true, this.usedAsBase(d)))}
         ${this.field(t("settings.unit.factor"), this.numInput("factor"))}`;
     } else {
@@ -257,7 +244,10 @@ export class PantrySettingsDialog extends LitElement {
         ${this.inh(
           "unit_id",
           t("settings.category.unit"),
-          units.map((u) => [u.id, u.symbol ? `${u.name} (${u.symbol})` : u.name]),
+          stockUnits(units, d.unit_id).map((u) => [
+            u.id,
+            u.symbol ? `${u.name} (${u.symbol})` : u.name,
+          ]),
         )}
         ${this.inh(
           "default_location_id",

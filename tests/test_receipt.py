@@ -24,7 +24,7 @@ def test_escpos_bands_and_cut():
     assert img.width == 384 and img.height > 34 * 3
     big = img.resize((384, 600))
     data = receipt.escpos(big, cut=True)
-    assert data.startswith(b"\x1b@\x1b3\x18") and data.endswith(b"\x1b2\x1bd\x05\x1dV\x01")
+    assert data.startswith(b"\x1b@\x1b3\x18") and data.endswith(b"\x1b2\x1bd\x07\x1dV\x01")
     # 600 rows = 25 lines of 24 dots: ESC * 33, 384 columns of 3 bytes, LF
     assert data.count(b"\x1b*\x21\x80\x01") == 25
     assert len(data) == 5 + 25 * (5 + 384 * 3 + 1) + 5 + 3

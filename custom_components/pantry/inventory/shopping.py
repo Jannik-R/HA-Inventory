@@ -10,6 +10,7 @@ from .common import InventoryError, _now, id_by_name
 from .inherit import _categories, _chain, _path, children
 from .master import save
 from .products import add_product
+from .shopping_recipes import recipe_items
 
 
 def _key(item: dict) -> str:
@@ -54,6 +55,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
                 "amount": None,
                 "packages": missing,
                 "any_of_subtree": False,
+                "recipes": [],
             }
             item["done"] = done_p.get(p["id"]) == _key(item)
             items.append(item)
@@ -112,6 +114,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
                 "amount": amount,
                 "packages": packages,
                 "any_of_subtree": any_min,
+                "recipes": [],
             }
             item["done"] = done.get(cid) == _key(item)
             items.append(item)
@@ -127,6 +130,14 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
         conn.execute("DELETE FROM shopping_done WHERE category_id = ?", (cid,))
     for pid in done_p.keys() - {i["product_id"] for i in checked}:
         conn.execute("DELETE FROM shopping_done_product WHERE product_id = ?", (pid,))
+    done_r = dict(conn.execute("SELECT uid, missing FROM shopping_done_recipe").fetchall())
+    recipe_rows = recipe_items(conn, cats, units, products, kids)
+    for item in recipe_rows:
+        item["path"] = _path(cats, item["category_id"])
+        item["done"] = done_r.get(item["key"]) == _key(item)
+    for uid in done_r.keys() - {i["key"] for i in recipe_rows if i["done"]}:
+        conn.execute("DELETE FROM shopping_done_recipe WHERE uid = ?", (uid,))
+    items += recipe_rows
     for r in conn.execute(
         "SELECT i.*, p.name AS product, p.brand, p.category_id AS product_category"
         " FROM shopping_item i LEFT JOIN product p ON p.id = i.product_id"
@@ -143,6 +154,7 @@ def shopping_list(conn: sqlite3.Connection) -> list[dict]:
             "amount": None,
             "packages": r["packages"],
             "any_of_subtree": False,
+            "recipes": [],
             "done": bool(r["done"]),
         })  # fmt: skip
     return sorted(
@@ -177,6 +189,19 @@ def set_shopping_done(
     )
     if done and item:
         conn.execute(f"INSERT INTO {table} ({col}, missing) VALUES (?, ?)", (ref, _key(item)))
+
+
+def set_recipe_done(conn: sqlite3.Connection, uid: str, done: bool) -> None:
+    """Check / uncheck the item of recipes with this key ('r<category id>-<unit id>');
+    like a min stock item, the check holds while its shortage stays the same."""
+    conn.execute("DELETE FROM shopping_done_recipe WHERE uid = ?", (uid,))
+    item = next((i for i in shopping_list(conn) if i.get("key") == uid), None)
+    if item is None:  # stale: the item is gone (stock changed, recipe removed)
+        raise InventoryError("not_found")
+    if done:
+        conn.execute(
+            "INSERT INTO shopping_done_recipe (uid, missing) VALUES (?, ?)", (uid, _key(item))
+        )
 
 
 def add_shopping_item(

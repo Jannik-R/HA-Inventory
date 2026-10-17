@@ -4,8 +4,9 @@ import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
-import type { Draft, PantrySettingsDialog } from "./settings-dialog";
-import { ADD } from "./settings-dialog";
+import type { PantrySettingsDialog } from "./settings-dialog";
+import type { Draft } from "./settings-model";
+import { ADD } from "./settings-model";
 import { fmt } from "./settings-format";
 import { fmtNumber } from "./format";
 import { deleteMasterRow } from "./delete-flow";
@@ -239,11 +240,14 @@ export class PantrySettings extends LitElement {
       const base = units.find((b) => b.id === u.base_unit_id);
       return [
         u.symbol,
+        u.recipe_only ? t("settings.unit.recipe_only") : "",
         base
           ? `= ${fmtNumber(this.hass, u.factor)} ${base.symbol}`
-          : u.is_count
-            ? t("settings.unit.count")
-            : "",
+          : u.recipe_only
+            ? t("settings.unit.no_conversion") // counts as "any amount" against the stock
+            : u.is_count
+              ? t("settings.unit.count")
+              : "",
       ]
         .filter(Boolean)
         .join(" · ");

@@ -273,3 +273,35 @@ def test_recipe_removal(conn):
         ).fetchone()[0]
         == 0
     )
+
+
+def test_egg_parts_count_together(conn):
+    r = recipe(
+        conn,
+        [
+            ing(conn, "Eier", 3, "Stück", note="Eigelb"),
+            ing(conn, "Eier", 3, "Stück", note="Eiweiß"),
+        ],
+    )
+    p = product(conn, "Ei", "Eier")
+    inv.book_in(conn, p, 3, location_id=loc(conn))
+    assert status(conn, r, 2) == ["available", "available"]
+    inv.save_recipe(
+        conn,
+        {
+            "id": r,
+            "name": "Pasta",
+            "servings": 2,
+            "ingredients": [
+                ing(conn, "Eier", 2, "Stück"),
+                ing(conn, "Eier", 3, "Stück", note="Eigelb"),
+                ing(conn, "Eier", 3, "Stück", note="Eiweiß"),
+            ],
+        },
+    )  # 2 whole + 3 eggs' parts = 5 > 3: the parts rows report the shortage
+    got = inv.recipe_availability(conn, r, 2)
+    assert [(i["status"], i["need"]) for i in got] == [
+        ("available", 2),
+        ("partial", 5),
+        ("partial", 5),
+    ]

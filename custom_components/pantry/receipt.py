@@ -73,7 +73,9 @@ def escpos(img: Image.Image, cut: bool) -> bytes:
         cols = band.transpose(Image.Transpose.TRANSPOSE).tobytes()
         data += b"\x1b*\x21" + img.width.to_bytes(2, "little")  # mode 33: 24-dot double density
         data += bytes(b ^ 0xFF for b in cols) + b"\n"  # PIL: 1 = white, printer: 1 = black
-    data += b"\x1b2\x1bd\x05"  # default line spacing, feed 5 lines past the cutter
+    # default line spacing, feed 7 lines: past the cutter plus a bottom margin about as large as the
+    # top one (the blank paper between print head and cutter, fixed by the printer)
+    data += b"\x1b2\x1bd\x07"
     if cut:
         data += b"\x1dV\x01"
     return bytes(data)
@@ -145,7 +147,7 @@ async def async_print_shopping_list(hass: HomeAssistant, options, items: list[di
     from .todo import TEXT, summary  # todo imports the entity platform: load it only here
 
     lang = hass.config.language.split("-")[0]
-    lines = shopping_lines(items, lambda i: summary(i, lang))
+    lines = shopping_lines(items, lambda i: summary(i, lang, short=True))
     if not lines:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="nothing_to_print")
     title = TEXT.get(lang, TEXT["en"])["title"].format(date=dt_util.now().date())

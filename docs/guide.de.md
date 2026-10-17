@@ -35,9 +35,10 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 1. **Lagerorte**: Passe die Liste an deine Küche an (umbenennen, hinzufügen, löschen).
 2. **Standards**: Lege fest, was gilt, wenn eine Kategorie oder ein Produkt nichts Eigenes hat
    (Einheit, Lagerort, Datumsart, Warnung vor Ablauf).
-3. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
+3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
+4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-4. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
+5. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
 
@@ -109,7 +110,7 @@ Benachrichtigung aufs Handy.
 
 ## 6. Einkaufsliste
 
-**Einkauf** entsteht aus zwei Quellen:
+**Einkauf** entsteht aus drei Quellen:
 
 - **Mindestmengen**: In den Kategorien (Einstellungen) legst du eine *Mindestmenge* (z. B. 2 kg
   Nudeln, egal welche Marke) und/oder eine *Mindestanzahl* (Packungen) fest. Am Produkt gibt es eine
@@ -118,6 +119,11 @@ Benachrichtigung aufs Handy.
   Unterkategorien, und nichts wird doppelt gezählt.
 - **Von Hand**: **Zur Einkaufsliste hinzufügen**, Namen tippen, Produkt oder Kategorie wählen,
   Anzahl angeben. Ein neues Produkt wird dabei gleich angelegt.
+- **Aus Rezepten**: Im Rezept tippst du **Auf die Einkaufsliste**, wählst die Portionen und die
+  optionalen Zutaten, die du brauchst. Die fehlenden Mengen aller Rezepte werden pro Kategorie
+  zusammengezählt. Die Rezepte sind nummeriert (1, 2, 3 …); hinter jedem Eintrag steht klein, welches Rezept wie viel braucht („1:300 g; 2:200 g“). Ein Rezept bleibt auf
+  der Liste, bis du es entfernst: Das machst du im Tab **Einkauf** unter **Für Rezepte** mit dem
+  Papierkorb, z. B. nach dem Kochen. Portionen und optionale Zutaten änderst du dort mit dem Stift. Mengen in Rezept-Einheiten wie EL, Tasse oder Prise werden umgerechnet, wenn die Einheit zur Kategorie passt: in ml bei Volumen, in g bei Gewicht (3 EL Öl → 45 ml); sonst, wenn nichts davon im Vorrat ist, die Grundeinheit (2 EL Kapern → 30 ml); nur Scheibe bleibt wie geschrieben („2 Scheiben“). Zutaten ohne Menge zählen als 1 Pkg.
 
 Abhaken streicht einen Eintrag durch. Ein Mindestmengen-Eintrag kommt von selbst zurück, wenn sich
 die fehlende Menge ändert, z. B. wenn du nur einen Teil eingekauft hast.
@@ -134,7 +140,8 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“. Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, Anleitung, Quelle und Bild; **Portionen**
-rechnet die Mengen um (nur Anzeige).
+rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept auf die Liste
+(siehe [Einkaufsliste](#6-einkaufsliste)).
 
 **Rezept hinzufügen**:
 
@@ -145,6 +152,8 @@ rechnet die Mengen um (nur Anzeige).
 4. **optional** für Zutaten, die das Rezept nicht braucht. **Nicht gegen den Vorrat prüfen** für
    Dinge, die du nicht im Vorrat führst (Salz, Wasser).
 5. Fehlt eine Einheit, wähle **Neue Einheit …** in der Einheitenauswahl.
+
+Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind Faustregeln: Prise und Messerspitze 0,5 g, Zehe 0,1 Stück (auf der Einkaufsliste wird aufgerundet: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0,05 ml, Spritzer 1 ml, Schuss 20 ml. Scheibe, Zweig und Stiel haben keine Größe und zählen als beliebige Menge. Eine Einheit, die ein Rezeptimport anlegt, ist zunächst nur für Rezepte.
 
 **Importieren**: Füge die Adresse eines Rezepts ein (z. B. Chefkoch, Mealie, Tandoor). Vorrat liest
 die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt. Gespeichert wird erst, wenn du

@@ -169,8 +169,9 @@ Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. Dami
 im Gefrierschrank und buchst sie per Scan aus.
 
 - **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren > Etikettendrucker*. Modell wählen,
-  z. B. *Dymo LabelWriter 450* hinter einem USB-Druckserver, Adresse und Etikettengröße eintragen.
-  Ohne Netzwerkdrucker öffnet sich der Druckdialog des Browsers.
+  z. B. *Dymo LabelWriter 450*, dann unter **Drucker** die Adresse des USB-Druckservers oder den
+  Gerätepfad (USB am Home-Assistant-Rechner, z. B. `/dev/usb/lp0`) und die Etikettengröße eintragen.
+  Mit *Kein Drucker* öffnet sich der Druckdialog des Browsers.
 - **Beim Einbuchen**: Häkchen **Etiketten drucken**, ein Etikett pro Packung (höchstens 20).
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
 - Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.

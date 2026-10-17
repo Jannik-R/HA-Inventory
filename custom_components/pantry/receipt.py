@@ -7,8 +7,6 @@ to host[:port]. Raster instead of text mode: umlauts and fonts work on every ESC
 from __future__ import annotations
 
 import asyncio
-import logging
-import os
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -24,7 +22,6 @@ from .const import (
     DOMAIN,
 )
 
-_LOGGER = logging.getLogger(__name__)
 DOTS = {58: 384, 80: 576}  # printable dots per line at 203 dpi (common 58 / 80 mm printers)
 BAUDS = (9600, 19200, 38400, 57600, 115200)
 _PAD = 8  # dots left and right
@@ -81,27 +78,6 @@ def escpos(img: Image.Image, cut: bool) -> bytes:
     return bytes(data)
 
 
-def write_device(path: str, data: bytes, baud: int) -> None:
-    """Blocking write to a device file; a serial port is set raw (no newline translation) at `baud`."""
-    fd = os.open(path, os.O_WRONLY | os.O_NOCTTY)
-    try:
-        if os.isatty(fd):
-            import termios  # Linux only (HA runs there); local, so the module loads elsewhere
-            import tty
-
-            tty.setraw(fd)
-            attrs = termios.tcgetattr(fd)
-            attrs[4] = attrs[5] = getattr(termios, f"B{baud}")
-            termios.tcsetattr(fd, termios.TCSANOW, attrs)
-        view = memoryview(data)
-        while view:
-            view = view[os.write(fd, view) :]
-        if os.isatty(fd):
-            termios.tcdrain(fd)
-    finally:
-        os.close(fd)
-
-
 _lock = asyncio.Lock()  # one print at a time: two jobs must not interleave on the printer
 
 
@@ -114,18 +90,7 @@ async def _send(hass: HomeAssistant, options, data: bytes) -> None:
     target = target_of(options)
     if not target:
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="no_receipt_printer")
-    if not target.startswith("/"):
-        await label.send(target, data)  # raw TCP, port 9100 by default
-        return
-    baud = int(options.get(CONF_RECEIPT_BAUD, 9600))
-    try:
-        await hass.async_add_executor_job(write_device, target, data, baud)
-    except OSError as err:
-        # the form only says "not reachable"; the reason (busy, offline, missing) goes to the log
-        _LOGGER.warning("Receipt printer %s: %s", target, err)
-        raise HomeAssistantError(
-            translation_domain=DOMAIN, translation_key="printer_unreachable"
-        ) from err
+    await label.send(target, data, baud=int(options.get(CONF_RECEIPT_BAUD, 9600)))
 
 
 def shopping_lines(items: list[dict], summary) -> list[tuple[str, str]]:

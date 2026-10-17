@@ -84,7 +84,7 @@
       "message": "Kein Lagerort namens „{name}“."
     },
     "no_label_printer": {
-      "message": "Kein Netzwerk-Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren)."
+      "message": "Kein Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren)."
     },
     "no_receipt_printer": {
       "message": "Es ist kein Bondrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren › Bondrucker)."
@@ -114,14 +114,14 @@
         "title": "Einstellungen des Etikettendruckers",
         "description": "Host, Etikettengröße und Druck für den gewählten Etikettendrucker.",
         "data": {
-          "label_printer_host": "Host (oder Host:Port)",
+          "label_printer_host": "Drucker (Host, Host:Port oder Gerätepfad)",
           "label_width": "Etikettenbreite",
           "label_height": "Etikettenhöhe",
           "print_on_book_in": "Beim Einbuchen Etiketten drucken",
           "test_print": "Testetikett drucken"
         },
         "data_description": {
-          "label_printer_host": "Netzwerkadresse des Druckservers. Port {port}, wenn nur der Host angegeben wird.",
+          "label_printer_host": "Netzwerk: Adresse des Druckservers (Port {port}, wenn nur der Host angegeben wird). USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/usb/lp0 (bei Docker mit devices: durchreichen).",
           "test_print": "Sendet beim Speichern ein Testetikett an den Drucker."
         }
       },
@@ -190,7 +190,7 @@
     },
     "print_labels": {
       "name": "Etiketten drucken",
-      "description": "Etiketten einer Charge auf dem Netzwerk-Etikettendrucker drucken.",
+      "description": "Etiketten einer Charge auf dem Etikettendrucker drucken.",
       "fields": {
         "batch_id": {
           "name": "Charge",
@@ -210,8 +210,8 @@
   "selector": {
     "label_printer": {
       "options": {
-        "browser": "Kein Netzwerkdrucker – Druck über den Browser",
-        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (Raw-Port 9100, z. B. über USB-Druckserver)"
+        "browser": "Kein Drucker – Druck über den Browser",
+        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (Netzwerk über USB-Druckserver, Port 9100, oder USB)"
       }
     }
   }

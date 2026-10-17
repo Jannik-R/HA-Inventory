@@ -17,7 +17,9 @@ class Model:
     max_height: int
     default_width: int
     default_height: int
-    network: bool = False  # sent as a raw TCP stream; otherwise printed by the browser
+    network: bool = (
+        False  # sent as a stream (raw TCP or device file); otherwise printed by the browser
+    )
     port: int = 9100
     bottom_reserve_mm: float = 0  # extra blank space at the bottom the printer never prints
     encode: Callable[[list[Image.Image]], bytes] | None = None

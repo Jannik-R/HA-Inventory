@@ -1,10 +1,12 @@
-"""Label drawing and sending (no database): QR code + text as a 1-bit image, PNG data urls, raw TCP."""
+"""Label drawing and sending (no database): QR code + text as a 1-bit image, PNG data urls, sending (raw TCP or device file)."""
 
 from __future__ import annotations
 
 import asyncio
 import base64
 import io
+import logging
+import os
 from datetime import date
 from pathlib import Path
 
@@ -13,6 +15,8 @@ from homeassistant.exceptions import HomeAssistantError
 from PIL import Image, ImageDraw, ImageFont
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 DPI = 300
 FONTS = Path(__file__).parent / "fonts"  # DejaVu: Pillow's default font has no umlauts
@@ -123,10 +127,42 @@ def split_host(host_port: str, default_port: int) -> tuple[str, int]:
     return host, number
 
 
-async def send(host_port: str, data: bytes, default_port: int = 9100) -> None:
-    """Raw TCP to the print server (see `split_host` for the formats)."""
+def write_device(path: str, data: bytes, baud: int) -> None:
+    """Blocking write to a device file; a serial port is set raw (no newline translation) at `baud`."""
+    fd = os.open(path, os.O_WRONLY | os.O_NOCTTY)
     try:
-        host, port = split_host(host_port, default_port)
+        if os.isatty(fd):
+            import termios  # Linux only (HA runs there); local, so the module loads elsewhere
+            import tty
+
+            tty.setraw(fd)
+            attrs = termios.tcgetattr(fd)
+            attrs[4] = attrs[5] = getattr(termios, f"B{baud}")
+            termios.tcsetattr(fd, termios.TCSANOW, attrs)
+        view = memoryview(data)
+        while view:
+            view = view[os.write(fd, view) :]
+        if os.isatty(fd):
+            termios.tcdrain(fd)
+    finally:
+        os.close(fd)
+
+
+async def send(target: str, data: bytes, default_port: int = 9100, baud: int = 9600) -> None:
+    """To a device file on the HA host (path starting with "/", see `write_device`) or raw TCP to a
+    print server (see `split_host` for the formats). The only way out to a printer."""
+    if target.startswith("/"):
+        try:
+            await asyncio.get_running_loop().run_in_executor(None, write_device, target, data, baud)
+        except OSError as err:
+            # the form only says "not reachable"; the reason (busy, offline, missing) goes to the log
+            _LOGGER.warning("Printer %s: %s", target, err)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="printer_unreachable"
+            ) from err
+        return
+    try:
+        host, port = split_host(target, default_port)
         async with asyncio.timeout(10):
             _, writer = await asyncio.open_connection(host, port)
             try:

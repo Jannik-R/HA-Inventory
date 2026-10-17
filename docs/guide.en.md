@@ -171,8 +171,9 @@ A label shows product, brand, expiry date and a QR code of the batch, so you rec
 the freezer and book them out by scanning.
 
 - **Setup** (admin): *Settings > Devices & services > Pantry > Configure > Etikettendrucker*. Choose the model, e.g.
-  *Dymo LabelWriter 450* behind a USB print server, enter its address and the label size. Without a
-  network printer the browser's print dialog opens.
+  *Dymo LabelWriter 450*, then under **Drucker** the address of the USB print server or the device
+  path (USB on the Home Assistant machine, e.g. `/dev/usb/lp0`) and the label size. With *Kein Drucker*
+  the browser's print dialog opens.
 - **When booking in**: tick **Etiketten drucken**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
 - More than 2 labels at once ask first.

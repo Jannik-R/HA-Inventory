@@ -6,7 +6,7 @@
 
 - Products: optional own *Mindestanzahl* (packages) when booking in a new product and in the product dialog; below it the product goes on the shopping list by itself and counts toward its categories' minimums (database migration 11, runs automatically)
 - Booking in / editing a product: a missing category or Produktart can be created right in the category picker (*„…“ neu anlegen*, then the parent)
-
+- More recipe units (cl, dl, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen), about 1,000 more seeded product types and a subcategory *Alkohol* under Getränke; existing databases get the missing ones (database migration 9, runs automatically)
 - Recipe ingredients: checkbox *Nicht gegen den Vorrat prüfen* (e.g. Salz, Wasser): no stock check, shown as "nicht geprüft", not counted in the summary (database migration 10, runs automatically)
 - Recipe import (tab *Rezepte*, *Importieren*): a recipe URL is read from its schema.org data (e.g. Chefkoch, Mealie, Tandoor); the page is loaded only on click (15 s, 5 MB, HTML). The recipe dialog opens prefilled for review, nothing is saved before. Ingredient lines are parsed (fractions, ranges, units, notes, optional); the original line is shown per ingredient
 - Recipe units: any user can add a unit (*Neue Einheit …*) in an ingredient row; unknown units from an import ask first (create or pick). Spelling variants map to one unit
@@ -17,8 +17,21 @@
 ### Fixed
 
 - Booking in: *Zurücksetzen* of the location now shows the default again (selects in other dialogs had the same issue)
+- Recipe import: a hostile or broken page can no longer stall Home Assistant (linear page scan, limited line length, deeply nested data skipped)
+- Dialogs: a double click or a second Enter no longer saves, adds or prints twice
+- Esc in a dialog opened from another dialog (e.g. the category picker) no longer asks to discard the outer one
+- *Rückgängig* stays available when putting back failed
+- Views no longer reload on every Home Assistant state change while their first load runs
+- Recipes: a Produktart or unit created in a cancelled recipe dialog now shows up right away
+- Tree arrows in *Bestand*, *Einstellungen* and the category picker are aligned and without a frame
+- Open Food Facts image links other than http(s) are dropped (booking in such a product failed)
 
 ### Changed
+
+- Labels: at most 20 per print (was 99); booking in prints at most 20 as well
+- Open Food Facts online searches are spaced 6 s apart (their limit is 10 per minute and IP)
+- Shopping list entity: item texts follow the Home Assistant language (German or English), a product's brand in brackets
+- Recipe images are loaded without sending the referrer
 
 - Recipe units: Bund, Prise, Messerspitze, EL, TL (EL/TL convert to ml), Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher; a count unit that does not convert counts packages ("1 TL Salz" = any salt in stock)
 - Seeded categories get fitting default units (Milch l, Käse g, Fleisch g, Sahne ml, Gewürze g, ...); existing databases get them only where a category has no own unit.

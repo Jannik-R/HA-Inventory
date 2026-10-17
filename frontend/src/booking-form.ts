@@ -13,7 +13,7 @@ import {
   type StockRow,
   type Taken,
 } from "./api";
-import { printLabels } from "./label-print";
+import { MAX_LABELS, printLabels } from "./label-print";
 import { categoryDefault, categoryPath, type Dflt } from "./inherit";
 import { dateField, locationFields, printField, type InForm } from "./booking-in-fields";
 import { productErrors, productFields, productSummary, type Errors } from "./product-fields";
@@ -161,7 +161,9 @@ export class PantryBookingForm extends LitElement {
       if (!res) return;
       lastLocation = location_id;
       if (this.f.print ?? this.labels?.print_on_book_in) {
-        const n = await this.run(() => printLabels(hass, res.batch_id, Math.min(packages, 99)));
+        const n = await this.run(() =>
+          printLabels(hass, res.batch_id, Math.min(packages, MAX_LABELS)),
+        );
         if (n) printed = n;
       }
       where = this.md?.locations.find((l) => l.id === location_id)?.name ?? "";

@@ -49,4 +49,4 @@ def _exists(conn: sqlite3.Connection, table: str, row_id: int | None) -> None:
 
 def _packages(packages: int, minimum: int = 1) -> None:
     if packages < minimum:
-        raise ValueError(f"packages must be >= {minimum}")
+        raise InventoryError("invalid_value")

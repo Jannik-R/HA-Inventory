@@ -46,11 +46,25 @@ export const backdropClick = (isDirty?: () => boolean) => (e: MouseEvent) => {
  */
 export const escGuard = (isDirty: () => boolean) => (e: Event) => {
   if (e instanceof KeyboardEvent && e.key !== "Escape") return;
+  // Esc in a dialog nested inside this one (e.g. the category picker) belongs to that dialog.
+  if (e.composedPath().find((n) => n instanceof HTMLDialogElement) !== e.currentTarget) return;
   // A `cancel` that cannot be stopped closes anyway: do not ask in vain.
   if (!isDirty() || !e.cancelable) return;
   e.preventDefault();
   closeUnlessKept(e.currentTarget as HTMLDialogElement, isDirty);
 };
+
+/** Runs a form's submit handler once at a time; the form carries `data-busy` meanwhile. */
+async function submitOnce(e: Event, run: (e: Event) => unknown) {
+  const form = e.currentTarget as HTMLFormElement;
+  if (form.hasAttribute("data-busy")) return e.preventDefault();
+  form.setAttribute("data-busy", "");
+  try {
+    await run(e);
+  } finally {
+    form.removeAttribute("data-busy");
+  }
+}
 
 /**
  * Edit/add dialog that follows the dialog rules in CLAUDE.md: title, fields, backend error,
@@ -64,7 +78,8 @@ export const editDialog = (o: {
   /** Primary button text and testid (default: "Speichern"). */
   submit?: { label: string; testid: string };
   dirty: () => boolean;
-  onSubmit: (e: Event) => void;
+  /** May return a promise: until it settles, further submits (double click, Enter) are ignored. */
+  onSubmit: (e: Event) => unknown;
   onClosed: () => void;
 }) =>
   html`<dialog
@@ -78,7 +93,7 @@ export const editDialog = (o: {
     @keydown=${escGuard(o.dirty)}
     @cancel=${escGuard(o.dirty)}
   >
-    <form @submit=${o.onSubmit}>
+    <form @submit=${(e: Event) => submitOnce(e, o.onSubmit)}>
       <h2>${o.title}</h2>
       ${o.body} ${o.error ? html`<p class="error" role="alert">${o.error}</p>` : nothing}
       <div class="actions">

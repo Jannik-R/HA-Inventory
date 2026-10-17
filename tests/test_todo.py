@@ -24,6 +24,7 @@ async def refreshed(hass: HomeAssistant, seconds: int) -> None:
 
 
 async def test_shopping_todo(hass: HomeAssistant) -> None:
+    hass.config.language = "de"
     entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
@@ -86,3 +87,16 @@ def test_uid_kinds() -> None:
     assert uid(base) == "c4"
     assert uid({**base, "product_id": 7}) == "p7"
     assert uid({**base, "id": 3, "manual": True, "product_id": 7}) == "m3"
+
+
+def test_summary_languages() -> None:
+    from custom_components.pantry.todo import summary
+
+    item = {"manual": False, "packages": 2, "product_id": 7, "brand": "Barilla",
+            "name": "Spaghetti", "any_of_subtree": False, "amount": None}  # fmt: skip
+    assert summary(item) == "Spaghetti (Barilla) – 2 Packungen fehlen"
+    more = {**item, "product_id": None, "packages": 1, "any_of_subtree": True, "name": "Nudeln",
+            "amount": {"missing": 0.5, "unit_symbol": "kg"}}  # fmt: skip
+    assert summary(more, "en") == "Nudeln – 0.5 kg and 1 package more missing"
+    assert summary(more, "fr") == summary(more, "en")
+    assert summary(more, "de") == "Nudeln – weitere 0,5 kg und 1 Packung fehlen"

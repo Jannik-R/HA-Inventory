@@ -105,7 +105,13 @@ export const recipeDetail = (o: {
     }
     ${
       r.image_url
-        ? html`<img class="photo" src=${r.image_url} alt=${r.name} loading="lazy" />`
+        ? html`<img
+            class="photo"
+            src=${r.image_url}
+            alt=${r.name}
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          />`
         : nothing
     }
   </div>`;

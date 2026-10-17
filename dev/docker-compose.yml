@@ -42,7 +42,7 @@ services:
       - ..:/repo
       - pip-cache:/root/.cache/pip
     entrypoint: ["sh", "-c", "pip install -q -r requirements_test.txt && pytest \"$@\"", "--"]
-    command: ["tests"]
+    command: ["-n", "8", "tests"]
 
 # Fixed subnet: configuration.yaml trusts only its gateway (= requests from this PC).
 networks:

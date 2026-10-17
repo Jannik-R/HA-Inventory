@@ -31,7 +31,10 @@ function printInBrowser(url: string, count: number, w: number, h: number) {
   document.body.append(frame);
 }
 
-/** Print `count` labels of a batch (1..99); more than 2 are confirmed first.
+/** Most labels per print (the backend's MAX_LABELS). */
+export const MAX_LABELS = 20;
+
+/** Print `count` labels of a batch (1..MAX_LABELS); more than 2 are confirmed first.
  *  Returns how many the printer printed (0 when the browser print dialog was opened instead),
  *  or null when the user cancelled the question. */
 export async function printLabels(

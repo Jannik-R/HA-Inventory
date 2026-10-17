@@ -5,11 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+# Read-only token: CI only checks, it never writes to the repo.
+permissions:
+  contents: read
+
+# A newer push to the same PR/branch cancels the run still in progress.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Third-party actions are pinned by commit SHA (tag in the comment).
 jobs:
   hassfest:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: home-assistant/actions/hassfest@50baf3a307f87100cf550d4ae127746595030d5d # master 2026-10
 
   hacs:
@@ -17,7 +27,7 @@ jobs:
     if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
-      - uses: hacs/action@22.5.0
+      - uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
           # Not published yet: no brands entry, repo description/topics are set when going public.
@@ -25,15 +35,20 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    # Same image as HA, so the Python version always matches (Dependabot does not bump this
-    # tag; keep it on the HA version that requirements_test.txt pins).
-    container: ghcr.io/home-assistant/home-assistant:2026.10.1
     steps:
-      - uses: actions/checkout@v7
-      - run: pip install -q -r requirements_test.txt
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # uv with a cached download instead of the HA container (pulling it took over a minute).
+      # Keep python-version on the one the pinned HA release uses (its Docker image).
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: "3.14"
+          activate-environment: true
+          enable-cache: true
+          cache-dependency-glob: requirements_test.txt
+      - run: uv pip install -r requirements_test.txt
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest -q
+      - run: pytest -q -n auto
 
   frontend:
     runs-on: ubuntu-latest
@@ -41,8 +56,8 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           cache: npm

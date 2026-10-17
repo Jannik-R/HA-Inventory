@@ -191,6 +191,8 @@ export class PantryRecipeDialog extends LitElement {
           @master=${(ev: CustomEvent<MasterData>) => {
             this.md = ev.detail;
             this.requestUpdate();
+            // the view keeps it too, even when this dialog is cancelled afterwards
+            this.dispatchEvent(new CustomEvent("master", { detail: ev.detail }));
           }}
           .categories=${this.md?.categories ?? []}
           .units=${this.md?.units ?? []}

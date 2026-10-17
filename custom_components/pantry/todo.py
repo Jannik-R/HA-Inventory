@@ -41,22 +41,34 @@ async def async_setup_entry(
     async_add_entities([ShoppingList(await async_coordinator(hass, entry, update), entry)])
 
 
-def summary(item: dict) -> str:
-    """'Nudeln – 0,5 kg und 1 Packung fehlen'; by hand: 'Spaghetti (2 Packungen)'."""
-    # shortcut: German text and decimal comma like the device name; translate when needed.
+# Item texts per HA language (todo summaries are plain text, HA has no translation section for
+# them); other languages get English.
+_TEXT = {
+    "de": {"one": "Packung", "many": "Packungen", "and": " und ", "decimal": ",",
+           "missing": "{name} – {what} fehlen", "more": "{name} – weitere {what} fehlen"},
+    "en": {"one": "package", "many": "packages", "and": " and ", "decimal": ".",
+           "missing": "{name} – {what} missing", "more": "{name} – {what} more missing"},
+}  # fmt: skip
+
+
+def summary(item: dict, lang: str = "de") -> str:
+    """'Nudeln – 0,5 kg und 1 Packung fehlen', 'Spaghetti (Barilla) – 2 Packungen fehlen';
+    by hand: 'Spaghetti (2 Packungen)'."""
+    txt = _TEXT.get(lang, _TEXT["en"])
     n = item["packages"]
-    count = f"{n} {'Packung' if n == 1 else 'Packungen'}" if n else ""
+    count = f"{n} {txt['one'] if n == 1 else txt['many']}" if n else ""
     if item["manual"]:
         return item["name"] if n == 1 else f"{item['name']} ({count})"
     parts = []
     if a := item["amount"]:
-        parts.append(f"{a['missing']:g} {a['unit_symbol']}".replace(".", ","))
+        parts.append(f"{a['missing']:g} {a['unit_symbol']}".replace(".", txt["decimal"]))
     if count:
         parts.append(count)
-    more = "weitere " if item["any_of_subtree"] else ""
+    name = item["name"]
     if item["product_id"] and item["brand"]:
-        more = f"{item['brand']}: {more}"
-    return f"{item['name']} – {more}{' und '.join(parts)} fehlen"
+        name = f"{name} ({item['brand']})"
+    template = txt["more"] if item["any_of_subtree"] else txt["missing"]
+    return template.format(name=name, what=txt["and"].join(parts))
 
 
 def uid(item: dict) -> str:
@@ -88,7 +100,7 @@ class ShoppingList(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], TodoLis
     def todo_items(self) -> list[TodoItem]:
         return [
             TodoItem(
-                summary=summary(i),
+                summary=summary(i, self.hass.config.language.split("-")[0]),
                 uid=uid(i),
                 status=TodoItemStatus.COMPLETED if i["done"] else TodoItemStatus.NEEDS_ACTION,
             )

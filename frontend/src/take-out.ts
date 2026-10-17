@@ -27,14 +27,17 @@ export interface TakeOutHost {
   error: string;
 }
 
-/** Runs one action; `undo` is cleared first, so a double click cannot book twice. */
+/** Runs one action; `undo` is cleared first, so a double click cannot undo twice, and comes
+ *  back when the action fails (the earlier booking can still be undone). */
 async function apply(host: TakeOutHost, call: () => Promise<Undo | undefined>) {
+  const before = host.undo;
   host.error = "";
   host.undo = undefined;
   try {
     host.undo = await call();
     host.stock = await getStock(host.hass!);
   } catch (err) {
+    host.undo = before;
     host.error = await errorMessage(host.hass!, err);
   }
 }

@@ -308,8 +308,8 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     # 7: recipes. An ingredient keys on a category node (any product in its subtree counts; the
     # lowest level is the "Produktart"). `text` is a name snapshot: the category's name while it is
     # set, the typed name when unmatched (kept when the category is deleted); `note` is a free hint.
-    # force_delete of a unit clears
-    # amount + unit together (both or none). Ingredient order = id order (save replaces them all).
+    # force_delete of a unit clears amount + unit together (both or none).
+    # Ingredient order = id order (save replaces them all).
     """
     CREATE TABLE recipe (
         id INTEGER PRIMARY KEY,

@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, type Hass } from "./api";
-import { printLabels } from "./label-print";
+import { MAX_LABELS, printLabels } from "./label-print";
 
 /** Print labels of one batch: how many (default 1). Call `open()`; fires `pantry-printed` (detail: printed count). */
 export class PantryLabelDialog extends LitElement {
@@ -34,7 +34,7 @@ export class PantryLabelDialog extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("dialog input")?.focus();
   }
 
-  private invalid = () => !/^\d+$/.test(this.count) || +this.count < 1 || +this.count > 99;
+  private invalid = () => !/^\d+$/.test(this.count) || +this.count < 1 || +this.count > MAX_LABELS;
 
   private async print(e: Event) {
     e.preventDefault();
@@ -63,7 +63,7 @@ export class PantryLabelDialog extends LitElement {
           data-testid="label-count"
           type="number"
           min="1"
-          max="99"
+          max=${MAX_LABELS}
           step="1"
           inputmode="numeric"
           aria-invalid=${bad}
@@ -72,7 +72,7 @@ export class PantryLabelDialog extends LitElement {
         />
         ${
           bad
-            ? fieldMsg(t("valid.label_count"), "label-count")
+            ? fieldMsg(t("valid.label_count", { max: MAX_LABELS }), "label-count")
             : html`<span class="detail">${t("label.in_stock", { n: b.packages })}</span>`
         }
       </label>`,

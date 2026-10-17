@@ -135,6 +135,8 @@
   "settings.category.min_packages": "Mindestanzahl",
   "settings.category.min_hint": "Gilt für die Kategorie samt Unterkategorien; Mindestwerte darunter werden mitgezählt. Fehlt etwas, steht es auf der Einkaufsliste.",
   "shopping.empty": "Nichts unter dem Mindestbestand, nichts vorgemerkt.",
+  "shopping.print": "Einkaufszettel drucken",
+  "shopping.printed": "Einkaufszettel gedruckt (Einträge: {n}).",
   "shopping.missing": "{what} fehlen",
   "shopping.missing_more": "weitere {what} fehlen (beliebig aus der Kategorie)",
   "shopping.and": " und ",

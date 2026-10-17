@@ -1,4 +1,5 @@
-"""HA services for automations (scanners, NFC tags, ESPHome): book in/out by code, print labels."""
+"""HA services for automations (scanners, NFC tags, ESPHome): book in/out by code, print labels,
+print the shopping list."""
 
 from __future__ import annotations
 
@@ -11,7 +12,7 @@ from homeassistant.helpers import config_validation as cv
 
 from . import inventory
 from .const import DOMAIN, MAX_LABELS
-from .websocket_label import async_print_labels
+from .websocket_label import async_print_labels, async_print_shopping_list
 from .ws_common import db_of, translated
 from .ws_validate import ID, NAME, PACKAGES
 
@@ -78,10 +79,14 @@ def async_register(hass: HomeAssistant) -> None:
             hass, call.data["batch_id"], call.data["count"], browser=False
         )
 
+    async def print_shopping_list(call: ServiceCall) -> ServiceResponse:
+        return await async_print_shopping_list(hass)
+
     for name, handler, schema in (
         ("book_in", book_in, BOOK_IN),
         ("book_out", book_out, BOOK_OUT),
         ("print_labels", print_labels, PRINT_LABELS),
+        ("print_shopping_list", print_shopping_list, vol.Schema({})),
     ):
         hass.services.async_register(
             DOMAIN, name, handler, schema, supports_response=SupportsResponse.OPTIONAL

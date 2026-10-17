@@ -11,3 +11,8 @@ CONF_LABEL_PRINTER_HOST = "label_printer_host"
 CONF_LABEL_WIDTH = "label_width"
 CONF_LABEL_HEIGHT = "label_height"
 CONF_PRINT_ON_BOOK_IN = "print_on_book_in"
+# Receipt printer (shopping list): device path or host[:port], paper width mm, cutter, serial baud.
+CONF_RECEIPT_PRINTER = "receipt_printer"
+CONF_RECEIPT_WIDTH = "receipt_width"
+CONF_RECEIPT_CUT = "receipt_cut"
+CONF_RECEIPT_BAUD = "receipt_baud"

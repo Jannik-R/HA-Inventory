@@ -327,7 +327,8 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     msg = {"type": "pantry/print_labels", "batch_id": batch_id, "count": 2}
 
     cfg = (await ws.call({"type": "pantry/label_config"}))["result"]
-    assert cfg == {"printer": False, "print_on_book_in": True, "width_mm": 57, "height_mm": 32}
+    assert cfg == {"printer": False, "print_on_book_in": True, "width_mm": 57, "height_mm": 32,
+                   "receipt": False}  # fmt: skip
     out = (await ws.call(msg))["result"]
     assert (
         out["image"].startswith("data:image/png;base64,")

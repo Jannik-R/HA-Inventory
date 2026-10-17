@@ -50,6 +50,7 @@ custom_components/pantry/   integration (Python)
   websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
+  receipt.py                receipt printer (ESC/POS): shopping list as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
   fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
 frontend/                   panel source (Lit + TypeScript, Vite)

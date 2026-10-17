@@ -4,6 +4,7 @@
 
 ### Added
 
+- Receipt printer: *Einkaufszettel drucken* on the *Einkauf* tab and action `pantry.print_shopping_list` print the open shopping list on an ESC/POS receipt printer (58 / 80 mm, USB device on the HA host or network, cutter); set up under *Configure > Bondrucker* with a test receipt
 - User guide in German and English (`docs/guide.de.md`, `docs/guide.en.md`); the question mark in the panel header opens it
 - Tooltips: icon buttons name their action, and labels of non-obvious fields (dotted underline) explain the field on hover
 - Products: optional own *Mindestanzahl* (packages) when booking in a new product and in the product dialog; below it the product goes on the shopping list by itself and counts toward its categories' minimums (database migration 11, runs automatically)
@@ -18,6 +19,7 @@
 
 ### Fixed
 
+- Action forms: *Packages* of `pantry.book_in` allowed up to 9999 again (was 2099), *Count* of `pantry.print_labels` up to 20
 - Booking in: *Zurücksetzen* of the location now shows the default again (selects in other dialogs had the same issue)
 - Recipe import: a hostile or broken page can no longer stall Home Assistant (linear page scan, limited line length, deeply nested data skipped)
 - Dialogs: a double click or a second Enter no longer saves, adds or prints twice

@@ -57,6 +57,10 @@ async def test_options_flow_browser(hass: HomeAssistant) -> None:
     """The browser model has no host and no test print."""
     entry = await _options_entry(hass)
     result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] is FlowResultType.MENU
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "label_model"}
+    )
     assert result["data_schema"]({})["label_printer"] == "browser"
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"label_printer": "browser"}
@@ -79,6 +83,9 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
     }
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "label_model"}
+    )
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], {"label_printer": "dymo_lw4xx"}
     )

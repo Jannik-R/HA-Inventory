@@ -19,10 +19,11 @@ Available:
 - Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
+- Shopping list on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 
 Planned:
 
-- Receipt printer (ESC/POS) for the shopping list and later recipes
+- Receipt printer for recipes
 - Shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
@@ -173,8 +174,9 @@ Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` 
 Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an option), and a tag
 button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
 
-- **Label printer setup** (this is the label printer; a receipt printer will be a separate setting later).
-  In Home Assistant open *Settings > Devices & services > Pantry > Configure*. Step 1: choose the
+- **Label printer setup** (the receipt printer is set up separately, see *Bondrucker*).
+  In Home Assistant open *Settings > Devices & services > Pantry > Configure* and choose
+  *Etikettendrucker*. Step 1: choose the
   *Modell des Etikettendruckers*. Step 2: the settings of that model, label size in mm and whether
   to print on book-in. Models:
   - *Dymo LabelWriter 450 / 4xx* (raw port 9100, e.g. via a USB print server such as TP-Link with a
@@ -190,9 +192,40 @@ button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels fo
   *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
   booking out. Labels are not single-use: they name the batch, not one package.
 
+### Bondrucker (receipt printer)
+
+*Einkaufszettel drucken* on the *Einkauf* tab prints the open (unticked) items, grouped by main
+category, on an ESC/POS receipt printer (58 or 80 mm, e.g. TPG A799); with a cutter the paper is cut
+at the end. The button only shows when a receipt printer is set up. The same as an action:
+`pantry.print_shopping_list`.
+
+Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. a Raspberry Pi):
+
+1. Plug in the printer and switch it on. On the host run `ls -l /dev/serial/by-id/`: the printer
+   shows up as `usb-…` pointing to `ttyUSB0` or `ttyACM0`. (Nothing there: `ls /dev/usb/lp*`; a USB
+   printer-class device is `/dev/usb/lp0`.)
+2. Pass it into the Home Assistant container, in its `docker-compose.yml`:
+   ```yaml
+   services:
+     homeassistant:
+       devices:
+         - /dev/serial/by-id/usb-…:/dev/bondrucker   # the full name from step 1
+   ```
+   Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
+   plugged in when the container starts; after unplugging it, restart the container.
+   HA OS passes USB devices on its own: use the device path directly.
+3. *Settings > Devices & services > Pantry > Configure > Bondrucker*: *Drucker* = `/dev/bondrucker`
+   (a network printer: `host` or `host:port`, port 9100), paper width, *Papier am Ende abschneiden*,
+   baud rate (serial printers only: the printer's setting, often 9600 or 115200; a self-test page,
+   usually FEED held while switching on, shows it). *Testbon drucken* sends one short test receipt
+   when you save; an unreachable printer is reported in the form.
+4. Garbled characters on the receipt: wrong baud rate; try the others.
+
+The receipt is printed as an image (umlauts and fonts work on every ESC/POS printer).
+
 ### Services (automations)
 
-All three return a response (use `response_variable` in a script or automation). Errors (unknown
+All four return a response (use `response_variable` in a script or automation). Errors (unknown
 barcode, unknown location, not enough stock, printer not reachable) make the action fail with a message.
 
 | Service | Fields | Response |
@@ -200,6 +233,7 @@ barcode, unknown location, not enough stock, printer not reachable) make the act
 | `pantry.book_in` | `code` (EAN of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
 | `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
 | `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
+| `pantry.print_shopping_list` | none | `printed` (number of items) |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).

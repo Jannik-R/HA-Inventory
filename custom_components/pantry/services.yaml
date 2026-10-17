@@ -10,7 +10,7 @@ book_in:
       selector:
         number:
           min: 1
-          max: 2099
+          max: 9999
           mode: box
     expires_on:
       selector:
@@ -50,5 +50,6 @@ print_labels:
       selector:
         number:
           min: 1
-          max: 99
+          max: 20
           mode: box
+print_shopping_list:

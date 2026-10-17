@@ -85,13 +85,27 @@
     },
     "no_label_printer": {
       "message": "Kein Netzwerk-Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren)."
+    },
+    "no_receipt_printer": {
+      "message": "Es ist kein Bondrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren › Bondrucker)."
+    },
+    "nothing_to_print": {
+      "message": "Die Einkaufsliste hat keine offenen Einträge zum Drucken."
     }
   },
   "options": {
     "step": {
       "init": {
+        "title": "Drucker",
+        "description": "Welchen Drucker möchtest du einrichten?",
+        "menu_options": {
+          "label_model": "Etikettendrucker",
+          "receipt": "Bondrucker (Einkaufszettel)"
+        }
+      },
+      "label_model": {
         "title": "Etikettendrucker",
-        "description": "Etikettendrucker wählen (kein Bon-Drucker; der kommt später als eigene Einstellung).",
+        "description": "Etikettendrucker wählen.",
         "data": {
           "label_printer": "Modell des Etikettendruckers"
         }
@@ -109,6 +123,22 @@
         "data_description": {
           "label_printer_host": "Netzwerkadresse des Druckservers. Port {port}, wenn nur der Host angegeben wird.",
           "test_print": "Sendet beim Speichern ein Testetikett an den Drucker."
+        }
+      },
+      "receipt": {
+        "title": "Bondrucker",
+        "description": "ESC/POS-Bondrucker für den Einkaufszettel. Drucker leer lassen = kein Bondrucker.",
+        "data": {
+          "receipt_printer": "Drucker",
+          "receipt_width": "Papierbreite (mm)",
+          "receipt_cut": "Papier am Ende abschneiden",
+          "receipt_baud": "Baudrate (nur serielle Drucker)",
+          "test_print": "Testbon drucken"
+        },
+        "data_description": {
+          "receipt_printer": "USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/usb/lp0 (USB-Drucker) oder /dev/ttyUSB0 (USB-seriell) (bei Docker mit devices: durchreichen). Netzwerkdrucker: Host oder Host:Port (Port 9100, wenn nur der Host angegeben wird).",
+          "receipt_baud": "Nur für den Gerätepfad eines seriellen bzw. USB-seriellen Druckers; bei Netzwerkdruckern ohne Wirkung. Die Einstellung des Druckers verwenden (oft 9600 oder 115200).",
+          "test_print": "Sendet beim Speichern einen kurzen Testbon an den Drucker."
         }
       }
     },
@@ -171,6 +201,10 @@
           "description": "Anzahl gleicher Etiketten."
         }
       }
+    },
+    "print_shopping_list": {
+      "name": "Einkaufszettel drucken",
+      "description": "Die offenen Einträge der Einkaufsliste auf dem Bondrucker drucken."
     }
   },
   "selector": {

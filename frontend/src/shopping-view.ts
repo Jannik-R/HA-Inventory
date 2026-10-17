@@ -6,7 +6,9 @@ import {
   deleteShoppingItem,
   errorMessage,
   getMasterData,
+  getLabelConfig,
   getShopping,
+  printShoppingList,
   setShoppingDone,
   updateShoppingItem,
   type Category,
@@ -29,16 +31,26 @@ export class PantryShopping extends LitElement {
     items: { state: true },
     cats: { state: true },
     error: { state: true },
+    receipt: { state: true },
+    printing: { state: true },
+    note: { state: true },
   };
 
   declare hass?: Hass;
   declare items?: ShoppingItem[];
   declare cats?: Category[];
   declare error: string;
+  /** A receipt printer is set up: offer "Einkaufszettel drucken". */
+  declare receipt: boolean;
+  declare printing: boolean;
+  declare note: string;
 
   constructor() {
     super();
     this.error = "";
+    this.receipt = false;
+    this.printing = false;
+    this.note = "";
   }
 
   private started = false;
@@ -47,6 +59,24 @@ export class PantryShopping extends LitElement {
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
       this.load();
+      getLabelConfig(this.hass).then(
+        (c) => (this.receipt = c.receipt),
+        () => undefined, // no print button then
+      );
+    }
+  }
+
+  private async print() {
+    if (this.printing) return;
+    this.printing = true;
+    this.error = this.note = "";
+    try {
+      const { printed } = await printShoppingList(this.hass!);
+      this.note = t("shopping.printed", { n: printed });
+    } catch (err) {
+      this.error = await errorMessage(this.hass!, err);
+    } finally {
+      this.printing = false;
     }
   }
 
@@ -180,7 +210,19 @@ export class PantryShopping extends LitElement {
         <button class="primary" data-testid="shopping-add" @click=${() => this.openAdd()}>
           ${t("shopping.add.title")}
         </button>
+        ${
+          this.receipt
+            ? html`<button
+                data-testid="shopping-print"
+                ?disabled=${this.printing || !this.items.some((i) => !i.done)}
+                @click=${() => this.print()}
+              >
+                ${t("shopping.print")}
+              </button>`
+            : nothing
+        }
       </div>
+      ${this.note ? html`<p class="detail" role="status" data-testid="shopping-printed">${this.note}</p>` : nothing}
       <pantry-shopping-add
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -199,6 +241,9 @@ export class PantryShopping extends LitElement {
     formStyles,
     css`
       .bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
         margin-bottom: 8px;
       }
       li.cat .name {

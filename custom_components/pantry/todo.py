@@ -42,10 +42,12 @@ async def async_setup_entry(
 
 # Item texts per HA language (todo summaries are plain text, HA has no translation section for
 # them); other languages get English.
-_TEXT = {
+TEXT = {
     "de": {"one": "Packung", "many": "Packungen", "and": " und ", "decimal": ",",
+           "title": "Einkaufsliste {date:%d.%m.%Y}",
            "missing": "{name} – {what} fehlen", "more": "{name} – weitere {what} fehlen"},
     "en": {"one": "package", "many": "packages", "and": " and ", "decimal": ".",
+           "title": "Shopping list {date:%Y-%m-%d}",
            "missing": "{name} – {what} missing", "more": "{name} – {what} more missing"},
 }  # fmt: skip
 
@@ -53,7 +55,7 @@ _TEXT = {
 def summary(item: dict, lang: str = "de") -> str:
     """'Nudeln – 0,5 kg und 1 Packung fehlen', 'Spaghetti (Barilla) – 2 Packungen fehlen';
     by hand: 'Spaghetti (2 Packungen)'."""
-    txt = _TEXT.get(lang, _TEXT["en"])
+    txt = TEXT.get(lang, TEXT["en"])
     n = item["packages"]
     count = f"{n} {txt['one'] if n == 1 else txt['many']}" if n else ""
     if item["manual"]:

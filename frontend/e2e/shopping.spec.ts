@@ -37,7 +37,19 @@ test.afterAll(async ({ browser }) => {
   await page.close();
 });
 
-test("min stock in the settings puts the category on the shopping list", async ({ page }) => {
+test("min stock in the settings puts the category on the shopping list", async ({
+  page,
+  wsStub,
+  printCalls,
+}) => {
+  // As if a receipt printer were set up (the print itself is blocked by the fixture).
+  wsStub("pantry/label_config", {
+    printer: false,
+    print_on_book_in: false,
+    width_mm: 57,
+    height_mm: 32,
+    receipt: true,
+  });
   await openPage(page, "/pantry/settings/categories", "Einstellungen");
   await page
     .locator("pantry-settings li")
@@ -63,6 +75,10 @@ test("min stock in the settings puts the category on the shopping list", async (
   await expect(row).toHaveClass(/done/);
   await row.getByTestId("shopping-check").uncheck();
   await expect(row).not.toHaveClass(/done/);
+
+  await page.getByTestId("shopping-print").click();
+  await expect(page.getByTestId("shopping-printed")).toContainText("Einkaufszettel gedruckt");
+  expect(printCalls).toEqual([expect.objectContaining({ type: "pantry/print_shopping_list" })]);
 });
 
 test("add to the shopping list by hand: existing category, new product, new category", async ({

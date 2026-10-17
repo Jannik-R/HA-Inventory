@@ -14,6 +14,10 @@ services:
       - ./config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
       - ../custom_components/pantry:/config/custom_components/pantry:ro
+    # A USB receipt printer on this PC is reached through scripts/receipt_bridge.py (Docker Desktop's
+    # WSL kernel has no USB printer driver): receipt printer = host.docker.internal:9100.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       default:
         ipv4_address: 10.123.45.2

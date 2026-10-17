@@ -24,7 +24,7 @@ top right opens this guide.
 5. [What expires soon?](#5-what-expires-soon)
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
-8. [Labels](#8-labels)
+8. [Labels and receipt printer](#8-labels-and-receipt-printer)
 9. [Categories, product types and inheritance](#9-categories-product-types-and-inheritance)
 10. [Tips and FAQ](#10-tips-and-faq)
 
@@ -41,7 +41,7 @@ Admins should take a quick look at **Einstellungen** first:
    (unit, location, date type, expiry warning).
 3. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
    needs a location choice.
-4. Optional: set up a label printer (see [Labels](#8-labels)).
+4. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
 
@@ -127,6 +127,10 @@ changes, e.g. after buying only part of it.
 The same list is the to-do list **Einkaufsliste** in Home Assistant and the companion app. You can
 tick items there and add items by the exact name of a product or category.
 
+**Einkaufszettel drucken** (print shopping list): with a receipt printer this button prints all
+unticked items, sorted by main category, and cuts the paper. It only shows when a receipt printer is
+set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
+
 ## 7. Recipes
 
 **Rezepte** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
@@ -152,17 +156,23 @@ Ingredient status: *vorhanden* (in stock), *teilweise* (partly), *fehlt* (missin
 unbekannt* (products without content), *keine Zutat zugeordnet* (not matched), *nicht geprüft* (not
 checked).
 
-## 8. Labels
+## 8. Labels and receipt printer
 
 A label shows product, brand, expiry date and a QR code of the batch, so you recognise leftovers in
 the freezer and book them out by scanning.
 
-- **Setup** (admin): *Settings > Devices & services > Pantry > Configure*. Choose the model, e.g.
+- **Setup** (admin): *Settings > Devices & services > Pantry > Configure > Etikettendrucker*. Choose the model, e.g.
   *Dymo LabelWriter 450* behind a USB print server, enter its address and the label size. Without a
   network printer the browser's print dialog opens.
 - **When booking in**: tick **Etiketten drucken**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
 - More than 2 labels at once ask first.
+
+**Receipt printer** (for the shopping list): *Settings > Devices & services > Pantry > Configure >
+Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
+`/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
+baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB
+into Docker) is in the README under *Bondrucker*.
 
 ## 9. Categories, product types and inheritance
 

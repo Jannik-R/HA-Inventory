@@ -1,4 +1,5 @@
-"""Websocket commands for labels: print config, print (printer or browser) and book out by label code."""
+"""Websocket commands for printing: print config, labels (printer or browser), book out by label code,
+shopping list on the receipt printer."""
 
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
-from . import inventory, label
+from . import inventory, label, receipt
 from .const import (
     CONF_LABEL_HEIGHT,
     CONF_LABEL_WIDTH,
@@ -23,7 +24,7 @@ from .ws_validate import CODE, ID
 
 
 def async_register(hass: HomeAssistant) -> None:
-    for command in (ws_label_config, ws_print_labels, ws_book_out_label):
+    for command in (ws_label_config, ws_print_labels, ws_book_out_label, ws_print_shopping_list):
         websocket_api.async_register_command(hass, command)
 
 
@@ -38,6 +39,7 @@ def _config(hass: HomeAssistant) -> dict:
         "print_on_book_in": opts.get(CONF_PRINT_ON_BOOK_IN, True),
         "width_mm": opts.get(CONF_LABEL_WIDTH, 57),
         "height_mm": opts.get(CONF_LABEL_HEIGHT, 32),
+        "receipt": bool(receipt.target_of(opts)),
     }
 
 
@@ -94,3 +96,22 @@ async def ws_book_out_label(hass: HomeAssistant, connection, msg: dict) -> None:
         hass, partial(inventory.book_out_code, user_id=connection.user.id), msg["code"]
     )
     connection.send_result(msg["id"], result)
+
+
+async def async_print_shopping_list(hass: HomeAssistant) -> dict:
+    """The open shopping list on the receipt printer; {"printed": number of items}."""
+    db_of(hass)  # raises not_loaded
+    opts = hass.config_entries.async_loaded_entries(DOMAIN)[0].options
+    if not receipt.target_of(opts):
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="no_receipt_printer"
+        )
+    items = await run(hass, inventory.shopping_list)
+    return await receipt.async_print_shopping_list(hass, opts, items)
+
+
+@websocket_api.websocket_command({vol.Required("type"): "pantry/print_shopping_list"})
+@websocket_api.async_response
+async def ws_print_shopping_list(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Any user, like the shopping list itself."""
+    connection.send_result(msg["id"], await async_print_shopping_list(hass))

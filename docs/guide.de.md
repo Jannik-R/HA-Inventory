@@ -20,7 +20,7 @@ Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs 
 5. [Was läuft ab?](#5-was-läuft-ab)
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
-8. [Etiketten](#8-etiketten)
+8. [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)
 9. [Kategorien, Produktarten und Vererbung](#9-kategorien-produktarten-und-vererbung)
 10. [Tipps und häufige Fragen](#10-tipps-und-häufige-fragen)
 
@@ -37,7 +37,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
    (Einheit, Lagerort, Datumsart, Warnung vor Ablauf).
 3. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-4. Optional: Richte einen Etikettendrucker ein (siehe [Etiketten](#8-etiketten)).
+4. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
 
@@ -126,6 +126,10 @@ Dieselbe Liste gibt es als To-do-Liste **Einkaufsliste** in Home Assistant und i
 Dort kannst du abhaken und Einträge mit dem genauen Namen eines Produkts oder einer Kategorie
 hinzufügen.
 
+**Einkaufszettel drucken**: Mit einem Bondrucker druckt dieser Knopf alle noch nicht abgehakten
+Einträge, nach Hauptkategorien sortiert, und schneidet das Papier ab. Der Knopf erscheint nur, wenn
+ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
+
 ## 7. Rezepte
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“. Das Suchfeld findet Name und
@@ -150,17 +154,23 @@ unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst 
 Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produkte ohne Inhaltsangabe),
 *keine Zutat zugeordnet*, *nicht geprüft*.
 
-## 8. Etiketten
+## 8. Etiketten und Bondrucker
 
 Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. Damit erkennst du Reste
 im Gefrierschrank und buchst sie per Scan aus.
 
-- **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren*. Modell wählen,
+- **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren > Etikettendrucker*. Modell wählen,
   z. B. *Dymo LabelWriter 450* hinter einem USB-Druckserver, Adresse und Etikettengröße eintragen.
   Ohne Netzwerkdrucker öffnet sich der Druckdialog des Browsers.
 - **Beim Einbuchen**: Häkchen **Etiketten drucken**, ein Etikett pro Packung (höchstens 20).
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
 - Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
+
+**Bondrucker** (für den Einkaufszettel): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren >
+Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.
+`/dev/bondrucker`) oder die Netzwerkadresse. Dazu Papierbreite, Abschneiden und bei seriellen
+Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern. Die technische
+Einrichtung (USB an Docker durchreichen) steht im README unter *Bondrucker*.
 
 ## 9. Kategorien, Produktarten und Vererbung
 

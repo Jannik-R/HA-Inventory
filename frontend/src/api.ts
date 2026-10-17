@@ -241,6 +241,8 @@ export interface LabelConfig {
   print_on_book_in: boolean;
   width_mm: number;
   height_mm: number;
+  /** A receipt printer is set up (shopping list). */
+  receipt: boolean;
 }
 /** Browser mode: one label image (data url), to be printed `count` times. */
 type PrintResult =
@@ -249,6 +251,8 @@ export const getLabelConfig = (hass: Hass) =>
   hass.callWS<LabelConfig>({ type: "pantry/label_config" });
 export const printLabelsWs = (hass: Hass, data: { batch_id: number; count: number }) =>
   hass.callWS<PrintResult>({ type: "pantry/print_labels", ...data });
+export const printShoppingList = (hass: Hass) =>
+  hass.callWS<{ printed: number }>({ type: "pantry/print_shopping_list" });
 export const bookOutLabel = (hass: Hass, code: string) =>
   hass.callWS<{ name: string; location: string; taken: Taken[] }>({
     type: "pantry/book_out_label",

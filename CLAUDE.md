@@ -50,6 +50,7 @@ custom_components/pantry/   integration (Python)
   websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
+  receipt.py                receipt printer (ESC/POS): shopping list as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
   fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
 frontend/                   panel source (Lit + TypeScript, Vite)
@@ -58,6 +59,7 @@ frontend/                   panel source (Lit + TypeScript, Vite)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
+scripts/receipt_bridge.py   dev only (Windows): raw TCP 9100 -> Windows printer queue, so the dev HA reaches a USB receipt printer
 scripts/import_check.py     recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/)
 docs/PLAN.md                architecture and roadmap
 docs/guide.de.md, guide.en.md  user guide (German, English), opened from the panel header

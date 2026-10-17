@@ -28,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 DOTS = {58: 384, 80: 576}  # printable dots per line at 203 dpi (common 58 / 80 mm printers)
 BAUDS = (9600, 19200, 38400, 57600, 115200)
 _PAD = 8  # dots left and right
-_BAND = 256  # rows per raster command: some printers limit one command's height
+_BAND = 24  # rows per ESC * line (24-dot mode)
 
 
 def target_of(options) -> str:
@@ -62,17 +62,18 @@ def render(title: str, lines: list[tuple[str, str]], width_dots: int) -> Image.I
 
 
 def escpos(img: Image.Image, cut: bool) -> bytes:
-    """ESC @, the image as GS v 0 raster bands, feed, and a partial cut (GS V 1) if wanted."""
-    width_bytes = (img.width + 7) // 8
-    data = bytearray(b"\x1b@")
+    """ESC @, the image as ESC * bit-image lines (24 dots high, line spacing 24 dots), feed, and a
+    partial cut (GS V 1) if wanted. ESC * instead of the newer GS v 0 raster command: older
+    printers (TPG A799) print GS v 0 data as text."""
+    data = bytearray(b"\x1b@\x1b3" + bytes([_BAND]))
     for top in range(0, img.height, _BAND):
-        band = img.crop((0, top, width_bytes * 8, min(top + _BAND, img.height)))
-        raw = bytes(b ^ 0xFF for b in band.tobytes())  # PIL: 1 = white, printer: 1 = black
-        data += (
-            b"\x1dv0\x00" + width_bytes.to_bytes(2, "little") + band.height.to_bytes(2, "little")
-        )
-        data += raw
-    data += b"\x1bd\x05"  # feed 5 lines past the cutter
+        band = Image.new("1", (img.width, _BAND), 1)  # white padding below the last rows
+        band.paste(img.crop((0, top, img.width, min(top + _BAND, img.height))), (0, 0))
+        # transposed, each image column is a row of 24 bits = the 3 bytes ESC * wants, top bit first
+        cols = band.transpose(Image.Transpose.TRANSPOSE).tobytes()
+        data += b"\x1b*\x21" + img.width.to_bytes(2, "little")  # mode 33: 24-dot double density
+        data += bytes(b ^ 0xFF for b in cols) + b"\n"  # PIL: 1 = white, printer: 1 = black
+    data += b"\x1b2\x1bd\x05"  # default line spacing, feed 5 lines past the cutter
     if cut:
         data += b"\x1dV\x01"
     return bytes(data)

@@ -81,6 +81,7 @@ async def test_options_receipt_step_keeps_label_options(hass: HomeAssistant, cap
             flow["flow_id"], {**form, "test_print": True}
         )
     assert result["errors"] == {"base": "printer_unreachable"}
+    assert result["data_schema"]({})["test_print"] is True  # a retry tests again
     assert "/dev/ttyUSB0: no device" in caplog.text  # the reason is logged
     with patch(WRITE) as write:
         result = await hass.config_entries.options.async_configure(

@@ -19,6 +19,7 @@
 
 ### Fixed
 
+- Printer settings: after a failed test print, *Testdruck* stays ticked, so trying again tests again instead of saving untested
 - Action forms: *Packages* of `pantry.book_in` allowed up to 9999 again (was 2099), *Count* of `pantry.print_labels` up to 20
 - Booking in: *Zurücksetzen* of the location now shows the default again (selects in other dialogs had the same issue)
 - Recipe import: a hostile or broken page can no longer stall Home Assistant (linear page scan, limited line length, deeply nested data skipped)

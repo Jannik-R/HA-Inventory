@@ -96,6 +96,7 @@ class PantryOptionsFlow(OptionsFlow):
         errors: dict[str, str] = {}
         model = MODELS[self._model]
         o = self.config_entry.options
+        test = False  # shown again after an error: a retry must test again, not just save
         if user_input is not None:
             test = user_input.pop(_TEST, False)
             host = user_input.get(CONF_LABEL_PRINTER_HOST, "").strip()
@@ -138,7 +139,7 @@ class PantryOptionsFlow(OptionsFlow):
             bool
         )
         if model.network:
-            fields[vol.Optional(_TEST, default=False)] = bool
+            fields[vol.Optional(_TEST, default=test)] = bool
         return self.async_show_form(
             step_id="label",
             data_schema=vol.Schema(fields),
@@ -152,6 +153,7 @@ class PantryOptionsFlow(OptionsFlow):
         """Receipt printer: device path or host[:port] (empty = none), paper, cutter, baud."""
         errors: dict[str, str] = {}
         o = self.config_entry.options
+        test = False  # shown again after an error: a retry must test again, not just save
         if user_input is not None:
             test = user_input.pop(_TEST, False)
             user_input[CONF_RECEIPT_PRINTER] = receipt.target_of(user_input)
@@ -187,7 +189,7 @@ class PantryOptionsFlow(OptionsFlow):
                 vol.Required(
                     CONF_RECEIPT_BAUD, default=str(o.get(CONF_RECEIPT_BAUD, 9600))
                 ): choices(receipt.BAUDS),
-                vol.Optional(_TEST, default=False): bool,
+                vol.Optional(_TEST, default=test): bool,
             }
         )
         return self.async_show_form(step_id="receipt", data_schema=schema, errors=errors)

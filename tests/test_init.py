@@ -102,6 +102,7 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
             result["flow_id"], {**form, "test_print": True}
         )
     assert result["errors"] == {"base": "printer_unreachable"}
+    assert result["data_schema"]({})["test_print"] is True  # a retry tests again
 
     with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
         result = await hass.config_entries.options.async_configure(

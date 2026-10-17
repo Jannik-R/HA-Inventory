@@ -1,13 +1,11 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n";
-import { fmtNumber, lang } from "./format";
+import { fmtNumber, plural } from "./format";
 import type { Hass, Ingredient, MasterData, Recipe } from "./api";
 
 /** "1 Portion" / "4 Portionen". */
 export const fmtPortions = (hass: Hass | undefined, n: number) =>
-  t(new Intl.PluralRules(lang(hass)).select(n) === "one" ? "recipes.portion" : "recipes.portions", {
-    n,
-  });
+  plural(hass, n, "recipes.portion", "recipes.portions");
 
 /** Amount for the shown servings: matched ingredients carry it as `need`, others scale `amount`. */
 const amountText = (hass: Hass, md: MasterData, i: Ingredient, factor: number) => {

@@ -11,9 +11,19 @@ export const fmtDate = (hass: Hass | undefined, iso: string) =>
 export const fmtNumber = (hass: Hass | undefined, n: number) =>
   new Intl.NumberFormat(lang(hass)).format(n);
 
+/** Singular or plural text for `n` ("1 Tag" / "3 Tage"); `shown` is the text for `{n}`. */
+export const plural = (
+  hass: Hass | undefined,
+  n: number,
+  one: string,
+  other: string,
+  shown: number | string = n,
+) => t(new Intl.PluralRules(lang(hass)).select(n) === "one" ? one : other, { n: shown });
+
 /** "1 Tag" / "3 Tage". */
 export const fmtDays = (hass: Hass | undefined, v: number | string) =>
-  t(
-    new Intl.PluralRules(lang(hass)).select(Number(v)) === "one" ? "settings.day" : "settings.days",
-    { n: v },
-  );
+  plural(hass, Number(v), "settings.day", "settings.days", v);
+
+/** Case-insensitive substring match. */
+export const includesCI = (text: string, query: string) =>
+  text.toLocaleLowerCase().includes(query.toLocaleLowerCase());

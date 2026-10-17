@@ -11,6 +11,7 @@ import {
   type Category,
   type Hass,
 } from "./api";
+import { includesCI } from "./format";
 import "./category-picker";
 
 const MAX_HITS = 8;
@@ -103,10 +104,9 @@ export class PantryIngredientPick extends LitElement {
 
   /** Product types (no children) first, then higher categories; then matches via products. */
   private hits(q: string): Hit[] {
-    const k = q.toLocaleLowerCase();
     const isParent = (c: Category) => this.categories.some((x) => x.parent_id === c.id);
     const own = this.categories
-      .filter((c) => c.name.toLocaleLowerCase().includes(k))
+      .filter((c) => includesCI(c.name, q))
       .sort((a, b) => Number(isParent(a)) - Number(isParent(b)))
       .map((cat) => ({ cat }));
     const via = this.products.filter((p) => !own.some((o) => o.cat.id === p.cat.id));

@@ -83,5 +83,18 @@ def _chain(cats: dict, category_id: int | None) -> list[int]:
     return ids[::-1]
 
 
+def children(cats: dict) -> dict[int | None, list[int]]:
+    """Child category ids per parent id (None: the roots)."""
+    kids: dict[int | None, list[int]] = {}
+    for c in cats.values():
+        kids.setdefault(c["parent_id"], []).append(c["id"])
+    return kids
+
+
+def is_type(cats: dict, category_id: int) -> bool:
+    """A product type: the lowest category level (third level)."""
+    return len(_chain(cats, category_id)) >= 3
+
+
 def _path(cats: dict, category_id: int) -> list[str]:
     return [cats[c]["name"] for c in _chain(cats, category_id)]

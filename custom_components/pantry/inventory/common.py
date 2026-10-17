@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from datetime import UTC, datetime
 
@@ -13,7 +14,7 @@ COLUMNS = {
     "unit": ("name", "symbol", "base_unit_id", "factor", "is_count"),
     "location": ("name", "sort"),
     "category": (
-        "parent_id", "name", "sort", "off_tags", "unit_id", "default_location_id",
+        "parent_id", "name", "sort", "unit_id", "default_location_id",
         "expiry_type", "warn_days", "min_stock", "min_stock_unit_id", "min_packages",
     ),
     "product": (
@@ -33,6 +34,25 @@ class InventoryError(Exception):
         self.placeholders = placeholders
 
 
+_SUFFIX = re.compile(r"(?:/\w+|\(\w+\))$")  # Chefkoch plural hint: Tasse/n, Tasse(n)
+_PLURALS = ("en", "n", "e", "s")
+
+
+def unit_key(s: str) -> str:
+    """Normal form for matching units: Tasse, Tassen, tasse and Tasse/n are the same."""
+    s = _SUFFIX.sub("", s.casefold().strip().rstrip(".")).strip()
+    for end in _PLURALS:
+        if s.endswith(end) and len(s) - len(end) >= 3:
+            return s[: -len(end)]
+    return s
+
+
+def id_by_name(rows, name: str) -> int | None:
+    """Id of the first row whose name equals `name`, ignoring case and outer spaces."""
+    key = name.strip().casefold()
+    return next((r["id"] for r in rows if r["name"].casefold() == key), None)
+
+
 def _now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
 
@@ -45,6 +65,20 @@ def _exists(conn: sqlite3.Connection, table: str, row_id: int | None) -> None:
         and not conn.execute(f"SELECT 1 FROM {table} WHERE id = ?{active}", (row_id,)).fetchone()
     ):
         raise InventoryError("not_found")
+
+
+def check_ean(ean: object) -> str | None:
+    """None / blank -> no EAN; otherwise 8 to 14 ASCII digits."""
+    if ean is None or (isinstance(ean, str) and not ean.strip()):
+        return None
+    if not (
+        isinstance(ean, str)
+        and (ean := ean.strip()).isascii()
+        and ean.isdigit()
+        and 8 <= len(ean) <= 14
+    ):
+        raise InventoryError("invalid_ean")
+    return ean
 
 
 def _packages(packages: int, minimum: int = 1) -> None:

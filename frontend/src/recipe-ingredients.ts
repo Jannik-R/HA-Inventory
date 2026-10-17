@@ -1,34 +1,13 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiClose } from "@mdi/js";
 import { t } from "./i18n";
-import { fieldMsg, icon } from "./ui";
+import { ingredientErrors, type RowErrors } from "./ingredient-errors";
+import { fieldMsg, icon, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import type { Category, Hass, Ingredient, MasterData, Unit } from "./api";
 import "./ingredient-pick";
 import "./unit-add-dialog";
 import type { PantryUnitAddDialog } from "./unit-add-dialog";
-
-type RowErrors = { text?: string; amount?: string; pair?: string };
-
-/** A row nothing was entered in yet: no error, left out on save. */
-export const blankIngredient = (i: Ingredient) =>
-  i.category_id == null && !i.text.trim() && i.amount == null && !i.note?.trim();
-
-/** Live errors per ingredient row (same order). */
-export const ingredientErrors = (list: Ingredient[]): RowErrors[] =>
-  list.map((i) => {
-    const e: RowErrors = {};
-    if (blankIngredient(i)) return e;
-    // Rows without category (unmatched, e.g. imported) keep their text until matched.
-    if (!i.text.trim() && i.category_id == null) e.text = t("valid.ingredient_what");
-    if (i.amount != null && !(i.amount > 0)) e.amount = t("valid.positive");
-    // A unit without an amount is only the suggestion from the category; it is dropped on save.
-    else if (i.amount != null && i.unit_id == null)
-      e.pair = i.unit_hint
-        ? t("recipes.ingredient.unit_unknown", { unit: i.unit_hint ?? "" })
-        : t("valid.amount_pair");
-    return e;
-  });
 
 /** Ingredient rows of the recipe dialog. Fires `change` with the whole array, `master` after a new Produktart or unit. */
 export class PantryRecipeIngredients extends LitElement {
@@ -126,7 +105,7 @@ export class PantryRecipeIngredients extends LitElement {
             .value=${i.amount == null ? "" : String(i.amount)}
             @input=${(e: Event) => {
               const v = (e.target as HTMLInputElement).value;
-              this.set(n, { amount: v === "" ? null : Number(v) });
+              this.set(n, { amount: numOrNull(v) });
             }}
           />
         </label>

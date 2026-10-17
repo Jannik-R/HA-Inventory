@@ -18,7 +18,7 @@ from .const import (
     MAX_LABELS,
 )
 from .label_printers import MODELS, printer_of
-from .websocket import _db, _run
+from .ws_common import db_of, run
 from .ws_validate import CODE, ID
 
 
@@ -28,7 +28,7 @@ def async_register(hass: HomeAssistant) -> None:
 
 
 def _config(hass: HomeAssistant) -> dict:
-    _db(hass)  # raises not_loaded
+    db_of(hass)  # raises not_loaded
     opts = hass.config_entries.async_loaded_entries(DOMAIN)[0].options
     key, host = printer_of(opts)
     model = MODELS[key]
@@ -72,7 +72,7 @@ async def async_print_labels(
     w, h, model = cfg["width_mm"], cfg["height_mm"], cfg["model"]
     if not model.network and not browser:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="no_label_printer")
-    info = await _run(hass, inventory.label_info, batch_id)
+    info = await run(hass, inventory.label_info, batch_id)
     if model.network and not cfg["printer"]:
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="printer_unreachable")
     image = await hass.async_add_executor_job(label.render, info, w, h, model.bottom_reserve_mm)
@@ -90,7 +90,7 @@ async def async_print_labels(
 @websocket_api.async_response
 async def ws_book_out_label(hass: HomeAssistant, connection, msg: dict) -> None:
     """One package out by a scanned label; any user, like booking."""
-    result = await _run(
+    result = await run(
         hass, partial(inventory.book_out_code, user_id=connection.user.id), msg["code"]
     )
     connection.send_result(msg["id"], result)

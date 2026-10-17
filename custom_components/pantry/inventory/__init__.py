@@ -7,14 +7,14 @@ recipes, removal, ingredient_line, recipe_import).
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
 from .codes import book_in_by_code, book_out_by_code
-from .common import COLUMNS, INHERITED, InventoryError
+from .common import InventoryError, check_ean
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info
 from .master import delete, list_rows, master_data, save, save_defaults
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
-from .recipe_import import extract_recipe, recipe_import
+from .recipe_import import recipe_import
 from .recipes import recipe_availability, recipes, save_recipe
 from .removal import delete_impact, force_delete
 from .shopping import (
@@ -25,11 +25,9 @@ from .shopping import (
     shopping_list,
     update_shopping_item,
 )
-from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_by_name, suggest_category
+from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_category
 
 __all__ = [
-    "COLUMNS",
-    "INHERITED",
     "InventoryError",
     "add_product",
     "add_shopping_by_name",
@@ -40,6 +38,7 @@ __all__ = [
     "book_out",
     "book_out_by_code",
     "book_out_code",
+    "check_ean",
     "correct",
     "defaults",
     "delete",
@@ -48,7 +47,6 @@ __all__ = [
     "edit_stock",
     "effective",
     "expiring",
-    "extract_recipe",
     "find_ean",
     "force_delete",
     "keyword_score",
@@ -72,7 +70,6 @@ __all__ = [
     "stock_list",
     "suggest",
     "suggest_by_keywords",
-    "suggest_by_name",
     "suggest_category",
     "unit_add",
     "update_shopping_item",

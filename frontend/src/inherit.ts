@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
-import { icon } from "./ui";
+import { icon, numOrNull } from "./ui";
 import type { Category, InheritField, MasterData } from "./api";
 
 export interface Dflt {
@@ -102,7 +102,7 @@ export function inheritNumber(o: {
       .value=${own == null ? "" : String(own)}
       @input=${(e: Event) => {
         const v = (e.target as HTMLInputElement).value;
-        o.onChange(v === "" ? null : Number(v));
+        o.onChange(numOrNull(v));
       }}
     />
     ${o.suffix ? html`<span class="detail">${o.suffix}</span>` : nothing}

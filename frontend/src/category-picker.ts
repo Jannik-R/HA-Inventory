@@ -2,6 +2,7 @@ import { LitElement, css, html, nothing } from "lit";
 import { mdiMenuDown } from "@mdi/js";
 import { t } from "./i18n";
 import { backdropClick, chevron, icon, toggled } from "./ui";
+import { includesCI } from "./format";
 import { formStyles } from "./styles";
 import { addProductType, errorMessage, getMasterData, type Category, type Hass } from "./api";
 import { categoryPath } from "./inherit";
@@ -117,10 +118,10 @@ export class PantryCategoryPicker extends LitElement {
 
   /** Visible rows: the expanded tree, or all matches (with path) while filtering. */
   private rows(): { c: Category; depth: number; label: string }[] {
-    const q = this.filter.trim().toLocaleLowerCase();
+    const q = this.filter.trim();
     if (q) {
       return this.categories
-        .filter((c) => c.name.toLocaleLowerCase().includes(q))
+        .filter((c) => includesCI(c.name, q))
         .filter((c) => this.exclude == null || !this.chain(c.id).includes(this.exclude))
         .map((c) => ({ c, depth: 0, label: categoryPath(this.categories, c.id) }));
     }

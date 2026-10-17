@@ -6,8 +6,8 @@ import re
 import sqlite3
 
 from ..keywords import KEYWORDS
-from .ingredient_line import unit_key
-from .inherit import _categories, _chain, category_tags
+from .common import unit_key
+from .inherit import _categories, _chain, category_tags, is_type
 
 
 def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
@@ -59,7 +59,7 @@ def _type_stems(cats: dict) -> list[tuple[tuple[str, ...], int]]:
     return [
         (tuple(map(unit_key, _words(c["name"]))), cid)
         for cid, c in cats.items()
-        if len(_chain(cats, cid)) >= 3
+        if is_type(cats, cid)
     ]
 
 
@@ -83,7 +83,7 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
     types = [
         (c["name"].casefold(), cid)
         for cid, c in cats.items()
-        if len(_chain(cats, cid)) >= 3 and " " not in c["name"]
+        if is_type(cats, cid) and " " not in c["name"]
     ]
     tag_cats: dict[str, list[int]] = {}
     for cid, tags in category_tags(conn).items():

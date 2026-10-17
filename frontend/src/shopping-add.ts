@@ -1,6 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg } from "./ui";
+import { editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import {
   addShopping,
@@ -12,8 +12,10 @@ import {
   type MasterData,
   type Product,
   type ShoppingItem,
+  isAdmin,
 } from "./api";
-import { productErrors, productFields, type Errors } from "./product-fields";
+import { includesCI } from "./format";
+import { blankProduct, productErrors, productFields, type Errors } from "./product-fields";
 import { categoryPath } from "./inherit";
 import "./category-picker";
 
@@ -138,18 +140,10 @@ export class PantryShoppingAdd extends LitElement {
   private hits() {
     const q = this.query.trim();
     if (!q) return nothing;
-    const k = q.toLocaleLowerCase();
-    const has = (s: string | null | undefined) => !!s && s.toLocaleLowerCase().includes(k);
+    const has = (s: string | null | undefined) => !!s && includesCI(s, q);
     const products = this.products.filter((p) => has(p.name) || has(p.brand)).slice(0, MAX_HITS);
     const cats = (this.md?.categories ?? []).filter((c) => has(c.name)).slice(0, MAX_HITS);
-    const draft: Product = {
-      name: q,
-      brand: null,
-      ean: null,
-      category_id: null,
-      content_amount: null,
-      content_unit_id: null,
-    };
+    const draft = blankProduct({ name: q });
     return html`<ul>
       ${products.map((p) =>
         this.hit(
@@ -171,7 +165,7 @@ export class PantryShoppingAdd extends LitElement {
         product: draft,
       })}
       ${
-        this.hass?.user?.is_admin
+        isAdmin(this.hass)
           ? this.hit("shopping-new-category", t("shopping.add.new_category", { name: q }), "", {
               kind: "new-category",
               name: q,
@@ -259,7 +253,7 @@ export class PantryShoppingAdd extends LitElement {
               .value=${String(this.packages ?? "")}
               @input=${(e: Event) => {
                 const v = (e.target as HTMLInputElement).value;
-                this.packages = v === "" ? null : Number(v);
+                this.packages = numOrNull(v);
               }}
             />
             <span class="detail">${t("book.packages")}</span>

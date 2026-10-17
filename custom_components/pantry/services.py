@@ -11,8 +11,8 @@ from homeassistant.helpers import config_validation as cv
 
 from . import inventory
 from .const import DOMAIN, MAX_LABELS
-from .websocket import _db, _translated
 from .websocket_label import async_print_labels
+from .ws_common import db_of, translated
 from .ws_validate import ID, NAME, PACKAGES
 
 # YAML may give a scanned EAN as a number and template values as strings: coerce both.
@@ -48,8 +48,8 @@ PRINT_LABELS = vol.Schema(
 
 async def _run(hass: HomeAssistant, fn, *args) -> dict:
     """Inventory errors are the caller's input (unknown code, no stock): ServiceValidationError."""
-    db = _db(hass)
-    with _translated(ServiceValidationError):
+    db = db_of(hass)
+    with translated(ServiceValidationError):
         return await db.run(fn, *args)
 
 

@@ -20,7 +20,7 @@ export interface Undo {
 }
 
 /** A view showing stock rows with take-out (stock, expiry); its reactive state is updated here. */
-export interface TakeOutHost {
+interface TakeOutHost {
   hass?: Hass;
   stock?: StockRow[];
   undo?: Undo;

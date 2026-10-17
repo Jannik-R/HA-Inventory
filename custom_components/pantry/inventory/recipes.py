@@ -6,7 +6,7 @@ import sqlite3
 
 from .amounts import _amount, _stock_by_category, _units
 from .common import InventoryError
-from .inherit import _categories
+from .inherit import _categories, children
 from .master import save
 
 
@@ -47,22 +47,23 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
     return recipe_id
 
 
-def _subtree(cats: dict, category_id: int) -> set[int]:
+def _subtree(kids: dict, category_id: int) -> set[int]:
     """The node and all its descendants."""
     out, todo = set(), [category_id]
     while todo:
         cid = todo.pop()
         out.add(cid)
-        todo += [c["id"] for c in cats.values() if c["parent_id"] == cid]
+        todo += kids.get(cid, [])
     return out
 
 
 def _ctx(conn: sqlite3.Connection) -> tuple:
-    return _categories(conn), _units(conn), _stock_by_category(conn)
+    cats = _categories(conn)
+    return cats, _units(conn), _stock_by_category(conn), children(cats)
 
 
 def _availability(ctx: tuple, ingredients: list[dict], factor: float) -> list[dict]:
-    cats, units, stock = ctx
+    cats, units, stock, kids = ctx
     out = []
     for ing in ingredients:
         cid = ing["category_id"]
@@ -72,7 +73,7 @@ def _availability(ctx: tuple, ingredients: list[dict], factor: float) -> list[di
         if cid is None or cid not in cats:
             out.append({**ing, "status": "unmatched"})
             continue
-        products = [p for c in _subtree(cats, cid) for p in stock.get(c, []) if p["packages"]]
+        products = [p for c in _subtree(kids, cid) for p in stock.get(c, []) if p["packages"]]
         if ing["amount"] is None:
             out.append({
                 **ing,

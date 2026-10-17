@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import sqlite3
 
-from .common import COLUMNS, INHERITED, InventoryError, _exists, _now
-from .inherit import _categories, _resolve, category_tags, defaults, set_tags
+from .common import COLUMNS, INHERITED, InventoryError, _exists, _now, check_ean
+from .inherit import _categories, _resolve, category_tags, defaults
 
 
 def _table(table: str) -> tuple[str, ...]:
@@ -23,15 +23,12 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
         raise ValueError("no data")
     if unknown := set(data) - set(cols):
         raise ValueError(f"unknown columns for {table}: {sorted(unknown)}")
-    tags = data.pop("off_tags", None)  # stored in off_tag / category_off_tag
-    if tags is not None and not (isinstance(tags, list) and all(isinstance(x, str) for x in tags)):
-        raise ValueError("off_tags must be a list of strings")
     if "name" in data:
         if not isinstance(data["name"], str) or not data["name"].strip():
             raise InventoryError("invalid_value")
         data["name"] = data["name"].strip()
     if table == "product" and "ean" in data:
-        data["ean"] = _check_ean(data["ean"])
+        data["ean"] = check_ean(data["ean"])
     if table == "unit":
         _check_unit(conn, row_id, data)
     if table == "category" and row_id is not None:
@@ -60,25 +57,7 @@ def save(conn: sqlite3.Connection, table: str, data: dict) -> int:
             raise InventoryError("not_found")
     except sqlite3.IntegrityError as err:
         raise InventoryError("duplicate" if "UNIQUE" in str(err) else "invalid_value") from err
-    if tags is not None:
-        if table != "category":
-            raise ValueError("off_tags only for categories")
-        set_tags(conn, row_id, tags)
     return row_id
-
-
-def _check_ean(ean: object) -> str | None:
-    """None / blank -> no EAN; otherwise 8 to 14 ASCII digits."""
-    if ean is None or (isinstance(ean, str) and not ean.strip()):
-        return None
-    if not (
-        isinstance(ean, str)
-        and (ean := ean.strip()).isascii()
-        and ean.isdigit()
-        and 8 <= len(ean) <= 14
-    ):
-        raise InventoryError("invalid_ean")
-    return ean
 
 
 def _inactive_location(conn: sqlite3.Connection, data: dict) -> int | None:

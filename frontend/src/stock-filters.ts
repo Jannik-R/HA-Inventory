@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import type { MasterData } from "./api";
 
 /** The stock view's filter state; the view owns it (reactive properties). */
-export interface StockFilterHost {
+interface StockFilterHost {
   md?: MasterData;
   filter: string;
   location: number | null;

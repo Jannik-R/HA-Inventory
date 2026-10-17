@@ -9,6 +9,8 @@ export interface Hass {
   ): Promise<(key: string, values?: Record<string, string>) => string>;
 }
 
+export const isAdmin = (hass?: Hass) => !!hass?.user?.is_admin;
+
 interface WsError {
   message?: string;
   translation_domain?: string;
@@ -142,7 +144,7 @@ export interface StockRow {
   category_id: number;
   category_path: string[];
 }
-export interface BookIn {
+interface BookIn {
   packages: number;
   expires_on?: string | null;
   location_id?: number | null;
@@ -241,7 +243,7 @@ export interface LabelConfig {
   height_mm: number;
 }
 /** Browser mode: one label image (data url), to be printed `count` times. */
-export type PrintResult =
+type PrintResult =
   { printed: number } | { image: string; count: number; width_mm: number; height_mm: number };
 export const getLabelConfig = (hass: Hass) =>
   hass.callWS<LabelConfig>({ type: "pantry/label_config" });
@@ -253,8 +255,7 @@ export const bookOutLabel = (hass: Hass, code: string) =>
     code,
   });
 
-export type IngredientStatus =
-  "available" | "partial" | "missing" | "unknown" | "unmatched" | "skipped";
+type IngredientStatus = "available" | "partial" | "missing" | "unknown" | "unmatched" | "skipped";
 export interface Ingredient {
   id?: number;
   category_id: number | null;

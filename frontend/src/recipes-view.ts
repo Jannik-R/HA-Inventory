@@ -12,9 +12,11 @@ import {
   type MasterData,
   type Recipe,
   type RecipeDraft,
+  isAdmin,
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
 import { fmtPortions, recipeDetail } from "./recipe-detail";
+import { includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
 import type { PantryRecipeImport } from "./recipe-import";
@@ -109,12 +111,9 @@ export class PantryRecipes extends LitElement {
   }
 
   private shown() {
-    const q = this.query.trim().toLocaleLowerCase();
+    const q = this.query.trim();
     return (this.recipes ?? []).filter(
-      (r) =>
-        !q ||
-        r.name.toLocaleLowerCase().includes(q) ||
-        r.ingredients.some((i) => i.text.toLocaleLowerCase().includes(q)),
+      (r) => !q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q)),
     );
   }
 
@@ -125,7 +124,7 @@ export class PantryRecipes extends LitElement {
     return html`<li class="recipe" data-testid="recipe-row">
       <div class="head">
         ${chevron(open, toggle)}
-        <button type="button" class="row" @click=${toggle}>
+        <button type="button" class="row" data-testid="recipe-toggle" @click=${toggle}>
           <span>${r.name}</span>
           <span class="detail"
             >${t("recipes.summary", r.summary)} · ${fmtPortions(this.hass, r.servings)}</span
@@ -135,7 +134,7 @@ export class PantryRecipes extends LitElement {
           testid: "recipe",
           name: r.name,
           onEdit: () => this.edit(r),
-          onDelete: this.hass?.user?.is_admin ? () => this.removeRecipe(r) : undefined,
+          onDelete: isAdmin(this.hass) ? () => this.removeRecipe(r) : undefined,
         })}
       </div>
       ${

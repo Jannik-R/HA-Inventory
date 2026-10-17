@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, plausibleDate } from "./ui";
+import { editDialog, fieldMsg, dateInvalid } from "./ui";
 import { formStyles } from "./styles";
 import { editStock, errorMessage, type Hass, type StockRow } from "./api";
 import type { Errors } from "./product-fields";
@@ -51,7 +51,7 @@ export class PantryBatchDialog extends LitElement {
 
   private errors(d: Draft): Errors {
     const e: Errors = {};
-    if (d.dateBad || (d.expires_on && !plausibleDate(d.expires_on))) e.expires = t("valid.date");
+    if (dateInvalid(d.dateBad, d.expires_on)) e.expires = t("valid.date");
     if (!/^\d+$/.test(d.packages.trim())) e.packages = t("valid.packages_zero");
     return e;
   }

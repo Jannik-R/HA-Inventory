@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { t } from "./i18n";
 import { formStyles } from "./styles";
+import { clickedBackdrop } from "./backdrop";
 
 export interface ConfirmOptions {
   /** Question as action + object: "„Kühlschrank“ löschen?", "Änderungen verwerfen?". */
@@ -34,11 +35,7 @@ class PantryConfirm extends LitElement {
   }
 
   private backdrop(e: MouseEvent) {
-    const dlg = e.target as HTMLDialogElement;
-    if (dlg.tagName !== "DIALOG") return;
-    const r = dlg.getBoundingClientRect();
-    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom)
-      dlg.close();
+    if (clickedBackdrop(e)) (e.target as HTMLDialogElement).close();
   }
 
   render() {

@@ -59,6 +59,7 @@ frontend/                   panel source (Lit + TypeScript, Vite)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
+scripts/receipt_bridge.py   dev only (Windows): raw TCP 9100 -> Windows printer queue, so the dev HA reaches a USB receipt printer
 scripts/import_check.py     recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/)
 docs/PLAN.md                architecture and roadmap
 docs/guide.de.md, guide.en.md  user guide (German, English), opened from the panel header

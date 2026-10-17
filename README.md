@@ -328,6 +328,18 @@ its HTTP settings in storage, not in YAML: set *use X-Forwarded-For* and the tru
 `10.123.45.3` once (Settings › System › Network, or `dev/config/.storage/http`). Stop the proxy
 when done: `docker compose -f dev/docker-compose.yml --profile proxy stop proxy`.
 
+**Receipt printer on this PC (dev HA):** Docker Desktop's WSL kernel has no USB printer driver, so a
+USB receipt printer cannot be passed into the dev container. Add it in Windows as a printer with the
+driver *Generic / Text Only* on its USB port, then run the bridge (stdlib only, listens on
+`127.0.0.1:9100`, each connection becomes one RAW print job):
+
+```bash
+python scripts/receipt_bridge.py "Bondrucker"
+```
+
+and set the receipt printer of the dev HA to `host.docker.internal:9100`. `file:<path>` instead of a
+printer name appends the bytes to a file (no printing). E2E tests block printing either way.
+
 Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/pantry/www/` (the built file is committed):
 
 ```bash

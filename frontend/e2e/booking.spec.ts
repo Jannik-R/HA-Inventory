@@ -38,6 +38,8 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await openPage(page, "/pantry/in", "Einbuchen");
   const code = page.getByTestId("code-input");
   await expect(code).toBeFocused();
+  // The help icon opens the user guide in the HA language.
+  await expect(page.getByTestId("help")).toHaveAttribute("href", /\/docs\/guide\.(de|en)\.md$/);
   await code.fill(NAME);
   await code.press("Enter");
   await page.getByTestId("new-product").click();

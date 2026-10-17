@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
-import { mdiMenu } from "@mdi/js";
+import { mdiHelpCircleOutline, mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
@@ -9,6 +9,9 @@ import "./stock-view";
 import "./expiry-view";
 import "./shopping-view";
 import "./recipes-view";
+
+// shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
+const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
 
 const TABS = ["stock", "in", "out", "expiry", "shopping", "recipes", "settings"] as const;
 type Tab = (typeof TABS)[number];
@@ -70,6 +73,16 @@ export class PantryPanel extends LitElement {
             : nothing
         }
         <h1>${t("panel.title")}</h1>
+        <a
+          class="menu help"
+          href=${`${GUIDE}.${this.hass?.language?.startsWith("de") ? "de" : "en"}.md`}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="help"
+          aria-label=${t("panel.help")}
+          title=${t("panel.help")}
+          >${icon(mdiHelpCircleOutline)}</a
+        >
       </header>
       <div role="tablist">
         ${TABS.filter((tab) => tab !== "settings" || isAdmin(this.hass)).map(
@@ -138,6 +151,13 @@ export class PantryPanel extends LitElement {
       display: flex;
       padding: 8px;
       border-radius: 50%;
+    }
+    .help {
+      margin-left: auto;
+      color: inherit;
+    }
+    .help:focus-visible {
+      outline: 2px solid currentColor;
     }
     header .menu:focus-visible {
       outline-color: currentColor;

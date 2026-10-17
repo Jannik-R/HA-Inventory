@@ -30,6 +30,9 @@ Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
 ## Usage
 
+**User guide** (how to use it, step by step): [Deutsch](docs/guide.de.md) · [English](docs/guide.en.md).
+The question mark in the panel header opens it in the Home Assistant language.
+
 Labels with a dotted underline (e.g. *Mindestanzahl*, *Datumsart*, *Nicht gegen den Vorrat prüfen*)
 explain the field in a tooltip on mouse hover; icon buttons (edit, delete, open/close) name their
 action the same way. Touch screens do not show tooltips.
@@ -225,7 +228,7 @@ actions:
 ### Settings (Einstellungen)
 
 - **Kategorien**: tree of main category → category → Produktart (product type, e.g. Tomatenmark;
-  about 320 are seeded, any user can add one from a recipe). Each category can set a unit,
+  about 1,700 are seeded; any user can add one from a recipe or the category picker). Each category can set a unit,
   default storage location, expiry type (best before / use by) and warning days; empty fields are
   inherited from the parent category or the global defaults and are shown in grey with their source
   ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not

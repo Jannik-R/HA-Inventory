@@ -4,6 +4,7 @@
 
 ### Added
 
+- User guide in German and English (`docs/guide.de.md`, `docs/guide.en.md`); the question mark in the panel header opens it
 - Tooltips: icon buttons name their action, and labels of non-obvious fields (dotted underline) explain the field on hover
 - Products: optional own *Mindestanzahl* (packages) when booking in a new product and in the product dialog; below it the product goes on the shopping list by itself and counts toward its categories' minimums (database migration 11, runs automatically)
 - Booking in / editing a product: a missing category or Produktart can be created right in the category picker (*„…“ neu anlegen*, then the parent)

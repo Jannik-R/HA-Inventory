@@ -51,6 +51,11 @@ async def test_master_data_save_delete(ws) -> None:
     msg = await ws.call({"type": "pantry/save", "table": "location", "data": {"name": "Keller"}})
     assert not msg["success"] and msg["error"]["translation_key"] == "duplicate"
 
+    msg = await ws.call({"type": "pantry/save", "table": "unit",
+                         "data": {"name": "Klacks", "symbol": "Klx", "factor": 1, "recipe_only": 1}})  # fmt: skip
+    assert msg["success"], msg
+    assert by_name((await master(ws))["units"], "Klacks")["recipe_only"] == 1
+
     msg = await ws.call({"type": "pantry/delete", "table": "location", "row_id": loc_id})
     assert msg["success"]
 
@@ -480,3 +485,26 @@ async def test_recipes(ws, hass_admin_user) -> None:
         "code"
     ] == "invalid_format"
     assert new_id
+
+
+async def test_shopping_recipes(ws, hass_admin_user) -> None:
+    md = await master(ws)
+    nudeln = by_name(md["categories"], "Nudeln")["id"]
+    ingredient = {"category_id": nudeln, "amount": 100, "unit_id": by_name(md["units"], "g")["id"]}
+    data = {"name": "Pasta", "servings": 2, "ingredients": [ingredient]}
+    rid = (await ws.call({"type": "pantry/recipe_save", "data": data}))["result"]["id"]
+    hass_admin_user.groups = []  # any user
+    put = {"type": "pantry/shopping_recipe_set", "recipe_id": rid}
+    assert (await ws.call({**put, "servings": 4}))["success"]
+    assert not (await ws.call({**put, "servings": 100}))["success"]
+    assert not (await ws.call({**put, "servings": 0}))["success"]
+    (row,) = (await ws.call({"type": "pantry/shopping_recipes"}))["result"]
+    assert (row["name"], row["servings"], row["optional"]) == ("Pasta", 4, [])
+    (item,) = (await ws.call({"type": "pantry/shopping"}))["result"]
+    done = {"type": "pantry/shopping_recipe_done", "done": True}
+    assert not (await ws.call({**done, "key": "x1-2"}))["success"]
+    assert (await ws.call({**done, "key": item["key"]}))["success"]
+    assert (await ws.call({"type": "pantry/shopping"}))["result"][0]["done"]
+    gone = {"type": "pantry/shopping_recipe_remove", "recipe_id": rid}
+    assert (await ws.call(gone))["success"]
+    assert (await ws.call(gone))["error"]["translation_key"] == "not_found"

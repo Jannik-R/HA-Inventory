@@ -124,14 +124,14 @@ for _parent, _names in MORE_TYPES.items():
     _DE_TYPES[_parent] = _DE_TYPES.get(_parent, []) + _names
 
 # Recipe units: (name, symbol, base unit name, factor, is_count). Count units without a base count
-# packages ("1 Bund Petersilie", "1 Dose Tomaten"); EL/TL convert to ml and otherwise count packages
-# too ("1 TL Salz" = any salt in stock).
+# packages ("1 Bund Petersilie", "1 Dose Tomaten"). Spoon-like ones are recipe-only (RECIPE_ONLY):
+# EL/TL/Tasse convert to ml, the others count as "any" against the stock.
 _DE_RECIPE_UNITS = [
     ("Bund", "Bund", None, 1, 1),
     ("Prise", "Prise", None, 1, 1),
     ("Messerspitze", "Msp.", None, 1, 1),
-    ("Esslöffel", "EL", "ml", 15, 1),
-    ("Teelöffel", "TL", "ml", 5, 1),
+    ("Esslöffel", "EL", "ml", 15, 0),
+    ("Teelöffel", "TL", "ml", 5, 0),
     ("cl", "cl", "ml", 10, 0),
     ("dl", "dl", "ml", 100, 0),
     ("Zehe", "Zehe", None, 1, 1),
@@ -150,10 +150,57 @@ _DE_RECIPE_UNITS = [
     ("Stiel", "Stiel", None, 1, 1),
     ("Kugel", "Kugel", None, 1, 1),
     ("Flasche", "Flasche", None, 1, 1),
-    ("Tasse", "Tasse", None, 1, 1),
+    ("Tasse", "Tasse", "ml", 250, 0),
     ("Spritzer", "Spritzer", None, 1, 1),
     ("Tropfen", "Tropfen", None, 1, 1),
 ]
+
+# Units only offered in recipes (migration 13; a new DB marks them in seed()).
+# Frozen: RECIPE_ONLY / RECIPE_BASES belong to migration 13. Later additions need a new step.
+RECIPE_ONLY = (
+    "Prise", "Messerspitze", "Esslöffel", "Teelöffel", "Zehe", "Scheibe", "Handvoll", "Zweig",
+    "Schuss", "Stiel", "Tasse", "Spritzer", "Tropfen",
+)  # fmt: skip
+
+
+# Rule-of-thumb sizes, so shopping and availability can count them (unit, base unit, factor).
+# Scheibe stays without one: its size depends too much on the ingredient (bread, lemon).
+RECIPE_BASES = (
+    ("Tasse", "ml", 250), ("Prise", "g", 0.5), ("Messerspitze", "g", 0.5), ("Tropfen", "ml", 0.05),
+    ("Spritzer", "ml", 1), ("Schuss", "ml", 20), ("Zehe", "Stück", 0.1), ("Handvoll", "g", 30),
+    ("Zweig", "Bund", 0.1), ("Stiel", "Bund", 0.1),
+)  # fmt: skip
+
+
+# Units a user already chose for stock (content, category unit, min stock unit, defaults): they
+# keep their meaning, so migration 13 leaves them alone.
+_USED = " UNION ".join(
+    f"SELECT {c} FROM {t} WHERE {c} IS NOT NULL"
+    for t, c in (
+        ("product", "content_unit_id"),
+        ("category", "unit_id"),
+        ("category", "min_stock_unit_id"),
+        ("defaults", "unit_id"),
+    )
+)
+
+
+def mark_recipe_only(conn: sqlite3.Connection) -> None:
+    """Flag the RECIPE_ONLY units and give RECIPE_BASES their size when they have no base yet.
+    A spoon is not a package, so a flagged unit with a base stops counting packages."""
+    conn.executemany(
+        "UPDATE unit SET base_unit_id = (SELECT id FROM unit WHERE name = ?), factor = ?"
+        " WHERE name = ? AND base_unit_id IS NULL AND EXISTS (SELECT 1 FROM unit WHERE name = ?)"
+        f" AND id NOT IN ({_USED})",
+        [(base, factor, name, base) for name, base, factor in RECIPE_BASES],
+    )
+    marks = ", ".join("?" * len(RECIPE_ONLY))
+    conn.execute(
+        "UPDATE unit SET recipe_only = 1, is_count = (is_count AND base_unit_id IS NULL)"
+        f" WHERE name IN ({marks}) AND id NOT IN ({_USED})",
+        RECIPE_ONLY,
+    )
+
 
 # Seeded category -> unit (names), where the inherited unit does not fit (default: Stück).
 # Recipes show kg/l in their base unit (g/ml). Set only where a category has no own unit yet.

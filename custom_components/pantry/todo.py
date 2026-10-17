@@ -45,16 +45,18 @@ async def async_setup_entry(
 TEXT = {
     "de": {"one": "Packung", "many": "Packungen", "and": " und ", "decimal": ",",
            "title": "Einkaufsliste {date:%d.%m.%Y}",
-           "missing": "{name} – {what} fehlen", "more": "{name} – weitere {what} fehlen"},
+           "missing": "{name} – {what} fehlen", "more": "{name} – weitere {what} fehlen",
+           "for": "für", "short_missing": "{name} – {what}", "short_more": "{name} – weitere {what}"},
     "en": {"one": "package", "many": "packages", "and": " and ", "decimal": ".",
            "title": "Shopping list {date:%Y-%m-%d}",
-           "missing": "{name} – {what} missing", "more": "{name} – {what} more missing"},
+           "missing": "{name} – {what} missing", "more": "{name} – {what} more missing",
+           "for": "for", "short_missing": "{name} – {what}", "short_more": "{name} – {what} more"},
 }  # fmt: skip
 
 
-def summary(item: dict, lang: str = "de") -> str:
+def summary(item: dict, lang: str = "de", short: bool = False) -> str:
     """'Nudeln – 0,5 kg und 1 Packung fehlen', 'Spaghetti (Barilla) – 2 Packungen fehlen';
-    by hand: 'Spaghetti (2 Packungen)'."""
+    by hand: 'Spaghetti (2 Packungen)'. `short` (receipt): without "fehlen" and the recipes."""
     txt = TEXT.get(lang, TEXT["en"])
     n = item["packages"]
     count = f"{n} {txt['one'] if n == 1 else txt['many']}" if n else ""
@@ -68,12 +70,25 @@ def summary(item: dict, lang: str = "de") -> str:
     name = item["name"]
     if item["product_id"] and item["brand"]:
         name = f"{name} ({item['brand']})"
-    template = txt["more"] if item["any_of_subtree"] else txt["missing"]
-    return template.format(name=name, what=txt["and"].join(parts))
+    template = txt[("short_" if short else "") + ("more" if item["any_of_subtree"] else "missing")]
+    if not parts:  # recipe ingredient without an amount
+        text = name
+    else:
+        text = template.format(name=name, what=txt["and"].join(parts))
+    if short:
+        return text
+    return (
+        f"{text} ({txt['for']} {', '.join(r['name'] for r in item['recipes'])})"
+        if item["recipes"]
+        else text
+    )
 
 
 def uid(item: dict) -> str:
-    """'m<id>' for items added by hand, 'c<category id>' / 'p<product id>' for min stock shortages."""
+    """'m<id>' for items added by hand, 'c<category id>' / 'p<product id>' for min stock shortages,
+    'r<category id>-<unit id>' (the item's key) for recipe items."""
+    if item.get("key"):
+        return item["key"]
     if item["manual"]:
         return f"m{item['id']}"
     return f"p{item['product_id']}" if item["product_id"] else f"c{item['category_id']}"
@@ -118,7 +133,10 @@ class ShoppingList(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], TodoLis
     async def async_update_todo_item(self, item: TodoItem) -> None:
         """Only the check mark counts; the text follows the stock / the product."""
         done = item.status == TodoItemStatus.COMPLETED
-        kind, ref = item.uid[0], int(item.uid[1:])
+        kind = item.uid[0]
+        if kind == "r":
+            return await self._run(inventory.set_recipe_done, item.uid, done)
+        ref = int(item.uid[1:])
         if kind == "m":
             await self._run(partial(inventory.update_shopping_item, done=done), ref)
         elif kind == "p":

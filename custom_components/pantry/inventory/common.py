@@ -11,7 +11,7 @@ INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days")
 
 # Column whitelist per table (id and product.updated_at are handled by save()).
 COLUMNS = {
-    "unit": ("name", "symbol", "base_unit_id", "factor", "is_count"),
+    "unit": ("name", "symbol", "base_unit_id", "factor", "is_count", "recipe_only"),
     "location": ("name", "sort"),
     "category": (
         "parent_id", "name", "sort", "unit_id", "default_location_id",

@@ -77,6 +77,25 @@ async def test_shopping_todo(hass: HomeAssistant) -> None:
             target={"entity_id": entity_id}, blocking=True,
         )  # fmt: skip
 
+    # A recipe item is checked by its key; clearing checked items never deletes it.
+    gram = next(u["id"] for u in md["units"] if u["name"] == "g")
+    rid = await db.run(
+        inventory.save_recipe,
+        {"name": "Pasta", "servings": 2,
+         "ingredients": [{"category_id": cat, "amount": 200, "unit_id": gram}]},
+    )  # fmt: skip
+    await db.run(inventory.set_shopping_recipe, rid, 2)
+    await refreshed(hass, 55)
+    summary = "Nudeln – 200 g fehlen (für Pasta)"
+    await hass.services.async_call(
+        TODO_DOMAIN, "update_item", {"item": summary, "status": "completed"},
+        target={"entity_id": entity_id}, blocking=True,
+    )  # fmt: skip
+    await hass.services.async_call(
+        TODO_DOMAIN, "remove_completed_items", {}, target={"entity_id": entity_id}, blocking=True
+    )
+    assert [i["done"] for i in await db.run(inventory.shopping_list) if i["recipes"]] == [True]
+
     assert await hass.config_entries.async_unload(entry.entry_id)
 
 
@@ -93,10 +112,25 @@ def test_summary_languages() -> None:
     from custom_components.pantry.todo import summary
 
     item = {"manual": False, "packages": 2, "product_id": 7, "brand": "Barilla",
-            "name": "Spaghetti", "any_of_subtree": False, "amount": None}  # fmt: skip
+            "name": "Spaghetti", "any_of_subtree": False, "amount": None, "recipes": []}  # fmt: skip
     assert summary(item) == "Spaghetti (Barilla) – 2 Packungen fehlen"
     more = {**item, "product_id": None, "packages": 1, "any_of_subtree": True, "name": "Nudeln",
             "amount": {"missing": 0.5, "unit_symbol": "kg"}}  # fmt: skip
     assert summary(more, "en") == "Nudeln – 0.5 kg and 1 package more missing"
     assert summary(more, "fr") == summary(more, "en")
     assert summary(more, "de") == "Nudeln – weitere 0,5 kg und 1 Packung fehlen"
+    assert summary(more, "de", short=True) == "Nudeln – weitere 0,5 kg und 1 Packung"  # receipt
+
+
+def test_recipe_item_uid_and_summary() -> None:
+    from custom_components.pantry.todo import summary, uid
+
+    item = {"manual": False, "packages": None, "product_id": None, "brand": None, "category_id": 4,
+            "name": "Spaghetti", "any_of_subtree": False, "key": "r4-3",
+            "amount": {"missing": 200, "unit_symbol": "g"}, "recipes": [{"name": "Bolognese"}, {"name": "Lasagne"}]}  # fmt: skip
+    assert uid(item) == "r4-3"
+    assert summary(item) == "Spaghetti – 200 g fehlen (für Bolognese, Lasagne)"
+    assert summary(item, short=True) == "Spaghetti – 200 g"  # receipt: no recipes
+    any_item = {**item, "amount": None, "name": "Petersilie", "recipes": [{"name": "Bolognese"}]}
+    assert summary(any_item) == "Petersilie (für Bolognese)"
+    assert summary(any_item, "en") == "Petersilie (for Bolognese)"

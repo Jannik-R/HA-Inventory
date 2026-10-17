@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import { fieldMsg, numOrNull } from "./ui";
 import { fmtNumber } from "./format";
 import { inheritNumber } from "./inherit";
-import type { Hass, MasterData, Product } from "./api";
+import { stockUnits, type Hass, type MasterData, type Product } from "./api";
 import "./category-picker";
 
 export const blankProduct = (p: Partial<Product> = {}): Product => ({
@@ -94,7 +94,7 @@ export function productFields(
           @change=${(e: Event) => set("content_unit_id", Number((e.target as HTMLSelectElement).value) || null)}
         >
           <option value="" .selected=${p.content_unit_id == null}>${t("common.none_dash")}</option>
-          ${(md?.units ?? []).map(
+          ${stockUnits(md?.units ?? [], p.content_unit_id).map(
             (u) =>
               html`<option value=${u.id} .selected=${u.id === p.content_unit_id}>
                 ${u.symbol || u.name}

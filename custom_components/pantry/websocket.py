@@ -23,6 +23,7 @@ MASTER_SCHEMAS = {
             vol.Optional("base_unit_id"): NULL_ID,
             vol.Optional("factor"): POSITIVE,
             vol.Optional("is_count"): vol.All(vol.Coerce(int), vol.In((0, 1))),
+            vol.Optional("recipe_only"): vol.All(vol.Coerce(int), vol.In((0, 1))),
         },
         "location": {},
         "category": {

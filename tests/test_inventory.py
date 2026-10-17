@@ -461,7 +461,9 @@ def test_force_delete_unit_clears_references(conn):
     p = product(conn, content_amount=500, content_unit_id=g)
     impact = inv.delete_impact(conn, "unit", g)
     names = {g_["kind"]: g_["names"] for g_ in impact["groups"]}
-    assert names["delete.unit"] == ["kg"] and names["change.product"] == ["Spaghetti"]
+    assert names["delete.unit"] == ["Handvoll", "Messerspitze", "Prise", "kg"] and names[
+        "change.product"
+    ] == ["Spaghetti"]
     assert "Nudeln" in names["change.category"]  # seed categories use g / kg as well
     inv.force_delete(conn, "unit", g)
     row = conn.execute("SELECT unit_id, min_stock FROM category WHERE id = ?", (nudeln,)).fetchone()

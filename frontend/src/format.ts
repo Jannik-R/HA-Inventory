@@ -27,3 +27,11 @@ export const fmtDays = (hass: Hass | undefined, v: number | string) =>
 /** Case-insensitive substring match. */
 export const includesCI = (text: string, query: string) =>
   text.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+
+/** "300 g" (the symbol may be empty). */
+export const fmtAmount = (hass: Hass | undefined, n: number, unit: string | null = "") =>
+  `${fmtNumber(hass, n)} ${unit ?? ""}`.trim();
+
+/** "1 Portion" / "4 Portionen". */
+export const fmtPortions = (hass: Hass | undefined, n: number) =>
+  plural(hass, n, "recipes.portion", "recipes.portions");

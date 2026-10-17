@@ -13,10 +13,19 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
 from .seed import seed
-from .seed_types import NEW_IN_9, add_seed_extras
+from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
+
+
+def _add_recipe_only(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        "ALTER TABLE unit ADD COLUMN recipe_only INTEGER NOT NULL DEFAULT 0"
+        " CHECK (recipe_only IN (0, 1))"
+    )
+    mark_recipe_only(conn)
+
 
 # Never edit an existing step; append a new one.
 # A step is an SQL script or a callable(conn) run in the same transaction.
@@ -348,6 +357,25 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
         missing TEXT NOT NULL
     );
     """,
+    # 12: recipes on the shopping list (servings to shop for), chosen optional ingredients,
+    # checks of their items (uid 'r<category id>-<unit id or empty>', like shopping_done).
+    """
+    CREATE TABLE shopping_recipe (
+        recipe_id INTEGER PRIMARY KEY REFERENCES recipe(id) ON DELETE CASCADE,
+        servings INTEGER NOT NULL CHECK (servings > 0)
+    );
+    CREATE TABLE shopping_recipe_optional (
+        recipe_id INTEGER NOT NULL REFERENCES shopping_recipe(recipe_id) ON DELETE CASCADE,
+        ingredient_id INTEGER NOT NULL REFERENCES recipe_ingredient(id) ON DELETE CASCADE,
+        PRIMARY KEY (recipe_id, ingredient_id)
+    );
+    CREATE TABLE shopping_done_recipe (
+        uid TEXT PRIMARY KEY,
+        missing TEXT NOT NULL
+    );
+    """,
+    # 13: units only offered in recipes (spoons, pinch, ...); base unit/factor say where they convert.
+    _add_recipe_only,
 ]
 
 
@@ -384,6 +412,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         conn.execute("PRAGMA foreign_keys=ON")
     if conn.execute("SELECT 1 FROM unit").fetchone() is None:
         seed(conn, "de")
+        mark_recipe_only(conn)  # not in seed(): old-schema DBs are seeded by tests
         conn.commit()
 
 

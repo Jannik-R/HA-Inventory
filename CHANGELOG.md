@@ -4,6 +4,7 @@
 
 ### Added
 
+- Shopping by recipes: *Auf die Einkaufsliste* on a recipe puts its missing amounts on the shopping list (servings, optional ingredients on request); amounts of all recipes are added up per category, items reference their recipes by number (1, 2 …). Block *Für Rezepte* on the *Einkauf* tab changes servings or removes a recipe; recipes stay until removed (database migration 12, runs automatically)
 - Receipt printer: *Einkaufszettel drucken* on the *Einkauf* tab and action `pantry.print_shopping_list` print the open shopping list on an ESC/POS receipt printer (58 / 80 mm, USB device on the HA host or network, cutter); set up under *Configure > Bondrucker* with a test receipt
 - User guide in German and English (`docs/guide.de.md`, `docs/guide.en.md`); the question mark in the panel header opens it
 - Tooltips: icon buttons name their action, and labels of non-obvious fields (dotted underline) explain the field on hover
@@ -13,6 +14,7 @@
 - Recipe ingredients: checkbox *Nicht gegen den Vorrat prüfen* (e.g. Salz, Wasser): no stock check, shown as "nicht geprüft", not counted in the summary (database migration 10, runs automatically)
 - Recipe import (tab *Rezepte*, *Importieren*): a recipe URL is read from its schema.org data (e.g. Chefkoch, Mealie, Tandoor); the page is loaded only on click (15 s, 5 MB, HTML). The recipe dialog opens prefilled for review, nothing is saved before. Ingredient lines are parsed (fractions, ranges, units, notes, optional); the original line is shown per ingredient
 - Recipe units: any user can add a unit (*Neue Einheit …*) in an ingredient row; unknown units from an import ask first (create or pick). Spelling variants map to one unit
+- Recipe-only units: checkbox *Nur für Rezepte* in *Einstellungen › Einheiten* hides a unit from every picker except recipe ingredients (EL, TL, Tasse, Prise …; rule-of-thumb sizes: EL = 15 ml, TL = 5 ml, Tasse = 250 ml, Prise and Messerspitze = 0.5 g, Zehe = 0.1 Stück, Handvoll = 30 g, Zweig and Stiel = 0.1 Bund, Tropfen, Spritzer, Schuss; only Scheibe has none). Recipes show the amount in the base unit ("3 EL (≈ 45 ml)"); the shopping list converts it when the base unit fits the category (ml for volume, g for weight; otherwise the base unit, and an ingredient without an amount shows 1 Pkg.; database migration 13, runs automatically)
 - About 320 seeded product types (Produktarten, e.g. Tomatenmark, Spaghetti, Basmatireis) below the existing subcategories; existing databases get the missing ones on update (database migration 8, runs automatically; renamed or deleted categories are respected). Product names like "Mutti Tomatenmark" are now categorized to a product type.
 - Recipe ingredients: optional *Hinweis* (e.g. "fein gewürfelt"); any user can add a new product type while editing a recipe
 - Recipes (tab *Rezepte*): ingredients by product type or category, availability from stock per ingredient, servings scaling, search by name and ingredient (database migration 7, runs automatically)

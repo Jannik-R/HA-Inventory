@@ -19,12 +19,13 @@ Available:
 - Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
+- Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 
 Planned:
 
 - Receipt printer for recipes
-- Shopping by recipes, week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
+- Week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
@@ -87,6 +88,8 @@ product or category (a category means "any of it"), set *Anzahl* (packages) and 
 category. Adding the same product or category again adds to its packages. Items added by hand have a
 pencil (change the packages) and a bin; ticked ones stay (struck through) until deleted.
 
+*Auf die Einkaufsliste* on a recipe puts its missing amounts on the list (servings to buy for; when the recipe has optional ingredients, you pick which ones to include, none by default). Ingredients marked *Nicht gegen den Vorrat prüfen* are never listed. Amounts of all recipes are added up per category and unit (units are converted; not rounded to packages). Recipes on the list are numbered 1, 2, 3 … by name; each item is one line, "Spaghetti – 200 g", with a small grey text after it for which recipe needs how much, e.g. "1:200 g; 2:100 g" (just "1; 2" without an amount). An ingredient without an amount is listed only when nothing of its category is in stock, as 1 Pkg. (one package). Eggs: whole eggs plus the larger of the Eigelb and Eiweiß counts. Recipe items do not depend on the minimum stock. The block *Für Rezepte* above the tree changes the servings or removes a recipe (the recipe stays). A recipe stays on the list until you remove it, also after cooking; ticking works as for other items.
+
 The same list is the to-do entity *Einkaufsliste* (`todo.vorrat_einkaufsliste`) in HA's to-do
 dashboard and the companion app: ticking works there too; *Eintrag hinzufügen* takes the exact name of
 an existing product or category (new ones only in the panel); *Erledigte entfernen* deletes ticked
@@ -97,7 +100,7 @@ items added by hand (minimum stock items stay until the stock is there).
 The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen". The search field (focused on
 open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
 their status, instructions, source link and image. *Portionen* in the open row scales the amounts;
-this is only shown, never saved.
+this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf).
 
 An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
 optional amount with a unit, or none ("optional" ingredients and those marked *Nicht gegen den Vorrat prüfen*, e.g. Salz or Wasser, are not counted in the summary; the latter show "nicht geprüft" instead of a status and are never put on a shopping list).
@@ -277,7 +280,7 @@ actions:
 - **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
   it (its booking history stays); its stock is moved to another location of your choice or booked
   out. Adding the same name again brings it back.
-- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
+- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). Units marked *Nur für Rezepte* (the recipe units EL, TL, Tasse, Prise …) are offered only in recipe ingredients; a unit with a size (EL = 15 ml, TL = 5 ml, Tasse = 250 ml, Prise and Messerspitze = 0.5 g, Zehe = 0.1 Stück, Handvoll = 30 g, Tropfen = 0.05 ml, Spritzer = 1 ml, Schuss = 20 ml, Zweig and Stiel = 0.1 Bund; rules of thumb) also shows its amount in recipes ("3 EL (≈ 45 ml)"), and shopping converts it when its base unit fits the category (ml for volume, g for weight). Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). Zweig and Stiel are 0.1 Bund each (3 Zweige Rosmarin → 1 Bund). Shopping rounds Zehe up: 3 Zehen = 1 Knoblauch. A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
   location, date type, warning days; initially Packung, none, best before, 7 days).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 
-from .amounts import _amount, _stock_by_category, _units
+from .amounts import _demand, _have, _stock_amount, _stock_by_category, _units, egg_part
 from .common import InventoryError
-from .inherit import _categories, children
+from .inherit import _categories, children, defaults
 from .master import save
 
 
@@ -16,6 +17,16 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
     ingredients = data.pop("ingredients")
     recipe_id = save(conn, "recipe", data)
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM category")}
+    # optional ingredients chosen for the shopping list survive the re-insert (matched by text)
+    # shortcut: renaming such an ingredient loses the choice; upgrade = keep ingredient ids on save
+    chosen = {
+        r["text"]
+        for r in conn.execute(
+            "SELECT i.text FROM shopping_recipe_optional o"
+            " JOIN recipe_ingredient i ON i.id = o.ingredient_id WHERE o.recipe_id = ?",
+            (recipe_id,),
+        )
+    }
     conn.execute("DELETE FROM recipe_ingredient WHERE recipe_id = ?", (recipe_id,))
     try:
         for ing in ingredients:
@@ -42,6 +53,13 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
                     int(bool(ing.get("skip_stock"))),
                 ),
             )
+        if chosen:
+            conn.execute(
+                "INSERT INTO shopping_recipe_optional (recipe_id, ingredient_id)"
+                " SELECT recipe_id, id FROM recipe_ingredient WHERE recipe_id = ? AND optional = 1"
+                " AND text IN (SELECT value FROM json_each(?))",
+                (recipe_id, json.dumps(sorted(chosen))),
+            )
     except sqlite3.IntegrityError as err:
         raise InventoryError("not_found" if "FOREIGN" in str(err) else "invalid_value") from err
     return recipe_id
@@ -59,11 +77,11 @@ def _subtree(kids: dict, category_id: int) -> set[int]:
 
 def _ctx(conn: sqlite3.Connection) -> tuple:
     cats = _categories(conn)
-    return cats, _units(conn), _stock_by_category(conn), children(cats)
+    return cats, _units(conn), _stock_by_category(conn), children(cats), defaults(conn)
 
 
 def _availability(ctx: tuple, ingredients: list[dict], factor: float) -> list[dict]:
-    cats, units, stock, kids = ctx
+    cats, units, stock, kids, dflt = ctx
     out = []
     for ing in ingredients:
         cid = ing["category_id"]
@@ -74,21 +92,28 @@ def _availability(ctx: tuple, ingredients: list[dict], factor: float) -> list[di
             out.append({**ing, "status": "unmatched"})
             continue
         products = [p for c in _subtree(kids, cid) for p in stock.get(c, []) if p["packages"]]
-        if ing["amount"] is None:
+        amount, unit_id = _stock_amount(units, cats, dflt, cid, ing["amount"], ing["unit_id"])
+        if amount is None:
             out.append({
                 **ing,
                 "status": "available" if products else "missing",
                 "packages": sum(p["packages"] for p in products),
             })  # fmt: skip
             continue
-        unit_id = ing["unit_id"]
-        have_each = [
-            _amount(units, p["packages"], p["content_amount"], p["content_unit_id"], unit_id)
-            for p in products
-        ]
-        have = round(sum(h for h in have_each if h is not None), 6)  # float noise from g <-> kg
-        unknown = have_each.count(None)
-        need = round(ing["amount"] * factor, 6)
+        have, unknown = _have(units, products, unit_id)
+        need = round(amount * factor, 6)
+        if egg_part(ing["note"]) and units[unit_id]["is_count"]:
+            # a yolk / white row needs the recipe's eggs as a whole (whole eggs + max(yolks, whites))
+            group = [
+                {**i, "amount": a * factor, "unit_id": u}
+                for i in ingredients
+                if i["category_id"] == cid
+                and not i["skip_stock"]
+                and i["optional"] == ing["optional"]
+                for a, u in [_stock_amount(units, cats, dflt, cid, i["amount"], i["unit_id"])]
+                if u == unit_id
+            ]
+            need = _demand(units, unit_id, group)
         if have >= need:
             status = "available"
         elif have > 0:
@@ -130,7 +155,13 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
     (available / total over the ingredients that are neither optional nor skipped)."""
     out, ctx = [], _ctx(conn)
     # shortcut: instructions travel with the list; split into a detail call if the list gets slow
-    for r in map(dict, conn.execute("SELECT * FROM recipe")):
+    for r in map(
+        dict,
+        conn.execute(
+            "SELECT r.*, s.servings AS shopping_servings FROM recipe r"
+            " LEFT JOIN shopping_recipe s ON s.recipe_id = r.id"
+        ),
+    ):
         ingredients = _availability(ctx, _ingredients(conn, r["id"]), 1.0)
         required = [i for i in ingredients if not i["optional"] and not i["skip_stock"]]
         r["ingredients"] = ingredients

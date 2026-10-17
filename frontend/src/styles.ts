@@ -160,6 +160,13 @@ export const formStyles = css`
   [aria-invalid="true"][data-touched] {
     border-color: var(--error-color) !important;
   }
+  /* a field label with a tooltip (title) explaining it */
+  .lbl[title],
+  label.check[title] {
+    text-decoration: underline dotted var(--secondary-text-color);
+    text-underline-offset: 3px;
+    cursor: help;
+  }
   button:disabled {
     opacity: 0.5;
     cursor: not-allowed;

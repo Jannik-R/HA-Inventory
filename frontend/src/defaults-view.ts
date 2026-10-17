@@ -104,28 +104,32 @@ export class PantryDefaults extends LitElement {
     return editDialog({
       title: t("settings.defaults.edit"),
       body: html`<label>
-          <span class="lbl">${t("settings.category.unit")}</span>
+          <span class="lbl" title=${t("tip.unit_id")}>${t("settings.category.unit")}</span>
           ${this.select(
             "unit_id",
             md.units.map((u) => [u.id, u.name]),
           )}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.location")}</span>
+          <span class="lbl" title=${t("tip.default_location_id")}
+            >${t("settings.category.location")}</span
+          >
           ${this.select("default_location_id", [
             [null, t("settings.defaults.no_location")],
             ...md.locations.map((l): [number, string] => [l.id, l.name]),
           ])}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.expiry_type")}</span>
+          <span class="lbl" title=${t("tip.expiry_type")}
+            >${t("settings.category.expiry_type")}</span
+          >
           ${this.select(
             "expiry_type",
             ["best_before", "use_by"].map((k) => [k, t(`settings.expiry.${k}`)]),
           )}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.warn_days")}</span>
+          <span class="lbl" title=${t("tip.warn_days")}>${t("settings.category.warn_days")}</span>
           <span class="num">
             <input
               data-testid="default-warn_days"

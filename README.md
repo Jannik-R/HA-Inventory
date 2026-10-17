@@ -30,6 +30,10 @@ Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
 ## Usage
 
+Labels with a dotted underline (e.g. *Mindestanzahl*, *Datumsart*, *Nicht gegen den Vorrat prüfen*)
+explain the field in a tooltip on mouse hover; icon buttons (edit, delete, open/close) name their
+action the same way. Touch screens do not show tooltips.
+
 ### Bestand (stock and products)
 
 The category tree (only branches with stock, each with its package count), products as leaves

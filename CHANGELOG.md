@@ -4,6 +4,7 @@
 
 ### Added
 
+- Tooltips: icon buttons name their action, and labels of non-obvious fields (dotted underline) explain the field on hover
 - Products: optional own *Mindestanzahl* (packages) when booking in a new product and in the product dialog; below it the product goes on the shopping list by itself and counts toward its categories' minimums (database migration 11, runs automatically)
 - Booking in / editing a product: a missing category or Produktart can be created right in the category picker (*„…“ neu anlegen*, then the parent)
 - More recipe units (cl, dl, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen), about 1,000 more seeded product types and a subcategory *Alkohol* under Getränke; existing databases get the missing ones (database migration 9, runs automatically)

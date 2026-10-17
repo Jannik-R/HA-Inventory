@@ -168,7 +168,7 @@ export class PantryRecipeIngredients extends LitElement {
         />
       </label>
       <div class="foot">
-        <label class="check">
+        <label class="check" title=${t("tip.optional")}>
           <input
             type="checkbox"
             data-testid="ingredient-optional"
@@ -177,7 +177,7 @@ export class PantryRecipeIngredients extends LitElement {
           />
           ${t("recipes.ingredient.optional")}
         </label>
-        <label class="check">
+        <label class="check" title=${t("tip.skip_stock")}>
           <input
             type="checkbox"
             data-testid="ingredient-skip-stock"
@@ -191,6 +191,7 @@ export class PantryRecipeIngredients extends LitElement {
           class="icon-btn"
           data-testid="ingredient-remove"
           aria-label=${t("recipes.ingredient.remove")}
+          title=${t("recipes.ingredient.remove")}
           @click=${() => this.emit(this.value.filter((_, k) => k !== n))}
         >
           ${icon(mdiClose)}

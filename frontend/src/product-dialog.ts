@@ -105,7 +105,9 @@ export class PantryProductDialog extends LitElement {
           ${fieldMsg(err.ean, "ean")}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.location")}</span>
+          <span class="lbl" title=${t("tip.default_location_id")}
+            >${t("settings.category.location")}</span
+          >
           ${inheritSelect({
             testid: "location",
             own: p.default_location_id,
@@ -117,7 +119,9 @@ export class PantryProductDialog extends LitElement {
           })}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.expiry_type")}</span>
+          <span class="lbl" title=${t("tip.expiry_type")}
+            >${t("settings.category.expiry_type")}</span
+          >
           ${inheritSelect({
             testid: "expiry-type",
             own: p.expiry_type,
@@ -128,7 +132,7 @@ export class PantryProductDialog extends LitElement {
           })}
         </label>
         <label>
-          <span class="lbl">${t("settings.category.warn_days")}</span>
+          <span class="lbl" title=${t("tip.warn_days")}>${t("settings.category.warn_days")}</span>
           ${inheritNumber({
             testid: "warn-days",
             own: p.warn_days,

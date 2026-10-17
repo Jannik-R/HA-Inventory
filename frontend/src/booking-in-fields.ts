@@ -70,7 +70,7 @@ export function locationFields(
     ${
       p.id
         ? nothing
-        : html`<label class="check">
+        : html`<label class="check" title=${t("tip.make_default")}>
             <input
               type="checkbox"
               data-testid="make-default"
@@ -83,7 +83,7 @@ export function locationFields(
 
 /** "Etiketten drucken"; `dflt` = the integration option. */
 export function printField(f: InForm, set: Set, dflt: boolean) {
-  return html`<label class="check">
+  return html`<label class="check" title=${t("tip.print")}>
     <input
       type="checkbox"
       data-testid="print-labels"

@@ -4,6 +4,7 @@
 
 ### Added
 
+- Label printer on USB: instead of a print server address, the Dymo LabelWriter can be set up with the device path on the HA host (e.g. `/dev/usb/lp0`), like the receipt printer
 - Shopping by recipes: *Auf die Einkaufsliste* on a recipe puts its missing amounts on the shopping list (servings, optional ingredients on request); amounts of all recipes are added up per category, items reference their recipes by number (1, 2 …). Block *Für Rezepte* on the *Einkauf* tab changes servings or removes a recipe; recipes stay until removed (database migration 12, runs automatically)
 - Receipt printer: *Einkaufszettel drucken* on the *Einkauf* tab and action `pantry.print_shopping_list` print the open shopping list on an ESC/POS receipt printer (58 / 80 mm, USB device on the HA host or network, cutter); set up under *Configure > Bondrucker* with a test receipt
 - User guide in German and English (`docs/guide.de.md`, `docs/guide.en.md`); the question mark in the panel header opens it

@@ -14,7 +14,7 @@ from custom_components.pantry.const import DOMAIN
 
 from .test_websocket import ws  # noqa: F401  (fixture)
 
-WRITE = "custom_components.pantry.receipt.write_device"
+WRITE = "custom_components.pantry.label.write_device"
 
 
 def test_escpos_bands_and_cut():
@@ -38,13 +38,6 @@ def test_escpos_bit_order():
     img.putpixel((1, 23), 0)  # bottom of the second column
     line = receipt.escpos(img, cut=False)[5 : 5 + 5 + 6]
     assert line == b"\x1b*\x21\x02\x00" + bytes([0x80, 0, 0, 0, 0, 0x01])
-
-
-def test_write_device_to_a_plain_file(tmp_path):
-    out = tmp_path / "lp0"
-    out.touch()
-    receipt.write_device(str(out), b"\x1b@abc", 9600)  # not a tty: no serial setup
-    assert out.read_bytes() == b"\x1b@abc"
 
 
 def test_shopping_lines_group_and_skip_done():

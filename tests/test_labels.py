@@ -131,7 +131,15 @@ async def test_send_errors_are_printer_unreachable(socket_enabled):
     with socket.socket() as s:  # a port nobody listens on
         s.bind(("127.0.0.1", 0))
         closed = s.getsockname()[1]
-    for target in (f"127.0.0.1:{closed}", "127.0.0.1:abc", "127.0.0.1:99999", ""):
+    for target in (f"127.0.0.1:{closed}", "127.0.0.1:abc", "127.0.0.1:99999", "", "/no/lp0"):
         with pytest.raises(HomeAssistantError) as err:
             await label.send(target, b"x")
         assert err.value.translation_key == "printer_unreachable", target
+
+
+async def test_send_to_a_device_file(tmp_path):
+    """USB printer on the HA host: a path is written as a file (not a tty: no serial setup)."""
+    out = tmp_path / "lp0"
+    out.touch()
+    await label.send(str(out), b"@abc")
+    assert out.read_bytes() == b"@abc"

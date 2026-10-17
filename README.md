@@ -15,7 +15,7 @@ Available:
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
-- Labels (QR code of product + expiry date), printed on a network label printer (Dymo LabelWriter 450 behind a USB print server) or through the browser; scan a label to book out
+- Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
@@ -182,12 +182,13 @@ button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels fo
   *Etikettendrucker*. Step 1: choose the
   *Modell des Etikettendruckers*. Step 2: the settings of that model, label size in mm and whether
   to print on book-in. Models:
-  - *Dymo LabelWriter 450 / 4xx* (raw port 9100, e.g. via a USB print server such as TP-Link with a
-    fixed IP and raw printing enabled): enter the printer as `host` or `host:port` (port defaults
-    to 9100). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints the last
+  - *Dymo LabelWriter 450 / 4xx*: network via a USB print server (e.g. TP-Link with a fixed IP and
+    raw printing enabled): enter the printer as `host` or `host:port` (port defaults to 9100). Or USB
+    on the HA host: enter the device path, e.g. `/dev/usb/lp0` (in Docker pass it with `devices:`, as
+    for the receipt printer). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints the last
     ~3 mm of a 57 x 32 label, so that space stays blank. *Testetikett drucken* sends one label when you
     save; if the printer is not reachable the form says so.
-  - *Kein Netzwerkdrucker*: the browser print dialog opens with one page per label (choose the
+  - *Kein Drucker*: the browser print dialog opens with one page per label (choose the
     label printer there; the page size is the label size, 10 to 200 mm).
 - **Many labels**: printing more than 2 labels at once (after book-in or in the reprint dialog) asks
   "n Etiketten drucken?" first; cancelling prints nothing (the booking itself is kept).
@@ -242,7 +243,7 @@ barcode, unknown location, not enough stock, printer not reachable) make the act
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
-- **print_labels** needs a network label printer (see *Etiketten*); with *Kein Netzwerkdrucker* it fails,
+- **print_labels** needs a label printer (see *Etiketten*); with *Kein Drucker* it fails,
   since a service has no browser to print from.
 - Location names are matched ignoring case. Bookings made by a service are logged with source `service`
   (label codes: `label`) and the calling user, if any.

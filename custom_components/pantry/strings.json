@@ -84,7 +84,7 @@
       "message": "No storage location named “{name}”."
     },
     "no_label_printer": {
-      "message": "No network label printer is configured (Settings › Devices & services › Pantry › Configure)."
+      "message": "No label printer is configured (Settings › Devices & services › Pantry › Configure)."
     },
     "no_receipt_printer": {
       "message": "No receipt printer is configured (Settings › Devices & services › Pantry › Configure › Receipt printer)."
@@ -114,14 +114,14 @@
         "title": "Label printer settings",
         "description": "Host, label size and printing for the chosen label printer.",
         "data": {
-          "label_printer_host": "Host (or host:port)",
+          "label_printer_host": "Printer (host, host:port or device path)",
           "label_width": "Label width",
           "label_height": "Label height",
           "print_on_book_in": "Print labels when booking in",
           "test_print": "Print a test label"
         },
         "data_description": {
-          "label_printer_host": "Network address of the print server. Port {port} if you give only the host.",
+          "label_printer_host": "Network: address of the print server (port {port} if you give only the host). USB on the Home Assistant host: the device path, e.g. /dev/usb/lp0 (in Docker, pass it with devices:).",
           "test_print": "Sends one test label to the printer when you save."
         }
       },
@@ -190,7 +190,7 @@
     },
     "print_labels": {
       "name": "Print labels",
-      "description": "Print labels of a batch on the network label printer.",
+      "description": "Print labels of a batch on the label printer.",
       "fields": {
         "batch_id": {
           "name": "Batch",
@@ -210,8 +210,8 @@
   "selector": {
     "label_printer": {
       "options": {
-        "browser": "No network printer - print via the browser",
-        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (raw port 9100, e.g. via a USB print server)"
+        "browser": "No printer - print via the browser",
+        "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (network via a USB print server, port 9100, or USB)"
       }
     }
   }

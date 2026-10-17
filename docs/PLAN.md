@@ -238,6 +238,9 @@ HA (pantry) ──raw TCP :9100 (Dymo raster commands)──▶ TP-Link print se
   `<print server>:9100` (asyncio socket). No CUPS, no driver, no extra host.
   `label_printers.py` is the registry of label printer models (options flow step 1 picks one): per model the size limits, default port, blank bottom reserve (Dymo 450: 3 mm) and the stream encoder; `browser` has no encoder (browser print). A new network model = a new entry with its encoder. The receipt printer (4a) will be a separate setting, not a model here.
   `shortcut: own small raster encoder for LabelWriter 4xx; other label printers need their own encoder or the CUPS path.`
+- **USB on the HA host** (built): the printer field takes a device path instead (`/dev/usb/lp0`,
+  USB printer class); `label.send` writes the same stream to the device file. One target per printer:
+  host[:port] or a path, shared with the receipt printer (4a).
 - **Fallback path: CUPS (NOT built; the browser print covers the no-printer case)** (for printers without an own encoder): a CUPS server (Pi container or
   HA add-on) with `printer-driver-dymo`, its queue pointing to `socket://<print server>:9100`;
   HA sends the PNG via IPP Print-Job to that queue.
@@ -337,6 +340,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 17 | Category mapping feedback | open | `mapping_log` table: each product whose OFF tags matched no category or whose suggested category was changed (EAN, OFF `categories_tags`, suggested and chosen category); view/export to improve the seed `off_tags` (`add_product` already knows both cases) |
 | 18 | Opened packages | open | mark a package as opened (no remaining amount): it gets its own stock row with `opened_on`; new inherited field *haltbar nach Anbruch* (days) on category/product, empty = no change (e.g. Nudeln); effective expiry = min(batch expiry, opened_on + days); expiry view, sensors and labels use it |
 | 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task` |
+| 20 | User feedback with AI evaluation | open | users send feedback from the panel (text, view it came from, optional screenshot); `feedback` table; the AI interface (phase 19) groups and summarizes it into issues / plan items; admin view to review and close entries |
 
 Order decided 2026-10-16. Data model details are designed (agent `architect`) at the start of each phase.
 
@@ -351,7 +355,6 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 |---|---|
 | Shopping by offers (supermarket discounts) | phase 12 shopping by recipes; no stable public API for offers (Marktguru, kaufDA: scraping only), so deferred |
 | Netting recipe demand bottom-up (overlapping categories) and reserving it against min stock | phase 12 `recipe_items` sums demand flat per category; the min-stock formula per subtree is the upgrade path |
-| User feedback with AI evaluation (users send feedback from the panel; the AI interface groups and summarizes it into issues / plan items) | phase 19 AI interface; needs a feedback table and a panel entry point |
 | Best-before date from the camera (read the printed date when booking in) | `expires_on` field and the camera scanner of the booking form; on-device OCR or the AI interface (phase 19) |
 | Remaining amount of opened packages / book out by cooking | phase 18 marks opened packages only; cooking does not book out (manual booking) |
 

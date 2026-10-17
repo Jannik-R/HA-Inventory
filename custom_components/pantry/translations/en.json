@@ -136,7 +136,7 @@
           "test_print": "Print a test receipt"
         },
         "data_description": {
-          "receipt_printer": "USB on the Home Assistant host: the device path, e.g. /dev/ttyUSB0 or /dev/ttyACM0 (in Docker, pass it with devices:). Network printer: host or host:port (port 9100 if only the host is given).",
+          "receipt_printer": "USB on the Home Assistant host: the device path, e.g. /dev/usb/lp0 (USB printer) or /dev/ttyUSB0 (USB-serial) (in Docker, pass it with devices:). Network printer: host or host:port (port 9100 if only the host is given).",
           "receipt_baud": "Only for a device path of a serial / USB-serial printer; ignored for network printers. Use the printer's setting (often 9600 or 115200).",
           "test_print": "Sends one short test receipt to the printer when you save."
         }

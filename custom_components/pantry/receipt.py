@@ -7,6 +7,7 @@ to host[:port]. Raster instead of text mode: umlauts and fonts work on every ESC
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 
 from homeassistant.core import HomeAssistant
@@ -23,6 +24,7 @@ from .const import (
     DOMAIN,
 )
 
+_LOGGER = logging.getLogger(__name__)
 DOTS = {58: 384, 80: 576}  # printable dots per line at 203 dpi (common 58 / 80 mm printers)
 BAUDS = (9600, 19200, 38400, 57600, 115200)
 _PAD = 8  # dots left and right
@@ -116,6 +118,8 @@ async def _send(hass: HomeAssistant, options, data: bytes) -> None:
     try:
         await hass.async_add_executor_job(write_device, target, data, baud)
     except OSError as err:
+        # the form only says "not reachable"; the reason (busy, offline, missing) goes to the log
+        _LOGGER.warning("Receipt printer %s: %s", target, err)
         raise HomeAssistantError(
             translation_domain=DOMAIN, translation_key="printer_unreachable"
         ) from err

@@ -58,7 +58,7 @@ async def _entry(hass: HomeAssistant, **options) -> MockConfigEntry:
     return entry
 
 
-async def test_options_receipt_step_keeps_label_options(hass: HomeAssistant) -> None:
+async def test_options_receipt_step_keeps_label_options(hass: HomeAssistant, caplog) -> None:
     entry = await _entry(hass, label_printer="browser", label_width=57)
     flow = await hass.config_entries.options.async_init(entry.entry_id)
     flow = await hass.config_entries.options.async_configure(
@@ -71,6 +71,7 @@ async def test_options_receipt_step_keeps_label_options(hass: HomeAssistant) -> 
             flow["flow_id"], {**form, "test_print": True}
         )
     assert result["errors"] == {"base": "printer_unreachable"}
+    assert "/dev/ttyUSB0: no device" in caplog.text  # the reason is logged
     with patch(WRITE) as write:
         result = await hass.config_entries.options.async_configure(
             flow["flow_id"], {**form, "test_print": True}

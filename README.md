@@ -201,15 +201,15 @@ at the end. The button only shows when a receipt printer is set up. The same as 
 
 Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. a Raspberry Pi):
 
-1. Plug in the printer and switch it on. On the host run `ls -l /dev/serial/by-id/`: the printer
-   shows up as `usb-…` pointing to `ttyUSB0` or `ttyACM0`. (Nothing there: `ls /dev/usb/lp*`; a USB
-   printer-class device is `/dev/usb/lp0`.)
+1. Plug in the printer and switch it on. Most receipt printers (e.g. the TPG A799) are USB printers:
+   on the host `ls /dev/usb/` shows `lp0` (`dmesg` says `usblp`). A USB-serial printer instead shows
+   up in `ls -l /dev/serial/by-id/` as `usb-…` pointing to `ttyUSB0` or `ttyACM0`.
 2. Pass it into the Home Assistant container, in its `docker-compose.yml`:
    ```yaml
    services:
      homeassistant:
        devices:
-         - /dev/serial/by-id/usb-…:/dev/bondrucker   # the full name from step 1
+         - /dev/usb/lp0:/dev/bondrucker   # or /dev/serial/by-id/usb-… for a serial printer
    ```
    Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
    plugged in when the container starts; after unplugging it, restart the container.
@@ -219,7 +219,9 @@ Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. 
    baud rate (serial printers only: the printer's setting, often 9600 or 115200; a self-test page,
    usually FEED held while switching on, shows it). *Testbon drucken* sends one short test receipt
    when you save; an unreachable printer is reported in the form.
-4. Garbled characters on the receipt: wrong baud rate; try the others.
+4. "Der Drucker ist nicht erreichbar": the Home Assistant log names the reason (e.g. busy: another
+   service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
+   serial printer: wrong baud rate; try the others.
 
 The receipt is printed as an image (umlauts and fonts work on every ESC/POS printer).
 

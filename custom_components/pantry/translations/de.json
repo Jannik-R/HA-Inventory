@@ -136,7 +136,7 @@
           "test_print": "Testbon drucken"
         },
         "data_description": {
-          "receipt_printer": "USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/ttyUSB0 oder /dev/ttyACM0 (bei Docker mit devices: durchreichen). Netzwerkdrucker: Host oder Host:Port (Port 9100, wenn nur der Host angegeben wird).",
+          "receipt_printer": "USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/usb/lp0 (USB-Drucker) oder /dev/ttyUSB0 (USB-seriell) (bei Docker mit devices: durchreichen). Netzwerkdrucker: Host oder Host:Port (Port 9100, wenn nur der Host angegeben wird).",
           "receipt_baud": "Nur für den Gerätepfad eines seriellen bzw. USB-seriellen Druckers; bei Netzwerkdruckern ohne Wirkung. Die Einstellung des Druckers verwenden (oft 9600 oder 115200).",
           "test_print": "Sendet beim Speichern einen kurzen Testbon an den Drucker."
         }

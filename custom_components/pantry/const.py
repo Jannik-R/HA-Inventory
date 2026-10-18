@@ -19,3 +19,10 @@ CONF_RECEIPT_BAUD = "receipt_baud"
 CONF_HOUSEHOLD_SERVINGS = "household_servings"  # default servings of the week planner
 DEFAULT_SERVINGS = 3
 CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; unset = no AI
+# Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all.
+CONF_MODULES = "modules"
+MODULES = ["shopping", "recipes", "plan", "canning"]
+
+
+def modules_of(options) -> list[str]:
+    return options.get(CONF_MODULES, MODULES)

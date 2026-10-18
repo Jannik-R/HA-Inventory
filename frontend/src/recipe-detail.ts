@@ -2,6 +2,7 @@ import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
 import { stepList } from "./recipe-steps";
+import { hasModule } from "./modules";
 import "./receipt-button";
 import {
   isCanning,
@@ -101,17 +102,23 @@ export const recipeDetail = (o: {
       )}
     </ul>
     <p class="shopping">
-      <button type="button" data-testid="recipe-to-shopping" @click=${o.onShopping}>
-        ${t("recipes.to_shopping")}
-      </button>
+      ${
+        hasModule("shopping")
+          ? html`<button type="button" data-testid="recipe-to-shopping" @click=${o.onShopping}>
+              ${t("recipes.to_shopping")}
+            </button>`
+          : nothing
+      }
       ${
         isCanning(r)
           ? html`<button type="button" data-testid="recipe-to-canning" @click=${o.onPlan}>
               ${t("canning.add")}
             </button>`
-          : html`<button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
-              ${t("recipes.to_plan")}
-            </button>`
+          : hasModule("plan")
+            ? html`<button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
+                ${t("recipes.to_plan")}
+              </button>`
+            : nothing
       }
       <pantry-receipt-button
         .hass=${o.hass}
@@ -120,7 +127,7 @@ export const recipeDetail = (o: {
         .testid=${"recipe-print"}
       ></pantry-receipt-button>
       ${
-        r.shopping_servings != null
+        r.shopping_servings != null && hasModule("shopping")
           ? html`<span class="detail" data-testid="recipe-on-shopping"
               >${t("recipes.on_shopping", { what: fmtPortions(o.hass, r.shopping_servings) })}</span
             >`

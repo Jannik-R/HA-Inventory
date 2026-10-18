@@ -2,8 +2,9 @@
   "config": {
     "step": {
       "user": {
-        "title": "Pantry",
-        "description": "Set up the household inventory. It appears as \"Vorrat\" in the sidebar."
+        "title": "Home Inventory",
+        "description": "Set up the household inventory. It appears as \"Vorrat\" in the sidebar. Stock, booking and expiry dates are always included; choose the other modules (can be changed later in the settings).",
+        "data": { "modules": "Modules" }
       }
     },
     "abort": {
@@ -27,7 +28,7 @@
       "message": "This unit (or one defined on it) is the default unit. Change the default under Settings › Defaults first."
     },
     "shopping_unknown": {
-      "message": "“{name}” is neither a product nor a category. Add new ones in the Pantry panel under Einkauf."
+      "message": "“{name}” is neither a product nor a category. Add new ones in the Home Inventory panel under Einkauf."
     },
     "location_has_stock": {
       "message": "The location still holds stock. Move or take it out first."
@@ -81,16 +82,16 @@
       "message": "The printer is not reachable."
     },
     "product_unknown": {
-      "message": "No product with barcode {code}. Book new products in once in the Pantry panel."
+      "message": "No product with barcode {code}. Book new products in once in the Home Inventory panel."
     },
     "location_unknown": {
       "message": "No storage location named “{name}”."
     },
     "no_label_printer": {
-      "message": "No label printer is configured (Settings › Devices & services › Pantry › Configure)."
+      "message": "No label printer is configured (Settings › Devices & services › Home Inventory › Configure)."
     },
     "no_receipt_printer": {
-      "message": "No receipt printer is configured (Settings › Devices & services › Pantry › Configure › Receipt printer)."
+      "message": "No receipt printer is configured (Settings › Devices & services › Home Inventory › Configure › Receipt printer)."
     },
     "nothing_to_print": {
       "message": "The shopping list has no open items to print."
@@ -120,11 +121,17 @@
         "title": "Settings",
         "description": "What do you want to set up?",
         "menu_options": {
+          "modules": "Modules",
           "label_model": "Label printer",
           "receipt": "Receipt printer (shopping list)",
           "household": "Household",
           "ai": "AI check of recipe imports"
         }
+      },
+      "modules": {
+        "title": "Modules",
+        "description": "Choose the parts of the panel you use. Turned off modules hide their tab; their data is kept.",
+        "data": { "modules": "Modules" }
       },
       "label_model": {
         "title": "Label printer",
@@ -361,6 +368,14 @@
     }
   },
   "selector": {
+    "modules": {
+      "options": {
+        "shopping": "Shopping list (incl. to-do entity)",
+        "recipes": "Recipes",
+        "plan": "Meal plan (incl. calendar entity)",
+        "canning": "Canning"
+      }
+    },
     "label_printer": {
       "options": {
         "browser": "No printer - print via the browser",

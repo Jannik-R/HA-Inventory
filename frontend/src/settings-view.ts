@@ -11,6 +11,7 @@ import type { Draft } from "./settings-model";
 import { ADD } from "./settings-model";
 import { fmt } from "./settings-format";
 import { fmtNumber } from "./format";
+import { hasModule } from "./modules";
 import { deleteMasterRow } from "./delete-flow";
 import {
   errorMessage,
@@ -51,8 +52,15 @@ export class PantrySettings extends LitElement {
     }
   }
 
+  /** Meal start times belong to the meal plan module. */
+  private get sections(): Section[] {
+    return (Object.keys(SECTIONS) as Section[]).filter((s) => s !== "meals" || hasModule("plan"));
+  }
+
   private get sec(): Section {
-    return this.section && this.section in SECTIONS ? (this.section as Section) : "categories";
+    return (this.sections as string[]).includes(this.section ?? "")
+      ? (this.section as Section)
+      : "categories";
   }
 
   private async load() {
@@ -138,7 +146,7 @@ export class PantrySettings extends LitElement {
     const table = SECTIONS[sec];
     return html`
       <nav aria-label=${t("settings.nav")}>
-        ${(Object.keys(SECTIONS) as Section[]).map(
+        ${this.sections.map(
           (s) =>
             html`<button
               data-testid=${`settings-nav-${s}`}

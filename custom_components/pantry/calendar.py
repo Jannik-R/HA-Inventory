@@ -15,7 +15,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from . import inventory
-from .coordinator import async_coordinator
+from .coordinator import async_coordinator, module_off
 
 if TYPE_CHECKING:
     from . import PantryConfigEntry
@@ -33,6 +33,8 @@ async def async_setup_entry(
     entry: PantryConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    if module_off(hass, entry, "plan", "calendar"):
+        return
     db = entry.runtime_data
 
     async def update() -> list[dict]:

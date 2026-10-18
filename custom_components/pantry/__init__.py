@@ -19,7 +19,7 @@ from . import (
     websocket_recipe,
     websocket_stock,
 )
-from .const import DOMAIN, PANEL_URL
+from .const import DOMAIN, PANEL_URL, modules_of
 from .db import Database
 
 type PantryConfigEntry = ConfigEntry[Database]
@@ -45,6 +45,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
     """Open the database and add the sidebar panel."""
+    if entry.title == "Pantry":  # entries created before the rename
+        hass.config_entries.async_update_entry(entry, title="Home Inventory")
     db = entry.runtime_data = Database(hass, hass.config.path("pantry.db"))
     await db.async_open()
     try:
@@ -60,6 +62,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
             sidebar_icon="mdi:fridge-outline",
             module_url=f"{PANEL_URL}/pantry-panel.js?v={version}",
             require_admin=False,
+            config={"modules": modules_of(entry.options)},
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     except BaseException:  # a later step failed: do not leave the DB connection open

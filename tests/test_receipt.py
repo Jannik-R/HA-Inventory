@@ -84,6 +84,7 @@ async def test_options_receipt_step_keeps_label_options(hass: HomeAssistant, cap
             flow["flow_id"], {**form, "test_print": True}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     path, data, baud = write.call_args.args
     assert (path, baud) == ("/dev/ttyUSB0", 115200) and data.endswith(b"\x1dV\x01")
     assert entry.options == {

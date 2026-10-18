@@ -8,6 +8,7 @@ from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
     OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
@@ -29,6 +30,7 @@ from .const import (
     CONF_LABEL_PRINTER,
     CONF_LABEL_PRINTER_HOST,
     CONF_LABEL_WIDTH,
+    CONF_MODULES,
     CONF_PRINT_ON_BOOK_IN,
     CONF_RECEIPT_BAUD,
     CONF_RECEIPT_CUT,
@@ -36,10 +38,22 @@ from .const import (
     CONF_RECEIPT_WIDTH,
     DEFAULT_SERVINGS,
     DOMAIN,
+    MODULES,
+    modules_of,
 )
 from .label_printers import MODELS, printer_of
 
 _TEST = "test_print"
+
+
+def _modules_schema(current: list[str]) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Optional(CONF_MODULES, default=current): SelectSelector(
+                SelectSelectorConfig(options=MODULES, multiple=True, translation_key=CONF_MODULES)
+            )
+        }
+    )
 
 
 def _mm(maximum: int) -> NumberSelector:
@@ -62,25 +76,38 @@ class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
         return PantryOptionsFlow()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """Confirm and create the entry."""
+        """Choose the modules and create the entry."""
         if user_input is None:
-            return self.async_show_form(step_id="user")
-        return self.async_create_entry(title="Pantry", data={})
+            return self.async_show_form(step_id="user", data_schema=_modules_schema(MODULES))
+        return self.async_create_entry(
+            title="Home Inventory",
+            data={},
+            options={CONF_MODULES: user_input.get(CONF_MODULES, [])},
+        )
 
 
-class PantryOptionsFlow(OptionsFlow):
-    """Menu: label printer (model, then host and size) or receipt printer. Read at print time, so no
-    reload is needed; each part keeps the options of the other."""
+class PantryOptionsFlow(OptionsFlowWithReload):
+    """Menu: modules, label printer (model, then host and size), receipt printer, household, AI; each
+    part keeps the options of the others. Saving reloads the entry (modules change panel and entities)."""
 
     _model = "browser"
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
-            step_id="init", menu_options=["label_model", "receipt", "household", "ai"]
+            step_id="init", menu_options=["modules", "label_model", "receipt", "household", "ai"]
         )
 
     def _save(self, data: dict[str, Any]) -> ConfigFlowResult:
         return self.async_create_entry(data={**self.config_entry.options, **data})
+
+    async def async_step_modules(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            return self._save({CONF_MODULES: user_input.get(CONF_MODULES, [])})
+        return self.async_show_form(
+            step_id="modules", data_schema=_modules_schema(modules_of(self.config_entry.options))
+        )
 
     async def async_step_ai(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """AI Task entity that checks recipe imports; left empty = no AI."""
@@ -145,7 +172,7 @@ class PantryOptionsFlow(OptionsFlow):
                 info = {
                     "code": "PTRY:P0:",
                     "name": "Testetikett",
-                    "brand": "Pantry",
+                    "brand": "Home Inventory",
                     "expires_on": None,
                 }
                 try:
@@ -196,7 +223,7 @@ class PantryOptionsFlow(OptionsFlow):
             user_input[CONF_RECEIPT_WIDTH] = int(user_input[CONF_RECEIPT_WIDTH])
             user_input[CONF_RECEIPT_BAUD] = int(user_input[CONF_RECEIPT_BAUD])
             if test and user_input[CONF_RECEIPT_PRINTER]:
-                lines = [("head", "Pantry"), ("item", "Testbon – Äpfel, Öl, Grüße")]
+                lines = [("head", "Home Inventory"), ("item", "Testbon – Äpfel, Öl, Grüße")]
                 width = receipt.DOTS[user_input[CONF_RECEIPT_WIDTH]]
                 try:
                     img = await self.hass.async_add_executor_job(

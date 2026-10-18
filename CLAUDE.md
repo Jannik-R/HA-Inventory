@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Household inventory (food, batteries, household goods, medicine, home-canned jars) for Home Assistant as a **custom integration** (domain `pantry`, UI name "Vorrat").
+Household inventory (food, batteries, household goods, medicine, home-canned jars) for Home Assistant as a **custom integration** (domain `pantry`, integration name "Home Inventory", panel name "Vorrat"). The domain stays `pantry` (renaming it breaks existing installs).
 Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decisions change.
 
 ## Working rules

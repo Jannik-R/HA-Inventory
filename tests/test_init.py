@@ -29,6 +29,8 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert DOMAIN in hass.data["frontend_panels"]
+    panel = hass.data["frontend_panels"][DOMAIN]
+    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning"]
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await async_pre_backup(hass)
@@ -47,10 +49,31 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
 
 async def _options_entry(hass: HomeAssistant) -> MockConfigEntry:
     assert await async_setup_component(hass, "http", {})
-    entry = MockConfigEntry(domain=DOMAIN)
+    entry = MockConfigEntry(domain=DOMAIN, title="Pantry")
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.title == "Home Inventory"  # renamed on setup
     return entry
+
+
+async def test_options_flow_modules(hass: HomeAssistant) -> None:
+    """Turning modules off reloads the entry: the panel gets the list, todo/calendar entities go."""
+    entry = await _options_entry(hass)
+    assert hass.states.async_entity_ids("todo")
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "modules"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"modules": ["recipes"]}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options["modules"] == ["recipes"]
+    assert hass.data["frontend_panels"][DOMAIN].config["modules"] == ["recipes"]
+    assert not hass.states.async_entity_ids("todo")
+    assert not hass.states.async_entity_ids("calendar")
+    assert hass.states.async_entity_ids("sensor")
 
 
 async def test_options_flow_browser(hass: HomeAssistant) -> None:
@@ -69,6 +92,7 @@ async def test_options_flow_browser(hass: HomeAssistant) -> None:
     form = {"label_width": 100, "label_height": 60, "print_on_book_in": False}
     result = await hass.config_entries.options.async_configure(result["flow_id"], form)
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     assert entry.options == {**form, "label_printer": "browser"}
 
 
@@ -109,6 +133,7 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
             result["flow_id"], {**form, "test_print": True}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     send.assert_awaited_once()
     assert send.await_args.args[0] == "10.0.0.5" and send.await_args.args[2] == 9100
     assert entry.options == {**form, "label_printer": "dymo_lw4xx"}  # test_print is not stored
@@ -151,4 +176,5 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
         result["flow_id"], {"household_servings": 4}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     assert entry.options == {"household_servings": 4}

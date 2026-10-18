@@ -1,7 +1,8 @@
-import { LitElement, css, html, nothing, type PropertyValues } from "lit";
+import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, rowActions, toggled } from "./ui";
+import { chevron, rowActions, todayIso, toggled } from "./ui";
 import { formStyles } from "./styles";
+import { recipesStyles } from "./recipes-styles";
 import {
   errorMessage,
   getMasterData,
@@ -20,6 +21,9 @@ import { fmtPortions, includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
 import "./shopping-recipe-dialog";
+import { DINNER } from "./plan-dates";
+import "./meal-dialog";
+import type { PantryMealDialog } from "./meal-dialog";
 import type { PantryShoppingRecipeDialog } from "./shopping-recipe-dialog";
 import type { PantryRecipeImport } from "./recipe-import";
 import type { PantryRecipeDialog } from "./recipe-dialog";
@@ -28,6 +32,7 @@ import type { PantryRecipeDialog } from "./recipe-dialog";
 export class PantryRecipes extends LitElement {
   static properties = {
     hass: { attribute: false },
+    section: { attribute: false },
     recipes: { state: true },
     md: { state: true },
     query: { state: true },
@@ -38,6 +43,8 @@ export class PantryRecipes extends LitElement {
   };
 
   declare hass?: Hass;
+  /** Route part after `recipes/`: a recipe id opens that recipe (link from the week plan). */
+  declare section?: string;
   declare recipes?: Recipe[];
   declare md?: MasterData;
   declare query: string;
@@ -62,7 +69,17 @@ export class PantryRecipes extends LitElement {
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
       this.load();
-    }
+    } else if (changed.has("section") && this.recipes) this.reveal();
+  }
+
+  /** Open the recipe named by the route and scroll to it. */
+  private async reveal() {
+    const id = Number(this.section);
+    if (!this.recipes?.some((r) => r.id === id)) return;
+    this.query = "";
+    this.open = new Set(this.open).add(id);
+    await this.updateComplete;
+    this.renderRoot.querySelector(`[data-recipe-id="${id}"]`)?.scrollIntoView({ block: "start" });
   }
 
   private async load() {
@@ -80,6 +97,7 @@ export class PantryRecipes extends LitElement {
     }
     await this.updateComplete;
     this.renderRoot.querySelector<HTMLElement>("[data-testid=recipe-search]")?.focus();
+    await this.reveal();
   }
 
   private async setServings(r: Recipe, n: number) {
@@ -147,7 +165,7 @@ export class PantryRecipes extends LitElement {
     const open = this.open.has(r.id);
     const toggle = () => (this.open = toggled(this.open, r.id));
     const n = this.servings.get(r.id) ?? r.servings;
-    return html`<li class="recipe" data-testid="recipe-row">
+    return html`<li class="recipe" data-testid="recipe-row" data-recipe-id=${r.id}>
       <div class="head">
         ${chevron(open, toggle)}
         <button type="button" class="row" data-testid="recipe-toggle" @click=${toggle}>
@@ -173,6 +191,10 @@ export class PantryRecipes extends LitElement {
               servings: n,
               onServings: (v) => this.setServings(r, v),
               onShopping: () => this.toShopping(r),
+              onPlan: () =>
+                this.renderRoot
+                  .querySelector<PantryMealDialog>("pantry-meal-dialog")!
+                  .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
             })
           : nothing
       }
@@ -211,6 +233,7 @@ export class PantryRecipes extends LitElement {
         .hass=${this.hass}
         @pantry-saved=${() => this.refreshShopping()}
       ></pantry-shopping-recipe-dialog>
+      <pantry-meal-dialog .hass=${this.hass}></pantry-meal-dialog>
       <pantry-recipe-dialog
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -228,76 +251,7 @@ export class PantryRecipes extends LitElement {
       }`;
   }
 
-  static styles = [
-    formStyles,
-    css`
-      .bar {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 8px;
-      }
-      .bar input {
-        flex: 1;
-        min-width: 0;
-      }
-      .bar button {
-        flex: none;
-      }
-      li.recipe {
-        display: block;
-      }
-      .head {
-        display: flex;
-        align-items: center;
-      }
-      .detail-box {
-        padding: 0 8px 12px 44px;
-      }
-      .shopping {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin: 8px 0;
-      }
-      .servings {
-        max-width: 140px;
-      }
-      li.ing {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 6px 0;
-      }
-      .st {
-        flex: none;
-        color: var(--secondary-text-color);
-        text-align: right;
-      }
-      .st.missing {
-        color: var(--error-color);
-      }
-      .st.partial {
-        color: var(--warning-color);
-      }
-      h3 {
-        margin: 12px 0 4px;
-        font-size: 1em;
-        font-weight: 500;
-      }
-      .text {
-        white-space: pre-line;
-        margin: 0;
-      }
-      .photo {
-        max-width: 100%;
-        max-height: 240px;
-        margin-top: 8px;
-      }
-      a {
-        color: var(--primary-color);
-      }
-    `,
-  ];
+  static styles = [formStyles, recipesStyles];
 }
 
 customElements.define("pantry-recipes", PantryRecipes);

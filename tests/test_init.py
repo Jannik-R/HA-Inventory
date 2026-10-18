@@ -134,3 +134,21 @@ async def test_failed_setup_closes_the_database(hass: HomeAssistant) -> None:
         assert not await hass.config_entries.async_setup(entry.entry_id)
     with pytest.raises(sqlite3.ProgrammingError):  # closed
         entry.runtime_data._conn.execute("SELECT 1")
+
+
+async def test_options_flow_household(hass: HomeAssistant) -> None:
+    entry = await _options_entry(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "household"}
+    )
+    assert result["data_schema"]({})["household_servings"] == 3
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(
+            result["flow_id"], {"household_servings": 0}
+        )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"household_servings": 4}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.options == {"household_servings": 4}

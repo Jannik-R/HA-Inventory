@@ -10,14 +10,21 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from . import services, websocket, websocket_label, websocket_recipe, websocket_stock
+from . import (
+    services,
+    websocket,
+    websocket_label,
+    websocket_plan,
+    websocket_recipe,
+    websocket_stock,
+)
 from .const import DOMAIN, PANEL_URL
 from .db import Database
 
 type PantryConfigEntry = ConfigEntry[Database]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-PLATFORMS = [Platform.SENSOR, Platform.TODO]
+PLATFORMS = [Platform.CALENDAR, Platform.SENSOR, Platform.TODO]
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -29,6 +36,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_stock.async_register(hass)
     websocket_label.async_register(hass)
     websocket_recipe.async_register(hass)
+    websocket_plan.async_register(hass)
     services.async_register(hass)
     return True
 

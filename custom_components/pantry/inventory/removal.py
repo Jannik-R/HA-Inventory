@@ -21,6 +21,7 @@ _ORDER = (
     "booking",
     "shopping_item",
     "recipe_ingredient",
+    "meal_plan",
     "unit",
     "location",
     "defaults",
@@ -139,6 +140,8 @@ def _label(conn: sqlite3.Connection, table: str, row: dict) -> str | None:
             else ("category", row["category_id"])
         )
         r = conn.execute(f"SELECT name FROM {ref[0]} WHERE id = ?", (ref[1],)).fetchone()
+    elif table == "meal_plan":
+        return row["text"]
     elif table == "recipe_ingredient":
         r = conn.execute("SELECT name FROM recipe WHERE id = ?", (row["recipe_id"],)).fetchone()
     else:

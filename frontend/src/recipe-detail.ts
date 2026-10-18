@@ -48,6 +48,7 @@ export const recipeDetail = (o: {
   servings: number;
   onServings: (n: number) => void;
   onShopping: () => void;
+  onPlan: () => void;
 }) => {
   const r = o.recipe;
   return html`<div class="detail-box">
@@ -90,6 +91,9 @@ export const recipeDetail = (o: {
     <p class="shopping">
       <button type="button" data-testid="recipe-to-shopping" @click=${o.onShopping}>
         ${t("recipes.to_shopping")}
+      </button>
+      <button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
+        ${t("recipes.to_plan")}
       </button>
       ${
         r.shopping_servings != null

@@ -16,3 +16,5 @@ CONF_RECEIPT_PRINTER = "receipt_printer"
 CONF_RECEIPT_WIDTH = "receipt_width"
 CONF_RECEIPT_CUT = "receipt_cut"
 CONF_RECEIPT_BAUD = "receipt_baud"
+CONF_HOUSEHOLD_SERVINGS = "household_servings"  # default servings of the week planner
+DEFAULT_SERVINGS = 3

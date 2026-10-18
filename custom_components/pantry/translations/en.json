@@ -17,6 +17,9 @@
     },
     "todo": {
       "shopping": { "name": "Shopping list" }
+    },
+    "calendar": {
+      "meal_plan": { "name": "Meal plan" }
     }
   },
   "exceptions": {
@@ -96,11 +99,12 @@
   "options": {
     "step": {
       "init": {
-        "title": "Printers",
-        "description": "Which printer do you want to set up?",
+        "title": "Settings",
+        "description": "What do you want to set up?",
         "menu_options": {
           "label_model": "Label printer",
-          "receipt": "Receipt printer (shopping list)"
+          "receipt": "Receipt printer (shopping list)",
+          "household": "Household"
         }
       },
       "label_model": {
@@ -123,6 +127,15 @@
         "data_description": {
           "label_printer_host": "Network: address of the print server (port {port} if you give only the host). USB on the Home Assistant host: the device path, e.g. /dev/usb/lp0 (in Docker, pass it with devices:).",
           "test_print": "Sends one test label to the printer when you save."
+        }
+      },
+      "household": {
+        "title": "Household",
+        "data": {
+          "household_servings": "Household servings"
+        },
+        "data_description": {
+          "household_servings": "Servings the household cooks by default."
         }
       },
       "receipt": {

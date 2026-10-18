@@ -21,6 +21,7 @@ from homeassistant.helpers.selector import (
 
 from . import label, receipt
 from .const import (
+    CONF_HOUSEHOLD_SERVINGS,
     CONF_LABEL_HEIGHT,
     CONF_LABEL_PRINTER,
     CONF_LABEL_PRINTER_HOST,
@@ -30,6 +31,7 @@ from .const import (
     CONF_RECEIPT_CUT,
     CONF_RECEIPT_PRINTER,
     CONF_RECEIPT_WIDTH,
+    DEFAULT_SERVINGS,
     DOMAIN,
 )
 from .label_printers import MODELS, printer_of
@@ -70,10 +72,27 @@ class PantryOptionsFlow(OptionsFlow):
     _model = "browser"
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        return self.async_show_menu(step_id="init", menu_options=["label_model", "receipt"])
+        return self.async_show_menu(
+            step_id="init", menu_options=["label_model", "receipt", "household"]
+        )
 
     def _save(self, data: dict[str, Any]) -> ConfigFlowResult:
         return self.async_create_entry(data={**self.config_entry.options, **data})
+
+    async def async_step_household(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            return self._save({CONF_HOUSEHOLD_SERVINGS: int(user_input[CONF_HOUSEHOLD_SERVINGS])})
+        current = self.config_entry.options.get(CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS)
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_HOUSEHOLD_SERVINGS, default=current): NumberSelector(
+                    NumberSelectorConfig(min=1, max=99, step=1, mode=NumberSelectorMode.BOX)
+                )
+            }
+        )
+        return self.async_show_form(step_id="household", data_schema=schema)
 
     async def async_step_label_model(
         self, user_input: dict[str, Any] | None = None

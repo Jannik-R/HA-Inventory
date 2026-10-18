@@ -376,6 +376,20 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     """,
     # 13: units only offered in recipes (spoons, pinch, ...); base unit/factor say where they convert.
     _add_recipe_only,
+    # 14: week planner, one row per dish (a day's order = slot, then id); slot: 0 breakfast,
+    # 1 lunch, 2 coffee, 3 dinner, 4 snack; text = recipe name snapshot or
+    # free text, so the entry survives deleting the recipe.
+    """
+    CREATE TABLE meal_plan (
+        id INTEGER PRIMARY KEY,
+        day TEXT NOT NULL CHECK (date(day) IS day),
+        recipe_id INTEGER REFERENCES recipe(id) ON DELETE SET NULL,
+        text TEXT NOT NULL CHECK (trim(text) <> ''),
+        slot INTEGER NOT NULL CHECK (slot BETWEEN 0 AND 4),
+        servings INTEGER NOT NULL CHECK (servings > 0)
+    );
+    CREATE INDEX meal_plan_day ON meal_plan (day);
+    """,
 ]
 
 

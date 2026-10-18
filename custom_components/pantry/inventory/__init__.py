@@ -12,6 +12,7 @@ from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info
 from .master import delete, list_rows, master_data, save, save_defaults
+from .meal_plan import delete_meal, meals, save_meal, shift_meals
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
 from .recipe_import import recipe_import
@@ -50,6 +51,7 @@ __all__ = [
     "defaults",
     "delete",
     "delete_impact",
+    "delete_meal",
     "delete_shopping_item",
     "edit_stock",
     "effective",
@@ -61,6 +63,7 @@ __all__ = [
     "list_products",
     "list_rows",
     "master_data",
+    "meals",
     "move",
     "parse_ingredient",
     "product_draft",
@@ -72,11 +75,13 @@ __all__ = [
     "remove_shopping_recipe",
     "save",
     "save_defaults",
+    "save_meal",
     "save_recipe",
     "search_products",
     "set_recipe_done",
     "set_shopping_done",
     "set_shopping_recipe",
+    "shift_meals",
     "shopping_list",
     "shopping_recipes",
     "stock_list",

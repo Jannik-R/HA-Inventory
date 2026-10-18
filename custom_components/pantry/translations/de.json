@@ -269,6 +269,20 @@
         }
       }
     },
+    "plan_to_shopping_list": {
+      "name": "Einkaufsliste aus dem Speiseplan",
+      "description": "Die im Zeitraum geplanten Rezepte auf die Einkaufsliste setzen (Portionen summiert; Gerichte mit freiem Text werden übersprungen). Vorhandener Vorrat wird abgezogen.",
+      "fields": {
+        "start": {
+          "name": "Start",
+          "description": "Erster Tag. Leer = heute."
+        },
+        "days": {
+          "name": "Tage",
+          "description": "Anzahl Tage inklusive dem ersten. Leer = 7."
+        }
+      }
+    },
     "plan_meal": {
       "name": "Gericht planen",
       "description": "Ein Gericht in den Speiseplan eintragen: ein Rezept oder freier Text.",

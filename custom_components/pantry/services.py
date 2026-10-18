@@ -59,6 +59,14 @@ PLAN_MEAL = vol.Schema(
         vol.Optional("servings"): _SERVINGS,
     }
 )
+PLAN_SHOP = vol.Schema(
+    {
+        vol.Optional("start"): _DATE,
+        vol.Optional("days"): vol.Any(
+            None, "", vol.All(vol.Coerce(int), vol.Range(min=1, max=366))
+        ),
+    }
+)
 CANNING = vol.Schema(
     {
         vol.Required("recipe"): NAME,
@@ -164,6 +172,12 @@ def async_register(hass: HomeAssistant) -> None:
             hass, fn, day, MEALS.index(d["meal"]), d.get("servings") or _household(hass)
         )
 
+    async def plan_to_shopping_list(call: ServiceCall) -> ServiceResponse:
+        """The recipes planned from `start` (default today) for `days` (default 7)."""
+        start = call.data.get("start") or dt_util.now().date()
+        end = start + timedelta(days=(call.data.get("days") or 7) - 1)
+        return await _run(hass, inventory.plan_to_shopping_list, start, end)
+
     async def canning(call: ServiceCall) -> ServiceResponse:
         d = call.data
         fn = partial(
@@ -186,6 +200,7 @@ def async_register(hass: HomeAssistant) -> None:
         ("print_plan", print_plan, PRINT_PLAN),
         ("shop_recipe", shop_recipe, SHOP_RECIPE),
         ("plan_meal", plan_meal, PLAN_MEAL),
+        ("plan_to_shopping_list", plan_to_shopping_list, PLAN_SHOP),
         ("canning", canning, CANNING),
     ):
         hass.services.async_register(

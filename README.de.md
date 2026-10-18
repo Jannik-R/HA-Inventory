@@ -25,6 +25,7 @@ Vorhanden:
 - Mindestmenge je Kategorie als Menge in beliebiger Einheit (z. B. „2 kg Nudeln“, egal welche Marke) und/oder Packungszahl; Einkaufsliste im Panel und als To-do-Liste in HA; Produkte oder Kategorien von Hand hinzufügen (neue werden gleich angelegt)
 - Einkaufen nach Rezepten: Rezepte für eine Portionszahl auf die Einkaufsliste setzen; die fehlenden Mengen aller Rezepte werden je Kategorie zusammengezählt, Rezept-Einheiten (EL, Tasse, Prise) in ml oder g umgerechnet
 - Einkaufszettel, Rezepte und Speiseplan auf einem ESC/POS-Bondrucker (58 / 80 mm, USB am HA-Rechner oder Netzwerk), mit Abschneider
+- Einkaufsliste aus dem Speiseplan: Die im Zeitraum geplanten Rezepte (Knopf *Einkaufsliste* im Speiseplan, Aktion `pantry.plan_to_shopping_list`) kommen abzüglich Vorrat auf die Liste; noch keine Verbrauchsprognose
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
 - Nicht-Lebensmittel: Kategorien mit *Kein Lebensmittel* (vererbt) sind nie Rezeptzutaten; vorbelegt *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel nach Sockel), *Hausapotheke* (verbrauchen bis, Warnung 30 Tage) und *Tierbedarf*
 - Haltbarkeit (Tage, vererbt wie die Warnung): Einbuchen schlägt heute + Haltbarkeit als Ablaufdatum vor; vorbelegt *Eingekochtes* (365 Tage)
@@ -32,7 +33,7 @@ Vorhanden:
 
 Geplant:
 
-- Einkaufsliste aus dem Speiseplan, Rezeptvorschläge für Ablaufendes
+- Rezeptvorschläge für Ablaufendes
 - Ganzen Lagerort umziehen, geöffnete Packungen mit kürzerer Haltbarkeit, KI-Schnittstelle (Assist / MCP)
 
 Reihenfolge und Details: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
@@ -162,6 +163,7 @@ Aktion mit einer Meldung fehlschlagen.
 | `pantry.print_planned` | `day` (Datum, Standard heute), `meal` (`breakfast` … `snack`; Standard: die aktuelle Mahlzeit nach den Startzeiten unter *Einstellungen > Mahlzeiten*) | `printed` (Anzahl Rezepte), `day`, `meal` |
 | `pantry.print_recipe` | `recipe` (Name, auch Einkochrezept), `servings` (optional; Standard: die des Rezepts) | `printed` |
 | `pantry.shop_recipe` | `recipe` (Name eines Gericht-Rezepts), `servings` (optional; Standard: *Portionen im Haushalt*) | `recipe_id` |
+| `pantry.plan_to_shopping_list` | `start` (Datum, Standard heute), `days` (Standard 7, max. 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (Gerichte mit freiem Text) |
 | `pantry.plan_meal` | `recipe` (Name) oder `text` (freier Text), `day` (Datum, Standard heute), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; Standard `dinner`), `servings` (optional; Standard: *Portionen im Haushalt*) | `meal_id` |
 | `pantry.canning` | `recipe` (Name eines Einkochrezepts), `jars` (Standard: Ertrag des Rezepts), `made_on` (Datum, Standard heute), `expires_on` (Datum; Standard: Herstellungsdatum + Haltbarkeit), `location` (Name, optional), `notes` | `id`, `batch_id`, `charge` |
 
@@ -170,6 +172,7 @@ Aktion mit einer Meldung fehlschlagen.
 - **print_planned** druckt jedes für diese Mahlzeit geplante Rezept mit seinen geplanten Portionen (freier Text wird übersprungen); ist nichts geplant, schlägt die Aktion mit einer Meldung fehl. Beispiel: ein Knopf in der Küche druckt, was als Nächstes gekocht wird.
 - **print_labels** braucht einen Etikettendrucker (siehe [Etikettendrucker](#etikettendrucker)); mit *Kein Drucker* schlägt sie fehl, weil eine Aktion keinen Browser zum Drucken hat.
 - **shop_recipe** bei einem Rezept, das schon auf der Liste steht, ändert seine Portionen und verwirft im Panel gewählte optionale Zutaten.
+- **plan_to_shopping_list** setzt jedes im Zeitraum geplante Rezept mit den summierten Portionen seiner Mahlzeiten auf die Liste (wie **shop_recipe**, im Panel gewählte optionale Zutaten bleiben; steht ein Rezept schon auf der Liste, bleiben die größeren Portionen, ein zweiter Lauf ändert also nichts). Gerichte mit freiem Text werden übersprungen.
 - **canning** nimmt Produkt, Temperatur und Dauer aus dem Einkochrezept; die Glasetiketten druckt `print_labels` mit der zurückgegebenen `batch_id`.
 - Lagerort- und Rezeptnamen werden ohne Groß-/Kleinschreibung verglichen. Buchungen einer Aktion werden mit Quelle `service`
   (Etikettencodes: `label`) und dem aufrufenden Benutzer protokolliert, falls vorhanden.

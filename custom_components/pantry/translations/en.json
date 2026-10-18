@@ -269,6 +269,20 @@
         }
       }
     },
+    "plan_to_shopping_list": {
+      "name": "Shopping list from the meal plan",
+      "description": "Put the recipes planned in a date range on the shopping list (servings summed; free-text dishes are skipped). Ingredients already in stock are subtracted.",
+      "fields": {
+        "start": {
+          "name": "Start",
+          "description": "First day. Empty = today."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Number of days including the first. Empty = 7."
+        }
+      }
+    },
     "plan_meal": {
       "name": "Plan a dish",
       "description": "Add a dish to the meal plan: a recipe or free text.",

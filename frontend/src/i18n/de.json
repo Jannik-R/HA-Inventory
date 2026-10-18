@@ -358,5 +358,15 @@
   "settings.meals.edit": "Startzeiten der Mahlzeiten bearbeiten",
   "valid.time": "Bitte eine Uhrzeit angeben.",
   "common.print": "Drucken",
-  "plan.printed": "Speiseplan gedruckt."
+  "plan.printed": "Speiseplan gedruckt.",
+  "plan.shop": "Einkaufsliste",
+  "plan.shop.title": "Einkaufsliste aus dem Speiseplan",
+  "plan.shop.hint": "Die im Zeitraum geplanten Rezepte kommen mit den summierten Portionen auf die Einkaufsliste; Vorhandenes wird abgezogen. Gerichte mit freiem Text werden übersprungen.",
+  "plan.shop.from": "Von",
+  "plan.shop.to": "Bis",
+  "plan.shop.submit": "Auf die Liste",
+  "plan.shop.order": "Das Ende darf nicht vor dem Start liegen.",
+  "plan.shop.long": "Höchstens {max} Tage.",
+  "plan.shop.done": "Auf der Einkaufsliste: {recipes}.",
+  "plan.shop.none": "Im Zeitraum sind keine Rezepte geplant."
 }

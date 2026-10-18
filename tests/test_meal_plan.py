@@ -143,3 +143,31 @@ def test_planned_recipes_skip_free_text(conn):
         {"recipe_id": pasta, "servings": 4}
     ]
     assert inventory.planned_recipes(conn, date(2026, 10, 20), 3) == []
+
+
+def test_plan_to_shopping_list(conn):
+    pasta, soup = recipe(conn), recipe(conn, "Suppe")
+    for day, rid, n in (
+        ("2026-10-19", pasta, 2),
+        ("2026-10-21", pasta, 3),
+        ("2026-10-22", soup, 1),
+    ):
+        inventory.save_meal(conn, meal(day=day, recipe_id=rid, servings=n))
+    inventory.save_meal(conn, meal(day="2026-10-20"))  # free text: skipped
+    inventory.set_shopping_recipe(conn, soup, 4)  # larger servings on the list stay
+
+    res = inventory.plan_to_shopping_list(conn, date(2026, 10, 19), date(2026, 10, 22))
+    assert res == {
+        "recipes": [
+            {"recipe_id": pasta, "name": "Pasta", "servings": 5},
+            {"recipe_id": soup, "name": "Suppe", "servings": 4},
+        ],
+        "skipped": 1,
+    }
+    assert inventory.plan_to_shopping_list(conn, date(2026, 10, 19), date(2026, 10, 22)) == res
+    # the end day is included, the range must be valid
+    assert inventory.plan_to_shopping_list(conn, date(2026, 10, 22), date(2026, 10, 22))[
+        "recipes"
+    ] == [{"recipe_id": soup, "name": "Suppe", "servings": 4}]
+    with pytest.raises(inventory.InventoryError):
+        inventory.plan_to_shopping_list(conn, date(2026, 10, 22), date(2026, 10, 21))

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
@@ -23,6 +25,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_meal_save,
         ws_meal_delete,
         ws_meal_shift,
+        ws_plan_shopping,
         ws_meal_times,
         ws_meal_times_save,
     ):
@@ -101,3 +104,17 @@ async def ws_meal_times_save(hass: HomeAssistant, connection, msg: dict) -> None
     """Start time per meal slot 0..4 (settings, admin)."""
     await run(hass, inventory.save_meal_times, msg["starts"])
     connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/plan_to_shopping_list",
+        vol.Required("start"): DAY,
+        vol.Required("end"): DAY,
+    }
+)
+@websocket_api.async_response
+async def ws_plan_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Recipes planned from start to end (both included) onto the shopping list; any user."""
+    start, end = (date.fromisoformat(msg[k]) for k in ("start", "end"))
+    connection.send_result(msg["id"], await run(hass, inventory.plan_to_shopping_list, start, end))

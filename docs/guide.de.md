@@ -326,6 +326,8 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
 
+**Einkaufsliste**: Dieser Knopf öffnet einen Dialog mit **Von** und **Bis**, vorbelegt mit heute bis sechs Tage später. **Auf die Liste** setzt jedes in diesem Zeitraum geplante Rezept mit den addierten Portionen all seiner Mahlzeiten auf die Einkaufsliste; was im Vorrat ist, wird abgezogen, wie bei [Rezepten auf der Einkaufsliste](#6-einkaufsliste). Gerichte mit freiem Text werden übersprungen, und ein Rezept, das schon auf der Liste steht, behält die größeren Portionen. **Bis** darf nicht vor **Von** liegen (höchstens 366 Tage). Eine Zeile über dem Plan nennt, was hinzugekommen ist. Eine Verbrauchsprognose gibt es noch nicht.
+
 **Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
 **Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
@@ -490,6 +492,6 @@ Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem St
 <details>
 <summary><b>Automationen</b></summary>
 
-Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`pantry.book_in`, `pantry.book_out`), zum Drucken (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), für die Einkaufsliste (`pantry.shop_recipe`), den Speiseplan (`pantry.plan_meal`) und das Einkochen (`pantry.canning`) (siehe [README](../README.de.md#aktionen-automationen)).
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`pantry.book_in`, `pantry.book_out`), zum Drucken (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), für die Einkaufsliste (`pantry.shop_recipe`), den Speiseplan (`pantry.plan_meal`, `pantry.plan_to_shopping_list`) und das Einkochen (`pantry.canning`) (siehe [README](../README.de.md#aktionen-automationen)).
 
 </details>

@@ -7,7 +7,13 @@ recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, c
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
 from .canning import cannings, charge, save_canning
-from .codes import book_in_by_code, book_out_by_code
+from .codes import (
+    book_in_by_code,
+    book_out_by_code,
+    canning_by_name,
+    plan_meal_by_name,
+    shop_recipe_by_name,
+)
 from .common import InventoryError, check_ean
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
@@ -47,6 +53,7 @@ __all__ = [
     "book_out",
     "book_out_by_code",
     "book_out_code",
+    "canning_by_name",
     "cannings",
     "charge",
     "check_ean",
@@ -69,6 +76,7 @@ __all__ = [
     "meals",
     "move",
     "parse_ingredient",
+    "plan_meal_by_name",
     "product_draft",
     "put_back",
     "recipe_availability",
@@ -86,6 +94,7 @@ __all__ = [
     "set_shopping_done",
     "set_shopping_recipe",
     "shift_meals",
+    "shop_recipe_by_name",
     "shopping_list",
     "shopping_recipes",
     "stock_list",

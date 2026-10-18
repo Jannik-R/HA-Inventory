@@ -11,6 +11,7 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 - **README.md is always current.** Every user-visible change (feature, option, service, setup step) updates README in the same change, and the user guide (`docs/guide.de.md` + `docs/guide.en.md`, both languages) when it changes how something is used.
 - **Branches**: every phase, feature or fix gets its own branch from current `main` (`phase-<n>-<topic>`, `feature/<topic>`, `fix/<topic>`) and ends with a PR to `main`. `main` is protected (ruleset "Protect main"): merge only via PR with green CI (hassfest, hacs, tests, frontend), **squash merge only** (linear history; the PR title becomes the commit title, the PR body its message, so write both for `main`). GitHub deletes the remote branch on merge; afterwards update `main` and delete the local branch.
 - **Small, encapsulated files.** One responsibility per module; aim for under ~300 lines per file. When a file grows past that or mixes concerns (list + dialog, search flow + form), split it into its own module or Lit element instead of adding to it. Shared helpers go into a module both use, not into one of the users. Splitting is part of the change, not a later cleanup.
+- **Panel actions as HA actions**: a new panel action that an automation, NFC tag or voice command could trigger (booking, printing, shopping list, meal plan, canning) also gets a service in `services.py` (names instead of ids, response, `services.yaml` + strings, README table). Master data upkeep, stock corrections and undo stay panel only. See PLAN, *Automations*.
 - Do not commit unless asked. Short imperative commit messages ("Add batch booking"). Remote: private GitHub repo; keep layout HACS-compatible. License MIT.
 - Never commit dev/runtime data (`dev/config/`, `*.db`, `.env`). Check `.gitignore` when adding anything that writes files.
 
@@ -49,7 +50,7 @@ custom_components/pantry/   integration (Python)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   calendar.py               read-only meal plan calendar (Speiseplan): all-day event per dish
   backup.py                 locks the DB during HA backups
-  services.py               HA services (book_in / book_out by code, print_labels) + services.yaml
+  services.py               HA services for automations (booking by code, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
   websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan commands; websocket_canning.py: canning protocol commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server

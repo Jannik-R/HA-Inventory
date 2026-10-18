@@ -313,5 +313,6 @@ stock, recipe ingredients …). A location with stock asks where its packages sh
   protocols are for admins.
 - **Booked wrongly?** Right after the booking use **Rückgängig**, otherwise fix the batch with the
   pencil in Bestand.
-- **Automations**: for scanners on ESPHome, NFC tags etc. there are the services `pantry.book_in`,
-  `pantry.book_out` and `pantry.print_labels` (see README).
+- **Automations**: for scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`,
+  `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the
+  shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see README).

@@ -28,7 +28,9 @@ def cannings(conn: sqlite3.Connection) -> list[dict]:
     return [{**dict(r), "charge": charge(r["made_on"], r["seq"])} for r in rows]
 
 
-def save_canning(conn: sqlite3.Connection, data: dict, user_id: str | None = None) -> dict:
+def save_canning(
+    conn: sqlite3.Connection, data: dict, user_id: str | None = None, source: str = "manual"
+) -> dict:
     """New protocol: next charge of its day, a new product if given, the jars booked in.
 
     With an id only the process data (recipe, temperature, minutes, notes) and the
@@ -83,5 +85,5 @@ def save_canning(conn: sqlite3.Connection, data: dict, user_id: str | None = Non
         (product_id, expires_on, _now(), canning_id),
     ).lastrowid
     _add(conn, batch_id, location_id, data["jars"])
-    _booking(conn, "in", batch_id, location_id, data["jars"], "manual", user_id)
+    _booking(conn, "in", batch_id, location_id, data["jars"], source, user_id)
     return {"id": canning_id, "batch_id": batch_id, "charge": charge(made_on, seq)}

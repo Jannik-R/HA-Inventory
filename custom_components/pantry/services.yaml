@@ -53,3 +53,73 @@ print_labels:
           max: 20
           mode: box
 print_shopping_list:
+shop_recipe:
+  fields:
+    recipe:
+      required: true
+      example: Lasagne
+      selector:
+        text:
+    servings:
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+plan_meal:
+  fields:
+    recipe:
+      example: Lasagne
+      selector:
+        text:
+    text:
+      example: Pizza vom Lieferdienst
+      selector:
+        text:
+    day:
+      selector:
+        date:
+    meal:
+      default: dinner
+      selector:
+        select:
+          translation_key: meal
+          options:
+            - breakfast
+            - lunch
+            - coffee
+            - dinner
+            - snack
+    servings:
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+canning:
+  fields:
+    recipe:
+      required: true
+      example: Erdbeermarmelade
+      selector:
+        text:
+    jars:
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    made_on:
+      selector:
+        date:
+    expires_on:
+      selector:
+        date:
+    location:
+      example: Keller
+      selector:
+        text:
+    notes:
+      selector:
+        text:
+          multiline: true

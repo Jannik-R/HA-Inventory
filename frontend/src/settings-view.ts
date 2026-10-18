@@ -5,7 +5,9 @@ import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
 import "./meal-times-view";
+import "./move-location";
 import { SECTIONS, type Section } from "./settings-model";
+import type { PantryMoveLocation } from "./move-location";
 import type { PantrySettingsDialog } from "./settings-dialog";
 import type { Draft } from "./settings-model";
 import { ADD } from "./settings-model";
@@ -215,6 +217,13 @@ export class PantrySettings extends LitElement {
       name: row.name,
       onEdit: () => this.open(table, row),
       onDelete: () => this.delRow(table, row),
+      ...(table === "location"
+        ? {
+            onMove: () =>
+              this.renderRoot.querySelector<PantryMoveLocation>("pantry-move-location")!.open(row),
+            moveLabel: t("settings.location.move_name", { name: row.name }),
+          }
+        : {}),
       ...(table === "category"
         ? {
             onAdd: () => this.open("category", undefined, { parent_id: row.id }),
@@ -241,7 +250,12 @@ export class PantrySettings extends LitElement {
     return html`<ul>
         ${rows.map((l) => this.row(l.name, "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
       </ul>
-      ${this.empty(rows)}`;
+      ${this.empty(rows)}
+      <pantry-move-location
+        .hass=${this.hass}
+        .locations=${rows}
+        @moved=${() => this.load()}
+      ></pantry-move-location>`;
   }
 
   private renderUnits() {

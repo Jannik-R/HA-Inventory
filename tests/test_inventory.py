@@ -677,3 +677,18 @@ def test_min_stock_count_unit_uses_package_content(conn):
     inv.book_in(conn, product(conn, "Lose"), 1, location_id=loc(conn))  # no content: 1 package
     item = {i["name"]: i for i in inv.shopping_list(conn)}["Nudeln"]
     assert item["amount"]["missing"] == pytest.approx(1)
+
+
+def test_move_location_keeps_location_and_merges(conn):
+    fridge, freezer = loc(conn), loc(conn, "Gefrierschrank")
+    a, b = product(conn), product(conn, "Reis")
+    batch = inv.book_in(conn, a, 2, location_id=fridge)
+    inv.move(conn, batch, fridge, freezer, 1)  # batch already at the target: merges
+    other = inv.book_in(conn, b, 4, location_id=fridge)
+    inv.move_location(conn, fridge, freezer)
+    assert stock(conn) == {(batch, freezer): 2, (other, freezer): 4}
+    assert [r[0] for r in conn.execute("SELECT kind FROM booking ORDER BY id")][-2:] == ["move"] * 2
+    assert fridge in [r["id"] for r in inv.list_rows(conn, "location")]  # stays active
+    inv.move_location(conn, fridge, freezer)  # empty location: nothing to do
+    with pytest.raises(inv.InventoryError):
+        inv.move_location(conn, fridge, fridge)

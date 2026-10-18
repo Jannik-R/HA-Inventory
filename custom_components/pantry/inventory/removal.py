@@ -50,6 +50,32 @@ def _unit_ids(conn: sqlite3.Connection, unit_id: int) -> list[int]:
     return [unit_id, *(r[0] for r in rows)]
 
 
+def _relocate(
+    conn: sqlite3.Connection, location_id: int, move_to: int | None, user_id: str | None
+) -> None:
+    """Move all stock of a location to `move_to`, or book it out as a correction (no target)."""
+    if move_to == location_id:
+        raise InventoryError("invalid_value")
+    rows = conn.execute(
+        "SELECT batch_id, packages FROM stock WHERE location_id = ?", (location_id,)
+    ).fetchall()
+    for r in rows:
+        if move_to is None:
+            correct(conn, r["batch_id"], location_id, 0, user_id=user_id)
+        else:
+            move(conn, r["batch_id"], location_id, move_to, r["packages"], user_id=user_id)
+
+
+def move_location(
+    conn: sqlite3.Connection, location_id: int, move_to: int, user_id: str | None = None
+) -> None:
+    """Move all stock of a location that stays (same batches merge at the target)."""
+    target = conn.execute("SELECT active FROM location WHERE id = ?", (move_to,)).fetchone()
+    if not target or not target["active"]:
+        raise InventoryError("not_found")
+    _relocate(conn, location_id, move_to, user_id)
+
+
 def force_delete(
     conn: sqlite3.Connection,
     table: str,
@@ -92,16 +118,7 @@ def force_delete(
         )
         conn.execute("DELETE FROM unit WHERE base_unit_id = ?", (row_id,))
     elif table == "location":
-        if move_to == row_id:
-            raise InventoryError("invalid_value")
-        rows = conn.execute(
-            "SELECT batch_id, packages FROM stock WHERE location_id = ?", (row_id,)
-        ).fetchall()
-        for r in rows:
-            if move_to is None:
-                correct(conn, r["batch_id"], row_id, 0, user_id=user_id)
-            else:
-                move(conn, r["batch_id"], row_id, move_to, r["packages"], user_id=user_id)
+        _relocate(conn, row_id, move_to, user_id)
         _deactivate_location(conn, row_id)
         return
     delete(conn, table, row_id)

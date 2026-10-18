@@ -46,6 +46,9 @@ Eingekochtes. Du kannst direkt loslegen.
 Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 1. **Lagerorte**: Passe die Liste an deinen Haushalt an (umbenennen, hinzufügen, löschen).
+   Der Pfeil-Knopf **„<Ort>“ umlagern** verschiebt den ganzen Bestand eines Lagerorts in einen anderen
+   (z. B. beim Umzug des Gefrierschranks); der Lagerort bleibt bestehen. Der Dialog zeigt vorher, wie
+   viele Chargen und Packungen umziehen. Gleiche Chargen am Ziel werden zusammengelegt.
 2. **Standards**: Lege fest, was gilt, wenn eine Kategorie oder ein Produkt nichts Eigenes hat
    (Einheit, Lagerort, Datumsart, Warnung vor Ablauf, Haltbarkeit).
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.

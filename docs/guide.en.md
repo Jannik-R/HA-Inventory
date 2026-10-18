@@ -50,6 +50,9 @@ for non-food (Haushalt & Drogerie, Haustechnik, Hausapotheke, Tierbedarf) and Ei
 Admins should take a quick look at **Einstellungen** first:
 
 1. **Lagerorte** (locations): adapt the list to your household (rename, add, delete).
+   The arrows button **„<Ort>“ umlagern** (move) moves all the stock of a location to another one (e.g. when
+   the freezer is replaced); the location stays. The dialog first shows how many batches and packages
+   will move. Batches that already exist at the target are merged.
 2. **Standards** (defaults): what applies when a category or product sets nothing of its own
    (unit, location, date type, expiry warning, shelf life).
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.

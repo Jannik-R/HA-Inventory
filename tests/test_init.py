@@ -49,9 +49,10 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
 
 async def _options_entry(hass: HomeAssistant) -> MockConfigEntry:
     assert await async_setup_component(hass, "http", {})
-    entry = MockConfigEntry(domain=DOMAIN)
+    entry = MockConfigEntry(domain=DOMAIN, title="Pantry")
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.title == "Home Inventory"  # renamed on setup
     return entry
 
 

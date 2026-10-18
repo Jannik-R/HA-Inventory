@@ -1,6 +1,6 @@
 {
   "domain": "pantry",
-  "name": "Pantry",
+  "name": "Home Inventory",
   "after_dependencies": ["ai_task"],
   "codeowners": ["@Jannik-R"],
   "config_flow": true,

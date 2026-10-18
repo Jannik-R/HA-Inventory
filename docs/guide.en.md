@@ -1,17 +1,17 @@
-# Pantry (Vorrat) – User guide
+# Home Inventory (Vorrat) – User guide
 
 *Deutsche Fassung: [guide.de.md](guide.de.md)*
 
-Pantry is a household inventory inside Home Assistant. You book items in and out by barcode or name:
+Home Inventory is a household inventory inside Home Assistant. You book items in and out by barcode or name:
 food, batteries, household goods, medicine and home-canned jars.
-Pantry remembers where everything is and when it expires, reminds you of what expires soon and
+Home Inventory remembers where everything is and when it expires, reminds you of what expires soon and
 writes the shopping list from minimum stock levels. This guide explains how to use it; installation
 and technical details are in the [README](../README.md).
 
 The panel's interface is in German, so this guide names buttons and fields by their German labels
 (with a translation in brackets where it helps).
 
-Pantry is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
+Home Inventory is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
 **Einbuchen** (book in), **Auslagern** (book out), **Ablauf** (expiry), **Einkauf** (shopping),
 **Rezepte** (recipes), **Speiseplan** (meal plan), **Einkochen** (canning) and, for admins only, **Einstellungen** (settings). The question mark at the
 top right opens this guide.
@@ -33,7 +33,7 @@ top right opens this guide.
 
 ## 1. Getting started
 
-Pantry comes ready to use: storage locations (Kühlschrank = fridge, Gefrierschrank = freezer,
+Home Inventory comes ready to use: storage locations (Kühlschrank = fridge, Gefrierschrank = freezer,
 Vorratsschrank = pantry cupboard …), units (g, kg, ml, l, Stück, Packung, EL, TL …) and a category
 tree with about 1,700 product types (Tomatenmark, Spaghetti, Basmatireis …). There are also categories
 for non-food (Haushalt & Drogerie, Haustechnik, Hausapotheke, Tierbedarf) and Eingekochtes
@@ -47,7 +47,7 @@ Admins should take a quick look at **Einstellungen** first:
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
    needs a location choice.
-5. Optional: don't need everything? Under *Settings → Devices & services → Pantry → Configure → Module* you turn shopping list, recipes, meal plan and canning off one by one (also offered during setup). The tab disappears, the data is kept.
+5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Module* you turn shopping list, recipes, meal plan and canning off one by one (also offered during setup). The tab disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
@@ -59,7 +59,7 @@ Open **Einbuchen**. The input field is ready right away.
    - Tap **Kamera** and hold the barcode in front of the phone camera.
    - Type a name and press Enter.
 2. **Known product**: only the fields for this booking appear.
-   **Unknown barcode**: Pantry asks Open Food Facts and prefills name, brand, content and a matching
+   **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
    category. Check them. If nothing is found, create the product with **Neues Produkt** (new
    product); **Online suchen** searches Open Food Facts by name.
 3. **Kategorie**: every new product needs a category, ideally a product type (e.g. "Tomatenmark").
@@ -85,7 +85,7 @@ so later you see which package has to go first.
 **Auslagern** works like booking in: scanner, camera or name.
 
 - By default the package with the earliest date is taken. You can also pick a batch and location.
-- **Scan a label**: a Pantry label (QR code) books out one package of that batch, in both
+- **Scan a label**: a Home Inventory label (QR code) books out one package of that batch, in both
   Einbuchen and Auslagern.
 - **Rückgängig** (undo) next to the message puts the packages back where they were, once per
   booking.
@@ -184,7 +184,7 @@ only run in this browser window: closing asks first and ends them.
 
 Units marked *Nur für Rezepte* (recipe only, e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb: Prise and Messerspitze 0.5 g, Zehe 0.1 piece (the shopping list rounds up: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0.05 ml, Spritzer 1 ml, Schuss 20 ml, Zweig and Stiel 0.1 Bund. Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). A unit created by a recipe import starts as recipe-only.
 
-**Importieren** (import): paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Pantry
+**Importieren** (import): paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Home Inventory
 reads the page's recipe data and opens the recipe dialog prefilled, with the page's steps (a single
 text block is split at its line breaks or its own numbering); nothing is saved until you
 save. Each ingredient shows its original line; check the suggested product types. An unknown unit
@@ -197,7 +197,7 @@ with a better category are marked ("Von der KI geändert: … (vorher: …)", wi
 undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). Check the
 changes before saving. If the AI fails, the draft stays as imported.
 
-Pantry remembers the category you saved for an imported ingredient: the next import of the same
+Home Inventory remembers the category you saved for an imported ingredient: the next import of the same
 ingredient gets it directly. It also remembers when you change the category Open Food Facts
 suggested while booking in.
 
@@ -205,7 +205,7 @@ suggested while booking in.
 
 1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
    integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
-2. *Settings > Devices & services > Pantry > Configure > KI-Prüfung von Rezeptimporten*: pick the
+2. *Settings > Devices & services > Home Inventory > Configure > KI-Prüfung von Rezeptimporten*: pick the
    AI Task. Empty = no AI.
 
 Each import sends the recipe and the food category tree to the AI (about 10,000 tokens).
@@ -238,7 +238,7 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
-**Household size** (admins only): in *Settings > Devices & services > Pantry > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
+**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
@@ -261,9 +261,9 @@ temperature and duration.
    **Kategorie** (category, e.g. under *Eingekochtes*).
 4. **Hergestellt am** (made on): today is prefilled; change it if you canned on another day.
 5. **Gläser** (jars, count) and **Lagerort** (location).
-6. **Haltbar bis** (best before): Pantry proposes made-on date + shelf life; changeable.
+6. **Haltbar bis** (best before): Home Inventory proposes made-on date + shelf life; changeable.
 7. Check **Temperatur** (°C) and **Dauer** (minutes); **Notizen** (notes) are optional.
-8. **Speichern** (save): Pantry creates the charge by itself, code `YYYYMMDD-n` (e.g. `20261018-1`; n is
+8. **Speichern** (save): Home Inventory creates the charge by itself, code `YYYYMMDD-n` (e.g. `20261018-1`; n is
    the running number of that day). The jars are booked in as their own batch; then you can print one
    label per jar.
 
@@ -296,7 +296,7 @@ or **Auslagern** books out a jar of that charge.
 A label shows product, brand, expiry date and a QR code of the batch, so you recognise leftovers in
 the freezer and book them out by scanning.
 
-- **Setup** (admin): *Settings > Devices & services > Pantry > Configure > Etikettendrucker*. Choose the model, e.g.
+- **Setup** (admin): *Settings > Devices & services > Home Inventory > Configure > Etikettendrucker*. Choose the model, e.g.
   *Dymo LabelWriter 450*, then under **Drucker** the address of the USB print server or the device
   path (USB on the Home Assistant machine, e.g. `/dev/usb/lp0`) and the label size. With *Kein Drucker*
   the browser's print dialog opens.
@@ -305,7 +305,7 @@ the freezer and book them out by scanning.
 - **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning)).
 - More than 2 labels at once ask first.
 
-**Receipt printer** (for the shopping list and recipes): *Settings > Devices & services > Pantry > Configure >
+**Receipt printer** (for the shopping list and recipes): *Settings > Devices & services > Home Inventory > Configure >
 Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
 `/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
 baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB
@@ -320,7 +320,7 @@ Recipes and minimum stock work with categories and product types, not with brand
 **Food or not** (*Lebensmittel*): every category has this field, either "Lebensmittel" (food) or
 "Kein Lebensmittel" (not food). It is inherited. Non-food is never offered as a recipe ingredient.
 
-Pantry comes with these main categories (existing installations get the missing ones):
+Home Inventory comes with these main categories (existing installations get the missing ones):
 
 - **Haushalt & Drogerie**, **Haustechnik** (home technical supplies: categories Batterien with AA, AAA, C,
   D, 9V and button cells; Akkus, rechargeable; Leuchtmittel, lamps by socket such as E27, E14, GU10),
@@ -339,7 +339,7 @@ Without a printed date (home-made, frozen, or portioned from a bulk pack), the *
 in days) counts: booking in proposes today + shelf life, a canning protocol made-on date + shelf life.
 The date stays editable everywhere.
 
-**Deleting**: before deleting, Pantry lists what goes with it or changes (subcategories, products,
+**Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). A location with stock asks where its packages should go.
 
 ## 10. Tips and FAQ

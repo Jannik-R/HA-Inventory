@@ -42,7 +42,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
 4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Pantry → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan und Einkochen einzeln ab (auch schon beim Einrichten wählbar). Der Reiter verschwindet, die Daten bleiben erhalten.
+5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan und Einkochen einzeln ab (auch schon beim Einrichten wählbar). Der Reiter verschwindet, die Daten bleiben erhalten.
 6. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
@@ -205,7 +205,7 @@ Open Food Facts vorgeschlagene Kategorie änderst.
 1. In Home Assistant eine KI mit *KI-Aufgabe* einrichten, z. B. *Einstellungen > Geräte & Dienste >
    Integration hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio (es gibt ein
    kostenloses Kontingent).
-2. *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren > KI-Prüfung von Rezeptimporten*:
+2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI-Prüfung von Rezeptimporten*:
    die KI-Aufgabe wählen. Leer = keine KI.
 
 Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die KI (etwa 10.000
@@ -238,7 +238,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
-**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
+**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
@@ -299,7 +299,7 @@ Scan in **Einbuchen** oder **Auslagern** ein Glas dieser Charge aus.
 Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. Damit erkennst du Reste
 im Gefrierschrank und buchst sie per Scan aus.
 
-- **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren > Etikettendrucker*. Modell wählen,
+- **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > Etikettendrucker*. Modell wählen,
   z. B. *Dymo LabelWriter 450*, dann unter **Drucker** die Adresse des USB-Druckservers oder den
   Gerätepfad (USB am Home-Assistant-Rechner, z. B. `/dev/usb/lp0`) und die Etikettengröße eintragen.
   Mit *Kein Drucker* öffnet sich der Druckdialog des Browsers.
@@ -308,7 +308,7 @@ im Gefrierschrank und buchst sie per Scan aus.
 - **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen)).
 - Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 
-**Bondrucker** (für Einkaufszettel und Rezepte): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren >
+**Bondrucker** (für Einkaufszettel und Rezepte): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.
 `/dev/bondrucker`) oder die Netzwerkadresse. Dazu Papierbreite, Abschneiden und bei seriellen
 Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern. Die technische

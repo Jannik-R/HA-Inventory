@@ -1,4 +1,4 @@
-# Pantry (Vorrat) for Home Assistant
+# Home Inventory (Vorrat) for Home Assistant
 
 Household inventory (food, batteries, household goods, medicine, home-canned jars) as a Home Assistant
 custom integration: book items in and out by barcode or name, track batches with best-before / use-by
@@ -212,7 +212,7 @@ Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an opt
 button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
 
 - **Label printer setup** (the receipt printer is set up separately, see *Bondrucker*).
-  In Home Assistant open *Settings > Devices & services > Pantry > Configure* and choose
+  In Home Assistant open *Settings > Devices & services > Home Inventory > Configure* and choose
   *Etikettendrucker*. Step 1: choose the
   *Modell des Etikettendruckers*. Step 2: the settings of that model, label size in mm and whether
   to print on book-in. Models:
@@ -254,7 +254,7 @@ Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. 
    Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
    plugged in when the container starts; after unplugging it, restart the container.
    HA OS passes USB devices on its own: use the device path directly.
-3. *Settings > Devices & services > Pantry > Configure > Bondrucker*: *Drucker* = `/dev/bondrucker`
+3. *Settings > Devices & services > Home Inventory > Configure > Bondrucker*: *Drucker* = `/dev/bondrucker`
    (a network printer: `host` or `host:port`, port 9100), paper width, *Papier am Ende abschneiden*,
    baud rate (serial printers only: the printer's setting, often 9600 or 115200; a self-test page,
    usually FEED held while switching on, shows it). *Testbon drucken* sends one short test receipt
@@ -349,11 +349,11 @@ actions:
 
 Requires Home Assistant 2026.10.1 or newer.
 
-HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Pantry (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
+HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
 
 Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
 
-Then: *Settings → Devices & services → Add integration → Pantry*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
+Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
 **Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 

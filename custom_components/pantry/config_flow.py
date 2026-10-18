@@ -80,7 +80,9 @@ class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(step_id="user", data_schema=_modules_schema(MODULES))
         return self.async_create_entry(
-            title="Pantry", data={}, options={CONF_MODULES: user_input.get(CONF_MODULES, [])}
+            title="Home Inventory",
+            data={},
+            options={CONF_MODULES: user_input.get(CONF_MODULES, [])},
         )
 
 
@@ -170,7 +172,7 @@ class PantryOptionsFlow(OptionsFlowWithReload):
                 info = {
                     "code": "PTRY:P0:",
                     "name": "Testetikett",
-                    "brand": "Pantry",
+                    "brand": "Home Inventory",
                     "expires_on": None,
                 }
                 try:
@@ -221,7 +223,7 @@ class PantryOptionsFlow(OptionsFlowWithReload):
             user_input[CONF_RECEIPT_WIDTH] = int(user_input[CONF_RECEIPT_WIDTH])
             user_input[CONF_RECEIPT_BAUD] = int(user_input[CONF_RECEIPT_BAUD])
             if test and user_input[CONF_RECEIPT_PRINTER]:
-                lines = [("head", "Pantry"), ("item", "Testbon – Äpfel, Öl, Grüße")]
+                lines = [("head", "Home Inventory"), ("item", "Testbon – Äpfel, Öl, Grüße")]
                 width = receipt.DOTS[user_input[CONF_RECEIPT_WIDTH]]
                 try:
                     img = await self.hass.async_add_executor_job(

@@ -88,10 +88,10 @@
       "message": "Kein Lagerort namens „{name}“."
     },
     "no_label_printer": {
-      "message": "Kein Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren)."
+      "message": "Kein Etikettendrucker eingerichtet (Einstellungen › Geräte & Dienste › Home Inventory › Konfigurieren)."
     },
     "no_receipt_printer": {
-      "message": "Es ist kein Bondrucker eingerichtet (Einstellungen › Geräte & Dienste › Pantry › Konfigurieren › Bondrucker)."
+      "message": "Es ist kein Bondrucker eingerichtet (Einstellungen › Geräte & Dienste › Home Inventory › Konfigurieren › Bondrucker)."
     },
     "nothing_to_print": {
       "message": "Die Einkaufsliste hat keine offenen Einträge zum Drucken."

@@ -10,9 +10,19 @@ test.afterAll(async ({ browser }) => {
   await api.close();
 });
 
-test("recipe steps: edit with a heading, numbered list, cook mode with a timer", async ({
+test("recipe steps: edit with a heading, numbered list, cook mode with a timer, print", async ({
   page,
+  wsStub,
+  printCalls,
 }) => {
+  // a receipt printer is set up (the print itself is blocked by the fixture)
+  wsStub("pantry/label_config", {
+    printer: false,
+    print_on_book_in: false,
+    width_mm: 0,
+    height_mm: 0,
+    receipt: true,
+  });
   await openPage(page, "/pantry/recipes", "Rezepte");
   await page.getByTestId("recipe-add").click();
   const dialog = page.locator("pantry-recipe-dialog dialog");
@@ -48,4 +58,12 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer",
   await cook.getByTestId("cook-close").click();
   await page.getByTestId("confirm-ok").click();
   await expect(cook).toBeHidden();
+
+  await row.getByTestId("recipe-servings").fill("3");
+  await row.getByTestId("recipe-servings").press("Tab");
+  await row.getByTestId("recipe-print").click();
+  await expect(row.getByTestId("recipe-printed")).toHaveText("Rezept gedruckt.");
+  expect(printCalls).toContainEqual(
+    expect.objectContaining({ type: "pantry/print_recipe", servings: 3 }),
+  );
 });

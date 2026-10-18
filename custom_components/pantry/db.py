@@ -418,6 +418,16 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
         PRIMARY KEY (kind, key)
     );
     """,
+    # 19: start time per meal slot (meal_plan.slot 0..4), for "the current meal" (e.g. print the
+    # planned recipe): the slot with the latest start <= now; before the first start the last one.
+    """
+    CREATE TABLE meal_time (
+        slot INTEGER PRIMARY KEY CHECK (slot BETWEEN 0 AND 4),
+        start TEXT NOT NULL CHECK (start GLOB '[0-2][0-9]:[0-5][0-9]' AND start < '24:00')
+    );
+    INSERT INTO meal_time (slot, start)
+        VALUES (0, '05:00'), (1, '11:00'), (2, '14:30'), (3, '17:00'), (4, '20:30');
+    """,
 ]
 
 

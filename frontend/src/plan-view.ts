@@ -4,7 +4,7 @@ import { t } from "./i18n";
 import { confirmDelete } from "./confirm-dialog";
 import { icon } from "./ui";
 import { formStyles } from "./styles";
-import { errorMessage, getRecipes, type Hass, type Recipe } from "./api";
+import { errorMessage, getRecipes, printPlan, type Hass, type Recipe } from "./api";
 import { deleteMeal, getMealPlan, type Meal } from "./api-plan";
 import { VIEWS, iso, locale, range, step, type PlanCtx, type View } from "./plan-dates";
 import { shiftFlow } from "./plan-shift";
@@ -12,6 +12,7 @@ import { dayList, dayStyles } from "./plan-day";
 import { NARROW, weekStyles, weekTable } from "./plan-week";
 import { monthGrid, monthStyles } from "./plan-month";
 import "./meal-dialog";
+import "./receipt-button";
 import type { PantryMealDialog } from "./meal-dialog";
 
 /** Meal planner with day, week and month view; the view comes from the route (`plan/<view>`). */
@@ -196,6 +197,16 @@ export class PantryPlan extends LitElement {
           ${icon(mdiChevronRight)}
         </button>
         <span class="range" data-testid="plan-range">${this.label()}</span>
+        ${
+          view !== "month" // a month does not fit a receipt
+            ? html`<pantry-receipt-button
+                .hass=${this.hass}
+                .print=${() => printPlan(this.hass!, iso(range(view, this.date)[0]), view === "day" ? 1 : 7)}
+                .done=${t("plan.printed")}
+                .testid=${"plan-print"}
+              ></pantry-receipt-button>`
+            : nothing
+        }
       </div>
       ${this.body()}
       <pantry-meal-dialog

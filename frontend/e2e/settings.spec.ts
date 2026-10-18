@@ -116,3 +116,22 @@ test("defaults: edit the warning days and restore them", async ({ page }) => {
   await page.getByTestId("save").click();
   await expect(warn).toContainText(before);
 });
+
+test("meal start times: edit and save", async ({ page }) => {
+  await openPage(page, "/pantry/settings/meals", "Einstellungen");
+  const rows = page.getByTestId("meal-time-row");
+  await expect(rows).toHaveCount(5);
+  const before = await rows.nth(3).textContent();
+  await rows.nth(3).click();
+  const dialog = page.locator("pantry-meal-times dialog");
+  const dinner = dialog.getByTestId("meal-time-3");
+  const old = await dinner.inputValue();
+  await dinner.fill("17:45");
+  await dialog.getByTestId("save").click();
+  await expect(rows.nth(3)).toContainText("ab 17:45 Uhr");
+  // back to the old value
+  await rows.nth(3).click();
+  await dinner.fill(old);
+  await dialog.getByTestId("save").click();
+  await expect(rows.nth(3)).toHaveText(before!);
+});

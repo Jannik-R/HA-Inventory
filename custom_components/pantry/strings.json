@@ -106,6 +106,12 @@
     },
     "ai_failed": {
       "message": "The AI check failed. The recipe draft stays as imported."
+    },
+    "nothing_planned": {
+      "message": "No recipe is planned for this meal on that day."
+    },
+    "plan_empty": {
+      "message": "The meal plan has nothing planned in this period."
     }
   },
   "options": {
@@ -310,6 +316,48 @@
           "name": "Notes"
         }
       }
+    },
+    "print_recipe": {
+      "name": "Print recipe",
+      "description": "Print a recipe on the receipt printer: ingredients (scaled to the servings) and numbered steps.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Name of the recipe (also a canning recipe)."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "Empty = the recipe's own servings."
+        }
+      }
+    },
+    "print_planned": {
+      "name": "Print planned recipe",
+      "description": "Print the recipes planned in the meal plan for a meal on the receipt printer, with the planned servings.",
+      "fields": {
+        "day": {
+          "name": "Day",
+          "description": "Empty = today."
+        },
+        "meal": {
+          "name": "Meal",
+          "description": "Empty = the current meal by the start times in the panel settings (Mahlzeiten)."
+        }
+      }
+    },
+    "print_plan": {
+      "name": "Print meal plan",
+      "description": "Print the meal plan of a day or a week (Monday to Sunday) on the receipt printer.",
+      "fields": {
+        "day": {
+          "name": "Day",
+          "description": "Empty = today; for a week: any day of it."
+        },
+        "period": {
+          "name": "Period",
+          "description": "Day or week."
+        }
+      }
     }
   },
   "selector": {
@@ -326,6 +374,12 @@
         "coffee": "Coffee",
         "dinner": "Dinner",
         "snack": "Snack"
+      }
+    },
+    "period": {
+      "options": {
+        "day": "Day",
+        "week": "Week"
       }
     }
   }

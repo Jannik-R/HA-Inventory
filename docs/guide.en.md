@@ -170,6 +170,10 @@ Canning recipes are not listed here; they are in the **Einkochen** (canning) tab
 Older recipes still have a single instructions text. The next time you edit one, the dialog shows
 it split into steps at blank lines; saving turns it into the step list.
 
+**Drucken** (print): with a receipt printer this button in an open recipe prints name, servings,
+the ingredients to tick off (amounts for the shown servings) and the numbered steps. It only shows
+when a receipt printer is set up.
+
 **Kochmodus** (cook mode): in an open recipe, **Kochmodus** shows the ingredients (for the shown
 servings) and the steps full screen. A tap ticks a step off (not saved). A step that mentions a time
 ("20 Minuten", "ca. 10–15 Min.", "eine halbe Stunde") gets a timer button; a range uses its upper
@@ -228,6 +232,10 @@ checked).
 Tapping the name opens the recipe (free text: the edit dialog). The pencil changes a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
 
 **Umplanen** (shift): the arrow icon on a dish moves that dish's meal on this day and on every directly following day that has the same meal planned, one day later. The shift stops at the first day without that meal (the gap). Other meals stay where they are. A confirmation lists every dish with its old and new date; only **Verschieben** (move) applies it.
+
+**Drucken** (print): in **Tag** and **Woche** this button prints the day or the week (Monday to Sunday) on the receipt printer, each day with all its dishes. It only shows with a receipt printer; the month does not fit a receipt.
+
+**Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
 **Household size** (admins only): in *Settings > Devices & services > Pantry > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
 
@@ -296,7 +304,7 @@ the freezer and book them out by scanning.
 - **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning)).
 - More than 2 labels at once ask first.
 
-**Receipt printer** (for the shopping list): *Settings > Devices & services > Pantry > Configure >
+**Receipt printer** (for the shopping list and recipes): *Settings > Devices & services > Pantry > Configure >
 Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
 `/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
 baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB

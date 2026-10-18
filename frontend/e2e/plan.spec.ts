@@ -135,3 +135,27 @@ test("the plan switches between day, month and week view", async ({ page }) => {
   const now = new Date();
   await expect(page.locator(`[data-testid="plan-day"][data-day="${local(now)}"]`)).toHaveCount(1);
 });
+
+test("print the week and the day on the receipt printer", async ({ page, wsStub, printCalls }) => {
+  wsStub("pantry/label_config", {
+    printer: false,
+    print_on_book_in: false,
+    width_mm: 0,
+    height_mm: 0,
+    receipt: true,
+  });
+  await openPage(page, "/pantry/plan/week", "Speiseplan");
+  await page.getByTestId("plan-print").click();
+  await expect(page.getByTestId("plan-printed")).toHaveText("Speiseplan gedruckt.");
+  await page.getByTestId("plan-view-day").click();
+  await page.getByTestId("plan-print").click();
+  await expect(page.getByTestId("plan-printed")).toBeVisible();
+  const calls = printCalls as { type: string; start: string; days: number }[];
+  expect(calls.map((c) => [c.type, c.days])).toEqual([
+    ["pantry/print_plan", 7],
+    ["pantry/print_plan", 1],
+  ]);
+  expect(new Date(calls[0].start).getDay()).toBe(1); // the week starts on Monday
+  await page.getByTestId("plan-view-month").click();
+  await expect(page.getByTestId("plan-print")).toHaveCount(0);
+});

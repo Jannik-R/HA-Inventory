@@ -17,7 +17,7 @@ Available:
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
-- Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode or label code, print labels and the shopping list, a recipe on the shopping list, plan a dish, record a canning run
+- Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode or label code, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
@@ -137,6 +137,8 @@ Lines without an amount like "Salz und Pfeffer" become one ingredient each; a si
 
 The tab has three views, *Tag* (day), *Woche* (week) and *Monat* (month), with prev / *Heute* / next moving by day, week or month. Every dish has a meal: Frühstück, Mittag, Kaffee, Abendessen or Snack. *Woche* is a table with one row per meal and one equal-width column per day (on a phone: one block per day); *Tag* lists the dishes grouped by meal; *Monat* shows a small icon per dish. A dish is a recipe picked from the list of recipe names, or free text (e.g. "Pizza from the delivery service"); a recipe is planned for Abendessen by default. Its servings default to the household size (see Settings). The arrow icon on a dish *shifts* its meal: that day and each directly following day with the same meal move one day later, up to the first gap; a confirmation lists the changes first. The pencil edits a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
 
+*Drucken* in the day and week view prints that day or week (Monday to Sunday) on the receipt printer: per day a heading, then "Meal: dish (für n)", "–" for an empty day (shown only with a receipt printer; the month does not fit a receipt). The same as actions: `pantry.print_plan` (day or week) and `pantry.print_planned` (the recipes planned for a meal, see Services).
+
 The plan is also a read-only calendar entity *Speiseplan* in Home Assistant: each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"), the description shows its servings, and the next event looks 7 days ahead.
 
 ### Einkochen (canning)
@@ -235,6 +237,8 @@ category, on an ESC/POS receipt printer (58 or 80 mm, e.g. TPG A799); with a cut
 at the end. The button only shows when a receipt printer is set up. The same as an action:
 `pantry.print_shopping_list`.
 
+*Drucken* in an open recipe (also a canning recipe) prints it: name, servings, the ingredients with boxes to tick (amounts for the servings shown), and the numbered steps under their headings (a recipe saved before steps existed: its text). The same as an action: `pantry.print_recipe`.
+
 Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. a Raspberry Pi):
 
 1. Plug in the printer and switch it on. Most receipt printers (e.g. the TPG A799) are USB printers:
@@ -272,12 +276,16 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 | `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
 | `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
 | `pantry.print_shopping_list` | none | `printed` (number of items) |
+| `pantry.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |
+| `pantry.print_planned` | `day` (date, default today), `meal` (`breakfast` … `snack`; default: the current meal by the start times under *Einstellungen > Mahlzeiten*) | `printed` (number of recipes), `day`, `meal` |
+| `pantry.print_recipe` | `recipe` (name, also a canning recipe), `servings` (optional; default: the recipe's own) | `printed` |
 | `pantry.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Portionen im Haushalt*) | `recipe_id` |
 | `pantry.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Portionen im Haushalt*) | `meal_id` |
 | `pantry.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
+- **print_planned** prints each recipe planned for that meal with its planned servings (free-text dishes are skipped); nothing planned fails with a message. Example: a button in the kitchen prints what is cooked next.
 - **print_labels** needs a label printer (see *Etiketten*); with *Kein Drucker* it fails,
   since a service has no browser to print from.
 - **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
@@ -324,6 +332,7 @@ actions:
   Shelf life is the expiry date for things without a printed date: booking in proposes today + days,
   canning protocols made-on date + days. Bought goods keep the date on the package.
 - **KI-Prüfung von Rezeptimporten** (Home Assistant options): the AI Task entity that checks recipe imports (see *Rezepte*); empty = no AI. Set up an AI in Home Assistant first, e.g. *Settings > Devices & services > Add integration > Google Gemini* (API key from Google AI Studio; a free tier exists), then pick its AI Task entity here.
+- **Mahlzeiten** (meal start times, panel settings): from when each meal counts (defaults Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The current meal is the one with the latest start before now; before the first start of the day the last one still counts. Used by `pantry.print_planned` without a meal.
 - **Haushalt** (household, Home Assistant options): *Portionen im Haushalt* (1 to 99, default 3) is the servings default for new dishes in the week plan. Set it in *Configure* of the integration, step *Haushalt* (menu *Einstellungen*).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
 - **Deleting something that is still in use** works too. Before asking, the integration runs the

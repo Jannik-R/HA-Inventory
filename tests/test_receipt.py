@@ -1,10 +1,13 @@
-"""Receipt printer: ESC/POS bytes, device write, options step, shopping list print. Never prints:
+"""Receipt printer: ESC/POS bytes, device write, options step, shopping list and recipe print. Never prints:
 the device write and the TCP send are patched (or go to a temp file)."""
 
+from datetime import date
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.setup import async_setup_component
 from PIL import Image
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -112,4 +115,113 @@ async def test_print_shopping_list(hass: HomeAssistant, ws) -> None:  # noqa: F8
     assert (
         host == "10.0.0.9" and data.startswith(b"\x1b@") and b"\x1b*\x21\x80\x01" in data
     )  # 58 mm: 384 columns
+    assert send.await_count == 2
+
+
+def test_recipe_lines(conn):
+    g = conn.execute("SELECT id FROM unit WHERE symbol = 'g'").fetchone()["id"]
+    nudeln = conn.execute("SELECT id FROM category WHERE name = 'Nudeln'").fetchone()["id"]
+    data = {
+        "name": "Pasta",
+        "servings": 2,
+        "ingredients": [
+            {"category_id": nudeln, "amount": 250, "unit_id": g, "note": "dünne"},
+            {"text": "Salz", "optional": True},
+        ],
+        "steps": [{"text": "Kochen."}, {"section": "Soße", "text": "Rühren, 5 Min."}],
+    }
+    rid = inventory.save_recipe(conn, data)
+    sheet = inventory.recipe_sheet(conn, rid, 3)
+    assert receipt.recipe_lines(sheet, "de") == [
+        ("text", "3 Portionen"),
+        ("head", "Zutaten"),
+        ("item", "375 g Nudeln (dünne)"),
+        ("item", "Salz (optional)"),
+        ("head", "Zubereitung"),
+        ("step", "1. Kochen."),
+        ("head", "Soße"),
+        ("step", "2. Rühren, 5 Min."),
+    ]
+    # the step text wraps under itself, not under its number
+    img = receipt.render("Pasta", [("step", "12. " + "lang " * 40)], 384)
+    assert img.width == 384 and img.height > 3 * 34
+
+
+async def test_print_recipe(hass: HomeAssistant, ws) -> None:  # noqa: F811
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    rid = await entry.runtime_data.run(
+        inventory.save_recipe, {"name": "Pasta", "servings": 2, "ingredients": []}
+    )
+    msg = {"type": "pantry/print_recipe", "recipe_id": rid, "servings": 4}
+    assert (await ws.call(msg))["error"]["translation_key"] == "no_receipt_printer"
+    hass.config_entries.async_update_entry(entry, options={"receipt_printer": "10.0.0.9"})
+    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+        assert (await ws.call(msg))["result"] == {"printed": 1}
+        await hass.services.async_call(
+            DOMAIN, "print_recipe", {"recipe": "pasta"}, blocking=True, return_response=True
+        )
+    assert send.await_count == 2
+
+
+async def test_print_planned(hass: HomeAssistant, ws) -> None:  # noqa: F811
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    hass.config_entries.async_update_entry(entry, options={"receipt_printer": "10.0.0.9"})
+    db = entry.runtime_data
+    rid = await db.run(inventory.save_recipe, {"name": "Pasta", "servings": 2, "ingredients": []})
+    day = "2026-10-19"
+    dish = {"day": day, "recipe_id": rid, "text": "", "slot": 3, "servings": 4}
+    await db.run(inventory.save_meal, dish)
+    call = {"day": day, "meal": "dinner"}
+    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+        res = await hass.services.async_call(
+            DOMAIN, "print_planned", call, blocking=True, return_response=True
+        )
+        assert res == {"printed": 1, "day": day, "meal": "dinner"}
+        with pytest.raises(ServiceValidationError) as err:
+            await hass.services.async_call(
+                DOMAIN, "print_planned", {**call, "meal": "lunch"}, blocking=True
+            )
+    assert err.value.translation_key == "nothing_planned"
+    assert send.await_count == 1
+    assert (await ws.call({"type": "pantry/meal_times"}))["result"][3] == {
+        "slot": 3,
+        "start": "17:00",
+    }
+    save = {"type": "pantry/meal_times_save", "starts": ["6:00"] * 5}
+    assert not (await ws.call(save))["success"]  # HH:MM only
+
+
+def test_plan_lines():
+    meals = [
+        {"day": "2026-10-19", "slot": 3, "name": "Lasagne", "servings": 4},
+        {"day": "2026-10-19", "slot": 0, "name": "Müsli", "servings": 2},
+    ]
+    title, lines = receipt.plan_lines(meals, date(2026, 10, 19), 2, "de")
+    assert title == "Speiseplan 19.10. – 20.10.2026"
+    assert lines == [
+        ("head", "Montag, 19.10.2026"),
+        ("text", "Abendessen: Lasagne (für 4)"),
+        ("text", "Frühstück: Müsli (für 2)"),
+        ("head", "Dienstag, 20.10.2026"),
+        ("text", "–"),
+    ]
+
+
+async def test_print_plan(hass: HomeAssistant, ws) -> None:  # noqa: F811
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    hass.config_entries.async_update_entry(entry, options={"receipt_printer": "10.0.0.9"})
+    msg = {"type": "pantry/print_plan", "start": "2026-10-19", "days": 7}
+    assert (await ws.call(msg))["error"]["translation_key"] == "plan_empty"
+    dish = {"day": "2026-10-21", "recipe_id": None, "text": "Pizza", "slot": 3, "servings": 2}
+    await entry.runtime_data.run(inventory.save_meal, dish)
+    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+        assert (await ws.call(msg))["result"] == {"printed": 1}
+        res = await hass.services.async_call(
+            DOMAIN,
+            "print_plan",
+            {"day": "2026-10-24", "period": "week"},  # Saturday: the week from Monday 19th
+            blocking=True,
+            return_response=True,
+        )
+    assert res == {"printed": 1}
     assert send.await_count == 2

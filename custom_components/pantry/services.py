@@ -1,8 +1,10 @@
 """HA services for automations (scanners, NFC tags, ESPHome, voice): book in/out by code, print
-labels and the shopping list, a recipe on the shopping list, plan a dish, a canning protocol."""
+labels, the shopping list, the meal plan (day / week) and recipes (also the one planned for a meal), a recipe on the shopping
+list, plan a dish, a canning protocol."""
 
 from __future__ import annotations
 
+from datetime import timedelta
 from functools import partial
 
 import voluptuous as vol
@@ -13,7 +15,12 @@ from homeassistant.util import dt as dt_util
 
 from . import inventory
 from .const import CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS, DOMAIN, MAX_LABELS
-from .websocket_label import async_print_labels, async_print_shopping_list
+from .websocket_label import (
+    async_print_labels,
+    async_print_plan,
+    async_print_recipe,
+    async_print_shopping_list,
+)
 from .ws_common import db_of, translated
 from .ws_validate import ID, NAME, PACKAGES
 
@@ -61,6 +68,11 @@ CANNING = vol.Schema(
         vol.Optional("location"): _LOCATION,
         vol.Optional("notes"): vol.Any(None, vol.All(cv.string, vol.Length(max=2000))),
     }
+)
+PRINT_RECIPE = vol.Schema({vol.Required("recipe"): NAME, vol.Optional("servings"): _SERVINGS})
+PRINT_PLANNED = vol.Schema({vol.Optional("day"): _DATE, vol.Optional("meal"): vol.In(MEALS)})
+PRINT_PLAN = vol.Schema(
+    {vol.Optional("day"): _DATE, vol.Optional("period", default="day"): vol.In(["day", "week"])}
 )
 PRINT_LABELS = vol.Schema(
     {
@@ -112,6 +124,32 @@ def async_register(hass: HomeAssistant) -> None:
     async def print_shopping_list(call: ServiceCall) -> ServiceResponse:
         return await async_print_shopping_list(hass)
 
+    async def print_recipe(call: ServiceCall) -> ServiceResponse:
+        recipe_id = await _run(hass, inventory.recipe_by_name, call.data["recipe"])
+        return await async_print_recipe(hass, recipe_id, call.data.get("servings"))
+
+    async def print_planned(call: ServiceCall) -> ServiceResponse:
+        """The recipes planned for a meal (default: the current one by the meal start times)."""
+        now = dt_util.now()
+        day = call.data.get("day") or now.date()
+        meal = call.data.get("meal")
+        slot = MEALS.index(meal) if meal else await _run(hass, inventory.meal_at, now.time())
+        dishes = await _run(hass, inventory.planned_recipes, day, slot)
+        if not dishes:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="nothing_planned"
+            )
+        for dish in dishes:
+            await async_print_recipe(hass, dish["recipe_id"], dish["servings"])
+        return {"printed": len(dishes), "day": day.isoformat(), "meal": MEALS[slot]}
+
+    async def print_plan(call: ServiceCall) -> ServiceResponse:
+        """A day (default) or the week (Monday to Sunday) around `day` (default today)."""
+        day = call.data.get("day") or dt_util.now().date()
+        if call.data["period"] == "week":
+            return await async_print_plan(hass, day - timedelta(days=day.weekday()), 7)
+        return await async_print_plan(hass, day, 1)
+
     async def shop_recipe(call: ServiceCall) -> ServiceResponse:
         servings = call.data.get("servings") or _household(hass)
         return await _run(hass, inventory.shop_recipe_by_name, call.data["recipe"], servings)
@@ -143,6 +181,9 @@ def async_register(hass: HomeAssistant) -> None:
         ("book_out", book_out, BOOK_OUT),
         ("print_labels", print_labels, PRINT_LABELS),
         ("print_shopping_list", print_shopping_list, vol.Schema({})),
+        ("print_recipe", print_recipe, PRINT_RECIPE),
+        ("print_planned", print_planned, PRINT_PLANNED),
+        ("print_plan", print_plan, PRINT_PLAN),
         ("shop_recipe", shop_recipe, SHOP_RECIPE),
         ("plan_meal", plan_meal, PLAN_MEAL),
         ("canning", canning, CANNING),

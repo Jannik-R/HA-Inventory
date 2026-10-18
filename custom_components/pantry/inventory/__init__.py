@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning, steps, learned, ai_check).
+recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning, steps, learned, ai_check, recipe_print).
 """
 
 from .ai_check import changes as ai_changes
@@ -14,6 +14,7 @@ from .codes import (
     book_out_by_code,
     canning_by_name,
     plan_meal_by_name,
+    recipe_by_name,
     shop_recipe_by_name,
 )
 from .common import InventoryError, check_ean
@@ -21,10 +22,20 @@ from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info
 from .master import delete, list_rows, master_data, save, save_defaults
-from .meal_plan import delete_meal, meals, save_meal, shift_meals
+from .meal_plan import (
+    delete_meal,
+    meal_at,
+    meal_times,
+    meals,
+    planned_recipes,
+    save_meal,
+    save_meal_times,
+    shift_meals,
+)
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
 from .recipe_import import recipe_import
+from .recipe_print import recipe_sheet
 from .recipes import recipe_availability, recipes, save_recipe
 from .removal import delete_impact, force_delete
 from .shopping import (
@@ -77,21 +88,27 @@ __all__ = [
     "list_products",
     "list_rows",
     "master_data",
+    "meal_at",
+    "meal_times",
     "meals",
     "move",
     "parse_ingredient",
     "plan_meal_by_name",
+    "planned_recipes",
     "product_draft",
     "put_back",
     "recipe_availability",
+    "recipe_by_name",
     "recipe_import",
     "recipe_items",
+    "recipe_sheet",
     "recipes",
     "remove_shopping_recipe",
     "save",
     "save_canning",
     "save_defaults",
     "save_meal",
+    "save_meal_times",
     "save_recipe",
     "search_products",
     "set_recipe_done",

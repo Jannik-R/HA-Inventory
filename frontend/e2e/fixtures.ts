@@ -3,13 +3,14 @@ import { test as base, type BrowserContext } from "@playwright/test";
 // The only module that may import @playwright/test (playwright.config.ts enforces it).
 export type { Browser, Page } from "@playwright/test";
 
-const PRINTS = new Set(["pantry/print_labels", "pantry/print_shopping_list"]);
+// Every print command (labels, shopping list, recipe, meal plan, and any added later).
+const isPrint = (type: unknown) => typeof type === "string" && type.startsWith("pantry/print_");
 const callsByContext = new WeakMap<BrowserContext, unknown[]>();
 const stubsByContext = new WeakMap<BrowserContext, Map<string, unknown>>();
 
 /**
  * E2E tests must never print: the dev HA may have the real label or receipt printer configured.
- * Every print call (`PRINTS`) is answered here ("0 printed") and never reaches HA, and the
+ * Every print call (`isPrint`: any `pantry/print_*` command) is answered here ("0 printed") and never reaches HA, and the
  * options flow (which can print a test label or receipt) is aborted. Installed on every browser context.
  */
 export async function blockPrinting(context: BrowserContext) {
@@ -25,7 +26,7 @@ export async function blockPrinting(context: BrowserContext) {
     const server = ws.connectToServer();
     ws.onMessage((raw) => {
       const msg = typeof raw === "string" ? JSON.parse(raw) : undefined;
-      if (PRINTS.has(msg?.type)) {
+      if (isPrint(msg?.type)) {
         calls.push(msg);
         return ws.send(
           JSON.stringify({ id: msg.id, type: "result", success: true, result: { printed: 0 } }),

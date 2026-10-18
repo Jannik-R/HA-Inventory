@@ -168,6 +168,10 @@ rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept 
 Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
 Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
 
+**Drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
+die Zutaten zum Abhaken (Mengen für die angezeigten Portionen) und die nummerierten Schritte. Der
+Knopf erscheint nur, wenn ein Bondrucker eingerichtet ist.
+
 **Kochmodus**: Im aufgeklappten Rezept öffnet **Kochmodus** Zutaten (für die angezeigten Portionen)
 und Schritte im Vollbild. Ein Tipp auf einen Schritt hakt ihn ab (wird nicht gespeichert). Steht in
 einem Schritt eine Zeit („20 Minuten“, „ca. 10–15 Min.“, „eine halbe Stunde“), gibt es dazu einen
@@ -228,6 +232,10 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog). Der Stift ändert ein Gericht, der Papierkorb löscht es. Wird ein Rezept gelöscht, bleiben seine Gerichte im Plan als freier Text; die Löschfrage listet sie auf.
 
 **Umplanen**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, um einen Tag nach hinten. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
+
+**Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
+
+**Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
 **Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
 
@@ -299,7 +307,7 @@ im Gefrierschrank und buchst sie per Scan aus.
 - **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen)).
 - Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 
-**Bondrucker** (für den Einkaufszettel): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren >
+**Bondrucker** (für Einkaufszettel und Rezepte): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren >
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.
 `/dev/bondrucker`) oder die Netzwerkadresse. Dazu Papierbreite, Abschneiden und bei seriellen
 Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern. Die technische

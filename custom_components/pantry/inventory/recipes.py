@@ -6,17 +6,22 @@ import json
 import sqlite3
 
 from .amounts import _demand, _have, _stock_amount, _stock_by_category, _units, egg_part
-from .common import InventoryError
-from .inherit import _categories, children, defaults
+from .common import InventoryError, _exists
+from .inherit import _categories, _resolve, children, defaults
 from .master import save
+from .products import add_product
 
 
 def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
     """Insert / update a recipe; its ingredients are replaced by `data["ingredients"]` (in order)."""
     data = dict(data)
     ingredients = data.pop("ingredients")
+    if new_product := data.pop("canning_product", None):  # a canning recipe's new product
+        data["canning_product_id"] = add_product(conn, new_product)
+    _exists(conn, "product", data.get("canning_product_id"))
     recipe_id = save(conn, "recipe", data)
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM category")}
+    cats = _categories(conn)
     # optional ingredients chosen for the shopping list survive the re-insert (matched by text)
     # shortcut: renaming such an ingredient loses the choice; upgrade = keep ingredient ids on save
     chosen = {
@@ -33,6 +38,8 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
             cid = ing.get("category_id")
             if cid is not None and cid not in names:
                 raise InventoryError("not_found")
+            if cid is not None and _resolve(cats, None, cid, {})["food"]["value"] == 0:
+                raise InventoryError("not_food")
             # text is a name snapshot: the category's name; typed only for unmatched ingredients
             text = names[cid] if cid is not None else (ing.get("text") or "").strip()
             note = (ing.get("note") or "").strip()[:200] or None
@@ -158,8 +165,9 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
     for r in map(
         dict,
         conn.execute(
-            "SELECT r.*, s.servings AS shopping_servings FROM recipe r"
+            "SELECT r.*, s.servings AS shopping_servings, p.name AS canning_product FROM recipe r"
             " LEFT JOIN shopping_recipe s ON s.recipe_id = r.id"
+            " LEFT JOIN product p ON p.id = r.canning_product_id"
         ),
     ):
         ingredients = _availability(ctx, _ingredients(conn, r["id"]), 1.0)

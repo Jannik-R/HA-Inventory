@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Pantry",
-        "description": "Set up the food inventory. It appears as \"Vorrat\" in the sidebar."
+        "description": "Set up the household inventory. It appears as \"Vorrat\" in the sidebar."
       }
     },
     "abort": {
@@ -94,6 +94,9 @@
     },
     "nothing_to_print": {
       "message": "The shopping list has no open items to print."
+    },
+    "not_food": {
+      "message": "This category is not a food and cannot be a recipe ingredient."
     }
   },
   "options": {

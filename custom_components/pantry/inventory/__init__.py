@@ -2,10 +2,11 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, shopping_recipes, removal, ingredient_line, recipe_import).
+recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning).
 """
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
+from .canning import cannings, charge, save_canning
 from .codes import book_in_by_code, book_out_by_code
 from .common import InventoryError, check_ean
 from .ingredient_line import parse_ingredient, unit_add
@@ -46,6 +47,8 @@ __all__ = [
     "book_out",
     "book_out_by_code",
     "book_out_code",
+    "cannings",
+    "charge",
     "check_ean",
     "correct",
     "defaults",
@@ -74,6 +77,7 @@ __all__ = [
     "recipes",
     "remove_shopping_recipe",
     "save",
+    "save_canning",
     "save_defaults",
     "save_meal",
     "save_recipe",

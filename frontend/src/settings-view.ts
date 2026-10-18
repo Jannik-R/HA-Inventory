@@ -121,6 +121,13 @@ export class PantrySettings extends LitElement {
     const parts = (["unit_id", "default_location_id", "expiry_type", "warn_days"] as const)
       .filter((f) => c[f] != null)
       .map((f) => fmt(md, this.hass, f, c[f]));
+    if (c.shelf_days != null)
+      parts.push(
+        t("settings.category.shelf_short", {
+          days: fmt(md, this.hass, "shelf_days", c.shelf_days),
+        }),
+      );
+    if (c.food === 0) parts.push(t("settings.food.no"));
     if (c.min_stock != null) {
       const u = fmt(md, this.hass, "unit_id", c.min_stock_unit_id);
       parts.push(

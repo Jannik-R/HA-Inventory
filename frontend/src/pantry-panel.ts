@@ -10,11 +10,22 @@ import "./expiry-view";
 import "./shopping-view";
 import "./recipes-view";
 import "./plan-view";
+import "./canning-view";
 
 // shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
 const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
 
-const TABS = ["stock", "in", "out", "expiry", "shopping", "recipes", "plan", "settings"] as const;
+const TABS = [
+  "stock",
+  "in",
+  "out",
+  "expiry",
+  "shopping",
+  "recipes",
+  "plan",
+  "canning",
+  "settings",
+] as const;
 type Tab = (typeof TABS)[number];
 
 export class PantryPanel extends LitElement {
@@ -115,7 +126,12 @@ export class PantryPanel extends LitElement {
                       ></pantry-recipes>`
                     : active === "plan"
                       ? html`<pantry-plan .hass=${this.hass} .section=${this.sub}></pantry-plan>`
-                      : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
+                      : active === "canning"
+                        ? html`<pantry-canning
+                            .hass=${this.hass}
+                            .section=${this.sub}
+                          ></pantry-canning>`
+                        : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
         }
       </main>
     `;

@@ -17,6 +17,9 @@ import { catName, fmt, inherited, sourceLabel } from "./settings-format";
 import { minErrors, minFields } from "./min-stock";
 import { ADD, COLUMNS, type Draft, type Opts } from "./settings-model";
 
+/** Inherited day counts: number inputs with "Tage". */
+const DAYS = ["warn_days", "shelf_days"];
+
 /** Add/edit dialog for one master-data row. Call `open()`; fires `pantry-saved` after a successful save. */
 export class PantrySettingsDialog extends LitElement {
   static properties = {
@@ -92,6 +95,8 @@ export class PantrySettingsDialog extends LitElement {
     if (table === "category") {
       if (d.warn_days != null && !(Number.isInteger(d.warn_days) && d.warn_days >= 0))
         e.warn_days = t("valid.days");
+      if (d.shelf_days != null && !(Number.isInteger(d.shelf_days) && d.shelf_days >= 1))
+        e.shelf_days = t("valid.shelf_days");
       Object.assign(e, minErrors(d));
     }
     return e;
@@ -136,7 +141,7 @@ export class PantrySettingsDialog extends LitElement {
     return html`<span class="num"
         ><input
           type="number"
-          step=${key === "warn_days" ? "1" : "any"}
+          step=${DAYS.includes(key) ? "1" : "any"}
           min=${key === "factor" ? "0.000001" : "0"}
           placeholder=${placeholder}
           aria-invalid=${!!this.errs[key]}
@@ -147,7 +152,7 @@ export class PantrySettingsDialog extends LitElement {
             this.set(key, numOrNull(v));
           }}
         />${suffix ? html`<span class="detail">${suffix}</span>` : nothing}</span
-      >${key === "warn_days" ? nothing : fieldMsg(this.errs[key], key)}`;
+      >${DAYS.includes(key) ? nothing : fieldMsg(this.errs[key], key)}`;
   }
 
   private usedAsBase(d: Draft) {
@@ -177,15 +182,14 @@ export class PantrySettingsDialog extends LitElement {
         </button>`;
   }
 
-  private inh(field: InheritField, label: string, options: Opts, numeric = true) {
+  private inh(field: InheritField | "food", label: string, options: Opts, numeric = true) {
     const md = this.data!;
     const inh = inherited(md, field, this.edit!.d.parent_id);
     const value = fmt(md, this.hass, field, inh.value);
     const source = sourceLabel(md, inh.source);
-    const control =
-      field === "warn_days"
-        ? this.numInput(field, t("common.default", { value, source }), t("common.days_unit"))
-        : this.select(field, options, t("common.default", { value, source }), numeric);
+    const control = DAYS.includes(field)
+      ? this.numInput(field, t("common.default", { value, source }), t("common.days_unit"))
+      : this.select(field, options, t("common.default", { value, source }), numeric);
     return this.field(
       label,
       html`<span class="inh">${control}${this.reset(field)}</span
@@ -261,6 +265,11 @@ export class PantrySettingsDialog extends LitElement {
           false,
         )}
         ${this.inh("warn_days", t("settings.category.warn_days"), [])}
+        ${this.inh("shelf_days", t("settings.category.shelf_days"), [])}
+        ${this.inh("food", t("settings.food.label"), [
+          [1, t("settings.food.yes")],
+          [0, t("settings.food.no")],
+        ])}
         ${minFields({ md, d, errs: this.errs, unitId: unit as number | null, set: (k, v) => this.set(k, v) })}
         ${tags.length ? html`<p class="detail">${t("settings.category.off_tags", { tags: tags.join(", ") })}</p>` : nothing}`;
     }

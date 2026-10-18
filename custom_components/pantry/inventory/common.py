@@ -6,7 +6,9 @@ import re
 import sqlite3
 from datetime import UTC, datetime
 
-INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days")
+INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days", "shelf_days")
+# Inherited down the category tree only (no product or defaults column); NULL at the root = food.
+CATEGORY_INHERITED = ("food",)
 
 
 # Column whitelist per table (id and product.updated_at are handled by save()).
@@ -16,12 +18,18 @@ COLUMNS = {
     "category": (
         "parent_id", "name", "sort", "unit_id", "default_location_id",
         "expiry_type", "warn_days", "min_stock", "min_stock_unit_id", "min_packages",
+        "shelf_days", "food",
     ),
     "product": (
         "ean", "name", "brand", "category_id", "content_amount", "content_unit_id",
         "default_location_id", "expiry_type", "warn_days", "image_url", "off_json", "min_packages",
+        "shelf_days",
     ),
-    "recipe": ("name", "servings", "instructions", "source_url", "image_url"),
+    "recipe": (
+        "name", "servings", "instructions", "source_url", "image_url", "canning_product_id",
+        "canning_temp", "canning_minutes",
+    ),
+    "canning": ("made_on", "seq", "product_id", "recipe_id", "jars", "temp", "minutes", "notes"),
 }  # fmt: skip
 
 

@@ -157,6 +157,7 @@ def test_migration_12_upgrade(monkeypatch):
     with monkeypatch.context() as m:  # steps 8 and 9 are functions: let migrate() run up to 11
         m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:11])
         m.setattr(db, "mark_recipe_only", lambda c: None)  # seeds before the column exists
+        m.setattr(db, "add_general", lambda c: None)  # same
         db.migrate(c)
     assert c.execute("PRAGMA user_version").fetchone()[0] == 11
     db.migrate(c)
@@ -188,6 +189,7 @@ def test_migration_13_keeps_used_units():
     with pytest.MonkeyPatch.context() as m:
         m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:12])
         m.setattr(db, "mark_recipe_only", lambda c: None)
+        m.setattr(db, "add_general", lambda c: None)
         db.migrate(c)
     zehe, tl = (
         c.execute("SELECT id FROM unit WHERE name = ?", (n,)).fetchone()[0]

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import date
 
+from .canning import charge
 from .inherit import _categories, _path, _resolve, defaults
 
 
@@ -18,9 +19,9 @@ def stock_list(
     cats, dflt = _categories(conn), defaults(conn)
     sql = (
         "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on,"
-        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type"
+        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type, c.made_on, c.seq"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"
-        " JOIN location l ON l.id = s.location_id"
+        " JOIN location l ON l.id = s.location_id LEFT JOIN canning c ON c.id = b.canning_id"
     )
     where, args = [], []
     if location_id is not None:
@@ -34,6 +35,8 @@ def stock_list(
     rows = []
     for r in conn.execute(sql + " ORDER BY p.name, b.expires_on IS NULL, b.expires_on", args):
         row = dict(r)
+        made_on, seq = row.pop("made_on"), row.pop("seq")
+        row["charge"] = made_on and charge(made_on, seq)
         row["category_path"] = _path(cats, r["category_id"])
         row["expiry_type"] = _resolve(cats, row, r["category_id"], dflt)["expiry_type"]["value"]
         rows.append(row)

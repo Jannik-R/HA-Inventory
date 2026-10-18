@@ -391,7 +391,8 @@ def test_migration_3_normalizes_and_cleans_up():
     # Booking of an unknown batch is gone, an unknown location is cleared.
     assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
     assert inv.defaults(c) == {
-        "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7
+        "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7,
+        "shelf_days": None,
     }  # fmt: skip
     with pytest.raises(sqlite3.IntegrityError):
         c.execute("UPDATE unit SET is_count = 2")
@@ -513,7 +514,7 @@ def test_migration_4_min_stock_gets_its_effective_unit():
         """
     )
     db.migrate(c)
-    rows = c.execute("SELECT id, min_stock_unit_id FROM category ORDER BY id").fetchall()
+    rows = c.execute("SELECT id, min_stock_unit_id FROM category WHERE id <= 4 ORDER BY id")
     assert [tuple(r) for r in rows] == [(1, None), (2, 1), (3, 2), (4, None)]
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
     with pytest.raises(sqlite3.IntegrityError):

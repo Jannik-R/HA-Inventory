@@ -51,17 +51,21 @@ def _take(conn, batch_id: int, location_id: int, packages: int) -> None:
         )
 
 
+def _iso(expires_on: date | str | None) -> str | None:
+    """ISO date or None; anything else raises invalid_date."""
+    if not expires_on:
+        return None
+    try:
+        return date.fromisoformat(str(expires_on)).isoformat()
+    except ValueError:
+        raise InventoryError("invalid_date") from None
+
+
 def _batch(conn, product_id: int, expires_on: date | str | None) -> int:
-    """Id of the batch with this product and date; created if missing."""
-    if expires_on:
-        try:
-            expires_on = date.fromisoformat(str(expires_on)).isoformat()
-        except ValueError:
-            raise InventoryError("invalid_date") from None
-    else:
-        expires_on = None
+    """Id of the batch with this product and date (never a canning charge); created if missing."""
+    expires_on = _iso(expires_on)
     row = conn.execute(
-        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ?",
+        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS NULL",
         (product_id, expires_on),
     ).fetchone()
     if row:
@@ -252,10 +256,19 @@ def edit_stock(
     old and into the new batch. Other locations keep the old batch.
     """
     _packages(packages, 0)
-    row = conn.execute("SELECT product_id FROM batch WHERE id = ?", (batch_id,)).fetchone()
+    row = conn.execute(
+        "SELECT product_id, canning_id FROM batch WHERE id = ?", (batch_id,)
+    ).fetchone()
     if not row or not _stock_of(conn, batch_id, location_id):
         raise InventoryError("not_found")
-    target = _batch(conn, row["product_id"], expires_on)
+    if row["canning_id"] is not None:  # a charge keeps its batch: the date moves the whole charge
+        conn.execute(
+            "UPDATE batch SET expires_on = ? WHERE id = ?",
+            (_iso(expires_on), batch_id),
+        )
+        target = batch_id
+    else:
+        target = _batch(conn, row["product_id"], expires_on)
     if target != batch_id:
         correct(conn, batch_id, location_id, 0, source, user_id)
         packages += _stock_of(conn, target, location_id)  # merge into what is already there

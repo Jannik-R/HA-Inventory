@@ -2,7 +2,8 @@
 
 *Deutsche Fassung: [guide.de.md](guide.de.md)*
 
-Pantry is a food inventory inside Home Assistant. You book food in and out by barcode or name.
+Pantry is a household inventory inside Home Assistant. You book items in and out by barcode or name:
+food, batteries, household goods, medicine and home-canned jars.
 Pantry remembers where everything is and when it expires, reminds you of what expires soon and
 writes the shopping list from minimum stock levels. This guide explains how to use it; installation
 and technical details are in the [README](../README.md).
@@ -12,7 +13,7 @@ The panel's interface is in German, so this guide names buttons and fields by th
 
 Pantry is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
 **Einbuchen** (book in), **Auslagern** (book out), **Ablauf** (expiry), **Einkauf** (shopping),
-**Rezepte** (recipes), **Speiseplan** (meal plan) and, for admins only, **Einstellungen** (settings). The question mark at the
+**Rezepte** (recipes), **Speiseplan** (meal plan), **Einkochen** (canning) and, for admins only, **Einstellungen** (settings). The question mark at the
 top right opens this guide.
 
 ## Contents
@@ -25,6 +26,7 @@ top right opens this guide.
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
 7a. [Meal plan](#7a-meal-plan)
+7b. [Canning](#7b-canning)
 8. [Labels and receipt printer](#8-labels-and-receipt-printer)
 9. [Categories, product types and inheritance](#9-categories-product-types-and-inheritance)
 10. [Tips and FAQ](#10-tips-and-faq)
@@ -33,13 +35,15 @@ top right opens this guide.
 
 Pantry comes ready to use: storage locations (Kühlschrank = fridge, Gefrierschrank = freezer,
 Vorratsschrank = pantry cupboard …), units (g, kg, ml, l, Stück, Packung, EL, TL …) and a category
-tree with about 1,700 product types (Tomatenmark, Spaghetti, Basmatireis …).
+tree with about 1,700 product types (Tomatenmark, Spaghetti, Basmatireis …). There are also categories
+for non-food (Haushalt & Drogerie, Haustechnik, Hausapotheke, Tierbedarf) and Eingekochtes
+(home-canned jars).
 
 Admins should take a quick look at **Einstellungen** first:
 
 1. **Lagerorte** (locations): adapt the list to your kitchen (rename, add, delete).
 2. **Standards** (defaults): what applies when a category or product sets nothing of its own
-   (unit, location, date type, expiry warning).
+   (unit, location, date type, expiry warning, shelf life).
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
    needs a location choice.
@@ -63,8 +67,9 @@ Open **Einbuchen**. The input field is ready right away.
 4. **Inhalt** (content, optional): e.g. 500 g per package, drained weight for cans. Minimum stock
    and recipes calculate with it.
 5. **Mindestanzahl** (minimum packages, optional): below it the product goes on the shopping list.
-6. **Expiry date**: the date on the package; leave it empty if there is none. The label names the
-   date type (best before or use by).
+6. **Expiry date** (Ablaufdatum): the date on the package; leave it empty if there is none. The label names the
+   date type (best before or use by). If the category or product has a *Haltbarkeit* (shelf life),
+   today plus that many days is proposed (see [Categories](#9-categories-product-types-and-inheritance)).
 7. **Packungen** (packages) and **Lagerort** (location): the location is prefilled (grey:
    "Geerbt: Kühlschrank (von Milchprodukte)" = inherited). Another choice applies to this booking
    only; **Zurücksetzen** returns to the default. For a new product **Wird Standardlager** keeps the
@@ -99,7 +104,7 @@ Cooking a recipe books nothing out automatically; book out the ingredients as us
   defaults (location, date type, expiry warning).
 - **Pencil on a batch**: fix the date or the package count, e.g. after a typo; 0 packages removes
   the batch.
-- **Tag icon**: reprint labels for this batch.
+- **Tag icon**: reprint labels for this batch. Canned jars show their charge next to the date.
 - Red means expired, orange means expiring soon.
 
 ## 5. What expires soon?
@@ -146,6 +151,9 @@ image; **Portionen** (servings) scales the amounts (display only). **Auf die Ein
 the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)). **Einplanen** (plan) adds it to the
 [meal plan](#7a-meal-plan) with the shown servings (date: today, meal: Abendessen/dinner, both changeable in the dialog).
 
+Canning recipes are not listed here; they are in the **Einkochen** (canning) tab, view **Rezepte**
+(see [Canning](#7b-canning)). They are never offered in the meal plan.
+
 **Rezept hinzufügen** (add recipe):
 
 1. Enter name, servings and instructions.
@@ -191,6 +199,55 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
+## 7b. Canning
+
+Home-canned jars (jam, compote, pickles …) are booked in with a **canning protocol** (Einkochprotokoll).
+Each protocol gets a charge. The labels carry it, so scanning a label books out exactly one jar of that charge.
+
+The **Einkochen** (canning) tab has two views, buttons at the top: **Protokolle** (protocols) and **Rezepte** (recipes).
+
+**Protokolle** lists the protocols, newest first, with charge, product, jars (made and still in stock),
+temperature and duration.
+
+**Protokoll anlegen** (add protocol):
+
+1. Open the **Einkochen** tab, view **Protokolle**, and tap **Protokoll anlegen**.
+2. **Einkochrezept** (canning recipe, optional): with a recipe the product is fixed to the recipe's product
+   (shown as **Ergibt: …**), and **Gläser**, **Temperatur** and **Dauer** are prefilled from it. You can change them.
+3. Without a recipe, **Produkt** (product): pick an existing product by name, or type a new name and choose a
+   **Kategorie** (category, e.g. under *Eingekochtes*).
+4. **Hergestellt am** (made on): today is prefilled; change it if you canned on another day.
+5. **Gläser** (jars, count) and **Lagerort** (location).
+6. **Haltbar bis** (best before): Pantry proposes made-on date + shelf life; changeable.
+7. Check **Temperatur** (°C) and **Dauer** (minutes); **Notizen** (notes) are optional.
+8. **Speichern** (save): Pantry creates the charge by itself, code `YYYYMMDD-n` (e.g. `20261018-1`; n is
+   the running number of that day). The jars are booked in as their own batch; then you can print one
+   label per jar.
+
+**Edit a protocol**: the pencil changes only the recipe, temperature, duration, notes and **Haltbar bis**.
+Made-on date, product and jars stay, since the labels carry them.
+
+**Rezepte** (view in the **Einkochen** tab) lists only canning recipes, with the same list, search, import
+and editing as the recipe list. **Einkochrezept anlegen** (add canning recipe) opens the recipe dialog:
+
+- **Name**, **Zubereitung** (instructions), source and image link, ingredients as for normal recipes.
+- **Ergibt Produkt** (yields product, required): an existing product by name, or a new name with a **Kategorie**.
+- **Ergibt (Gläser)** (yields jars) instead of portions: the ingredients scale by jars.
+- **Temperatur** (°C) and **Dauer** (minutes): optional, both or neither.
+
+So every canning recipe makes a defined product. Opening one shows "ergibt N × Produkt" and the button
+**Protokoll anlegen**, which switches to **Protokolle** with that recipe chosen. Deleting a product also
+deletes the canning recipes that make it (the delete question lists them).
+
+**Delete a protocol** (admins only): the bin removes the protocol with its stock and bookings, after the
+usual question.
+
+**Jars without a protocol**: jars canned earlier that you did not log are booked in like any product
+(category *Eingekochtes*), without a charge.
+
+**Labels**: the label shows the charge in its brand line. The QR code contains it, so a scan in **Einbuchen**
+or **Auslagern** books out a jar of that charge.
+
 ## 8. Labels and receipt printer
 
 A label shows product, brand, expiry date and a QR code of the batch, so you recognise leftovers in
@@ -202,6 +259,7 @@ the freezer and book them out by scanning.
   the browser's print dialog opens.
 - **When booking in**: tick **Etiketten drucken**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
+- **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning)).
 - More than 2 labels at once ask first.
 
 **Receipt printer** (for the shopping list): *Settings > Devices & services > Pantry > Configure >
@@ -216,10 +274,27 @@ The category tree has three levels: **main category → category → product typ
 e.g. *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Products usually belong to a product type.
 Recipes and minimum stock work with categories and product types, not with brands.
 
-**Inheritance**: unit, default location, date type and expiry warning apply to everything below
+**Food or not** (*Lebensmittel*): every category has this field, either "Lebensmittel" (food) or
+"Kein Lebensmittel" (not food). It is inherited. Non-food is never offered as a recipe ingredient.
+
+Pantry comes with these main categories (existing installations get the missing ones):
+
+- **Haushalt & Drogerie**, **Haustechnik** (home technical supplies: categories Batterien with AA, AAA, C,
+  D, 9V and button cells; Akkus, rechargeable; Leuchtmittel, lamps by socket such as E27, E14, GU10),
+  **Tierbedarf** (pet supplies): non-food.
+- **Hausapotheke** (home medicine): non-food, date type "verbrauchen bis" (use by), warning 30 days.
+- **Eingekochtes** (home-canned: Obst & Kompott, Marmelade & Gelee, Gemüse & Eingelegtes, Soßen & Suppen,
+  Fleisch & Wurst): shelf life 365 days, warning 30 days.
+
+**Inheritance**: unit, default location, date type, expiry warning and shelf life apply to everything below
 until a lower level or the product sets its own. Inherited values are grey with their source
 ("Geerbt: 7 Tage (von Milchprodukte)"). **Zurücksetzen** removes an own value, then the inherited
 one applies again. Minimum stock is not inherited.
+
+**Expiry date and shelf life**: bought goods carry their date on the package, and that date counts.
+Without a printed date (home-made, frozen, or portioned from a bulk pack), the *Haltbarkeit* (shelf life,
+in days) counts: booking in proposes today + shelf life, a canning protocol made-on date + shelf life.
+The date stays editable everywhere.
 
 **Deleting**: before deleting, Pantry lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). A location with stock asks where its packages should go.
@@ -234,7 +309,8 @@ stock, recipe ingredients …). A location with stock asks where its packages sh
 - **Unknown barcode.** Not every product is in Open Food Facts. Create it with **Neues Produkt**;
   the next scan knows it.
 - **Who may do what?** All users book, edit products, keep the shopping list and recipes, and may
-  add product types and units. Settings, deleting products and deleting recipes are for admins.
+  add product types and units. Settings, deleting products, deleting recipes and deleting canning
+  protocols are for admins.
 - **Booked wrongly?** Right after the booking use **Rückgängig**, otherwise fix the batch with the
   pencil in Bestand.
 - **Automations**: for scanners on ESPHome, NFC tags etc. there are the services `pantry.book_in`,

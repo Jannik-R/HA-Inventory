@@ -17,10 +17,11 @@ const FIELDS: [InheritField, string][] = [
   ["default_location_id", "settings.category.location"],
   ["expiry_type", "settings.category.expiry_type"],
   ["warn_days", "settings.category.warn_days"],
+  ["shelf_days", "settings.category.shelf_days"],
 ];
 type Draft = Record<InheritField, number | string | null>;
 
-/** Integration-wide defaults (root of inheritance): list of the four values, one edit dialog. */
+/** Integration-wide defaults (root of inheritance): list of the values, one edit dialog. */
 export class PantryDefaults extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -58,9 +59,17 @@ export class PantryDefaults extends LitElement {
     return v === null || !Number.isInteger(v) || (v as number) < 0 ? t("valid.days") : undefined;
   }
 
+  /** Shelf life is optional (empty: no date proposal). */
+  private shelfError(d: Draft) {
+    const v = d.shelf_days;
+    return v !== null && !(Number.isInteger(v) && (v as number) >= 1)
+      ? t("valid.shelf_days")
+      : undefined;
+  }
+
   private async save(e: Event) {
     e.preventDefault();
-    if (this.warnError(this.d!)) return;
+    if (this.warnError(this.d!) || this.shelfError(this.d!)) return;
     try {
       await saveDefaults(this.hass!, this.d!);
       this.renderRoot.querySelector("dialog")?.close();
@@ -108,6 +117,7 @@ export class PantryDefaults extends LitElement {
     const d = this.d;
     if (!d) return html`<dialog></dialog>`;
     const err = this.warnError(d);
+    const shelfErr = this.shelfError(d);
     return editDialog({
       title: t("settings.defaults.edit"),
       body: html`<label>
@@ -154,9 +164,27 @@ export class PantryDefaults extends LitElement {
             ${t("common.days_unit")}
           </span>
           ${fieldMsg(err, "default-warn_days")}
+        </label>
+        <label>
+          <span class="lbl" title=${t("tip.shelf_days")}>${t("settings.category.shelf_days")}</span>
+          <span class="num">
+            <input
+              data-testid="default-shelf_days"
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              aria-invalid=${!!shelfErr}
+              .value=${String(d.shelf_days ?? "")}
+              @input=${(e: Event) =>
+                this.set("shelf_days", numOrNull((e.target as HTMLInputElement).value))}
+            />
+            ${t("common.days_unit")}
+          </span>
+          ${fieldMsg(shelfErr, "default-shelf_days")}
         </label>`,
       error: this.error,
-      invalid: !!err,
+      invalid: !!err || !!shelfErr,
       dirty: () => FIELDS.some(([f]) => d[f] !== this.orig?.[f]),
       onSubmit: (e) => this.save(e),
       onClosed: () => (this.d = undefined),

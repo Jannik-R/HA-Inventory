@@ -5,7 +5,7 @@ import { formStyles } from "./styles";
 import { errorMessage, type Hass } from "./api";
 import { MAX_LABELS, printLabels } from "./label-print";
 
-/** Print labels of one batch: how many (default 1). Call `open()`; fires `pantry-printed` (detail: printed count). */
+/** Print labels of one batch: how many (default 1, or `count`). Call `open()`; fires `pantry-printed` (detail: printed count). */
 export class PantryLabelDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -25,9 +25,9 @@ export class PantryLabelDialog extends LitElement {
     this.error = "";
   }
 
-  async open(batch: { id: number; name: string; packages: number }) {
+  async open(batch: { id: number; name: string; packages: number }, count = 1) {
     this.batch = batch;
-    this.count = "1";
+    this.count = String(Math.min(count, MAX_LABELS));
     this.error = "";
     await this.updateComplete;
     this.renderRoot.querySelector("dialog")!.showModal();

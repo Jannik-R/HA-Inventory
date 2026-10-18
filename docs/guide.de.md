@@ -2,13 +2,13 @@
 
 *English version: [guide.en.md](guide.en.md)*
 
-Vorrat ist die Vorratsverwaltung in Home Assistant. Du buchst Lebensmittel per Barcode oder Name ein
-und aus. Vorrat merkt sich, wo was liegt und wann es abläuft, erinnert an Ablaufendes und schreibt
+Vorrat ist die Vorratsverwaltung in Home Assistant. Du buchst Vorräte per Barcode oder Name ein
+und aus: Lebensmittel, Batterien, Haushaltswaren, Medikamente und selbst eingekochte Gläser. Vorrat merkt sich, wo was liegt und wann es abläuft, erinnert an Ablaufendes und schreibt
 die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Installation und
 Technik stehen im [README](../README.md).
 
 Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs **Bestand**,
-**Einbuchen**, **Auslagern**, **Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan** und (nur für Admins)
+**Einbuchen**, **Auslagern**, **Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan**, **Einkochen** und (nur für Admins)
 **Einstellungen**. Das Fragezeichen oben rechts öffnet diese Anleitung.
 
 ## Inhalt
@@ -21,6 +21,7 @@ Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs 
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
 7a. [Speiseplan](#7a-speiseplan)
+7b. [Einkochen](#7b-einkochen)
 8. [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)
 9. [Kategorien, Produktarten und Vererbung](#9-kategorien-produktarten-und-vererbung)
 10. [Tipps und häufige Fragen](#10-tipps-und-häufige-fragen)
@@ -29,13 +30,15 @@ Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs 
 
 Vorrat bringt eine fertige Grundausstattung mit: Lagerorte (Kühlschrank, Gefrierschrank,
 Vorratsschrank …), Einheiten (g, kg, ml, l, Stück, Packung, EL, TL …) und einen Kategoriebaum mit
-rund 1.700 Produktarten (Tomatenmark, Spaghetti, Basmatireis …). Du kannst direkt loslegen.
+rund 1.700 Produktarten (Tomatenmark, Spaghetti, Basmatireis …). Dazu kommen Kategorien für
+Nicht-Lebensmittel (Haushalt & Drogerie, Haustechnik, Hausapotheke, Tierbedarf) und
+Eingekochtes. Du kannst direkt loslegen.
 
 Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 1. **Lagerorte**: Passe die Liste an deine Küche an (umbenennen, hinzufügen, löschen).
 2. **Standards**: Lege fest, was gilt, wenn eine Kategorie oder ein Produkt nichts Eigenes hat
-   (Einheit, Lagerort, Datumsart, Warnung vor Ablauf).
+   (Einheit, Lagerort, Datumsart, Warnung vor Ablauf, Haltbarkeit).
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
 4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
@@ -60,7 +63,9 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
    Mindestmengen und Rezepte.
 5. **Mindestanzahl** (optional): Unter dieser Packungszahl kommt das Produkt auf die Einkaufsliste.
 6. **Ablaufdatum**: Das Datum von der Packung. Leer lassen, wenn es keins gibt.
-   Die Beschriftung nennt die Datumsart (Mindesthaltbarkeit oder Verbrauchsdatum).
+   Die Beschriftung nennt die Datumsart (Mindesthaltbarkeit oder Verbrauchsdatum). Hat die Kategorie
+   oder das Produkt eine *Haltbarkeit*, schlägt Vorrat heute + Haltbarkeit vor (siehe
+   [Kategorien](#9-kategorien-produktarten-und-vererbung)).
 7. **Packungen** und **Lagerort**: Der Lagerort ist vorbelegt (grau: „Geerbt: Kühlschrank (von
    Milchprodukte)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
    zurück. Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten Ort fürs Produkt.
@@ -96,7 +101,8 @@ Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt 
   (Lagerort, Datumsart, Warnung vor Ablauf).
 - **Stift an einer Charge**: Datum oder Packungszahl korrigieren, etwa nach einem Tippfehler.
   0 Packungen entfernt die Charge.
-- **Etikett-Symbol**: Etiketten für diese Charge nachdrucken.
+- **Etikett-Symbol**: Etiketten für diese Charge nachdrucken. Eingekochte Gläser zeigen ihre Charge
+  neben dem Datum.
 - Rot heißt abgelaufen, orange heißt bald fällig.
 
 ## 5. Was läuft ab?
@@ -139,7 +145,8 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 
 ## 7. Rezepte
 
-**Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“. Das Suchfeld findet Name und
+**Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
+[Einkochen](#7b-einkochen), nicht hier). Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, Anleitung, Quelle und Bild; **Portionen**
 rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept auf die Liste
 (siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
@@ -189,6 +196,58 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
+## 7b. Einkochen
+
+Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) bucht Vorrat über ein **Einkochprotokoll**
+ein. Jedes Protokoll bekommt eine Charge. Die Etiketten tragen sie, daher bucht ein Scan genau ein
+Glas dieser Charge aus.
+
+Der Tab **Einkochen** hat oben zwei Schaltflächen: **Protokolle** und **Rezepte**.
+
+**Protokolle** zeigt die Protokolle, neueste zuerst, mit Charge, Produkt, Gläsern (hergestellt und noch
+vorhanden), Temperatur und Dauer.
+
+**Protokoll anlegen**:
+
+1. Tab **Einkochen**, Ansicht **Protokolle**, Schaltfläche **Protokoll anlegen**.
+2. **Einkochrezept** (optional): Mit einem Rezept ist das Produkt festgelegt (es steht als
+   **Ergibt: …** da), und **Gläser**, **Temperatur** und **Dauer** werden aus dem Rezept vorausgefüllt.
+   Du kannst sie ändern.
+3. Ohne Rezept: **Produkt**. Ein vorhandenes Produkt per Namen wählen. Oder einen neuen Namen eintippen und eine
+   **Kategorie** wählen (z. B. unter *Eingekochtes*).
+4. **Hergestellt am**: Heute ist vorbelegt; ändern, wenn du an einem anderen Tag eingekocht hast.
+5. **Gläser** (Anzahl) und **Lagerort**.
+6. **Haltbar bis**: Vorrat schlägt Herstellungsdatum + Haltbarkeit vor; änderbar.
+7. **Temperatur** (°C), **Dauer** (Minuten) prüfen; **Notizen** sind optional.
+8. **Speichern**: Vorrat legt die Charge automatisch an, Code `JJJJMMTT-n` (z. B. `20261018-1`, n ist die
+   laufende Nummer des Tages). Die Gläser werden als eigene Charge eingebucht, danach kannst du
+   Etiketten drucken, eines pro Glas.
+
+**Protokoll bearbeiten**: Der Stift ändert nur Rezept, Temperatur, Dauer, Notizen und **Haltbar bis**.
+Herstellungsdatum, Produkt und Gläser bleiben, weil die Etiketten sie tragen.
+
+**Rezepte** (Ansicht im Tab **Einkochen**) zeigt nur die Einkochrezepte, mit derselben Liste, Suche,
+Import und Bearbeitung wie die Rezeptliste. **Einkochrezept anlegen** öffnet den Rezeptdialog:
+
+- **Name**, **Zubereitung**, Quelle und Bild, Zutaten wie bei normalen Rezepten.
+- **Ergibt Produkt** (Pflicht): ein vorhandenes Produkt per Namen, oder ein neuer Name mit **Kategorie**.
+- **Ergibt (Gläser)** statt Portionen: Die Zutaten werden nach Gläsern umgerechnet.
+- **Temperatur** (°C) und **Dauer** (Minuten): optional, beide oder keins.
+
+Ein Einkochrezept macht also immer ein festes Produkt. Öffnest du es, siehst du „ergibt N × Produkt“
+und die Schaltfläche **Protokoll anlegen**; sie wechselt zu **Protokolle** mit diesem Rezept vorausgewählt.
+Löschst du ein Produkt, werden die Einkochrezepte gelöscht, die es herstellen (die Rückfrage nennt sie).
+Einkochrezepte erscheinen weder in der Rezeptliste noch im Speiseplan.
+
+**Protokoll löschen** (nur Admins): Der Papierkorb entfernt das Protokoll mit seinem Bestand und seinen
+Buchungen, nach der üblichen Rückfrage.
+
+**Gläser ohne Protokoll**: Schon eingekochte Gläser, die du nicht protokolliert hast, bucht du wie jedes
+Produkt ein (Kategorie *Eingekochtes*), ohne Charge.
+
+**Etiketten**: Das Etikett zeigt die Charge in der Markenzeile. Der QR-Code enthält sie, daher bucht ein
+Scan in **Einbuchen** oder **Auslagern** ein Glas dieser Charge aus.
+
 ## 8. Etiketten und Bondrucker
 
 Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. Damit erkennst du Reste
@@ -200,6 +259,7 @@ im Gefrierschrank und buchst sie per Scan aus.
   Mit *Kein Drucker* öffnet sich der Druckdialog des Browsers.
 - **Beim Einbuchen**: Häkchen **Etiketten drucken**, ein Etikett pro Packung (höchstens 20).
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
+- **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen)).
 - Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 
 **Bondrucker** (für den Einkaufszettel): *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren >
@@ -214,10 +274,26 @@ Der Kategoriebaum hat drei Ebenen: **Hauptkategorie → Kategorie → Produktart
 *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Produkte hängen meist an einer Produktart.
 Rezepte und Mindestmengen arbeiten mit Kategorien und Produktarten, nicht mit Marken.
 
-**Vererbung**: Einheit, Standard-Lagerort, Datumsart und Warnung vor Ablauf gelten für alles
+**Lebensmittel**: Jede Kategorie hat das Feld *Lebensmittel* mit den Werten „Lebensmittel“ oder
+„Kein Lebensmittel“. Der Wert wird vererbt. Nicht-Lebensmittel werden nie als Rezeptzutat angeboten.
+
+Vorrat bringt diese Hauptkategorien mit (bei bestehenden Installationen werden fehlende ergänzt):
+
+- **Haushalt & Drogerie**, **Haustechnik** (Kategorien Batterien mit AA, AAA, C, D, 9V und
+  Knopfzellen; Akkus; Leuchtmittel nach Sockel wie E27, E14, GU10), **Tierbedarf**: Nicht-Lebensmittel.
+- **Hausapotheke**: Nicht-Lebensmittel, Datumsart „verbrauchen bis“, Warnung 30 Tage.
+- **Eingekochtes** (Obst & Kompott, Marmelade & Gelee, Gemüse & Eingelegtes, Soßen & Suppen,
+  Fleisch & Wurst): Haltbarkeit 365 Tage, Warnung 30 Tage.
+
+**Vererbung**: Einheit, Standard-Lagerort, Datumsart, Warnung vor Ablauf und Haltbarkeit gelten für alles
 darunter, bis eine tiefere Ebene oder das Produkt etwas Eigenes festlegt. Geerbte Werte stehen grau
 mit ihrer Herkunft da („Geerbt: 7 Tage (von Milchprodukte)“). **Zurücksetzen** entfernt einen eigenen
 Wert, danach gilt wieder der geerbte. Mindestmengen werden nicht vererbt.
+
+**Ablaufdatum und Haltbarkeit**: Gekaufte Ware hat ihr Datum auf der Packung; das gilt. Ohne Aufdruck
+(selbst gemacht, eingefroren, aus einer Großpackung umgefüllt) zählt die *Haltbarkeit* in Tagen:
+Einbuchen schlägt heute + Haltbarkeit vor, ein Einkochprotokoll Herstellungsdatum + Haltbarkeit. Das
+Datum bleibt überall änderbar.
 
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
 Produkte, Bestand, Rezeptzutaten …). Ein Lagerort mit Bestand bekommt einen Zielort für die
@@ -233,8 +309,8 @@ Packungen.
 - **Der Barcode ist unbekannt.** Nicht jedes Produkt steht bei Open Food Facts. Lege es mit
   **Neues Produkt** an; beim nächsten Scan kennt Vorrat es.
 - **Wer darf was?** Alle Nutzer buchen, bearbeiten Produkte, führen die Einkaufsliste und Rezepte
-  und dürfen neue Produktarten und Einheiten anlegen. Einstellungen, Produkte löschen und Rezepte
-  löschen sind Admins vorbehalten.
+  und dürfen neue Produktarten und Einheiten anlegen. Einstellungen, Produkte löschen, Rezepte
+  löschen und Einkochprotokolle löschen sind Admins vorbehalten.
 - **Falsch gebucht?** Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem
   Stift korrigieren.
 - **Automationen**: Für Scanner an ESPHome, NFC-Tags usw. gibt es die Dienste `pantry.book_in`,

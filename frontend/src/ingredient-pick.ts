@@ -73,7 +73,7 @@ export class PantryIngredientPick extends LitElement {
       if (this.query !== q) return; // a newer input won
       const out: Hit[] = [];
       for (const h of hits) {
-        const cat = this.categories.find((c) => c.id === h.category_id);
+        const cat = this.foods().find((c) => c.id === h.category_id);
         if (cat && !out.some((o) => o.cat.id === cat.id)) out.push({ cat, via: h.name });
       }
       this.products = out;
@@ -102,10 +102,15 @@ export class PantryIngredientPick extends LitElement {
     }
   }
 
+  /** Categories a recipe may use: non-food ones (batteries, household) never are ingredients. */
+  private foods() {
+    return this.categories.filter((c) => c.effective.food.value !== 0);
+  }
+
   /** Product types (no children) first, then higher categories; then matches via products. */
   private hits(q: string): Hit[] {
     const isParent = (c: Category) => this.categories.some((x) => x.parent_id === c.id);
-    const own = this.categories
+    const own = this.foods()
       .filter((c) => includesCI(c.name, q))
       .sort((a, b) => Number(isParent(a)) - Number(isParent(b)))
       .map((cat) => ({ cat }));
@@ -173,7 +178,7 @@ export class PantryIngredientPick extends LitElement {
       return html`<div class="field">
         <span class="lbl">${t("recipes.ingredient.parent", { name: this.creating })}</span>
         <pantry-category-picker
-          .categories=${this.categories}
+          .categories=${this.foods()}
           .value=${null}
           @change=${(e: CustomEvent<number | null>) => this.create(e.detail)}
         ></pantry-category-picker>

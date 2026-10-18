@@ -1,16 +1,21 @@
-"""Inheritance of category values (unit, location, expiry type, warn days)."""
+"""Inheritance of category values (unit, location, expiry type, warn days, shelf life, food)."""
 
 from __future__ import annotations
 
 import sqlite3
 
-from .common import INHERITED, InventoryError
+from .common import CATEGORY_INHERITED, INHERITED, InventoryError
 
 
 def defaults(conn: sqlite3.Connection) -> dict:
     """Integration-wide defaults: the root of inheritance (table `defaults`, editable)."""
     row = conn.execute(f"SELECT {', '.join(INHERITED)} FROM defaults WHERE id = 1").fetchone()
     return dict(row) if row else dict.fromkeys(INHERITED)
+
+
+def is_food(conn: sqlite3.Connection, category_id: int) -> bool:
+    """False when the category or an ancestor is marked as not a food."""
+    return _resolve(_categories(conn), None, category_id, {})["food"]["value"] != 0
 
 
 def category_tags(conn: sqlite3.Connection) -> dict[int, list[str]]:
@@ -42,7 +47,7 @@ def _categories(conn: sqlite3.Connection) -> dict[int, sqlite3.Row]:
 
 def _resolve(cats: dict, product: dict | None, category_id: int | None, dflt: dict) -> dict:
     out = {}
-    for key in INHERITED:
+    for key in INHERITED + CATEGORY_INHERITED:
         if product is not None and product.get(key) is not None:
             out[key] = {"value": product[key], "source": "own"}
             continue

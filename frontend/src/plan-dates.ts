@@ -17,6 +17,8 @@ export const parse = (s: string) => {
 };
 export const addDays = (d: Date, n: number) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+/** ISO date `n` days after an ISO date (shelf life proposals). */
+export const plusDays = (isoDate: string, n: number) => iso(addDays(parse(isoDate), n));
 /** Monday of the week containing `d`. */
 export const monday = (d: Date) => addDays(d, -((d.getDay() + 6) % 7));
 

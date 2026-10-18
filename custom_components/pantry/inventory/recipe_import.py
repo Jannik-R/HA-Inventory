@@ -10,6 +10,7 @@ from collections.abc import Iterator
 
 from .common import InventoryError
 from .ingredient_line import parse_ingredient, unit_lookup
+from .inherit import is_food
 from .suggest import suggest, suggest_type
 
 _LD_TYPE = re.compile(r"type\s*=\s*[\"']?application/ld\+json")
@@ -122,7 +123,10 @@ def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
         # no amount: "Salz und Pfeffer" is two ingredients
         parts = _AND.split(row["text"]) if row["amount"] is None else [row["text"]]
         for part in parts:
-            ingredients.append({**row, "text": part, "category_id": suggest(conn, [], part)})
+            cid = suggest(conn, [], part)
+            if cid is not None and not is_food(conn, cid):
+                cid = None  # never suggest a non-food category (the save refuses it)
+            ingredients.append({**row, "text": part, "category_id": cid})
     ingredients = ingredients[:100]
     return {
         "name": (_text(recipe.get("name")) or url)[:200],

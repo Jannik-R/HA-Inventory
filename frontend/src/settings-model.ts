@@ -18,6 +18,8 @@ export const COLUMNS: Record<Table, string[]> = {
     "min_stock",
     "min_stock_unit_id",
     "min_packages",
+    "shelf_days",
+    "food",
   ],
 };
 export const ADD: Record<Table, string> = {

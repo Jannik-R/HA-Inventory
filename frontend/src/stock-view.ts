@@ -132,7 +132,8 @@ export class PantryStock extends LitElement {
   }
 
   private date(r: StockRow) {
-    return r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
+    const date = r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
+    return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
   }
 
   private toggle(id: string) {

@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Vorrat",
-        "description": "Lebensmittel-Vorrat einrichten. Er erscheint als \"Vorrat\" in der Seitenleiste."
+        "description": "Vorrat einrichten (Lebensmittel, Haushalt, Eingekochtes). Er erscheint als \"Vorrat\" in der Seitenleiste."
       }
     },
     "abort": {
@@ -94,6 +94,9 @@
     },
     "nothing_to_print": {
       "message": "Die Einkaufsliste hat keine offenen Einträge zum Drucken."
+    },
+    "not_food": {
+      "message": "Diese Kategorie ist kein Lebensmittel und kann keine Rezeptzutat sein."
     }
   },
   "options": {

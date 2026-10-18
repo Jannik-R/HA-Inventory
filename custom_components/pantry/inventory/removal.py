@@ -6,6 +6,7 @@ import json
 import sqlite3
 
 from .booking import correct, move
+from .canning import charge
 from .common import InventoryError
 from .master import _deactivate_location, delete
 
@@ -17,6 +18,7 @@ _SUBTREE = (
 _ORDER = (
     "category",
     "product",
+    "canning",
     "stock",
     "booking",
     "shopping_item",
@@ -142,6 +144,8 @@ def _label(conn: sqlite3.Connection, table: str, row: dict) -> str | None:
         r = conn.execute(f"SELECT name FROM {ref[0]} WHERE id = ?", (ref[1],)).fetchone()
     elif table == "meal_plan":
         return row["text"]
+    elif table == "canning":
+        return charge(row["made_on"], row["seq"])
     elif table == "recipe_ingredient":
         r = conn.execute("SELECT name FROM recipe WHERE id = ?", (row["recipe_id"],)).fetchone()
     else:

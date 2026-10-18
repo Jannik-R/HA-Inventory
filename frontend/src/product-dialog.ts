@@ -18,6 +18,7 @@ const COLUMNS = [
   "default_location_id",
   "expiry_type",
   "warn_days",
+  "shelf_days",
   "min_packages",
 ] as const;
 
@@ -65,6 +66,8 @@ export class PantryProductDialog extends LitElement {
     if (owner) e.ean = t("valid.ean_taken", { name: owner.name });
     if (p.warn_days != null && !(Number.isInteger(p.warn_days) && p.warn_days >= 0))
       e.warn_days = t("valid.days");
+    if (p.shelf_days != null && !(Number.isInteger(p.shelf_days) && p.shelf_days >= 1))
+      e.shelf_days = t("valid.shelf_days");
     return e;
   }
 
@@ -87,7 +90,7 @@ export class PantryProductDialog extends LitElement {
     const p = this.edit;
     if (!p) return html`<dialog></dialog>`;
     const err = this.errors(p);
-    const dflt = (field: "default_location_id" | "expiry_type" | "warn_days") =>
+    const dflt = (field: "default_location_id" | "expiry_type" | "warn_days" | "shelf_days") =>
       categoryDefault(this.md, p.category_id, field);
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
     return editDialog({
@@ -143,7 +146,20 @@ export class PantryProductDialog extends LitElement {
             onChange: (v) => this.set("warn_days", v),
           })}
           ${fieldMsg(err.warn_days, "warn-days")}
-        </label> `,
+        </label>
+        <label>
+          <span class="lbl" title=${t("tip.shelf_days")}>${t("settings.category.shelf_days")}</span>
+          ${inheritNumber({
+            testid: "shelf-days",
+            own: p.shelf_days,
+            dflt: dflt("shelf_days"),
+            format: (v) => fmtDays(this.hass, v),
+            suffix: t("common.days_unit"),
+            invalid: !!err.shelf_days,
+            onChange: (v) => this.set("shelf_days", v),
+          })}
+          ${fieldMsg(err.shelf_days, "shelf-days")}
+        </label>`,
       error: this.error,
       invalid: Object.keys(err).length > 0,
       dirty,

@@ -15,20 +15,21 @@ export function sourceLabel(md: MasterData, s: Source) {
 /** Value a category inherits from the (draft) parent, or from the defaults. */
 export function inherited(
   md: MasterData,
-  field: InheritField,
+  field: InheritField | "food",
   parentId: number | null,
 ): { value: number | string | null; source: Source } {
   const p = md.categories.find((c) => c.id === parentId);
-  if (!p) return { value: md.defaults[field], source: "default" };
+  if (!p) return { value: field === "food" ? null : md.defaults[field], source: "default" };
   return p[field] != null ? { value: p[field], source: p.id } : p.effective[field];
 }
 
 export function fmt(
   md: MasterData,
   hass: Hass | undefined,
-  field: InheritField,
+  field: InheritField | "food",
   v: number | string | null,
 ): string {
+  if (field === "food") return t(v === 0 ? "settings.food.no" : "settings.food.yes"); // null: root = food
   if (v == null) return t("common.none_dash");
   const { units, locations } = md;
   if (field === "unit_id") {

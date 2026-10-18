@@ -1,7 +1,7 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
-import type { Hass, Ingredient, MasterData, Recipe } from "./api";
+import { isCanning, type Hass, type Ingredient, type MasterData, type Recipe } from "./api";
 
 /** Amount for the shown servings: matched ingredients carry it as `need`, others scale `amount`. */
 const amountText = (hass: Hass, md: MasterData, i: Ingredient, factor: number) => {
@@ -48,12 +48,13 @@ export const recipeDetail = (o: {
   servings: number;
   onServings: (n: number) => void;
   onShopping: () => void;
+  /** Plan the dish; a canning recipe starts a protocol instead. */
   onPlan: () => void;
 }) => {
   const r = o.recipe;
   return html`<div class="detail-box">
     <label class="servings">
-      <span class="lbl">${t("recipes.servings")}</span>
+      <span class="lbl">${t(isCanning(r) ? "canning.recipe_jars" : "recipes.servings")}</span>
       <input
         type="number"
         min="1"
@@ -92,9 +93,15 @@ export const recipeDetail = (o: {
       <button type="button" data-testid="recipe-to-shopping" @click=${o.onShopping}>
         ${t("recipes.to_shopping")}
       </button>
-      <button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
-        ${t("recipes.to_plan")}
-      </button>
+      ${
+        isCanning(r)
+          ? html`<button type="button" data-testid="recipe-to-canning" @click=${o.onPlan}>
+              ${t("canning.add")}
+            </button>`
+          : html`<button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
+              ${t("recipes.to_plan")}
+            </button>`
+      }
       ${
         r.shopping_servings != null
           ? html`<span class="detail" data-testid="recipe-on-shopping"
@@ -103,6 +110,14 @@ export const recipeDetail = (o: {
           : nothing
       }
     </p>
+    ${
+      isCanning(r)
+        ? html`<p data-testid="recipe-canning">
+            ${t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings })}
+            ${r.canning_temp != null ? t("recipes.canning", { temp: r.canning_temp, minutes: r.canning_minutes ?? "" }) : ""}
+          </p>`
+        : nothing
+    }
     ${
       r.instructions
         ? html`<h3>${t("recipes.instructions")}</h3>

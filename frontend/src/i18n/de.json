@@ -347,5 +347,13 @@
   "recipes.ai.undo": "Rückgängig",
   "recipes.ai.changed_one": "KI-Prüfung: 1 Zutat geändert (markiert).",
   "recipes.ai.changed_many": "KI-Prüfung: {n} Zutaten geändert (markiert).",
-  "recipes.ai.steps": "KI-Prüfung: Schritte neu aufgeteilt."
+  "recipes.ai.steps": "KI-Prüfung: Schritte neu aufgeteilt.",
+  "recipes.printed": "Rezept gedruckt.",
+  "settings.section.meals": "Mahlzeiten",
+  "settings.meals.hint": "Ab wann eine Mahlzeit gilt. Bestimmt die aktuelle Mahlzeit, z. B. für die Aktion „Geplantes Rezept drucken“ ohne Angabe der Mahlzeit. Vor der ersten Startzeit gilt noch die letzte Mahlzeit des Vortags.",
+  "settings.meals.from": "ab {time} Uhr",
+  "settings.meals.edit": "Startzeiten der Mahlzeiten bearbeiten",
+  "valid.time": "Bitte eine Uhrzeit angeben.",
+  "common.print": "Drucken",
+  "plan.printed": "Speiseplan gedruckt."
 }

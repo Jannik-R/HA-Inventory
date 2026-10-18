@@ -36,7 +36,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, recipe_import, ingredient_line, meal_plan, removal, canning, steps, learned, ai_check
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, recipe_import, ingredient_line, meal_plan, removal, canning, steps, learned, ai_check, recipe_print
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
@@ -52,10 +52,10 @@ custom_components/pantry/   integration (Python)
   calendar.py               read-only meal plan calendar (Speiseplan): all-day event per dish
   backup.py                 locks the DB during HA backups
   services.py               HA services for automations (booking by code, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
-  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label print / scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan commands; websocket_canning.py: canning protocol commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
+  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning protocol commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
-  receipt.py                receipt printer (ESC/POS): shopping list as raster image, device file or raw TCP
+  receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
   fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
 frontend/                   panel source (Lit + TypeScript, Vite)
@@ -90,7 +90,7 @@ docs/guide.de.md, guide.en.md  user guide (German, English), opened from the pan
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
 - **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` with `{status: "off"}` unless a test stubs it (`wsStub`); backend tests patch `ai._generate`.
-- **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_labels` call (the dev HA may have the real printer configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
+- **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_*` command (labels, shopping list, recipe, meal plan; the dev HA may have the real printers configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX
 

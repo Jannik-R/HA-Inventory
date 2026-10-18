@@ -4,6 +4,8 @@ import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
+import "./meal-times-view";
+import { SECTIONS, type Section } from "./settings-model";
 import type { PantrySettingsDialog } from "./settings-dialog";
 import type { Draft } from "./settings-model";
 import { ADD } from "./settings-model";
@@ -18,15 +20,6 @@ import {
   type MasterData,
   type Table,
 } from "./api";
-
-// Section -> table it edits; "defaults" is one record with its own element.
-const SECTIONS = {
-  categories: "category",
-  locations: "location",
-  units: "unit",
-  defaults: null,
-} as const;
-type Section = keyof typeof SECTIONS;
 
 export class PantrySettings extends LitElement {
   static properties = {
@@ -170,11 +163,13 @@ export class PantrySettings extends LitElement {
                   </button>
                 </div>
                 ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
-            : html`<pantry-defaults
-                .hass=${this.hass}
-                .data=${this.data}
-                @pantry-saved=${this.load}
-              ></pantry-defaults>`
+            : sec === "meals"
+              ? html`<pantry-meal-times .hass=${this.hass}></pantry-meal-times>`
+              : html`<pantry-defaults
+                  .hass=${this.hass}
+                  .data=${this.data}
+                  @pantry-saved=${this.load}
+                ></pantry-defaults>`
           : nothing
       }
       <pantry-settings-dialog

@@ -53,6 +53,47 @@ print_labels:
           max: 20
           mode: box
 print_shopping_list:
+print_recipe:
+  fields:
+    recipe:
+      required: true
+      example: Lasagne
+      selector:
+        text:
+    servings:
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+print_plan:
+  fields:
+    day:
+      selector:
+        date:
+    period:
+      default: day
+      selector:
+        select:
+          translation_key: period
+          options:
+            - day
+            - week
+print_planned:
+  fields:
+    day:
+      selector:
+        date:
+    meal:
+      selector:
+        select:
+          translation_key: meal
+          options:
+            - breakfast
+            - lunch
+            - coffee
+            - dinner
+            - snack
 shop_recipe:
   fields:
     recipe:

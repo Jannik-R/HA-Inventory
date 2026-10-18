@@ -1,9 +1,9 @@
-"""Week planner: dishes per day, from a recipe or free text."""
+"""Week planner: dishes per day, from a recipe or free text; start times of the meals."""
 
 from __future__ import annotations
 
 import sqlite3
-from datetime import date, timedelta
+from datetime import date, time, timedelta
 
 from .common import InventoryError
 
@@ -73,3 +73,39 @@ def shift_meals(conn: sqlite3.Connection, day: str, slot: int, apply: bool) -> l
             [(m["id"],) for m in found],
         )
     return found
+
+
+def meal_times(conn: sqlite3.Connection) -> list[dict]:
+    """Start time ("HH:MM") per meal slot 0..4."""
+    return [dict(r) for r in conn.execute("SELECT slot, start FROM meal_time ORDER BY slot")]
+
+
+def save_meal_times(conn: sqlite3.Connection, starts: list[str]) -> None:
+    """Five start times, slot 0..4 in order."""
+    if len(starts) != 5:
+        raise InventoryError("invalid_value")
+    try:
+        conn.executemany(
+            "UPDATE meal_time SET start = ? WHERE slot = ?", [(s, n) for n, s in enumerate(starts)]
+        )
+    except sqlite3.IntegrityError as err:
+        raise InventoryError("invalid_value") from err
+
+
+def meal_at(conn: sqlite3.Connection, now: time) -> int:
+    """The current meal: latest start <= now; before the first start of the day the last one
+    (a late snack after midnight)."""
+    clock = now.strftime("%H:%M")
+    times = sorted((r["start"], r["slot"]) for r in meal_times(conn))
+    past = [slot for start, slot in times if start <= clock]
+    return past[-1] if past else times[-1][1]
+
+
+def planned_recipes(conn: sqlite3.Connection, day: date, slot: int) -> list[dict]:
+    """Dishes of that day and meal that are recipes: [{recipe_id, servings}] in plan order."""
+    rows = conn.execute(
+        "SELECT recipe_id, servings FROM meal_plan WHERE day = ? AND slot = ?"
+        " AND recipe_id IS NOT NULL ORDER BY id",
+        (day.isoformat(), slot),
+    )
+    return [dict(r) for r in rows]

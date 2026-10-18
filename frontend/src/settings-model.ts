@@ -1,5 +1,15 @@
 import type { Table } from "./api";
 
+/** Settings section -> table it edits; "defaults" and "meals" have their own element. */
+export const SECTIONS = {
+  categories: "category",
+  locations: "location",
+  units: "unit",
+  defaults: null,
+  meals: null,
+} as const;
+export type Section = keyof typeof SECTIONS;
+
 /** Draft rows, column lists and titles of the settings add/edit dialog. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Draft = Record<string, any>;

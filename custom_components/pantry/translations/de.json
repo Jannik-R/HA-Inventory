@@ -106,6 +106,12 @@
     },
     "ai_failed": {
       "message": "Die KI-Prüfung ist fehlgeschlagen. Der Entwurf bleibt wie importiert."
+    },
+    "nothing_planned": {
+      "message": "Für diese Mahlzeit ist an dem Tag kein Rezept geplant."
+    },
+    "plan_empty": {
+      "message": "Im Speiseplan ist für diesen Zeitraum nichts geplant."
     }
   },
   "options": {
@@ -310,6 +316,48 @@
           "name": "Notizen"
         }
       }
+    },
+    "print_recipe": {
+      "name": "Rezept drucken",
+      "description": "Ein Rezept auf dem Bondrucker drucken: Zutaten (auf die Portionen umgerechnet) und nummerierte Schritte.",
+      "fields": {
+        "recipe": {
+          "name": "Rezept",
+          "description": "Name des Rezepts (auch ein Einkochrezept)."
+        },
+        "servings": {
+          "name": "Portionen",
+          "description": "Leer = die Portionen des Rezepts."
+        }
+      }
+    },
+    "print_planned": {
+      "name": "Geplantes Rezept drucken",
+      "description": "Die im Speiseplan für eine Mahlzeit geplanten Rezepte mit den geplanten Portionen auf dem Bondrucker drucken.",
+      "fields": {
+        "day": {
+          "name": "Tag",
+          "description": "Leer = heute."
+        },
+        "meal": {
+          "name": "Mahlzeit",
+          "description": "Leer = die aktuelle Mahlzeit nach den Startzeiten in den Einstellungen des Panels (Mahlzeiten)."
+        }
+      }
+    },
+    "print_plan": {
+      "name": "Speiseplan drucken",
+      "description": "Den Speiseplan eines Tages oder einer Woche (Montag bis Sonntag) auf dem Bondrucker drucken.",
+      "fields": {
+        "day": {
+          "name": "Tag",
+          "description": "Leer = heute; bei einer Woche: ein beliebiger Tag darin."
+        },
+        "period": {
+          "name": "Zeitraum",
+          "description": "Tag oder Woche."
+        }
+      }
     }
   },
   "selector": {
@@ -326,6 +374,12 @@
         "coffee": "Kaffee",
         "dinner": "Abendessen",
         "snack": "Snack"
+      }
+    },
+    "period": {
+      "options": {
+        "day": "Tag",
+        "week": "Woche"
       }
     }
   }

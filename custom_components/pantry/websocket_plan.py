@@ -1,4 +1,4 @@
-"""Websocket commands for the week planner (any user)."""
+"""Websocket commands for the week planner (any user) and the meal start times (saving: admin)."""
 
 from __future__ import annotations
 
@@ -14,10 +14,18 @@ from .ws_validate import ID, NULL_ID, text
 
 DAY = vol.Datetime(format="%Y-%m-%d")
 SLOT = vol.All(int, vol.Range(min=0, max=4))
+CLOCK = vol.All(str, vol.Match(r"^([01][0-9]|2[0-3]):[0-5][0-9]$"))
 
 
 def async_register(hass: HomeAssistant) -> None:
-    for command in (ws_meal_plan, ws_meal_save, ws_meal_delete, ws_meal_shift):
+    for command in (
+        ws_meal_plan,
+        ws_meal_save,
+        ws_meal_delete,
+        ws_meal_shift,
+        ws_meal_times,
+        ws_meal_times_save,
+    ):
         websocket_api.async_register_command(hass, command)
 
 
@@ -73,3 +81,23 @@ async def ws_meal_shift(hass: HomeAssistant, connection, msg: dict) -> None:
     """Move the slot's dishes a day later up to the first gap; returns them as they were."""
     meals = await run(hass, inventory.shift_meals, msg["day"], msg["slot"], msg["apply"])
     connection.send_result(msg["id"], {"meals": meals})
+
+
+@websocket_api.websocket_command({vol.Required("type"): "pantry/meal_times"})
+@websocket_api.async_response
+async def ws_meal_times(hass: HomeAssistant, connection, msg: dict) -> None:
+    connection.send_result(msg["id"], await run(hass, inventory.meal_times))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/meal_times_save",
+        vol.Required("starts"): vol.All([CLOCK], vol.Length(min=5, max=5)),
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_meal_times_save(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Start time per meal slot 0..4 (settings, admin)."""
+    await run(hass, inventory.save_meal_times, msg["starts"])
+    connection.send_result(msg["id"])

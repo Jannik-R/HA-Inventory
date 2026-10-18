@@ -2,7 +2,15 @@ import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
 import { stepList } from "./recipe-steps";
-import { isCanning, type Hass, type Ingredient, type MasterData, type Recipe } from "./api";
+import "./receipt-button";
+import {
+  isCanning,
+  printRecipe,
+  type Hass,
+  type Ingredient,
+  type MasterData,
+  type Recipe,
+} from "./api";
 
 /** Amount for the shown servings: matched ingredients carry it as `need`, others scale `amount`. */
 export const amountText = (hass: Hass, md: MasterData, i: Ingredient, factor: number) => {
@@ -105,6 +113,12 @@ export const recipeDetail = (o: {
               ${t("recipes.to_plan")}
             </button>`
       }
+      <pantry-receipt-button
+        .hass=${o.hass}
+        .print=${() => printRecipe(o.hass, r.id, o.servings)}
+        .done=${t("recipes.printed")}
+        .testid=${"recipe-print"}
+      ></pantry-receipt-button>
       ${
         r.shopping_servings != null
           ? html`<span class="detail" data-testid="recipe-on-shopping"

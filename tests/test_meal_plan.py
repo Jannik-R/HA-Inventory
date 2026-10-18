@@ -1,5 +1,7 @@
 """Week planner: save / update / validation, range, delete, recipe delete keeps the entry."""
 
+from datetime import date, time
+
 import pytest
 
 from custom_components.pantry import inventory
@@ -111,3 +113,33 @@ def test_shift_meals_not_found(conn, day, slot) -> None:
     with pytest.raises(inventory.InventoryError) as err:
         inventory.shift_meals(conn, day, slot, True)
     assert err.value.translation_key == "not_found"
+
+
+def test_meal_times_pick_the_current_meal(conn):
+    assert [t["start"] for t in inventory.meal_times(conn)] == [
+        "05:00",
+        "11:00",
+        "14:30",
+        "17:00",
+        "20:30",
+    ]
+    assert inventory.meal_at(conn, time(4, 59)) == 4  # after midnight: still the late snack
+    assert inventory.meal_at(conn, time(5, 0)) == 0
+    assert inventory.meal_at(conn, time(12, 30)) == 1
+    assert inventory.meal_at(conn, time(18, 0)) == 3
+    inventory.save_meal_times(conn, ["06:00", "12:00", "15:00", "18:30", "22:00"])
+    assert inventory.meal_at(conn, time(18, 0)) == 2
+    for bad in (["06:00"] * 4, ["6:00", "12:00", "15:00", "18:30", "22:00"]):
+        with pytest.raises(inventory.InventoryError, match="invalid_value"):
+            inventory.save_meal_times(conn, bad)
+
+
+def test_planned_recipes_skip_free_text(conn):
+    pasta = recipe(conn)
+    inventory.save_meal(conn, meal(slot=3, recipe_id=pasta, servings=4))
+    inventory.save_meal(conn, meal(slot=3, text="Pizza vom Lieferdienst"))
+    inventory.save_meal(conn, meal(slot=1, recipe_id=pasta))
+    assert inventory.planned_recipes(conn, date(2026, 10, 19), 3) == [
+        {"recipe_id": pasta, "servings": 4}
+    ]
+    assert inventory.planned_recipes(conn, date(2026, 10, 20), 3) == []

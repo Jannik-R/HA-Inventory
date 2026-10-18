@@ -82,6 +82,14 @@ def _recipe(conn: sqlite3.Connection, name: str, canning: bool = False) -> sqlit
     return next(r for r in rows if r["id"] == found)
 
 
+def recipe_by_name(conn: sqlite3.Connection, recipe: str) -> int:
+    """Any recipe (dish first, then canning recipe) by name, for printing."""
+    try:
+        return _recipe(conn, recipe)["id"]
+    except InventoryError:
+        return _recipe(conn, recipe, canning=True)["id"]
+
+
 def shop_recipe_by_name(conn: sqlite3.Connection, recipe: str, servings: int) -> dict:
     """Put a recipe on the shopping list (again: its servings change, optional ones are dropped)."""
     recipe_id = _recipe(conn, recipe)["id"]

@@ -26,6 +26,7 @@ export const recipesStyles = css`
   }
   .shopping {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
     margin: 8px 0;

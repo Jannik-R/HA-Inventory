@@ -18,6 +18,14 @@ def is_food(conn: sqlite3.Connection, category_id: int) -> bool:
     return _resolve(_categories(conn), None, category_id, {})["food"]["value"] != 0
 
 
+def food_named(conn: sqlite3.Connection, name: str) -> int | None:
+    """A food category with this name (any level, case ignored), else None."""
+    for r in conn.execute("SELECT id, name FROM category WHERE name LIKE ?", (name,)):
+        if r["name"].casefold() == name.casefold() and is_food(conn, r["id"]):
+            return r["id"]
+    return None
+
+
 def category_tags(conn: sqlite3.Connection) -> dict[int, list[str]]:
     """OFF tags per category id (categories without tags are missing)."""
     out: dict[int, list[str]] = {}

@@ -54,7 +54,8 @@ export const applyAi = (
     ingredients[k] = {
       ...ingredients[k],
       category_id: c.category_id,
-      text: cat?.name ?? ingredients[k].source_text ?? ingredients[k].text,
+      new_type: c.new_type,
+      text: c.new_type?.name ?? cat?.name ?? ingredients[k].source_text ?? ingredients[k].text,
       ai: { before: was.category_id, beforeText: was.text, reason: c.reason },
     };
     changed++;

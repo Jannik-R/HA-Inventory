@@ -4,6 +4,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
+import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -92,6 +93,49 @@ def test_changes_keep_only_valid_real_ones(conn):
     got = inv.ai_changes(conn, d, {"ok": False, "steps": sections})["steps"]
     assert [s["section"] for s in got] == ["Teig", None, "Füllung"]
     assert inv.ai_changes(conn, d, "nonsense") == {"ok": True}
+
+
+def test_changes_propose_new_product_types(conn):
+    d = draft(conn)
+    spices, batteries = cat(conn, "Gewürze"), cat(conn, "Batterien")
+
+    def new(name, parent):
+        answer = {"index": 1, "category_id": 0, "new_type": {"name": name, "parent_id": parent}}
+        return inv.ai_changes(conn, d, {"ok": False, "ingredients": [answer | {"reason": "r"}]})
+
+    assert new(" Testgewürz ", spices)["ingredients"] == [
+        {
+            "index": 1,
+            "category_id": None,
+            "new_type": {"name": "Testgewürz", "parent_id": spices},
+            "reason": "r",
+        }
+    ]
+    # a type the tree has already is linked instead
+    assert new("sumach", spices)["ingredients"][0]["category_id"] == cat(conn, "Sumach")
+    assert "new_type" not in new("sumach", spices)["ingredients"][0]
+    # unknown or non-food parent, empty or overlong name: dropped (row 1 has no category)
+    for name, parent in [("X", 999999), ("X", batteries), (" ", spices), ("x" * 61, spices)]:
+        assert new(name, parent) == {"ok": True}
+
+
+def test_save_adds_the_proposed_product_type(conn):
+    spices = cat(conn, "Gewürze")
+    ing = {"category_id": None, "new_type": {"name": "Testgewürz", "parent_id": spices}}
+    recipe_id = inv.save_recipe(
+        conn, {"name": "R", "servings": 1, "ingredients": [ing, {**ing, "source_text": "Tg"}]}
+    )
+    rows = conn.execute(
+        "SELECT category_id, text FROM recipe_ingredient WHERE recipe_id = ?", (recipe_id,)
+    ).fetchall()
+    new = cat(conn, "Testgewürz")
+    assert [tuple(r) for r in rows] == [(new, "Testgewürz"), (new, "Testgewürz")]
+    parent = conn.execute("SELECT parent_id FROM category WHERE id = ?", (new,)).fetchone()[0]
+    assert parent == spices
+    assert learned(conn, "ingredient", "Tg") == new
+    bad = {"category_id": None, "new_type": {"name": "Y", "parent_id": cat(conn, "Batterien")}}
+    with pytest.raises(inv.InventoryError):
+        inv.save_recipe(conn, {"name": "R2", "servings": 1, "ingredients": [bad]})
 
 
 def test_import_choice_is_learned(conn):

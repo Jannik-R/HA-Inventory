@@ -246,6 +246,8 @@ export interface Ingredient {
   learned?: boolean;
   /** Changed by the AI check (dialog only, never saved): the previous choice for undo. */
   ai?: { before: number | null; beforeText: string; reason: string };
+  /** Proposed by the AI check (category_id stays null until the save adds it). */
+  new_type?: NewType;
   status?: IngredientStatus;
   /** With an amount (matched): need/have/missing in `unit_symbol`. */
   need?: number;
@@ -292,12 +294,19 @@ export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
 export const isCanning = (r: Recipe) => r.canning_product_id != null;
 export const importRecipe = (hass: Hass, url: string) =>
   hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", url });
+/** A product type the AI check proposes; added below parent_id when the recipe is saved. */
+export type NewType = { name: string; parent_id: number };
 /** AI check of an import draft (phase 13c): off (no AI set up), ok, or only the changes. */
 export type AiCheck =
   | { status: "off" | "ok" }
   | {
       status: "changes";
-      ingredients: { index: number; category_id: number | null; reason: string }[];
+      ingredients: {
+        index: number;
+        category_id: number | null;
+        new_type?: NewType;
+        reason: string;
+      }[];
       steps?: Step[];
     };
 export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>

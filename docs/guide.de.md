@@ -192,7 +192,10 @@ unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst 
 Oben steht „KI prüft das Rezept …“; Speichern wartet so lange, **Nicht abwarten** überspringt die
 Prüfung. Danach steht dort „keine Änderungen“ oder was die KI geändert hat: Zutaten mit besserer
 Kategorie sind markiert („Von der KI geändert: … (vorher: …)“, mit **Rückgängig**), ein langer
-Textblock ist in Schritte geteilt (**Schritte zurücksetzen** stellt ihn wieder her). Prüfe die
+Textblock ist in Schritte geteilt (**Schritte zurücksetzen** stellt ihn wieder her). Fehlt im
+Kategoriebaum ein passender Produkttyp (z. B. ein seltenes Gewürz), schlägt die KI einen neuen
+unter der passenden Kategorie vor („KI schlägt neuen Produkttyp … vor“); er wird erst beim
+Speichern angelegt, **Rückgängig** verwirft den Vorschlag. Prüfe die
 Änderungen vor dem Speichern. Schlägt die KI fehl, bleibt der Entwurf wie importiert.
 
 Vorrat merkt sich, welche Kategorie du für eine importierte Zutat gespeichert hast: Beim nächsten

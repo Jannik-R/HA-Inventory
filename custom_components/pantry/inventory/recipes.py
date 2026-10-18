@@ -7,11 +7,26 @@ import sqlite3
 
 from .amounts import _demand, _have, _stock_amount, _stock_by_category, _units, egg_part
 from .common import InventoryError, _exists
-from .inherit import _categories, _resolve, children, defaults
+from .inherit import _categories, _resolve, children, defaults, food_named, is_food
 from .learned import learn
 from .master import save
 from .products import add_product
 from .steps import MAX_STEPS, timers
+
+
+def _with_new_type(conn: sqlite3.Connection, ing: dict) -> dict:
+    """An ingredient whose new_type {name, parent_id} (proposed by the AI check) becomes a product
+    type below that parent; one that exists already (any food category of that name) is used."""
+    new = ing.get("new_type")
+    if not new or ing.get("category_id") is not None:
+        return ing
+    _exists(conn, "category", new["parent_id"])
+    if not is_food(conn, new["parent_id"]):
+        raise InventoryError("not_food")
+    cid = food_named(conn, new["name"].strip()) or save(
+        conn, "category", {"name": new["name"], "parent_id": new["parent_id"]}
+    )
+    return {**ing, "category_id": cid}
 
 
 def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
@@ -28,6 +43,7 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
         data["canning_product_id"] = add_product(conn, new_product)
     _exists(conn, "product", data.get("canning_product_id"))
     recipe_id = save(conn, "recipe", data)
+    ingredients = [_with_new_type(conn, ing) for ing in ingredients]
     names = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM category")}
     cats = _categories(conn)
     # optional ingredients chosen for the shopping list survive the re-insert (matched by text)

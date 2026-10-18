@@ -24,6 +24,10 @@ ANSWER = probatio.Schema(
             {
                 probatio.Required("index"): int,
                 probatio.Required("category_id"): int,
+                probatio.Optional("new_type"): {
+                    probatio.Required("name"): str,
+                    probatio.Required("parent_id"): int,
+                },
                 probatio.Optional("reason"): str,
             }
         ],

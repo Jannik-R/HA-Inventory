@@ -193,7 +193,10 @@ save. Each ingredient shows its original line; check the suggested product types
 line says "KI prüft das Rezept …" (checking); saving waits, **Nicht abwarten** (do not wait) skips
 the check. Afterwards it says "keine Änderungen" (no changes) or what the AI changed: ingredients
 with a better category are marked ("Von der KI geändert: … (vorher: …)", with **Rückgängig** /
-undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). Check the
+undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). When the
+category tree has no fitting product type (e.g. a rare spice), the AI proposes a new one below the
+right category ("KI schlägt neuen Produkttyp … vor"); it is only added when you save, **Rückgängig**
+drops the proposal. Check the
 changes before saving. If the AI fails, the draft stays as imported.
 
 Pantry remembers the category you saved for an imported ingredient: the next import of the same

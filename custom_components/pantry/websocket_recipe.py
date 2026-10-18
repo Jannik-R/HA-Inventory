@@ -22,6 +22,10 @@ INGREDIENT = {
     vol.Optional("skip_stock"): bool,
     # imported rows: the parsed text, so the save can learn the chosen category
     vol.Optional("source_text"): vol.Any(None, text(200)),
+    # proposed by the AI check: a product type to add below parent_id (used when no category_id)
+    vol.Optional("new_type"): vol.Any(
+        None, {vol.Required("name"): text(60), vol.Required("parent_id"): ID}
+    ),
 }
 
 STEP = {vol.Required("text"): text(2000), vol.Optional("section"): vol.Any(None, text(100))}

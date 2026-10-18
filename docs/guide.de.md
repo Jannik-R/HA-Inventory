@@ -56,6 +56,8 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 ## 2. Einkäufe einbuchen
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/book-in-dark.png"><img src="images/book-in-light.png" alt="Dialog Produkt zubuchen nach dem Scan eines bekannten Produkts" width="300"></picture></p>
+
 Öffne **Bestand** und stelle den Schalter vor dem Eingabefeld auf **+** (Einbuchen). Die drei
 Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der gewählte ist gefüllt.
 Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst.
@@ -125,6 +127,8 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pa
 
 ## 4. Bestand ansehen und korrigieren
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stock-dark.png"><img src="images/stock-light.png" alt="Tab Bestand mit aufgeklapptem Kategoriebaum" width="300"></picture></p>
+
 **Bestand** zeigt den Kategoriebaum mit allem, was da ist, mit Anzahl und frühestem Datum.
 
 - Eine Zeile antippen klappt sie auf. Ein Produkt zeigt seine Chargen (Datum, Lagerort, Packungen).
@@ -143,6 +147,8 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pa
 
 ## 5. Was läuft ab?
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-dark.png"><img src="images/expiry-light.png" alt="Tab Ablauf mit abgelaufenen und bald fälligen Chargen" width="300"></picture></p>
+
 **Ablauf** listet alle abgelaufenen (rot) und bald ablaufenden (orange) Chargen, das früheste Datum
 zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geerbt oder eigen).
 **Warnschwelle** setzt vorübergehend eine Zahl für alle, z. B. 14 Tage zur Essensplanung; gespeichert
@@ -153,6 +159,8 @@ wird nichts.
 > eine Benachrichtigung aufs Handy.
 
 ## 6. Einkaufsliste
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-dark.png"><img src="images/shopping-light.png" alt="Tab Einkauf mit Einträgen aus einem Rezept" width="300"></picture></p>
 
 **Einkauf** entsteht aus drei Quellen:
 
@@ -199,6 +207,8 @@ Einträge, nach Hauptkategorien sortiert, und schneidet das Papier ab. Der Knopf
 ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 7. Rezepte
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/recipe-dark.png"><img src="images/recipe-light.png" alt="Aufgeklapptes Rezept mit Zutatenstatus und Schritten" width="300"></picture></p>
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
 [Einkochen](#7b-einkochen), nicht hier). Das Suchfeld findet Name und
@@ -293,6 +303,8 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 
 ## 7a. Speiseplan
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-dark.png"><img src="images/plan-light.png" alt="Speiseplan in der Wochenansicht am Handy" width="300"></picture></p>
+
 **Speiseplan** zeigt den Plan als **Tag**, **Woche** oder **Monat** (Schaltflächen oben). **Zurück** und **Weiter** springen um einen Tag, eine Woche oder einen Monat, je nach Ansicht; **Heute** springt zum heutigen Datum. **Tag** zeigt immer heute.
 
 - **Woche**: Tabelle mit einer Zeile pro Mahlzeit und einer gleich breiten Spalte pro Tag. Auf dem Handy wird jeder Tag zu einem Block, der nur seine Gerichte zeigt, dazu ein **+**. Ein Tipp auf die Tagesüberschrift öffnet die Tagesansicht dieses Tags.
@@ -320,6 +332,8 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
 ## 7b. Einkochen
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-dark.png"><img src="images/canning-light.png" alt="Tab Einkochen mit Einkochprotokollen" width="300"></picture></p>
 
 Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) bucht Vorrat über ein **Einkochprotokoll**
 ein. Jedes Protokoll bekommt eine Charge. Die Etiketten tragen sie, daher bucht ein Scan genau ein

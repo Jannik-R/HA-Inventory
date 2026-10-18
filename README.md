@@ -417,6 +417,14 @@ Browser tests (Playwright, local only, against the running dev HA; uses the inst
 cd frontend && npm run test:e2e
 ```
 
+Screenshots for the user guide (`docs/images/`, phone width, light and dark theme) are made the
+same way, on demand only. The spec (`frontend/e2e/screenshots.docs.ts`) creates demo data, takes
+the shots and removes the data again. Rerun it after visible UI changes and commit the images:
+
+```bash
+cd frontend && npm run docs:screenshots
+```
+
 Backend tests run in a container with the same image as HA:
 
 ```bash

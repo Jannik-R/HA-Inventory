@@ -53,6 +53,8 @@ export async function cleanupE2E(page: Page) {
     name: string;
   }[];
   for (const p of products) if (p.name.startsWith("E2E ")) await del("product", p.id);
+  const recipes = (await ws(page, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  for (const r of recipes) if (r.name.startsWith("E2E ")) await del("recipe", r.id);
   const md = (await ws(page, { type: "pantry/master_data" })) as Record<
     string,
     { id: number; name: string }[]

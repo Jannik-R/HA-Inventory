@@ -122,6 +122,7 @@ docker compose -f dev/docker-compose.yml run --rm test   # backend tests, parall
 cd frontend && npm run build          # build panel bundle
 cd frontend && npm run dev            # watch build
 cd frontend && npm run test:e2e       # Playwright against the running dev HA (local only)
+cd frontend && npm run docs:screenshots  # regenerate the guide screenshots in docs/images (dev HA)
 cd frontend && npm run typecheck:e2e  # type-check the E2E specs (runs in CI)
 docker compose -f dev/docker-compose.yml run --rm --entrypoint sh test -c "pip install -q -r requirements_test.txt && ruff check --fix . && ruff format ."   # Python lint + format (CI checks both)
 docker compose -f dev/docker-compose.yml up -d homeassistant   # dev HA on :8123

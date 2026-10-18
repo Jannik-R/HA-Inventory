@@ -5,11 +5,22 @@ from __future__ import annotations
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from . import ai, inventory, recipe_fetch
 from .websocket_stock import _NEW_PRODUCT
 from .ws_common import db_of, run, translated
-from .ws_validate import CANNING_MINUTES, CANNING_TEMP, HTTP_URL, ID, NAME, NULL_ID, POSITIVE, text
+from .ws_validate import (
+    CANNING_MINUTES,
+    CANNING_TEMP,
+    DAYS,
+    HTTP_URL,
+    ID,
+    NAME,
+    NULL_ID,
+    POSITIVE,
+    text,
+)
 
 SERVINGS = vol.All(int, vol.Range(min=1, max=99))
 INGREDIENT = {
@@ -34,6 +45,7 @@ STEP = {vol.Required("text"): text(2000), vol.Optional("section"): vol.Any(None,
 def async_register(hass: HomeAssistant) -> None:
     for command in (
         ws_recipes,
+        ws_expiring_recipes,
         ws_recipe_availability,
         ws_recipe_save,
         ws_recipe_import,
@@ -52,6 +64,15 @@ def async_register(hass: HomeAssistant) -> None:
 @websocket_api.async_response
 async def ws_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.recipes))
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "pantry/expiring_recipes", vol.Optional("days"): DAYS}
+)
+@websocket_api.async_response
+async def ws_expiring_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
+    result = await run(hass, inventory.expiring_recipes, dt_util.now().date(), msg.get("days"))
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(

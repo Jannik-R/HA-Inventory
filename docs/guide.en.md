@@ -155,6 +155,12 @@ like booking in: scanner, camera or name, then the dialog.
 within the product's *Warnung vor Ablauf* (expiry warning, own or inherited). **Warnschwelle**
 temporarily sets one value for all, e.g. 14 days for meal planning; nothing is saved.
 
+Below, **Rezepte für Ablaufendes** (recipes for expiring items) suggests recipes that use up expiring or
+expired food (same threshold as the list, including the temporary one). Recipes using the most expiring
+ingredients come first, then the one with more ingredients in stock. Tap one to open the recipe. In the
+**Rezepte** tab such a recipe is marked "Ablaufendes: n"; *Nur mit Ablaufendem* (only with expiring
+items) filters on it.
+
 > [!TIP]
 > For automations there are the sensors *Abgelaufen* (expired) and *Läuft bald ab* (expiring
 > soon), see the [README](../README.md#sensors), e.g. for a phone notification.

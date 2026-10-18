@@ -452,6 +452,7 @@ async def test_recipes(ws, hass_admin_user) -> None:
     rid = msg["result"]["id"]
     (recipe,) = (await ws.call({"type": "pantry/recipes"}))["result"]
     assert recipe["ingredients"][0]["text"] == "Nudeln" and recipe["summary"]["total"] == 1
+    assert (await ws.call({"type": "pantry/expiring_recipes", "days": 3}))["result"] == []
     msg = await ws.call({"type": "pantry/recipe_availability", "recipe_id": rid, "servings": 4})
     assert msg["result"][0]["status"] == "missing"
     msg = await ws.call({"type": "pantry/delete", "table": "recipe", "row_id": rid})

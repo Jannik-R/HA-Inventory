@@ -1,5 +1,7 @@
 """Recipes: save, availability against the stock, delete behaviour."""
 
+from datetime import date
+
 import pytest
 
 from custom_components.pantry import db
@@ -307,3 +309,21 @@ def test_egg_parts_count_together(conn):
         ("partial", 5),
         ("partial", 5),
     ]
+
+
+def test_expiring_recipes_ranking(conn):
+    today = date(2026, 1, 1)
+    where = loc(conn)
+    for name, cat_name, exp in (("N", "Nudeln", "2025-12-31"), ("R", "Reis", "2026-01-02")):
+        pid = product(conn, name, cat_name)
+        inv.book_in(conn, pid, 1, exp, where)
+    late = product(conn, "Mehl", "Mehl")
+    inv.book_in(conn, late, 1, "2030-01-01", where)  # not expiring
+    both = recipe(conn, [ing(conn, "Nudeln"), ing(conn, "Reis")], name="Beides")
+    one = recipe(conn, [ing(conn, "Nudeln"), ing(conn, "Mehl")], name="Eins")
+    optional = recipe(conn, [ing(conn, "Reis", optional=True), ing(conn, "Mehl")], name="Opt")
+    got = inv.expiring_recipes(conn, today)
+    assert [r["recipe_id"] for r in got] == [both, one]
+    assert got[0]["used"] == 2 and got[0]["products"] == ["N", "R"]
+    assert optional not in [r["recipe_id"] for r in got]
+    assert [r["recipe_id"] for r in inv.expiring_recipes(conn, today, days=0)] == [both, one]

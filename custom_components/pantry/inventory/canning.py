@@ -62,6 +62,8 @@ def save_canning(conn: sqlite3.Connection, data: dict, user_id: str | None = Non
     # a canning recipe always makes its product
     product_id = (recipe and recipe[0]) or data.get("product_id")
     if product_id is None:
+        if "product" not in data:  # neither a canning recipe nor a product given
+            raise InventoryError("not_found")
         product_id = add_product(conn, data["product"])  # any user may create a product
     eff = effective(conn, product_id)  # raises not_found
     location_id = data.get("location_id") or eff["default_location_id"]["value"]

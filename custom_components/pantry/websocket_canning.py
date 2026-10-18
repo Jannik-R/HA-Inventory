@@ -35,7 +35,7 @@ async def ws_cannings(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/canning_save",
-        # new: made_on, jars, location and an existing or a new product; edit: id + process data
+        # new: made_on, jars, location and a canning recipe or a product (existing or new); edit: id + process data
         vol.Required("data"): vol.Any(
             {vol.Required("id"): ID, **_PROCESS},
             {
@@ -52,9 +52,5 @@ async def ws_cannings(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.async_response
 async def ws_canning_save(hass: HomeAssistant, connection, msg: dict) -> None:
     """Returns {id, batch_id, charge}; a new protocol books its jars in as a new charge."""
-    data = msg["data"]
-    if "id" not in data and "product_id" not in data and "product" not in data:
-        connection.send_error(msg["id"], websocket_api.ERR_INVALID_FORMAT, "product required")
-        return
-    result = await run(hass, inventory.save_canning, data, connection.user.id)
+    result = await run(hass, inventory.save_canning, msg["data"], connection.user.id)
     connection.send_result(msg["id"], result)

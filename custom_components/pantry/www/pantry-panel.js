@@ -4221,6 +4221,7 @@ var Jr = o`
   }
   .amt {
     flex: none;
+    white-space: pre; /* keep the leading space: a flex item drops it otherwise */
   }
   .refs {
     display: flex;

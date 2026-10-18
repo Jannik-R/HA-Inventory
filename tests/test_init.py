@@ -92,6 +92,7 @@ async def test_options_flow_browser(hass: HomeAssistant) -> None:
     form = {"label_width": 100, "label_height": 60, "print_on_book_in": False}
     result = await hass.config_entries.options.async_configure(result["flow_id"], form)
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     assert entry.options == {**form, "label_printer": "browser"}
 
 
@@ -132,6 +133,7 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
             result["flow_id"], {**form, "test_print": True}
         )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     send.assert_awaited_once()
     assert send.await_args.args[0] == "10.0.0.5" and send.await_args.args[2] == 9100
     assert entry.options == {**form, "label_printer": "dymo_lw4xx"}  # test_print is not stored
@@ -174,4 +176,5 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
         result["flow_id"], {"household_servings": 4}
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()  # saving reloads the entry
     assert entry.options == {"household_servings": 4}

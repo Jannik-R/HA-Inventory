@@ -5,7 +5,7 @@
 Vorrat ist die Vorratsverwaltung in Home Assistant. Du buchst Vorräte per Barcode oder Name ein
 und aus: Lebensmittel, Batterien, Haushaltswaren, Medikamente und selbst eingekochte Gläser. Vorrat merkt sich, wo was liegt und wann es abläuft, erinnert an Ablaufendes und schreibt
 die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Installation und
-Technik stehen im [README](../README.md).
+Technik stehen im [README](../README.de.md).
 
 Du findest Vorrat in der Seitenleiste von Home Assistant. Das Fragezeichen oben rechts öffnet diese
 Anleitung. Oben gibt es diese Tabs:
@@ -149,7 +149,7 @@ zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geer
 wird nichts.
 
 > [!TIP]
-> Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe README), z. B. für
+> Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe [README](../README.de.md#sensoren)), z. B. für
 > eine Benachrichtigung aufs Handy.
 
 ## 6. Einkaufsliste
@@ -192,7 +192,8 @@ die fehlende Menge ändert, z. B. wenn du nur einen Teil eingekauft hast.
 
 Dieselbe Liste gibt es als To-do-Liste **Einkaufsliste** in Home Assistant und in der Companion-App.
 Dort kannst du abhaken und Einträge mit dem genauen Namen eines Produkts oder einer Kategorie
-hinzufügen.
+hinzufügen (die Entität heißt `todo.vorrat_einkaufsliste`). **Erledigte entfernen** löscht dort nur
+abgehakte Einträge, die von Hand hinzugefügt wurden; Mindestmengen-Einträge bleiben, bis der Bestand da ist.
 
 **Einkaufszettel drucken**: Mit einem Bondrucker druckt dieser Knopf alle noch nicht abgehakten
 Einträge, nach Hauptkategorien sortiert, und schneidet das Papier ab. Der Knopf erscheint nur, wenn
@@ -391,7 +392,7 @@ im Gefrierschrank und buchst sie per Scan aus.
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.
 `/dev/bondrucker`) oder die Netzwerkadresse. Dazu Papierbreite, Abschneiden und bei seriellen
 Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern. Die technische
-Einrichtung (USB an Docker durchreichen) steht im README unter *Bondrucker*.
+Einrichtung (USB an Docker durchreichen) steht im [README](../README.de.md#bondrucker).
 
 ## 9. Kategorien, Produktarten und Vererbung
 
@@ -446,7 +447,7 @@ Gepunktet unterstrichene Beschriftungen erklären sich, wenn du mit der Maus dar
 <details>
 <summary><b>Die Kamera startet nicht.</b></summary>
 
-Der Kamerascan braucht HTTPS (oder `localhost`) und die Kamera-Berechtigung im Browser bzw. in der App.
+Der Kamerascan braucht HTTPS (oder `localhost`) und die Kamera-Berechtigung im Browser bzw. in der App. Browser ohne eingebaute Barcode-Erkennung (iPhone, Firefox, Windows) laden beim ersten Scan einen mitgelieferten Decoder; von fremden Servern wird nichts geladen.
 
 </details>
 
@@ -474,6 +475,6 @@ Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem St
 <details>
 <summary><b>Automationen</b></summary>
 
-Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe README).
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe [README](../README.de.md#aktionen-automationen)).
 
 </details>

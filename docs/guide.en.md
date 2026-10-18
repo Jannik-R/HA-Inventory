@@ -150,7 +150,7 @@ temporarily sets one value for all, e.g. 14 days for meal planning; nothing is s
 
 > [!TIP]
 > For automations there are the sensors *Abgelaufen* (expired) and *Läuft bald ab* (expiring
-> soon), see the README, e.g. for a phone notification.
+> soon), see the [README](../README.md#sensors), e.g. for a phone notification.
 
 ## 6. Shopping list
 
@@ -191,7 +191,9 @@ Ticking strikes an item through. A minimum stock item comes back by itself when 
 changes, e.g. after buying only part of it.
 
 The same list is the to-do list **Einkaufsliste** in Home Assistant and the companion app. You can
-tick items there and add items by the exact name of a product or category.
+tick items there and add items by the exact name of a product or category (the entity is
+`todo.vorrat_einkaufsliste`). **Erledigte entfernen** (remove completed) there only deletes ticked items
+added by hand; minimum stock items stay until the stock is there.
 
 **Einkaufszettel drucken** (print shopping list): with a receipt printer this button prints all
 unticked items, sorted by main category, and cuts the paper. It only shows when a receipt printer is
@@ -385,7 +387,7 @@ the freezer and book them out by scanning.
 Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
 `/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
 baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB
-into Docker) is in the README under *Bondrucker*.
+into Docker) is in the [README](../README.md#receipt-printer-bondrucker).
 
 ## 9. Categories, product types and inheritance
 
@@ -441,7 +443,7 @@ Labels with a dotted underline explain themselves when you hover the mouse over 
 <details>
 <summary><b>The camera does not start.</b></summary>
 
-Camera scanning needs HTTPS (or `localhost`) and camera permission in the browser or app.
+Camera scanning needs HTTPS (or `localhost`) and camera permission in the browser or app. Browsers without a built-in barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.
 
 </details>
 
@@ -469,6 +471,6 @@ Right after the booking use **Rückgängig**, otherwise fix the batch with the p
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see README).
+For scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see [README](../README.md#services-automations)).
 
 </details>

@@ -15,7 +15,7 @@ equal `manifest.json` → `version` (HACS and HA show that number).
       (`git log --oneline v<last>..main`), grouped *Added / Changed / Fixed*; note DB migrations and anything the user must do.
 - [ ] `hacs.json` → `homeassistant`: minimum HA version = the HA image CI tests against (`.github/workflows/ci.yml`,
       same as `dev/docker-compose.yml`); never guess lower.
-- [ ] README status line current.
+- [ ] README status line current (README.md and README.de.md).
 - [ ] Build (`cd frontend && npm run build`), backend tests, ruff (skill `ha-dev`); bundle must be unchanged or committed.
 - [ ] Commit "Release <version>", PR to `main`, green CI, user merges.
 

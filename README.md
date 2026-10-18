@@ -1,5 +1,7 @@
 # Home Inventory (Vorrat) for Home Assistant
 
+*Deutsch: [README.de.md](README.de.md)*
+
 Household inventory (food, batteries, household goods, medicine, home-canned jars) as a Home Assistant
 custom integration: book items in and out by barcode or name, track batches with best-before / use-by
 dates per storage location, see what expires soon, and get a brand-independent shopping list from
@@ -21,7 +23,7 @@ Available:
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
-- Shopping list on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
+- Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
 - Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
 - Shelf life (*Haltbarkeit*, days, inherited like the warning): booking in proposes today + shelf life as expiry date; seeded *Eingekochtes* (365 days)
@@ -29,132 +31,92 @@ Available:
 
 Planned:
 
-- Receipt printer for recipes
 - Shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
+## Installation
+
+Requires Home Assistant 2026.10.1 or newer.
+
+HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
+
+Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
+
+Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
+
+**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
+
 ## Usage
 
-**User guide** (how to use it, step by step): [Deutsch](docs/guide.de.md) · [English](docs/guide.en.md).
-The question mark in the panel header opens it in the Home Assistant language.
+**User guide** (how to use it, step by step, with screenshots): [Deutsch](docs/guide.de.md) · [English](docs/guide.en.md).
+The question mark in the panel header opens it in the Home Assistant language. The panel itself is in
+German; the English guide names buttons by their German labels.
 
-Labels with a dotted underline (e.g. *Mindestanzahl*, *Datumsart*, *Nicht gegen den Vorrat prüfen*)
-explain the field in a tooltip on mouse hover; icon buttons (edit, delete, open/close) name their
-action the same way. Touch screens do not show tooltips.
+## Setup
 
-### Bestand (stock and products)
+All options are under *Settings > Devices & services > Home Inventory > Configure*: modules, label
+printer, receipt printer, AI check of recipe imports and household size.
 
-The category tree (only branches with stock, each with its package count), products as leaves
-with their total packages and earliest date. Tap a row (arrow on the left) to open it; a product
-shows its batches (date, location, packages). The search field (focused, so a
-scanner can type an EAN) matches name, brand, EAN, category and location and opens the tree down to all hits;
-*Auch Produkte ohne Bestand* (off by default) also lists products with 0 Pkg. (all locations
-only), so they can still be edited or deleted; their row opens the edit dialog.
-*Alle Lagerorte* filters by location. Expired dates are red, dates within the warning period
-(the product's or category's *Warnung vor Ablauf*) orange.
+### Label printer (Etikettendrucker)
 
-- **Product row**: pencil = change name, brand, EAN, category, content, and the product's own
-  defaults (location, date type, warning days) that override the category's, and its own
-  *Mindestanzahl* (optional, packages; also when creating it while booking in; below it the product goes on the shopping list). Admins also get a
-  bin: deletes the product with its stock and booking history (asks first, naming the stock).
-- **Batch row**: minus = take one package out of that batch and location (only there, so you
-  look at the batches first); *Rückgängig* books it back in. Pencil = fix this batch at this
-  location: date and packages (e.g. a mistyped date; 0 removes it). The date type
-  (best before / use by) is set on the product, not per batch. A date that another
-  batch of the product already has merges into that batch. The change is logged as a correction.
+Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN; canning
+labels contain the charge), product name, brand and expiry date. Scanning a label in *Bestand* books
+out one package of that batch.
 
-### Ablauf (expiry)
+Choose *Etikettendrucker*. Step 1: the *Modell des Etikettendruckers*. Step 2: the settings of that
+model, label size in mm and whether to print on book-in. Models:
 
-All batches that are expired (red) or within their warning period (orange), earliest date first,
-with the days left ("vor 2 Tagen", "morgen"), location and packages. The warning period is each
-product's *Warnung vor Ablauf* (own or inherited). *Warnschwelle* overrides it for all products
-while the page is open (e.g. 14 days when planning meals); empty = per product. Nothing is saved.
-The minus button takes one package out of that batch, with *Rückgängig* like in *Bestand*.
+- *Dymo LabelWriter 450 / 4xx*: network via a USB print server (e.g. TP-Link with a fixed IP and raw
+  printing enabled): enter the printer as `host` or `host:port` (port defaults to 9100). Or USB on the
+  HA host: enter the device path, e.g. `/dev/usb/lp0` (in Docker pass it with `devices:`, as for the
+  receipt printer). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints
+  the last ~3 mm of a 57 x 32 label, so that space stays blank. *Testetikett drucken* sends one label
+  when you save; if the printer is not reachable the form says so.
+- *Kein Drucker*: the browser print dialog opens with one page per label (choose the label printer
+  there; the page size is the label size, 10 to 200 mm).
 
-### Einkauf (shopping list)
+### Receipt printer (Bondrucker)
 
-The list is shown as the category tree (same order as everywhere). Only rows with something to buy
-have a checkbox: a category below its minimum stock, e.g. "Nudeln – 500 g und 2 Pkg. fehlen", or an
-item added by hand; the other categories are just the way there. The minimum counts the whole category including its subcategories; a minimum further up
-only lists what is missing beyond the minimums below ("weitere 0,2 kg fehlen (beliebig aus der
-Kategorie)"), so a category only shows up as an item when something beyond its subcategories is
-needed. A product with its own *Mindestanzahl* (set on *Bestand*) is listed by itself
-("Barilla · 2 Pkg. fehlen") below its category, and what it lacks counts toward its categories'
-minimums too. Products without a content (e.g. 500 g) count for the package minimum only. A ticked item is
-struck through and stays in place; a minimum stock item is unticked again by itself as soon as the
-missing amount changes (e.g. after booking in only part of it).
-A count unit (*Stück*) uses the package content, so a 10er pack of eggs is 10 Stück, for the minimum stock too.
+Prints the shopping list, recipes and the meal plan on an ESC/POS receipt printer (58 or 80 mm, e.g.
+TPG A799), as an image, so umlauts and fonts work on every printer; with a cutter the paper is cut at
+the end. Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. a Raspberry Pi):
 
-*Zur Einkaufsliste hinzufügen* puts something on the list by hand: type a name, pick a matching
-product or category (a category means "any of it"), set *Anzahl* (packages) and save. Without a match,
-*Neues Produkt „…“ anlegen* creates the product with its category; admins can also create a new
-category. Adding the same product or category again adds to its packages. Items added by hand have a
-pencil (change the packages) and a bin; ticked ones stay (struck through) until deleted.
+1. Plug in the printer and switch it on. Most receipt printers (e.g. the TPG A799) are USB printers:
+   on the host `ls /dev/usb/` shows `lp0` (`dmesg` says `usblp`). A USB-serial printer instead shows
+   up in `ls -l /dev/serial/by-id/` as `usb-…` pointing to `ttyUSB0` or `ttyACM0`.
+2. Pass it into the Home Assistant container, in its `docker-compose.yml`:
+   ```yaml
+   services:
+     homeassistant:
+       devices:
+         - /dev/usb/lp0:/dev/bondrucker   # or /dev/serial/by-id/usb-… for a serial printer
+   ```
+   Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
+   plugged in when the container starts; after unplugging it, restart the container.
+   HA OS passes USB devices on its own: use the device path directly.
+3. *Configure > Bondrucker*: *Drucker* = `/dev/bondrucker` (a network printer: `host` or `host:port`,
+   port 9100), paper width, *Papier am Ende abschneiden*, baud rate (serial printers only: the
+   printer's setting, often 9600 or 115200; a self-test page, usually FEED held while switching on,
+   shows it). *Testbon drucken* sends one short test receipt when you save; an unreachable printer is
+   reported in the form.
+4. "Der Drucker ist nicht erreichbar": the Home Assistant log names the reason (e.g. busy: another
+   service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
+   serial printer: wrong baud rate; try the others.
 
-*Auf die Einkaufsliste* on a recipe puts its missing amounts on the list (servings to buy for; when the recipe has optional ingredients, you pick which ones to include, none by default). Ingredients marked *Nicht gegen den Vorrat prüfen* are never listed. Amounts of all recipes are added up per category and unit (units are converted; not rounded to packages). Recipes on the list are numbered 1, 2, 3 … by name; each item is one line, "Spaghetti – 200 g", with a small grey text after it for which recipe needs how much, e.g. "1:200 g; 2:100 g" (just "1; 2" without an amount). An ingredient without an amount is listed only when nothing of its category is in stock, as 1 Pkg. (one package). Eggs: whole eggs plus the larger of the Eigelb and Eiweiß counts. Recipe items do not depend on the minimum stock. The block *Für Rezepte* above the tree changes the servings or removes a recipe (the recipe stays). A recipe stays on the list until you remove it, also after cooking; ticking works as for other items.
+### AI check of recipe imports (KI-Prüfung)
 
-The same list is the to-do entity *Einkaufsliste* (`todo.vorrat_einkaufsliste`) in HA's to-do
-dashboard and the companion app: ticking works there too; *Eintrag hinzufügen* takes the exact name of
-an existing product or category (new ones only in the panel); *Erledigte entfernen* deletes ticked
-items added by hand (minimum stock items stay until the stock is there).
+Optional. Set up an AI in Home Assistant first (an *AI Task* entity, e.g. *Add integration > Google
+Gemini* with an API key from Google AI Studio, which has a free tier, or *Anthropic*), then pick it
+under *Configure > KI-Prüfung von Rezeptimporten*; empty = no AI. Every import then sends the recipe
+and the food category tree to that AI (about 10,000 tokens; the fixed part comes first, so providers
+that cache prompts bill it less often). The AI only proposes changes; nothing is saved without you.
 
-### Rezepte (recipes)
+Importing itself needs no AI: Home Assistant loads the recipe page only when you click *Importieren*
+(15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads its schema.org recipe data.
 
-The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen" (canning recipes are listed in *Einkochen*, not here). The search field (focused on
-open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
-their status, the numbered steps, source link and image. *Portionen* in the open row scales the amounts;
-this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf); *Einplanen* adds it to the week plan with the shown servings.
-
-An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
-optional amount with a unit, or none ("optional" ingredients and those marked *Nicht gegen den Vorrat prüfen*, e.g. Salz or Wasser, are not counted in the summary; the latter show "nicht geprüft" instead of a status and are never put on a shopping list).
-Status: *vorhanden*, *teilweise: 50 von 200 g*, *fehlt 150 g*, *Menge unbekannt* (stock has products
-without a content in a matching unit), *keine Zutat zugeordnet* (counts as not available). Without an
-amount, any package in the category is enough. Cooking does not book anything out: take the
-ingredients out in *Auslagern* as usual.
-
-**Steps and cook mode.** The *Zubereitung* is a list of numbered steps; *Zwischenüberschrift* rows head a part of them (e.g. Teig, Füllung), numbering runs on across headings. Recipes saved before steps existed keep their old text until they are edited: the dialog then offers it split at blank lines. *Kochmodus* in an open recipe shows the ingredients (for the shown portions) and the steps full screen; a tap ticks a step off (not saved). Durations in a step ("20 Minuten", "ca. 10–15 Min.", "1,5 Std.", "eine halbe Stunde"; a range uses its upper value) become timer buttons; several timers can run at once, a finished one beeps, vibrates and turns red. The screen stays on while the cook mode is open (where the browser allows it). Timers live in the browser tab: closing the cook mode asks first and ends them.
-
-*Rezept hinzufügen* and the pencil are open to every user: name, portions, steps, links and the ingredient rows
-(Produktart or category, *Hinweis*, amount and unit together or neither, optional, *Nicht gegen den Vorrat prüfen*). The *Zutat* field is a search: type a Produktart or category name, or a product name ("Mutti" finds Tomatenmark, shown as "über Mutti Tomatenmark"). If nothing fits, *Neue Produktart „…“ anlegen* asks for the parent category and creates it right there. Picking a category fills an empty
-unit with its unit. Only admins can delete a recipe (the bin).
-Deleting a category or unit that recipes use asks first and lists those recipes. The ingredients stay: without the category they show *keine Zutat zugeordnet*; deleting a unit also clears their amount (amount and unit only go together).
-
-Every unit select in a recipe ingredient row has *Neue Einheit …*: any user can add a unit there. Spelling variants (Tasse, Tassen, tasse) map to one unit; an existing match is reused instead of a duplicate.
-
-*Importieren* on the tab reads a recipe from a URL. Home Assistant loads that page only when you click (15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads the schema.org recipe data that most recipe sites publish. Nothing is saved yet: the recipe dialog opens prefilled with name, portions, steps, source link, image and ingredients. Steps come from the page's step list (a single section name such as "Zubereitung" is dropped, several become headings, leading numbers like "1." are removed); a page with one text block is split at its line breaks or its own numbering ("1. … 2. …"). Each ingredient shows its original line ("Original: …") and a suggested Produktart or category; check them before saving. Pages without recipe data show "Auf dieser Seite wurde kein Rezept gefunden". Instagram posts and free text need the AI interface (planned, phase 19).
-
-**AI check of imports** (optional). With an AI set up in Home Assistant (an *AI Task* entity, e.g. from the *Google Gemini* or *Anthropic* integration) and chosen under *Configure > KI-Prüfung von Rezeptimporten*, every import is checked once, right after the dialog opens: the line *KI prüft das Rezept …* shows while it runs (saving waits; *Nicht abwarten* skips it). The AI gets the recipe and the food category tree (about 10,000 tokens per import; the fixed part comes first, so providers that cache prompts bill it less often) and answers either "fine" or only the changes: better categories for ingredients and, for a recipe that came as one text block, the split steps. Changed ingredients are marked *Von der KI geändert: … (vorher: …)* with *Rückgängig*. When no product type fits, the AI may propose a new one below an existing food category (*KI schlägt neuen Produkttyp … vor*); it is added when the recipe is saved (an existing category of that name is used instead), *Rückgängig* drops it; split steps can be reset with *Schritte zurücksetzen*. Category ids the tree does not have and non-food categories are ignored. If the AI fails, the draft stays as imported. Nothing is saved without you.
-
-**Learned choices.** The category you finally save for an imported ingredient text is remembered: the next import of the same text (letters only, any case: "Zwiebel, rot" = "zwiebel rot") gets it directly, and the AI is told it was confirmed. Likewise, when you change the category Open Food Facts suggested for a new product, that choice is remembered for the product's most specific OFF category.
-
-Imported ingredient lines are read in German: fractions (½, 1/2), ranges take the upper value (2-3 becomes 3), "Zehe/n", units by name, symbol or plural, an amount without unit is Stück, text after a comma or in brackets becomes the *Hinweis* (also "1 TL, gestr. Salz" and "Mehl für die Form"), Eigelb / Eiweiß count as Ei with the part as *Hinweis*, "n. B." / "nach Belieben" means no amount, "evtl." means optional.
-
-Lines without an amount like "Salz und Pfeffer" become one ingredient each; a size word (klein, groß, mittel) goes into the note. An unknown unit (e.g. "1 ½ Tassen Mehl") shows *Einheit „Tasse“ ist unbekannt* on that row: create it with *Anlegen* (the name is editable) or pick an existing unit. Saving stays blocked until every such row is decided.
-
-### Speiseplan (week planner)
-
-The tab has three views, *Tag* (day), *Woche* (week) and *Monat* (month), with prev / *Heute* / next moving by day, week or month. Every dish has a meal: Frühstück, Mittag, Kaffee, Abendessen or Snack. *Woche* is a table with one row per meal and one equal-width column per day (on a phone: one block per day); *Tag* lists the dishes grouped by meal; *Monat* shows a small icon per dish. A dish is a recipe picked from the list of recipe names, or free text (e.g. "Pizza from the delivery service"); a recipe is planned for Abendessen by default. Its servings default to the household size (see Settings). The arrow icon on a dish *shifts* its meal: that day and each directly following day with the same meal move one day later, up to the first gap; a confirmation lists the changes first. The pencil edits a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
-
-*Drucken* in the day and week view prints that day or week (Monday to Sunday) on the receipt printer: per day a heading, then "Meal: dish (für n)", "–" for an empty day (shown only with a receipt printer; the month does not fit a receipt). The same as actions: `pantry.print_plan` (day or week) and `pantry.print_planned` (the recipes planned for a meal, see Services).
-
-The plan is also a read-only calendar entity *Speiseplan* in Home Assistant: each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"), the description shows its servings, and the next event looks 7 days ahead.
-
-### Einkochen (canning)
-
-Tab *Einkochen* has two views, buttons at the top: *Protokolle* and *Rezepte*.
-
-*Protokolle* lists the canning protocols, newest first: charge, product, jars made and still in stock, temperature and duration. *Protokoll anlegen* opens the dialog. First field *Einkochrezept* (optional): with a recipe, the product is fixed to the recipe's product (shown as *Ergibt: …*), and *Gläser*, *Temperatur* and *Dauer* are filled from it (editable). Without a recipe, *Produkt* is an existing product or a new name with a *Kategorie*. Further fields: *Hergestellt am* (default today), *Lagerort*, *Haltbar bis* (proposed from the shelf life), *Notizen*. Saving creates the charge by itself: code `YYYYMMDD-n` (n = running number of that day), books the jars in as their own batch, then offers labels (count = jars).
-
-- Editing changes only recipe, temperature, duration, notes and *Haltbar bis*; made-on date, product and jars stay fixed, since the labels carry them.
-- Delete (admins only) removes the protocol with its stock and bookings, after the usual question.
-- Jars canned without a protocol are booked in like any product (category *Eingekochtes*), without a charge.
-- The stock view shows the charge next to a batch's date.
-
-*Rezepte* lists only canning recipes, with the same list, search, import and editing as the recipe list. *Einkochrezept anlegen* opens the recipe dialog: name, *Ergibt Produkt* (required: an existing product by name, or a new name plus *Kategorie*), *Ergibt (Gläser)* (instead of portions; the ingredients scale by jars), *Zubereitung* (steps), *Temperatur* (°C) and *Dauer* (minutes), both optional or none, source and image link, ingredients. So every canning recipe makes a defined product. Opening one shows "ergibt N × <Produkt>" and the button *Protokoll anlegen*, which switches to *Protokolle* with that recipe chosen. Deleting a product also deletes the canning recipes that make it (the delete question lists them).
-
-### Sensors
+## Sensors
 
 The integration adds a device *Vorrat* with two sensors (packages, no polling, updated after every
 booking and at midnight):
@@ -178,100 +140,7 @@ actions:
         Abgelaufen: {{ state_attr('sensor.vorrat_abgelaufen', 'items') | map(attribute='name') | join(', ') }}
 ```
 
-### Bestand: Suchen / Einbuchen / Auslagern (stock, book in / out)
-
-Stock and booking share the *Bestand* tab. A switch in front of the input (icons: magnifier *Suchen*, + *Einbuchen*,
-− *Auslagern*) picks what Enter does: *Suchen* (default) only filters the list, so a scanner's Enter opens nothing; *Einbuchen* and
-*Auslagern* open the booking dialog. `/pantry/in` and `/pantry/out` open the tab with the switch set.
-
-One input field, focused when the tab opens: scan with a USB/Bluetooth barcode scanner (it types
-the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name and press Enter.
-Typing filters the stock list in every mode. Booking happens in a dialog: hits to pick from (name
-search), then the form; Esc or a click beside it asks first when something was entered.
-
-- **Einbuchen** ("Produkt zubuchen"): expiry date (the label names the product's date type, e.g.
-  "Ablaufdatum (Mindesthaltbarkeit)"; leave it empty for items without one; with a shelf life
-  (*Haltbarkeit*, own or inherited) today + shelf life is proposed, still editable), packages and location.
-  The location defaults to the product's or category's default (shown in grey as
-  "Geerbt: … (von Nudeln)"; without one the last used one is used); another choice applies to this
-  booking only, *Zurücksetzen* returns to the default. A new product also shows its name, brand,
-  category and content; *Wird Standardlager* (on by default) keeps the chosen location as its default.
-  If no category fits, type its name in the category filter and choose *„…“ neu anlegen*, then the
-  parent category; it is created right there (also when editing a product on *Bestand*).
-  An unknown EAN is looked up on Open Food Facts (name, brand, content - drained weight for jars and
-  cans - and a suggested category; without OFF categories the category comes from keywords in the
-  name or from similar saved products). A name search lists local products; *Online suchen* searches
-  Open Food Facts, *Neues Produkt* creates one by hand.
-- **Auslagern**: pick the product; by default the packages with the earliest date are taken first,
-  or choose one batch and location. After booking out (also by scanning a label), *Rückgängig*
-  next to the message puts exactly those packages back into their batch and location.
-  Each booking out can be undone once; a storage location deactivated meanwhile is reactivated.
-
-The camera scanner needs HTTPS (or `localhost`) and camera permission. Browsers without a built-in
-barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use; nothing is loaded from external servers.
-
-### Etiketten (labels)
-
-Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN), product name, brand and expiry date.
-Labels of a canning charge show the charge in the brand line; their QR code contains the charge, so scanning one books out a jar of exactly that charge.
-Printing is a checkbox *Etiketten drucken* in the book-in form (its default is an option), and a tag
-button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
-
-- **Label printer setup** (the receipt printer is set up separately, see *Bondrucker*).
-  In Home Assistant open *Settings > Devices & services > Home Inventory > Configure* and choose
-  *Etikettendrucker*. Step 1: choose the
-  *Modell des Etikettendruckers*. Step 2: the settings of that model, label size in mm and whether
-  to print on book-in. Models:
-  - *Dymo LabelWriter 450 / 4xx*: network via a USB print server (e.g. TP-Link with a fixed IP and
-    raw printing enabled): enter the printer as `host` or `host:port` (port defaults to 9100). Or USB
-    on the HA host: enter the device path, e.g. `/dev/usb/lp0` (in Docker pass it with `devices:`, as
-    for the receipt printer). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints the last
-    ~3 mm of a 57 x 32 label, so that space stays blank. *Testetikett drucken* sends one label when you
-    save; if the printer is not reachable the form says so.
-  - *Kein Drucker*: the browser print dialog opens with one page per label (choose the
-    label printer there; the page size is the label size, 10 to 200 mm).
-- **Many labels**: printing more than 2 labels at once (after book-in or in the reprint dialog) asks
-  "n Etiketten drucken?" first; cancelling prints nothing (the booking itself is kept).
-- **Scan to book out**: type or scan a label (scanner or camera) into the input of *Bestand* with
-  the switch on *Einbuchen* or *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
-  booking out. Labels are not single-use: they name the batch, not one package.
-
-### Bondrucker (receipt printer)
-
-*Einkaufszettel drucken* on the *Einkauf* tab prints the open (unticked) items, grouped by main
-category, on an ESC/POS receipt printer (58 or 80 mm, e.g. TPG A799); with a cutter the paper is cut
-at the end. The button only shows when a receipt printer is set up. The same as an action:
-`pantry.print_shopping_list`.
-
-*Drucken* in an open recipe (also a canning recipe) prints it: name, servings, the ingredients with boxes to tick (amounts for the servings shown), and the numbered steps under their headings (a recipe saved before steps existed: its text). The same as an action: `pantry.print_recipe`.
-
-Setup for a USB printer on the machine that runs Home Assistant in Docker (e.g. a Raspberry Pi):
-
-1. Plug in the printer and switch it on. Most receipt printers (e.g. the TPG A799) are USB printers:
-   on the host `ls /dev/usb/` shows `lp0` (`dmesg` says `usblp`). A USB-serial printer instead shows
-   up in `ls -l /dev/serial/by-id/` as `usb-…` pointing to `ttyUSB0` or `ttyACM0`.
-2. Pass it into the Home Assistant container, in its `docker-compose.yml`:
-   ```yaml
-   services:
-     homeassistant:
-       devices:
-         - /dev/usb/lp0:/dev/bondrucker   # or /dev/serial/by-id/usb-… for a serial printer
-   ```
-   Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
-   plugged in when the container starts; after unplugging it, restart the container.
-   HA OS passes USB devices on its own: use the device path directly.
-3. *Settings > Devices & services > Home Inventory > Configure > Bondrucker*: *Drucker* = `/dev/bondrucker`
-   (a network printer: `host` or `host:port`, port 9100), paper width, *Papier am Ende abschneiden*,
-   baud rate (serial printers only: the printer's setting, often 9600 or 115200; a self-test page,
-   usually FEED held while switching on, shows it). *Testbon drucken* sends one short test receipt
-   when you save; an unreachable printer is reported in the form.
-4. "Der Drucker ist nicht erreichbar": the Home Assistant log names the reason (e.g. busy: another
-   service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
-   serial printer: wrong baud rate; try the others.
-
-The receipt is printed as an image (umlauts and fonts work on every ESC/POS printer).
-
-### Services (automations)
+## Services (automations)
 
 All return a response (use `response_variable` in a script or automation). Errors (unknown
 barcode, recipe or location, not enough stock, printer not reachable) make the action fail with a message.
@@ -292,7 +161,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
 - **print_planned** prints each recipe planned for that meal with its planned servings (free-text dishes are skipped); nothing planned fails with a message. Example: a button in the kitchen prints what is cooked next.
-- **print_labels** needs a label printer (see *Etiketten*); with *Kein Drucker* it fails,
+- **print_labels** needs a label printer (see [Label printer](#label-printer-etikettendrucker)); with *Kein Drucker* it fails,
   since a service has no browser to print from.
 - **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
 - **canning** takes product, temperature and minutes from the canning recipe; print the jar labels with `print_labels` and the returned `batch_id`.
@@ -315,53 +184,6 @@ actions:
       batch_id: "{{ booked.batch_id }}"
       count: 2
 ```
-
-### Settings (Einstellungen)
-
-- **Kategorien**: tree of main category → category → Produktart (product type, e.g. Tomatenmark;
-  about 1,700 are seeded; any user can add one from a recipe or the category picker). Each category can set a unit,
-  default storage location, expiry type (best before / use by), warning days, shelf life (*Haltbarkeit*, days) and *Lebensmittel* (food / *Kein Lebensmittel*; non-food is never a recipe ingredient); empty fields are
-  inherited from the parent category or the global defaults and are shown in grey with their source
-  ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not
-  inherited: *Mindestmenge* (amount with its own unit, kept when the category's unit changes) and/or
-  *Mindestanzahl* (packages); both set = both must be met. See *Einkauf*.
-  Tapping a category with subcategories opens it; the plus adds a subcategory, the pencil edits,
-  the bin deletes (see below). The parent category is picked in a tree with a filter field.
-- Every list row has a pencil (edit) and a bin (delete) icon; forms check entries while you type
-  and only allow saving when everything is valid.
-- **Lagerorte**: storage locations (Kühlschrank, Gefrierschrank, ...). Deleting a location only hides
-  it (its booking history stays); its stock is moved to another location of your choice or booked
-  out. Adding the same name again brings it back.
-- **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). Units marked *Nur für Rezepte* (the recipe units EL, TL, Tasse, Prise …) are offered only in recipe ingredients; a unit with a size (EL = 15 ml, TL = 5 ml, Tasse = 250 ml, Prise and Messerspitze = 0.5 g, Zehe = 0.1 Stück, Handvoll = 30 g, Tropfen = 0.05 ml, Spritzer = 1 ml, Schuss = 20 ml, Zweig and Stiel = 0.1 Bund; rules of thumb) also shows its amount in recipes ("3 EL (≈ 45 ml)"), and shopping converts it when its base unit fits the category (ml for volume, g for weight). Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). Zweig and Stiel are 0.1 Bund each (3 Zweige Rosmarin → 1 Bund). Shopping rounds Zehe up: 3 Zehen = 1 Knoblauch. A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
-- **Standards**: the global defaults every category and product falls back to (unit, storage
-  location, date type, warning days, shelf life; initially Packung, none, best before, 7 days, no shelf life).
-  Shelf life is the expiry date for things without a printed date: booking in proposes today + days,
-  canning protocols made-on date + days. Bought goods keep the date on the package.
-- **KI-Prüfung von Rezeptimporten** (Home Assistant options): the AI Task entity that checks recipe imports (see *Rezepte*); empty = no AI. Set up an AI in Home Assistant first, e.g. *Settings > Devices & services > Add integration > Google Gemini* (API key from Google AI Studio; a free tier exists), then pick its AI Task entity here.
-- **Mahlzeiten** (meal start times, panel settings): from when each meal counts (defaults Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The current meal is the one with the latest start before now; before the first start of the day the last one still counts. Used by `pantry.print_planned` without a meal.
-- **Module** (Home Assistant options): which optional parts the panel shows (see *Installation*).
-- **Haushalt** (household, Home Assistant options): *Portionen im Haushalt* (1 to 99, default 3) is the servings default for new dishes in the week plan. Set it in *Configure* of the integration, step *Haushalt* (menu *Einstellungen*).
-- Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
-- **Deleting something that is still in use** works too. Before asking, the integration runs the
-  delete as a dry run (rolled back) and lists everything it would remove or change, grouped (e.g.
-  subcategories, products, stock, bookings, shopping list entries, categories pointing to it), with up
-  to five names each and a count for the rest. Category: its subcategories and their products (with
-  stock and bookings) are deleted (*Alles löschen*). Unit: units defined on it (kg on g) are deleted;
-  categories and products only lose it (unit inherited again, minimum amount or package content
-  removed). The default unit cannot be deleted (change it under *Standards* first). Deleting a product
-  in *Bestand* asks the same way.
-
-## Installation
-
-Requires Home Assistant 2026.10.1 or newer.
-
-HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
-
-Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
-
-Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
-
-**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
 ## Development
 

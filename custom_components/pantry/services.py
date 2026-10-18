@@ -120,29 +120,23 @@ def async_register(hass: HomeAssistant) -> None:
         d = call.data
         if not (d.get("recipe") or d.get("text")):
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="dish_required")
-        fn = partial(
-            inventory.plan_meal_by_name,
-            d.get("day") or dt_util.now().date(),
-            MEALS.index(d["meal"]),
-            d.get("servings") or _household(hass),
-            recipe=d.get("recipe"),
-            text=d.get("text"),
+        fn = partial(inventory.plan_meal_by_name, recipe=d.get("recipe"), text=d.get("text"))
+        day = d.get("day") or dt_util.now().date()
+        return await _run(
+            hass, fn, day, MEALS.index(d["meal"]), d.get("servings") or _household(hass)
         )
-        return await _run(hass, fn)
 
     async def canning(call: ServiceCall) -> ServiceResponse:
         d = call.data
         fn = partial(
             inventory.canning_by_name,
-            d["recipe"],
-            d.get("made_on") or dt_util.now().date(),
             jars=d.get("jars") or None,
             location=d.get("location") or None,
             expires_on=d.get("expires_on") or None,
             notes=d.get("notes"),
             user_id=call.context.user_id,
         )
-        return await _run(hass, fn)
+        return await _run(hass, fn, d["recipe"], d.get("made_on") or dt_util.now().date())
 
     for name, handler, schema in (
         ("book_in", book_in, BOOK_IN),

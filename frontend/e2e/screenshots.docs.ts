@@ -85,20 +85,28 @@ test.beforeAll(async ({ browser }) => {
         ingredients: [
           { category_id: cat("Spaghetti"), amount: 250, unit_id: unit("g") },
           { category_id: cat("Passierte Tomaten"), amount: 500, unit_id: unit("g") },
+          {
+            category_id: cat("Zwiebeln"),
+            amount: 1,
+            unit_id: unit("Stück"),
+            note: "fein gewürfelt",
+          },
+          { category_id: cat("Knoblauch"), amount: 2, unit_id: unit("Zehe") },
           { category_id: cat("Tomatenmark"), amount: 1, unit_id: unit("Esslöffel") },
           { category_id: cat("Parmesan"), amount: 50, unit_id: unit("g"), note: "gerieben" },
           { category_id: cat("Basilikum"), optional: true },
         ],
         steps: [
           { text: "Spaghetti in reichlich Salzwasser etwa 10 Minuten kochen." },
-          { text: "Tomatenmark kurz anrösten, passierte Tomaten dazugeben." },
+          { text: "Zwiebel und Knoblauch glasig dünsten, Tomatenmark kurz mitrösten." },
+          { text: "Passierte Tomaten dazugeben." },
           { text: "Die Soße 15 Minuten köcheln lassen, mit Salz und Pfeffer abschmecken." },
           { text: "Mit Parmesan und Basilikum servieren." },
         ],
       },
     })) as { id: number }
   ).id;
-  await ws(api, { type: "pantry/shopping_recipe_set", recipe_id: recipeId, servings: 4 });
+  await ws(api, { type: "pantry/shopping_recipe_set", recipe_id: recipeId, servings: 6 });
 
   // slots: 0 breakfast, 1 lunch, 3 dinner
   for (const [offset, slot, text, recipe_id] of [
@@ -158,7 +166,7 @@ for (const theme of ["light", "dark"] as const) {
     await shot(page, "expiry", theme);
 
     await openPage(page, "/pantry/shopping", "Einkauf");
-    await expect(page.getByText("Pasta al pomodoro").first()).toBeVisible();
+    await expect(page.getByText("Zwiebeln").first()).toBeVisible();
     await shot(page, "shopping", theme);
 
     await openPage(page, "/pantry/recipes", "Rezepte");

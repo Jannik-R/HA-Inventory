@@ -1,6 +1,7 @@
 {
   "domain": "pantry",
   "name": "Pantry",
+  "after_dependencies": ["ai_task"],
   "codeowners": ["@Jannik-R"],
   "config_flow": true,
   "dependencies": ["http", "panel_custom", "websocket_api"],

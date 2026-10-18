@@ -103,6 +103,9 @@
     },
     "dish_required": {
       "message": "Give a recipe or a text."
+    },
+    "ai_failed": {
+      "message": "The AI check failed. The recipe draft stays as imported."
     }
   },
   "options": {
@@ -113,7 +116,8 @@
         "menu_options": {
           "label_model": "Label printer",
           "receipt": "Receipt printer (shopping list)",
-          "household": "Household"
+          "household": "Household",
+          "ai": "AI check of recipe imports"
         }
       },
       "label_model": {
@@ -161,6 +165,16 @@
           "receipt_printer": "USB on the Home Assistant host: the device path, e.g. /dev/usb/lp0 (USB printer) or /dev/ttyUSB0 (USB-serial) (in Docker, pass it with devices:). Network printer: host or host:port (port 9100 if only the host is given).",
           "receipt_baud": "Only for a device path of a serial / USB-serial printer; ignored for network printers. Use the printer's setting (often 9600 or 115200).",
           "test_print": "Sends one short test receipt to the printer when you save."
+        }
+      },
+      "ai": {
+        "title": "AI check of recipe imports",
+        "description": "An AI set up in Home Assistant (AI Task, e.g. Google Gemini or Anthropic Claude) checks every recipe import once: ingredient categories and steps. Leave empty for no AI.",
+        "data": {
+          "ai_task_entity": "AI Task entity"
+        },
+        "data_description": {
+          "ai_task_entity": "Each import sends the recipe and the food category tree (about 10,000 tokens) to this AI."
         }
       }
     },

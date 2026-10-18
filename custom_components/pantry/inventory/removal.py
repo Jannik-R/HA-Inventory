@@ -33,6 +33,7 @@ _ORDER = (
 _HIDDEN = {
     "batch",
     "category_off_tag",
+    "learned_category",
     "off_tag",
     "recipe_step",
     "shopping_done",

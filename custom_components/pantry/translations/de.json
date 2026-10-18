@@ -103,6 +103,9 @@
     },
     "dish_required": {
       "message": "Rezept oder Text angeben."
+    },
+    "ai_failed": {
+      "message": "Die KI-Prüfung ist fehlgeschlagen. Der Entwurf bleibt wie importiert."
     }
   },
   "options": {
@@ -113,7 +116,8 @@
         "menu_options": {
           "label_model": "Etikettendrucker",
           "receipt": "Bondrucker (Einkaufszettel)",
-          "household": "Haushalt"
+          "household": "Haushalt",
+          "ai": "KI-Prüfung von Rezeptimporten"
         }
       },
       "label_model": {
@@ -161,6 +165,16 @@
           "receipt_printer": "USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/usb/lp0 (USB-Drucker) oder /dev/ttyUSB0 (USB-seriell) (bei Docker mit devices: durchreichen). Netzwerkdrucker: Host oder Host:Port (Port 9100, wenn nur der Host angegeben wird).",
           "receipt_baud": "Nur für den Gerätepfad eines seriellen bzw. USB-seriellen Druckers; bei Netzwerkdruckern ohne Wirkung. Die Einstellung des Druckers verwenden (oft 9600 oder 115200).",
           "test_print": "Sendet beim Speichern einen kurzen Testbon an den Drucker."
+        }
+      },
+      "ai": {
+        "title": "KI-Prüfung von Rezeptimporten",
+        "description": "Eine in Home Assistant eingerichtete KI (KI-Aufgabe, z. B. Google Gemini oder Anthropic Claude) prüft jeden Rezeptimport einmal: Kategorien der Zutaten und Schritte. Leer lassen = keine KI.",
+        "data": {
+          "ai_task_entity": "KI-Aufgabe"
+        },
+        "data_description": {
+          "ai_task_entity": "Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien (etwa 10.000 Tokens) an diese KI."
         }
       }
     },

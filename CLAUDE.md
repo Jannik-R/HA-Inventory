@@ -36,13 +36,14 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, recipe_import, ingredient_line, meal_plan, removal, canning, steps
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, recipe_import, ingredient_line, meal_plan, removal, canning, steps, learned, ai_check
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of db.py for size
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
+  ai.py                     AI check of recipe imports via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   off.py                    Open Food Facts client
   recipe_fetch.py           recipe page fetch for the import (HA session, on user click only)
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
@@ -88,6 +89,7 @@ docs/guide.de.md, guide.en.md  user guide (German, English), opened from the pan
 - After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
+- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` with `{status: "off"}` unless a test stubs it (`wsStub`); backend tests patch `ai_task.async_generate_data`.
 - **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_labels` call (the dev HA may have the real printer configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX

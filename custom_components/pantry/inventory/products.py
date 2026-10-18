@@ -9,6 +9,7 @@ from itertools import islice
 from .common import COLUMNS, unit_key
 from .ingredient_line import unit_lookup
 from .inherit import category_tags, set_tags
+from .learned import learn
 from .master import save
 from .suggest import suggest, suggest_category
 
@@ -60,19 +61,17 @@ def product_draft(conn: sqlite3.Connection, off: dict) -> dict:
 
 def add_product(conn: sqlite3.Connection, data: dict) -> int:
     """Save a new product. If its OFF tags matched no category, teach the chosen category
-    the most specific tag so the next similar product is assigned automatically."""
+    the most specific tag so the next similar product is assigned automatically; if the user
+    changed the suggested category, remember that choice for the tag (learned.py)."""
     try:
         tags = json.loads(data.get("off_json") or "{}").get("categories_tags")
     except (ValueError, AttributeError):
         tags = None
-    learn = (
-        isinstance(tags, list)
-        and bool(tags)
-        and data.get("category_id") is not None
-        and suggest_category(conn, tags) is None
-    )
+    chosen = data.get("category_id")
+    suggested = suggest_category(conn, tags) if isinstance(tags, list) and tags else False
     product_id = save(conn, "product", data)
-    if learn:
-        cid = data["category_id"]
-        set_tags(conn, cid, [*category_tags(conn).get(cid, []), tags[-1]])
+    if chosen is not None and suggested is None:  # no match: the category learns the tag
+        set_tags(conn, chosen, [*category_tags(conn).get(chosen, []), tags[-1]])
+    elif chosen is not None and suggested and suggested != chosen:  # a corrected suggestion
+        learn(conn, "off_tag", tags[-1], chosen)
     return product_id

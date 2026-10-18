@@ -337,5 +337,15 @@
   "cook.timer_done": "abgelaufen",
   "cook.timer_cancel": "Timer entfernen",
   "cook.stop": "Kochmodus schließen? Laufende Timer gehen verloren.",
-  "cook.stop_ok": "Schließen"
+  "cook.stop_ok": "Schließen",
+  "recipes.ai.running": "KI prüft das Rezept …",
+  "recipes.ai.skip": "Nicht abwarten",
+  "recipes.ai.ok": "KI-Prüfung: keine Änderungen.",
+  "recipes.ai.skipped": "KI-Prüfung übersprungen.",
+  "recipes.ai.undo_steps": "Schritte zurücksetzen",
+  "recipes.ai.changed": "Von der KI geändert: {reason} (vorher: {before})",
+  "recipes.ai.undo": "Rückgängig",
+  "recipes.ai.changed_one": "KI-Prüfung: 1 Zutat geändert (markiert).",
+  "recipes.ai.changed_many": "KI-Prüfung: {n} Zutaten geändert (markiert).",
+  "recipes.ai.steps": "KI-Prüfung: Schritte neu aufgeteilt."
 }

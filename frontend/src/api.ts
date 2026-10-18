@@ -236,6 +236,12 @@ export interface Ingredient {
   /** Import only: the original line and the unit word that matched no unit. */
   line?: string;
   unit_hint?: string | null;
+  /** Import only: the parsed text (the save learns the chosen category for it), and whether the
+   * category came from such a learned choice. */
+  source_text?: string | null;
+  learned?: boolean;
+  /** Changed by the AI check (dialog only, never saved): the previous choice for undo. */
+  ai?: { before: number | null; beforeText: string; reason: string };
   status?: IngredientStatus;
   /** With an amount (matched): need/have/missing in `unit_symbol`. */
   need?: number;
@@ -282,5 +288,15 @@ export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
 export const isCanning = (r: Recipe) => r.canning_product_id != null;
 export const importRecipe = (hass: Hass, url: string) =>
   hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", url });
+/** AI check of an import draft (phase 13c): off (no AI set up), ok, or only the changes. */
+export type AiCheck =
+  | { status: "off" | "ok" }
+  | {
+      status: "changes";
+      ingredients: { index: number; category_id: number | null; reason: string }[];
+      steps?: Step[];
+    };
+export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>
+  hass.callWS<AiCheck>({ type: "pantry/recipe_ai_check", draft });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>
   hass.callWS<{ id: number }>({ type: "pantry/unit_add", name, symbol });

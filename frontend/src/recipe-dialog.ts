@@ -1,8 +1,9 @@
-import { LitElement, html, nothing } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { t } from "./i18n";
 import { URL_RE, editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import {
+  checkRecipe,
   errorMessage,
   listProducts,
   saveRecipe,
@@ -13,51 +14,15 @@ import {
   type Recipe,
   type RecipeDraft,
 } from "./api";
-import { blankIngredient, ingredientErrors } from "./ingredient-errors";
+import { ingredientErrors } from "./ingredient-errors";
 import "./recipe-ingredients";
 import { numField } from "./form-fields";
 import { productInput } from "./product-input";
 import "./recipe-steps-editor";
 import { stepRowError } from "./recipe-steps-editor";
-import { rowsFromText, toRows, toSteps, type StepRow } from "./recipe-steps";
-
-interface Draft {
-  name: string;
-  servings: number | null;
-  steps: StepRow[];
-  source_url: string;
-  image_url: string;
-  /** Canning recipe: the product it makes (name; a new one needs its category). */
-  product: string;
-  product_category: number | null;
-  canning_temp: number | null;
-  canning_minutes: number | null;
-  ingredients: Ingredient[];
-}
-
-const fromRecipe = (r?: Recipe | RecipeDraft): Draft => ({
-  name: r?.name ?? "",
-  servings: r?.servings ?? 4,
-  // an old recipe without steps: its text split at blank lines
-  steps: r?.steps?.length ? toRows(r.steps) : rowsFromText(r?.instructions ?? null),
-  source_url: r?.source_url ?? "",
-  image_url: r?.image_url ?? "",
-  product: (r && "canning_product" in r && r.canning_product) || "",
-  product_category: null,
-  canning_temp: r?.canning_temp ?? null,
-  canning_minutes: r?.canning_minutes ?? null,
-  ingredients: (r?.ingredients ?? []).map((i) => ({
-    category_id: i.category_id,
-    amount: i.amount,
-    unit_id: i.amount == null ? null : i.unit_id,
-    text: i.text,
-    note: i.note ?? null,
-    optional: i.optional,
-    skip_stock: i.skip_stock ?? false,
-    line: i.line,
-    unit_hint: i.unit_hint,
-  })),
-});
+import type { StepRow } from "./recipe-steps";
+import { fromRecipe, toPayload, type Draft } from "./recipe-draft";
+import { aiBanner, aiDraft, applyAi, type AiState } from "./recipe-ai";
 
 /** Add or edit a recipe. Call `open(md, recipe?, imported?)` (an import is a new recipe); fires `pantry-saved` after saving. */
 export class PantryRecipeDialog extends LitElement {
@@ -66,12 +31,16 @@ export class PantryRecipeDialog extends LitElement {
     draft: { state: true },
     active: { state: true },
     error: { state: true },
+    ai: { state: true },
   };
 
   declare hass?: Hass;
   declare draft: Draft;
   declare active: boolean;
   declare error: string;
+  declare ai: AiState;
+  /** Bumped on skip / close / reopen: a late AI answer of an older run is ignored. */
+  private aiRun = 0;
   private md?: MasterData;
   private recipe?: Recipe;
   private initial = "";
@@ -84,6 +53,7 @@ export class PantryRecipeDialog extends LitElement {
     this.draft = fromRecipe();
     this.active = false;
     this.error = "";
+    this.ai = { kind: "none" };
   }
 
   async open(md: MasterData, recipe?: Recipe, imported?: RecipeDraft, canning = false) {
@@ -95,10 +65,35 @@ export class PantryRecipeDialog extends LitElement {
     // An import counts as unsaved: closing asks first.
     this.initial = JSON.stringify(imported ? fromRecipe() : this.draft);
     this.error = "";
+    this.ai = { kind: "none" };
+    this.aiRun++;
     this.active = true;
     await this.updateComplete;
     this.renderRoot.querySelector("dialog")!.showModal();
     this.renderRoot.querySelector<HTMLElement>("dialog input")?.focus();
+    if (imported) void this.check();
+  }
+
+  /** Every import is checked once by the AI set up in the options (none: nothing happens). */
+  private async check() {
+    const run = ++this.aiRun;
+    const d = this.draft;
+    const sent = d.ingredients;
+    this.ai = { kind: "running" };
+    try {
+      const res = await checkRecipe(this.hass!, aiDraft(d.name, d.servings, d.steps, sent));
+      if (run !== this.aiRun) return;
+      if (res.status !== "changes") {
+        this.ai = { kind: res.status === "ok" ? "ok" : "none" };
+        return;
+      }
+      const out = applyAi(res, sent, d.steps, this.draft, this.md!);
+      this.draft = { ...this.draft, ingredients: out.ingredients, steps: out.steps };
+      this.ai = out.state;
+    } catch (err) {
+      if (run === this.aiRun)
+        this.ai = { kind: "failed", message: await errorMessage(this.hass!, err) };
+    }
   }
 
   private errors() {
@@ -139,25 +134,7 @@ export class PantryRecipeDialog extends LitElement {
     try {
       await saveRecipe(this.hass!, {
         ...(this.recipe ? { id: this.recipe.id } : {}),
-        name: d.name.trim(),
-        servings: d.servings,
-        steps: toSteps(d.steps),
-        source_url: d.source_url.trim() || null,
-        image_url: d.image_url.trim() || null,
-        ...(this.canningMode ? this.canningPayload() : {}),
-        ingredients: d.ingredients
-          .filter((i) => !blankIngredient(i))
-          .map((i) => ({
-            category_id: i.category_id,
-            amount: i.amount,
-            // A unit without an amount is only the category's suggestion.
-            unit_id: i.amount == null ? null : i.unit_id,
-            optional: i.optional,
-            skip_stock: i.skip_stock,
-            note: i.note?.trim() || null,
-            // The backend takes the category's name; text only for rows without one.
-            ...(i.category_id == null ? { text: i.text.trim() } : {}),
-          })),
+        ...toPayload(d, this.canningMode ? this.products : null),
       });
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -187,19 +164,6 @@ export class PantryRecipeDialog extends LitElement {
     </label>`;
   }
 
-  /** Product made (existing id or a new one with its category), temperature and minutes. */
-  private canningPayload() {
-    const d = this.draft;
-    const known = this.products.find((p) => p.name === d.product.trim());
-    return {
-      ...(known
-        ? { canning_product_id: known.id }
-        : { canning_product: { name: d.product.trim(), category_id: d.product_category } }),
-      canning_temp: d.canning_temp,
-      canning_minutes: d.canning_minutes,
-    };
-  }
-
   /** Canning process value (°C or minutes) with its unit after the input. */
   private canning(field: "canning_temp" | "canning_minutes", unit: string, err?: string) {
     return numField({
@@ -220,7 +184,18 @@ export class PantryRecipeDialog extends LitElement {
       title: this.recipe
         ? t("common.edit_name", { name: this.recipe.name })
         : t(this.canningMode ? "canning.recipe_add" : "recipes.add"),
-      body: html`${this.text("name", t("common.name"), e.name)}
+      body: html`${aiBanner(this.ai, {
+          onSkip: () => {
+            this.aiRun++;
+            this.ai = { kind: "skipped" };
+          },
+          onUndoSteps: () => {
+            if (this.ai.kind !== "changed" || !this.ai.prevSteps) return;
+            this.draft = { ...this.draft, steps: this.ai.prevSteps };
+            this.ai = { ...this.ai, prevSteps: undefined };
+          },
+        })}
+        ${this.text("name", t("common.name"), e.name)}
         ${
           this.canningMode
             ? productInput({
@@ -286,15 +261,37 @@ export class PantryRecipeDialog extends LitElement {
           @change=${(ev: CustomEvent<StepRow[]>) => (this.draft = { ...d, steps: ev.detail })}
         ></pantry-recipe-steps>`,
       error: this.error,
-      invalid: Object.keys(e).length > 0 || bad,
+      // saving waits for the AI (or "Nicht abwarten")
+      invalid: Object.keys(e).length > 0 || bad || this.ai.kind === "running",
       submit: { label: t("common.save"), testid: "recipe-save" },
       dirty: () => JSON.stringify(this.draft) !== this.initial,
       onSubmit: (ev) => this.save(ev),
-      onClosed: () => (this.active = false),
+      onClosed: () => {
+        this.active = false;
+        this.aiRun++;
+      },
     });
   }
 
-  static styles = [formStyles];
+  static styles = [
+    formStyles,
+    css`
+      .ai {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 12px;
+        color: var(--secondary-text-color);
+      }
+      .ai.error {
+        color: var(--error-color);
+      }
+      progress {
+        width: 64px;
+      }
+    `,
+  ];
 }
 
 customElements.define("pantry-recipe-dialog", PantryRecipeDialog);

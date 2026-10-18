@@ -408,6 +408,16 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
         UNIQUE (recipe_id, pos)
     );
     """,
+    # 18: learned category choices (inventory/learned.py): kind 'ingredient' (recipe import text)
+    # or 'off_tag' (most specific OFF tag of a new product) -> the category chosen for it.
+    """
+    CREATE TABLE learned_category (
+        kind TEXT NOT NULL CHECK (kind IN ('ingredient', 'off_tag')),
+        key TEXT NOT NULL CHECK (key <> ''),
+        category_id INTEGER NOT NULL REFERENCES category(id) ON DELETE CASCADE,
+        PRIMARY KEY (kind, key)
+    );
+    """,
 ]
 
 

@@ -2,9 +2,11 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning, steps).
+recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning, steps, learned, ai_check).
 """
 
+from .ai_check import changes as ai_changes
+from .ai_check import prompt as ai_prompt
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
 from .canning import cannings, charge, save_canning
 from .codes import (
@@ -47,6 +49,8 @@ __all__ = [
     "add_product",
     "add_shopping_by_name",
     "add_shopping_item",
+    "ai_changes",
+    "ai_prompt",
     "book_in",
     "book_in_by_code",
     "book_in_new",

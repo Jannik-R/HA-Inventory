@@ -1,10 +1,11 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
+import { stepList } from "./recipe-steps";
 import { isCanning, type Hass, type Ingredient, type MasterData, type Recipe } from "./api";
 
 /** Amount for the shown servings: matched ingredients carry it as `need`, others scale `amount`. */
-const amountText = (hass: Hass, md: MasterData, i: Ingredient, factor: number) => {
+export const amountText = (hass: Hass, md: MasterData, i: Ingredient, factor: number) => {
   if (i.amount == null) return "";
   const n = i.amount * factor;
   const u = md.units.find((x) => x.id === i.unit_id);
@@ -39,7 +40,8 @@ const status = (hass: Hass, i: Ingredient) => {
   }
 };
 
-/** The opened part of a recipe row: servings (not saved), ingredients with status, instructions. */
+/** The opened part of a recipe row: servings (not saved), ingredients with status, steps (or the
+ * old instructions text). */
 export const recipeDetail = (o: {
   hass: Hass;
   md: MasterData;
@@ -50,6 +52,7 @@ export const recipeDetail = (o: {
   onShopping: () => void;
   /** Plan the dish; a canning recipe starts a protocol instead. */
   onPlan: () => void;
+  onCook: () => void;
 }) => {
   const r = o.recipe;
   return html`<div class="detail-box">
@@ -119,10 +122,18 @@ export const recipeDetail = (o: {
         : nothing
     }
     ${
-      r.instructions
+      r.steps.length
         ? html`<h3>${t("recipes.instructions")}</h3>
-            <p class="text">${r.instructions}</p>`
-        : nothing
+            ${stepList(r.steps)}
+            <p>
+              <button type="button" data-testid="recipe-cook" @click=${o.onCook}>
+                ${t("cook.open")}
+              </button>
+            </p>`
+        : r.instructions
+          ? html`<h3>${t("recipes.instructions")}</h3>
+              <p class="text">${r.instructions}</p>`
+          : nothing
     }
     ${
       r.source_url

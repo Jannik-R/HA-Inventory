@@ -22,6 +22,8 @@ INGREDIENT = {
     vol.Optional("skip_stock"): bool,
 }
 
+STEP = {vol.Required("text"): text(2000), vol.Optional("section"): vol.Any(None, text(100))}
+
 
 def async_register(hass: HomeAssistant) -> None:
     for command in (
@@ -66,6 +68,7 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
             vol.Required("name"): NAME,
             vol.Required("servings"): SERVINGS,
             vol.Optional("instructions"): vol.Any(None, text(20000)),
+            vol.Optional("steps"): vol.All([STEP], vol.Length(max=100)),
             vol.Optional("source_url"): vol.Any(None, HTTP_URL),
             vol.Optional("image_url"): vol.Any(None, HTTP_URL),
             # a canning recipe makes this product (existing or new); temperature and minutes

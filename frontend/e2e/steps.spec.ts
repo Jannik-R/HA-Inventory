@@ -1,0 +1,51 @@
+import { apiPage, openPage, remove, ws } from "./helpers";
+import { expect, test } from "./fixtures";
+
+const NAME = `E2E Schritte ${Date.now()}`;
+
+test.afterAll(async ({ browser }) => {
+  const api = await apiPage(browser);
+  const list = (await ws(api, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  for (const r of list) if (r.name === NAME) await remove(api, "recipe", r.id);
+  await api.close();
+});
+
+test("recipe steps: edit with a heading, numbered list, cook mode with a timer", async ({
+  page,
+}) => {
+  await openPage(page, "/pantry/recipes", "Rezepte");
+  await page.getByTestId("recipe-add").click();
+  const dialog = page.locator("pantry-recipe-dialog dialog");
+  await dialog.getByTestId("recipe-name").fill(NAME);
+  await dialog.getByTestId("step-add").click();
+  await dialog.getByTestId("step-text").last().fill("Nudeln 10 Minuten kochen.");
+  await dialog.getByTestId("step-add").click();
+  await dialog.getByTestId("step-text").last().fill("Zwiebeln schälen.");
+  // the second step goes first, then a heading above the pasta
+  await dialog.getByTestId("step-up").nth(1).click();
+  await dialog.getByTestId("step-head-add").click();
+  await dialog.getByTestId("step-head").fill("Nudeln");
+  await dialog.getByTestId("step-up").nth(2).click();
+  await expect(dialog.getByTestId("step-text").first()).toHaveValue("Zwiebeln schälen.");
+  await dialog.getByTestId("recipe-save").click();
+
+  const row = page.getByTestId("recipe-row").filter({ hasText: NAME });
+  await row.getByTestId("recipe-toggle").click();
+  await expect(row.getByTestId("recipe-step")).toHaveText([
+    "Zwiebeln schälen.",
+    "Nudeln 10 Minuten kochen.",
+  ]);
+  await expect(row.locator("h4.section")).toHaveText("Nudeln");
+  await expect(row.locator("ol.steps").nth(1)).toHaveAttribute("start", "2");
+
+  await row.getByTestId("recipe-cook").click();
+  const cook = page.locator("pantry-cook-mode dialog");
+  await cook.getByTestId("cook-step").first().click();
+  await expect(cook.getByTestId("cook-step").first()).toHaveAttribute("aria-pressed", "true");
+  await cook.getByTestId("cook-timer-start").click();
+  await expect(cook.getByTestId("cook-timer")).toContainText(/Schritt 2, 10 Minuten: 9:5\d|10:00/);
+  // a running timer would be lost: closing asks first
+  await cook.getByTestId("cook-close").click();
+  await page.getByTestId("confirm-ok").click();
+  await expect(cook).toBeHidden();
+});

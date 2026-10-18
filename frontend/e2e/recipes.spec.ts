@@ -118,7 +118,7 @@ test("import a recipe draft, fix the unknown unit, save", async ({ page, wsStub 
   wsStub("pantry/recipe_import", {
     name: IMPORT_NAME,
     servings: 2,
-    instructions: "Alles mischen.",
+    steps: [{ section: null, text: "Alles mischen." }],
     source_url: "https://example.com/r",
     image_url: null,
     ingredients: [

@@ -55,6 +55,21 @@ export const recipesStyles = css`
     font-size: 1em;
     font-weight: 500;
   }
+  h4.section {
+    margin: 8px 0 0;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+  }
+  ol.steps {
+    margin: 4px 0;
+    padding-left: 24px;
+  }
+  ol.steps li {
+    display: list-item; /* formStyles' flex rows hide the number */
+    border-bottom: none;
+    margin: 4px 0;
+  }
   .text {
     white-space: pre-line;
     margin: 0;

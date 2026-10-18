@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning).
+recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, canning, steps).
 """
 
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back

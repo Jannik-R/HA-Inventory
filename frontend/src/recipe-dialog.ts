@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { t } from "./i18n";
 import { URL_RE, editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
@@ -17,11 +17,14 @@ import { blankIngredient, ingredientErrors } from "./ingredient-errors";
 import "./recipe-ingredients";
 import { numField } from "./form-fields";
 import { productInput } from "./product-input";
+import "./recipe-steps-editor";
+import { stepRowError } from "./recipe-steps-editor";
+import { rowsFromText, toRows, toSteps, type StepRow } from "./recipe-steps";
 
 interface Draft {
   name: string;
   servings: number | null;
-  instructions: string;
+  steps: StepRow[];
   source_url: string;
   image_url: string;
   /** Canning recipe: the product it makes (name; a new one needs its category). */
@@ -35,7 +38,8 @@ interface Draft {
 const fromRecipe = (r?: Recipe | RecipeDraft): Draft => ({
   name: r?.name ?? "",
   servings: r?.servings ?? 4,
-  instructions: r?.instructions ?? "",
+  // an old recipe without steps: its text split at blank lines
+  steps: r?.steps?.length ? toRows(r.steps) : rowsFromText(r?.instructions ?? null),
   source_url: r?.source_url ?? "",
   image_url: r?.image_url ?? "",
   product: (r && "canning_product" in r && r.canning_product) || "",
@@ -121,7 +125,9 @@ export class PantryRecipeDialog extends LitElement {
     if (min != null && !(Number.isInteger(min) && min >= 1 && min <= 1440))
       e.canning_minutes = t("valid.canning_minutes");
     else if (min == null && temp != null) e.canning_minutes = t("valid.required");
-    const bad = ingredientErrors(d.ingredients).some((x) => Object.keys(x).length);
+    const bad =
+      ingredientErrors(d.ingredients).some((x) => Object.keys(x).length) ||
+      d.steps.some((r) => stepRowError(r));
     return { e, bad };
   }
 
@@ -135,7 +141,7 @@ export class PantryRecipeDialog extends LitElement {
         ...(this.recipe ? { id: this.recipe.id } : {}),
         name: d.name.trim(),
         servings: d.servings,
-        instructions: d.instructions.trim() || null,
+        steps: toSteps(d.steps),
         source_url: d.source_url.trim() || null,
         image_url: d.image_url.trim() || null,
         ...(this.canningMode ? this.canningPayload() : {}),
@@ -251,16 +257,6 @@ export class PantryRecipeDialog extends LitElement {
           />
           ${fieldMsg(e.servings, "recipe-servings-input")}
         </label>
-        <label>
-          <span class="lbl">${t("recipes.field.instructions")}</span>
-          <textarea
-            rows="5"
-            data-testid="recipe-instructions"
-            .value=${d.instructions}
-            @input=${(ev: Event) =>
-              (this.draft = { ...d, instructions: (ev.target as HTMLTextAreaElement).value })}
-          ></textarea>
-        </label>
         ${
           this.canningMode
             ? html`<div class="pair">
@@ -284,7 +280,11 @@ export class PantryRecipeDialog extends LitElement {
           .units=${this.md?.units ?? []}
           @change=${(ev: CustomEvent<Ingredient[]>) =>
             (this.draft = { ...d, ingredients: ev.detail })}
-        ></pantry-recipe-ingredients>`,
+        ></pantry-recipe-ingredients>
+        <pantry-recipe-steps
+          .value=${d.steps}
+          @change=${(ev: CustomEvent<StepRow[]>) => (this.draft = { ...d, steps: ev.detail })}
+        ></pantry-recipe-steps>`,
       error: this.error,
       invalid: Object.keys(e).length > 0 || bad,
       submit: { label: t("common.save"), testid: "recipe-save" },
@@ -294,21 +294,7 @@ export class PantryRecipeDialog extends LitElement {
     });
   }
 
-  static styles = [
-    formStyles,
-    css`
-      textarea {
-        font: inherit;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 8px;
-        color: var(--primary-text-color);
-        background: var(--card-background-color, var(--primary-background-color));
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-      }
-    `,
-  ];
+  static styles = [formStyles];
 }
 
 customElements.define("pantry-recipe-dialog", PantryRecipeDialog);

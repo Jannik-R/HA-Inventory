@@ -246,11 +246,19 @@ export interface Ingredient {
   /** Without an amount (matched): packages. */
   packages?: number;
 }
+/** A recipe step; `section` heads it (first step of a section). Timers are read from the text. */
+export interface Step {
+  section: string | null;
+  text: string;
+  timers?: { seconds: number; label: string }[];
+}
 export interface Recipe {
   id: number;
   name: string;
   servings: number;
+  /** Old free text of recipes saved before steps existed (replaced by steps on their next save). */
   instructions: string | null;
+  steps: Step[];
   source_url: string | null;
   image_url: string | null;
   /** Set: a canning recipe (Einkochen tab) that makes this product. */

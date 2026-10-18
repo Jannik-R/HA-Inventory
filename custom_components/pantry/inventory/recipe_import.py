@@ -11,6 +11,7 @@ from collections.abc import Iterator
 from .common import InventoryError
 from .ingredient_line import parse_ingredient, unit_lookup
 from .inherit import is_food
+from .steps import import_steps
 from .suggest import suggest, suggest_type
 
 _LD_TYPE = re.compile(r"type\s*=\s*[\"']?application/ld\+json")
@@ -75,22 +76,6 @@ def _servings(value: object) -> int:
     return min(max(int(match[0]), 1), 99) if match else 4
 
 
-def _steps(node: object) -> list[str]:
-    if isinstance(node, str):
-        return [_text(node)]
-    if isinstance(node, list):
-        return [s for child in node for s in _steps(child)]
-    if isinstance(node, dict):
-        if "itemListElement" in node:
-            return [_text(node.get("name")), *_steps(node["itemListElement"])]
-        return [_text(node.get("text"))]
-    return []
-
-
-def _instructions(value: object) -> str | None:
-    return "\n\n".join(s for s in _steps(value) if s)[:20000] or None
-
-
 def _image(value: object) -> str | None:
     if isinstance(value, list):
         value = next((v for v in value if _image(v)), None)
@@ -101,7 +86,7 @@ def _image(value: object) -> str | None:
 
 
 def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
-    """Draft {name, servings, instructions, source_url, image_url, ingredients}; nothing is saved."""
+    """Draft {name, servings, steps, source_url, image_url, ingredients}; nothing is saved."""
     recipe = extract_recipe(page)
     if recipe is None:
         raise InventoryError("recipe_not_found")
@@ -131,7 +116,7 @@ def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
     return {
         "name": (_text(recipe.get("name")) or url)[:200],
         "servings": _servings(recipe.get("recipeYield")),
-        "instructions": _instructions(recipe.get("recipeInstructions")),
+        "steps": import_steps(recipe.get("recipeInstructions")),
         "source_url": url,
         "image_url": _image(recipe.get("image")),
         "ingredients": ingredients,

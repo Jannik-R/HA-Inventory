@@ -28,11 +28,15 @@ import type { PantryLabelDialog } from "./label-dialog";
 import "./product-dialog";
 import "./batch-dialog";
 import "./label-dialog";
+import "./booking-view";
+import type { Mode } from "./booking-view";
 
-/** Stock and products: category › product › batch/location, search, location filter, edit/delete. */
+/** Stock and products: search / book in / book out switch, category › product › batch/location,
+ *  location filter, edit/delete. */
 export class PantryStock extends LitElement {
   static properties = {
     hass: { attribute: false },
+    mode: { attribute: false },
     md: { state: true },
     stock: { state: true },
     filter: { state: true },
@@ -45,6 +49,8 @@ export class PantryStock extends LitElement {
   };
 
   declare hass?: Hass;
+  /** From the route: /stock searches, /in and /out book. */
+  declare mode: Mode;
   declare md?: MasterData;
   declare stock?: StockRow[];
   declare filter: string;
@@ -59,6 +65,7 @@ export class PantryStock extends LitElement {
 
   constructor() {
     super();
+    this.mode = "search";
     this.filter = "";
     this.location = null;
     this.withEmpty = false;
@@ -82,9 +89,6 @@ export class PantryStock extends LitElement {
     try {
       this.md = await getMasterData(this.hass!);
       await this.reload();
-      await this.updateComplete;
-      // Scanner types into the search field.
-      this.renderRoot.querySelector<HTMLInputElement>(".filter")?.focus();
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
@@ -142,18 +146,27 @@ export class PantryStock extends LitElement {
 
   render() {
     const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
-    if (!this.stock) return error;
+    const head = html`<pantry-booking
+      .hass=${this.hass}
+      .mode=${this.mode}
+      @query=${(e: CustomEvent<string>) => (this.filter = e.detail)}
+      @booked=${this.saved}
+    ></pantry-booking>`;
+    // One outer template: the input must survive the stock loading (Lit swaps elements per template).
+    return html`${head} ${error} ${this.stock ? this.list(this.stock) : nothing}`;
+  }
+
+  private list(stock: StockRow[]) {
     const rows = this.tree(this.filter.trim() !== "");
     return html`
-      ${error} ${stockFilters(this)} ${undoLine(this, "stock")}
-      ${doneLine(this.message, undefined, "label")}
+      ${stockFilters(this)} ${undoLine(this, "stock")} ${doneLine(this.message, undefined, "label")}
       ${
         rows.length
           ? html`<ul>
               ${rows}
             </ul>`
           : html`<p class="empty">
-              ${t(this.stock.length || this.filter.trim() ? "book.no_hits" : "stock.empty")}
+              ${t(stock.length || this.filter.trim() ? "book.no_hits" : "stock.empty")}
             </p>`
       }
       <pantry-product-dialog

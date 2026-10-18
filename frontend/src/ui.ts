@@ -40,7 +40,7 @@ export const backdropClick = (isDirty?: () => boolean) => (e: MouseEvent) => {
  * Esc is caught on keydown: browsers ignore preventDefault() on a repeated `cancel` without a
  * click in between (close watcher rule), which closed the dialog behind the question.
  */
-const escGuard = (isDirty: () => boolean) => (e: Event) => {
+export const escGuard = (isDirty: () => boolean) => (e: Event) => {
   if (e instanceof KeyboardEvent && e.key !== "Escape") return;
   // Esc in a dialog nested inside this one (e.g. the category picker) belongs to that dialog.
   if (e.composedPath().find((n) => n instanceof HTMLDialogElement) !== e.currentTarget) return;

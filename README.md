@@ -57,7 +57,7 @@ only), so they can still be edited or deleted; their row opens the edit dialog.
 
 - **Product row**: pencil = change name, brand, EAN, category, content, and the product's own
   defaults (location, date type, warning days) that override the category's, and its own
-  *Mindestanzahl* (optional, packages; also when creating it on *Einbuchen*; below it the product goes on the shopping list). Admins also get a
+  *Mindestanzahl* (optional, packages; also when creating it while booking in; below it the product goes on the shopping list). Admins also get a
   bin: deletes the product with its stock and booking history (asks first, naming the stock).
 - **Batch row**: minus = take one package out of that batch and location (only there, so you
   look at the batches first); *Rückgängig* books it back in. Pencil = fix this batch at this
@@ -178,10 +178,16 @@ actions:
         Abgelaufen: {{ state_attr('sensor.vorrat_abgelaufen', 'items') | map(attribute='name') | join(', ') }}
 ```
 
-### Einbuchen / Auslagern (book in / out)
+### Bestand: Suchen / Einbuchen / Auslagern (stock, book in / out)
+
+Stock and booking share the *Bestand* tab. A switch in front of the input (icons: magnifier *Suchen*, + *Einbuchen*,
+− *Auslagern*) picks what Enter does: *Suchen* (default) only filters the list, so a scanner's Enter opens nothing; *Einbuchen* and
+*Auslagern* open the booking dialog. `/pantry/in` and `/pantry/out` open the tab with the switch set.
 
 One input field, focused when the tab opens: scan with a USB/Bluetooth barcode scanner (it types
 the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name and press Enter.
+Typing filters the stock list in every mode. Booking happens in a dialog: hits to pick from (name
+search), then the form; Esc or a click beside it asks first when something was entered.
 
 - **Einbuchen** ("Produkt zubuchen"): expiry date (the label names the product's date type, e.g.
   "Ablaufdatum (Mindesthaltbarkeit)"; leave it empty for items without one; with a shelf life
@@ -208,7 +214,7 @@ barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use;
 
 Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN), product name, brand and expiry date.
 Labels of a canning charge show the charge in the brand line; their QR code contains the charge, so scanning one books out a jar of exactly that charge.
-Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an option), and a tag
+Printing is a checkbox *Etiketten drucken* in the book-in form (its default is an option), and a tag
 button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
 
 - **Label printer setup** (the receipt printer is set up separately, see *Bondrucker*).
@@ -226,8 +232,8 @@ button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels fo
     label printer there; the page size is the label size, 10 to 200 mm).
 - **Many labels**: printing more than 2 labels at once (after book-in or in the reprint dialog) asks
   "n Etiketten drucken?" first; cancelling prints nothing (the booking itself is kept).
-- **Scan to book out**: type or scan a label (scanner or camera) into the input of *Einbuchen* or
-  *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
+- **Scan to book out**: type or scan a label (scanner or camera) into the input of *Bestand* with
+  the switch on *Einbuchen* or *Auslagern*; one package of that batch is booked out, from the location chosen like in a normal
   booking out. Labels are not single-use: they name the batch, not one package.
 
 ### Bondrucker (receipt printer)

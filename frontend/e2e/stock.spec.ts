@@ -47,9 +47,13 @@ test.afterAll(async ({ browser }) => {
 
 test("overview groups by category, searches and filters by location", async ({ page }) => {
   await openPage(page, "/pantry/stock", "Bestand");
-  const filter = page.getByTestId("stock-filter");
+  const filter = page.getByTestId("code-input");
   await expect(filter).toBeFocused();
   await filter.fill(NAME);
+  // "Suchen" only filters: the scanner's Enter opens no booking dialog.
+  await expect(page.getByTestId("mode-search")).toHaveAttribute("aria-pressed", "true");
+  await filter.press("Enter");
+  await expect(page.getByTestId("booking-dialog")).toBeHidden();
   const product = page.getByTestId("stock-product");
   await expect(product).toHaveCount(1);
   await expect(product).toContainText(NAME);
@@ -126,7 +130,7 @@ test("reprint asks for the count and shows the stock", async ({ page, printCalls
     location_id: locations[1].id,
   });
   await openPage(page, "/pantry/stock", "Bestand");
-  await page.getByTestId("stock-filter").fill(NAME);
+  await page.getByTestId("code-input").fill(NAME);
   const batches = page.getByTestId("stock-batch");
   await expect(batches).toHaveCount(1);
   await batches.first().getByTestId("stock-batch-label").click();
@@ -147,7 +151,7 @@ test("undo works once: the second try is impossible and one package comes back",
   page,
 }) => {
   await openPage(page, "/pantry/stock", "Bestand");
-  await page.getByTestId("stock-filter").fill(NAME);
+  await page.getByTestId("code-input").fill(NAME);
   const product = page.getByTestId("stock-product");
   const count = async () => Number(/(\d+) Pkg\./.exec((await product.textContent()) ?? "")?.[1]);
   const before = await count();

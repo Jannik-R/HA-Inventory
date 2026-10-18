@@ -5,23 +5,13 @@ import type { MasterData } from "./api";
 /** The stock view's filter state; the view owns it (reactive properties). */
 interface StockFilterHost {
   md?: MasterData;
-  filter: string;
   location: number | null;
   withEmpty: boolean;
 }
 
-/** Search field (scanner types into it), location filter and "also products without stock". */
+/** Location filter and "also products without stock" (the text filter is the booking input). */
 export const stockFilters = (h: StockFilterHost) =>
   html`<div class="filters">
-      <input
-        class="filter"
-        type="search"
-        data-testid="stock-filter"
-        aria-label=${t("stock.search_hint")}
-        placeholder=${t("stock.search")}
-        .value=${h.filter}
-        @input=${(e: Event) => (h.filter = (e.target as HTMLInputElement).value)}
-      />
       <select
         data-testid="stock-location"
         aria-label=${t("stock.location")}
@@ -46,7 +36,7 @@ export const stockFilters = (h: StockFilterHost) =>
 export const stockFilterStyles = css`
   .filters {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     margin-bottom: 8px;
   }

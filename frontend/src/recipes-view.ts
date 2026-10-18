@@ -24,6 +24,8 @@ import "./recipe-import";
 import "./shopping-recipe-dialog";
 import { DINNER } from "./plan-dates";
 import "./meal-dialog";
+import "./cook-mode";
+import type { PantryCookMode } from "./cook-mode";
 import type { PantryMealDialog } from "./meal-dialog";
 import type { PantryShoppingRecipeDialog } from "./shopping-recipe-dialog";
 import type { PantryRecipeImport } from "./recipe-import";
@@ -213,6 +215,10 @@ export class PantryRecipes extends LitElement {
                   : this.renderRoot
                       .querySelector<PantryMealDialog>("pantry-meal-dialog")!
                       .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
+              onCook: () =>
+                this.renderRoot
+                  .querySelector<PantryCookMode>("pantry-cook-mode")!
+                  .open(this.hass!, this.md!, r, this.scaled.get(r.id) ?? r.ingredients, n),
             })
           : nothing
       }
@@ -252,6 +258,7 @@ export class PantryRecipes extends LitElement {
         @pantry-saved=${() => this.refreshShopping()}
       ></pantry-shopping-recipe-dialog>
       <pantry-meal-dialog .hass=${this.hass}></pantry-meal-dialog>
+      <pantry-cook-mode></pantry-cook-mode>
       <pantry-recipe-dialog
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}

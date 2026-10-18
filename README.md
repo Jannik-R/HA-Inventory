@@ -104,7 +104,7 @@ items added by hand (minimum stock items stay until the stock is there).
 
 The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen" (canning recipes are listed in *Einkochen*, not here). The search field (focused on
 open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
-their status, instructions, source link and image. *Portionen* in the open row scales the amounts;
+their status, the numbered steps, source link and image. *Portionen* in the open row scales the amounts;
 this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf); *Einplanen* adds it to the week plan with the shown servings.
 
 An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
@@ -114,14 +114,16 @@ without a content in a matching unit), *keine Zutat zugeordnet* (counts as not a
 amount, any package in the category is enough. Cooking does not book anything out: take the
 ingredients out in *Auslagern* as usual.
 
-*Rezept hinzufügen* and the pencil are open to every user: name, portions, instructions, links and the ingredient rows
+**Steps and cook mode.** The *Zubereitung* is a list of numbered steps; *Zwischenüberschrift* rows head a part of them (e.g. Teig, Füllung), numbering runs on across headings. Recipes saved before steps existed keep their old text until they are edited: the dialog then offers it split at blank lines. *Kochmodus* in an open recipe shows the ingredients (for the shown portions) and the steps full screen; a tap ticks a step off (not saved). Durations in a step ("20 Minuten", "ca. 10–15 Min.", "1,5 Std.", "eine halbe Stunde"; a range uses its upper value) become timer buttons; several timers can run at once, a finished one beeps, vibrates and turns red. The screen stays on while the cook mode is open (where the browser allows it). Timers live in the browser tab: closing the cook mode asks first and ends them.
+
+*Rezept hinzufügen* and the pencil are open to every user: name, portions, steps, links and the ingredient rows
 (Produktart or category, *Hinweis*, amount and unit together or neither, optional, *Nicht gegen den Vorrat prüfen*). The *Zutat* field is a search: type a Produktart or category name, or a product name ("Mutti" finds Tomatenmark, shown as "über Mutti Tomatenmark"). If nothing fits, *Neue Produktart „…“ anlegen* asks for the parent category and creates it right there. Picking a category fills an empty
 unit with its unit. Only admins can delete a recipe (the bin).
 Deleting a category or unit that recipes use asks first and lists those recipes. The ingredients stay: without the category they show *keine Zutat zugeordnet*; deleting a unit also clears their amount (amount and unit only go together).
 
 Every unit select in a recipe ingredient row has *Neue Einheit …*: any user can add a unit there. Spelling variants (Tasse, Tassen, tasse) map to one unit; an existing match is reused instead of a duplicate.
 
-*Importieren* on the tab reads a recipe from a URL. Home Assistant loads that page only when you click (15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads the schema.org recipe data that most recipe sites publish. Nothing is saved yet: the recipe dialog opens prefilled with name, portions, instructions, source link, image and ingredients. Each ingredient shows its original line ("Original: …") and a suggested Produktart or category; check them before saving. Pages without recipe data show "Auf dieser Seite wurde kein Rezept gefunden". Instagram posts and free text need the AI interface (planned, phase 19).
+*Importieren* on the tab reads a recipe from a URL. Home Assistant loads that page only when you click (15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads the schema.org recipe data that most recipe sites publish. Nothing is saved yet: the recipe dialog opens prefilled with name, portions, steps, source link, image and ingredients. Steps come from the page's step list (a single section name such as "Zubereitung" is dropped, several become headings, leading numbers like "1." are removed); a page with one text block is split at its line breaks or its own numbering ("1. … 2. …"). Each ingredient shows its original line ("Original: …") and a suggested Produktart or category; check them before saving. Pages without recipe data show "Auf dieser Seite wurde kein Rezept gefunden". Instagram posts and free text need the AI interface (planned, phase 19).
 
 Imported ingredient lines are read in German: fractions (½, 1/2), ranges take the upper value (2-3 becomes 3), "Zehe/n", units by name, symbol or plural, an amount without unit is Stück, text after a comma or in brackets becomes the *Hinweis* (also "1 TL, gestr. Salz" and "Mehl für die Form"), Eigelb / Eiweiß count as Ei with the part as *Hinweis*, "n. B." / "nach Belieben" means no amount, "evtl." means optional.
 
@@ -144,7 +146,7 @@ Tab *Einkochen* has two views, buttons at the top: *Protokolle* and *Rezepte*.
 - Jars canned without a protocol are booked in like any product (category *Eingekochtes*), without a charge.
 - The stock view shows the charge next to a batch's date.
 
-*Rezepte* lists only canning recipes, with the same list, search, import and editing as the recipe list. *Einkochrezept anlegen* opens the recipe dialog: name, *Ergibt Produkt* (required: an existing product by name, or a new name plus *Kategorie*), *Ergibt (Gläser)* (instead of portions; the ingredients scale by jars), *Zubereitung*, *Temperatur* (°C) and *Dauer* (minutes), both optional or none, source and image link, ingredients. So every canning recipe makes a defined product. Opening one shows "ergibt N × <Produkt>" and the button *Protokoll anlegen*, which switches to *Protokolle* with that recipe chosen. Deleting a product also deletes the canning recipes that make it (the delete question lists them).
+*Rezepte* lists only canning recipes, with the same list, search, import and editing as the recipe list. *Einkochrezept anlegen* opens the recipe dialog: name, *Ergibt Produkt* (required: an existing product by name, or a new name plus *Kategorie*), *Ergibt (Gläser)* (instead of portions; the ingredients scale by jars), *Zubereitung* (steps), *Temperatur* (°C) and *Dauer* (minutes), both optional or none, source and image link, ingredients. So every canning recipe makes a defined product. Opening one shows "ergibt N × <Produkt>" and the button *Protokoll anlegen*, which switches to *Protokolle* with that recipe chosen. Deleting a product also deletes the canning recipes that make it (the delete question lists them).
 
 ### Sensors
 

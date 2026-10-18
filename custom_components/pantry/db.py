@@ -396,6 +396,18 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     SCHEMA_15,
     # 16: seeded non-food roots and Eingekochtes for existing DBs (a new DB gets them from the seed).
     add_general,
+    # 17: numbered recipe steps; section = heading before this step (first step of a section).
+    # Old recipes keep their text in recipe.instructions until they are edited (no conversion).
+    """
+    CREATE TABLE recipe_step (
+        id INTEGER PRIMARY KEY,
+        recipe_id INTEGER NOT NULL REFERENCES recipe(id) ON DELETE CASCADE,
+        pos INTEGER NOT NULL,
+        section TEXT CHECK (section IS NULL OR length(section) BETWEEN 1 AND 100),
+        text TEXT NOT NULL CHECK (trim(text) <> '' AND length(text) <= 2000),
+        UNIQUE (recipe_id, pos)
+    );
+    """,
 ]
 
 

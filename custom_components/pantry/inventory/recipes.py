@@ -10,12 +10,19 @@ from .common import InventoryError, _exists
 from .inherit import _categories, _resolve, children, defaults
 from .master import save
 from .products import add_product
+from .steps import MAX_STEPS, timers
 
 
 def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
-    """Insert / update a recipe; its ingredients are replaced by `data["ingredients"]` (in order)."""
+    """Insert / update a recipe; its ingredients are replaced by `data["ingredients"]` (in order).
+
+    `steps` ([{text, section}]) replace the recipe's steps and its old instructions text.
+    """
     data = dict(data)
     ingredients = data.pop("ingredients")
+    steps = data.pop("steps", None)
+    if steps is not None:
+        data["instructions"] = None  # the editor turned the old text into steps
     if new_product := data.pop("canning_product", None):  # a canning recipe's new product
         data["canning_product_id"] = add_product(conn, new_product)
     _exists(conn, "product", data.get("canning_product_id"))
@@ -67,9 +74,41 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
                 " AND text IN (SELECT value FROM json_each(?))",
                 (recipe_id, json.dumps(sorted(chosen))),
             )
+        if steps is not None:
+            _save_steps(conn, recipe_id, steps)
     except sqlite3.IntegrityError as err:
         raise InventoryError("not_found" if "FOREIGN" in str(err) else "invalid_value") from err
     return recipe_id
+
+
+def _save_steps(conn: sqlite3.Connection, recipe_id: int, steps: list[dict]) -> None:
+    if len(steps) > MAX_STEPS:
+        raise InventoryError("invalid_value")
+    conn.execute("DELETE FROM recipe_step WHERE recipe_id = ?", (recipe_id,))
+    conn.executemany(
+        "INSERT INTO recipe_step (recipe_id, pos, section, text) VALUES (?, ?, ?, ?)",
+        [
+            (
+                recipe_id,
+                pos,
+                (s.get("section") or "").strip() or None,
+                (s.get("text") or "").strip(),
+            )
+            for pos, s in enumerate(steps)
+        ],
+    )
+
+
+def _steps(conn: sqlite3.Connection) -> dict[int, list[dict]]:
+    """Steps per recipe with the timers read from their text."""
+    out: dict[int, list[dict]] = {}
+    for r in conn.execute(
+        "SELECT recipe_id, section, text FROM recipe_step ORDER BY recipe_id, pos"
+    ):
+        out.setdefault(r["recipe_id"], []).append(
+            {"section": r["section"], "text": r["text"], "timers": timers(r["text"])}
+        )
+    return out
 
 
 def _subtree(kids: dict, category_id: int) -> set[int]:
@@ -160,7 +199,7 @@ def recipe_availability(conn: sqlite3.Connection, recipe_id: int, servings: int)
 def recipes(conn: sqlite3.Connection) -> list[dict]:
     """All recipes by name with ingredients, availability at their own servings and a summary
     (available / total over the ingredients that are neither optional nor skipped)."""
-    out, ctx = [], _ctx(conn)
+    out, ctx, steps = [], _ctx(conn), _steps(conn)
     # shortcut: instructions travel with the list; split into a detail call if the list gets slow
     for r in map(
         dict,
@@ -173,6 +212,7 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
         ingredients = _availability(ctx, _ingredients(conn, r["id"]), 1.0)
         required = [i for i in ingredients if not i["optional"] and not i["skip_stock"]]
         r["ingredients"] = ingredients
+        r["steps"] = steps.get(r["id"], [])
         r["summary"] = {
             "available": sum(i["status"] == "available" for i in required),
             "total": len(required),

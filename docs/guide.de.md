@@ -147,25 +147,40 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
 [Einkochen](#7b-einkochen), nicht hier). Das Suchfeld findet Name und
-Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, Anleitung, Quelle und Bild; **Portionen**
+Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, die nummerierten Schritte, Quelle und Bild; **Portionen**
 rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept auf die Liste
 (siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
 [Speiseplan](#7a-speiseplan) ein (Datum: heute, Mahlzeit: Abendessen; im Dialog änderbar).
 
 **Rezept hinzufügen**:
 
-1. Name, Portionen und Anleitung eintragen.
+1. Name und Portionen eintragen.
 2. Pro Zutat: im Feld **Zutat** eine Produktart oder Kategorie suchen (auch über einen Produktnamen,
    „Mutti“ findet Tomatenmark). Fehlt sie, **Neue Produktart „…“ anlegen**.
 3. Menge und Einheit (beide oder keins), optional ein **Hinweis** wie „fein gewürfelt“.
 4. **optional** für Zutaten, die das Rezept nicht braucht. **Nicht gegen den Vorrat prüfen** für
    Dinge, die du nicht im Vorrat führst (Salz, Wasser).
 5. Fehlt eine Einheit, wähle **Neue Einheit …** in der Einheitenauswahl.
+6. Unter **Zubereitung** mit **Schritt hinzufügen** die Schritte eintragen, einen pro Feld. Die
+   Pfeile verschieben einen Schritt, das Kreuz entfernt ihn. **Zwischenüberschrift hinzufügen**
+   teilt das Rezept in Abschnitte (z. B. „Teig“, „Füllung“); die Nummern laufen weiter.
+
+Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
+Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
+
+**Kochmodus**: Im aufgeklappten Rezept öffnet **Kochmodus** Zutaten (für die angezeigten Portionen)
+und Schritte im Vollbild. Ein Tipp auf einen Schritt hakt ihn ab (wird nicht gespeichert). Steht in
+einem Schritt eine Zeit („20 Minuten“, „ca. 10–15 Min.“, „eine halbe Stunde“), gibt es dazu einen
+Timer-Knopf; bei einer Spanne gilt der höhere Wert. Mehrere Timer laufen gleichzeitig und stehen
+unten; ein abgelaufener piept, vibriert und wird rot. Der Bildschirm bleibt an, solange der
+Kochmodus offen ist (wenn der Browser es erlaubt). Die Timer laufen nur in diesem Browserfenster:
+Schließen fragt nach und beendet sie.
 
 Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind Faustregeln: Prise und Messerspitze 0,5 g, Zehe 0,1 Stück (auf der Einkaufsliste wird aufgerundet: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0,05 ml, Spritzer 1 ml, Schuss 20 ml. Scheibe, Zweig und Stiel haben keine Größe und zählen als beliebige Menge. Eine Einheit, die ein Rezeptimport anlegt, ist zunächst nur für Rezepte.
 
 **Importieren**: Füge die Adresse eines Rezepts ein (z. B. Chefkoch, Mealie, Tandoor). Vorrat liest
-die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt. Gespeichert wird erst, wenn du
+die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt, mit den Schritten der Seite
+(steht dort nur ein Textblock, wird er an Zeilenumbrüchen oder seiner eigenen Nummerierung geteilt). Gespeichert wird erst, wenn du
 speicherst. Jede Zutat zeigt ihre Originalzeile; prüfe die vorgeschlagenen Produktarten. Eine
 unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst eine vorhandene.
 
@@ -229,7 +244,7 @@ Herstellungsdatum, Produkt und Gläser bleiben, weil die Etiketten sie tragen.
 **Rezepte** (Ansicht im Tab **Einkochen**) zeigt nur die Einkochrezepte, mit derselben Liste, Suche,
 Import und Bearbeitung wie die Rezeptliste. **Einkochrezept anlegen** öffnet den Rezeptdialog:
 
-- **Name**, **Zubereitung**, Quelle und Bild, Zutaten wie bei normalen Rezepten.
+- **Name**, **Zubereitung** (Schritte), Quelle und Bild, Zutaten wie bei normalen Rezepten.
 - **Ergibt Produkt** (Pflicht): ein vorhandenes Produkt per Namen, oder ein neuer Name mit **Kategorie**.
 - **Ergibt (Gläser)** statt Portionen: Die Zutaten werden nach Gläsern umgerechnet.
 - **Temperatur** (°C) und **Dauer** (Minuten): optional, beide oder keins.

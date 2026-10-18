@@ -123,7 +123,7 @@ def main() -> None:
             stats["failed"] += 1
             print(f"\n!! {url}: {err}")
             continue
-        missing = [k for k in ("image_url", "instructions") if not d[k]]
+        missing = [k for k in ("image_url", "steps") if not d[k]]
         print(f"\n## {d['name']} | {d['servings']} P | {len(d['ingredients'])} rows"
               f"{' | missing ' + ','.join(missing) if missing else ''} | {url}")  # fmt: skip
         stats.update(f"no_{k}" for k in missing)

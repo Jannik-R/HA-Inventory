@@ -34,6 +34,7 @@ _HIDDEN = {
     "batch",
     "category_off_tag",
     "off_tag",
+    "recipe_step",
     "shopping_done",
     "shopping_done_product",
     "shopping_done_recipe",

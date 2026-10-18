@@ -146,7 +146,7 @@ set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 ## 7. Recipes
 
 **Rezepte** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
-and ingredients. Opening a row shows the ingredients with their status, instructions, source and
+and ingredients. Opening a row shows the ingredients with their status, the numbered steps, source and
 image; **Portionen** (servings) scales the amounts (display only). **Auf die Einkaufsliste** (put on
 the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)). **Einplanen** (plan) adds it to the
 [meal plan](#7a-meal-plan) with the shown servings (date: today, meal: Abendessen/dinner, both changeable in the dialog).
@@ -156,18 +156,32 @@ Canning recipes are not listed here; they are in the **Einkochen** (canning) tab
 
 **Rezept hinzufügen** (add recipe):
 
-1. Enter name, servings and instructions.
+1. Enter name and servings.
 2. For each ingredient search a product type or category in **Zutat** (a product name works too:
    "Mutti" finds Tomatenmark). If it is missing, **Neue Produktart „…“ anlegen**.
 3. Amount and unit (both or neither), optionally a **Hinweis** (note) such as "fein gewürfelt".
 4. **optional** for ingredients the recipe can do without; **Nicht gegen den Vorrat prüfen** (do
    not check against the stock) for things you do not keep in the inventory (salt, water).
 5. If a unit is missing, choose **Neue Einheit …** in the unit select.
+6. Under **Zubereitung** (preparation) add the steps with **Schritt hinzufügen**, one per field. The
+   arrows move a step, the cross removes it. **Zwischenüberschrift hinzufügen** (add heading) splits
+   the recipe into parts (e.g. "Teig", "Füllung"); numbering runs on.
+
+Older recipes still have a single instructions text. The next time you edit one, the dialog shows
+it split into steps at blank lines; saving turns it into the step list.
+
+**Kochmodus** (cook mode): in an open recipe, **Kochmodus** shows the ingredients (for the shown
+servings) and the steps full screen. A tap ticks a step off (not saved). A step that mentions a time
+("20 Minuten", "ca. 10–15 Min.", "eine halbe Stunde") gets a timer button; a range uses its upper
+value. Several timers can run at once and are listed at the bottom; a finished one beeps, vibrates
+and turns red. The screen stays on while the cook mode is open (if the browser allows it). Timers
+only run in this browser window: closing asks first and ends them.
 
 Units marked *Nur für Rezepte* (recipe only, e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb: Prise and Messerspitze 0.5 g, Zehe 0.1 piece (the shopping list rounds up: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0.05 ml, Spritzer 1 ml, Schuss 20 ml, Zweig and Stiel 0.1 Bund. Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). A unit created by a recipe import starts as recipe-only.
 
 **Importieren** (import): paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Pantry
-reads the page's recipe data and opens the recipe dialog prefilled; nothing is saved until you
+reads the page's recipe data and opens the recipe dialog prefilled, with the page's steps (a single
+text block is split at its line breaks or its own numbering); nothing is saved until you
 save. Each ingredient shows its original line; check the suggested product types. An unknown unit
 (e.g. "Tasse", cup) is created with **Anlegen** or replaced by an existing one.
 
@@ -230,7 +244,7 @@ Made-on date, product and jars stay, since the labels carry them.
 **Rezepte** (view in the **Einkochen** tab) lists only canning recipes, with the same list, search, import
 and editing as the recipe list. **Einkochrezept anlegen** (add canning recipe) opens the recipe dialog:
 
-- **Name**, **Zubereitung** (instructions), source and image link, ingredients as for normal recipes.
+- **Name**, **Zubereitung** (steps), source and image link, ingredients as for normal recipes.
 - **Ergibt Produkt** (yields product, required): an existing product by name, or a new name with a **Kategorie**.
 - **Ergibt (Gläser)** (yields jars) instead of portions: the ingredients scale by jars.
 - **Temperatur** (°C) and **Dauer** (minutes): optional, both or neither.

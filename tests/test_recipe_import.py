@@ -178,7 +178,10 @@ RECIPE = {
 def test_import_draft(conn):
     draft = inv.recipe_import(conn, page("{broken", json.dumps(RECIPE)), "https://x.test/r")
     assert draft["name"] == "Spaghetti & Sauce" and draft["servings"] == 4
-    assert draft["instructions"] == "Sauce\n\nKochen.\n\nEssen."
+    assert draft["steps"] == [
+        {"section": "Sauce", "text": "Kochen."},
+        {"section": None, "text": "Essen."},
+    ]
     assert (
         draft["image_url"] == "https://x.test/a.jpg" and draft["source_url"] == "https://x.test/r"
     )

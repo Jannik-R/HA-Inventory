@@ -29,7 +29,7 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 	let t = "";
 	for (let n of e.cssRules) t += n.cssText;
 	return a(t);
-})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: ee, getOwnPropertySymbols: te, getPrototypeOf: ne } = Object, re = globalThis, ie = re.trustedTypes, ae = ie ? ie.emptyScript : "", oe = re.reactiveElementPolyfillSupport, f = (e, t) => e, se = {
+})(e) : e, { is: l, defineProperty: u, getOwnPropertyDescriptor: d, getOwnPropertyNames: ee, getOwnPropertySymbols: te, getPrototypeOf: ne } = Object, re = globalThis, ie = re.trustedTypes, ae = ie ? ie.emptyScript : "", oe = re.reactiveElementPolyfillSupport, se = (e, t) => e, ce = {
 	toAttribute(e, t) {
 		switch (t) {
 			case Boolean:
@@ -58,23 +58,23 @@ var e = globalThis, t = e.ShadowRoot && (e.ShadyCSS === void 0 || e.ShadyCSS.nat
 		}
 		return n;
 	}
-}, ce = (e, t) => !l(e, t), le = {
+}, le = (e, t) => !l(e, t), ue = {
 	attribute: !0,
 	type: String,
-	converter: se,
+	converter: ce,
 	reflect: !1,
 	useDefault: !1,
-	hasChanged: ce
+	hasChanged: le
 };
 Symbol.metadata ??= Symbol("metadata"), re.litPropertyMetadata ??= /* @__PURE__ */ new WeakMap();
-var p = class extends HTMLElement {
+var f = class extends HTMLElement {
 	static addInitializer(e) {
 		this._$Ei(), (this.l ??= []).push(e);
 	}
 	static get observedAttributes() {
 		return this.finalize(), this._$Eh && [...this._$Eh.keys()];
 	}
-	static createProperty(e, t = le) {
+	static createProperty(e, t = ue) {
 		if (t.state && (t.attribute = !1), this._$Ei(), this.prototype.hasOwnProperty(e) && ((t = Object.create(t)).wrapped = !0), this.elementProperties.set(e, t), !t.noAccessor) {
 			let n = Symbol(), r = this.getPropertyDescriptor(e, n, t);
 			r !== void 0 && u(this.prototype, e, r);
@@ -100,16 +100,16 @@ var p = class extends HTMLElement {
 		};
 	}
 	static getPropertyOptions(e) {
-		return this.elementProperties.get(e) ?? le;
+		return this.elementProperties.get(e) ?? ue;
 	}
 	static _$Ei() {
-		if (this.hasOwnProperty(f("elementProperties"))) return;
+		if (this.hasOwnProperty(se("elementProperties"))) return;
 		let e = ne(this);
 		e.finalize(), e.l !== void 0 && (this.l = [...e.l]), this.elementProperties = new Map(e.elementProperties);
 	}
 	static finalize() {
-		if (this.hasOwnProperty(f("finalized"))) return;
-		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(f("properties"))) {
+		if (this.hasOwnProperty(se("finalized"))) return;
+		if (this.finalized = !0, this._$Ei(), this.hasOwnProperty(se("properties"))) {
 			let e = this.properties, t = [...ee(e), ...te(e)];
 			for (let n of t) this.createProperty(n, e[n]);
 		}
@@ -171,14 +171,14 @@ var p = class extends HTMLElement {
 	_$ET(e, t) {
 		let n = this.constructor.elementProperties.get(e), r = this.constructor._$Eu(e, n);
 		if (r !== void 0 && !0 === n.reflect) {
-			let i = (n.converter?.toAttribute === void 0 ? se : n.converter).toAttribute(t, n.type);
+			let i = (n.converter?.toAttribute === void 0 ? ce : n.converter).toAttribute(t, n.type);
 			this._$Em = e, i == null ? this.removeAttribute(r) : this.setAttribute(r, i), this._$Em = null;
 		}
 	}
 	_$AK(e, t) {
 		let n = this.constructor, r = n._$Eh.get(e);
 		if (r !== void 0 && this._$Em !== r) {
-			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? se : e.converter;
+			let e = n.getPropertyOptions(r), i = typeof e.converter == "function" ? { fromAttribute: e.converter } : e.converter?.fromAttribute === void 0 ? ce : e.converter;
 			this._$Em = r;
 			let a = i.fromAttribute(t, e.type);
 			this[r] = a ?? this._$Ej?.get(r) ?? a, this._$Em = null;
@@ -187,7 +187,7 @@ var p = class extends HTMLElement {
 	requestUpdate(e, t, n, r = !1, i) {
 		if (e !== void 0) {
 			let a = this.constructor;
-			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? ce)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
+			if (!1 === r && (i = this[e]), n ??= a.getPropertyOptions(e), !((n.hasChanged ?? le)(i, t) || n.useDefault && n.reflect && i === this._$Ej?.get(e) && !this.hasAttribute(a._$Eu(e, n)))) return;
 			this.C(e, t, n);
 		}
 		!1 === this.isUpdatePending && (this._$ES = this._$EP());
@@ -251,25 +251,25 @@ var p = class extends HTMLElement {
 	updated(e) {}
 	firstUpdated(e) {}
 };
-p.elementStyles = [], p.shadowRootOptions = { mode: "open" }, p[f("elementProperties")] = /* @__PURE__ */ new Map(), p[f("finalized")] = /* @__PURE__ */ new Map(), oe?.({ ReactiveElement: p }), (re.reactiveElementVersions ??= []).push("2.1.2");
+f.elementStyles = [], f.shadowRootOptions = { mode: "open" }, f[se("elementProperties")] = /* @__PURE__ */ new Map(), f[se("finalized")] = /* @__PURE__ */ new Map(), oe?.({ ReactiveElement: f }), (re.reactiveElementVersions ??= []).push("2.1.2");
 //#endregion
 //#region node_modules/lit-html/lit-html.js
-var ue = globalThis, de = (e) => e, fe = ue.trustedTypes, pe = fe ? fe.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, me = "$lit$", m = `lit$${Math.random().toFixed(9).slice(2)}$`, he = "?" + m, ge = `<${he}>`, h = document, g = () => h.createComment(""), _ = (e) => e === null || typeof e != "object" && typeof e != "function", _e = Array.isArray, ve = (e) => _e(e) || typeof e?.[Symbol.iterator] == "function", ye = "[ 	\n\f\r]", be = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, xe = /-->/g, Se = />/g, v = RegExp(`>|${ye}(?:([^\\s"'>=/]+)(${ye}*=${ye}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), Ce = /'/g, we = /"/g, Te = /^(?:script|style|textarea|title)$/i, Ee = (e) => (t, ...n) => ({
+var de = globalThis, fe = (e) => e, pe = de.trustedTypes, me = pe ? pe.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, he = "$lit$", p = `lit$${Math.random().toFixed(9).slice(2)}$`, ge = "?" + p, _e = `<${ge}>`, m = document, h = () => m.createComment(""), g = (e) => e === null || typeof e != "object" && typeof e != "function", ve = Array.isArray, ye = (e) => ve(e) || typeof e?.[Symbol.iterator] == "function", be = "[ 	\n\f\r]", _ = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, xe = /-->/g, Se = />/g, v = RegExp(`>|${be}(?:([^\\s"'>=/]+)(${be}*=${be}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), Ce = /'/g, we = /"/g, Te = /^(?:script|style|textarea|title)$/i, Ee = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
 	values: n
-}), y = Ee(1), De = Ee(2), b = Symbol.for("lit-noChange"), x = Symbol.for("lit-nothing"), Oe = /* @__PURE__ */ new WeakMap(), S = h.createTreeWalker(h, 129);
+}), y = Ee(1), De = Ee(2), b = Symbol.for("lit-noChange"), x = Symbol.for("lit-nothing"), Oe = /* @__PURE__ */ new WeakMap(), S = m.createTreeWalker(m, 129);
 function ke(e, t) {
-	if (!_e(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
-	return pe === void 0 ? t : pe.createHTML(t);
+	if (!ve(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
+	return me === void 0 ? t : me.createHTML(t);
 }
 var Ae = (e, t) => {
-	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = be;
+	let n = e.length - 1, r = [], i, a = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = _;
 	for (let t = 0; t < n; t++) {
 		let n = e[t], s, c, l = -1, u = 0;
-		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === be ? c[1] === "!--" ? o = xe : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = v) : (Te.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = v) : o = Se : o === v ? c[0] === ">" ? (o = i ?? be, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? v : c[3] === "\"" ? we : Ce) : o === we || o === Ce ? o = v : o === xe || o === Se ? o = be : (o = v, i = void 0);
+		for (; u < n.length && (o.lastIndex = u, c = o.exec(n), c !== null);) u = o.lastIndex, o === _ ? c[1] === "!--" ? o = xe : c[1] === void 0 ? c[2] === void 0 ? c[3] !== void 0 && (o = v) : (Te.test(c[2]) && (i = RegExp("</" + c[2], "g")), o = v) : o = Se : o === v ? c[0] === ">" ? (o = i ?? _, l = -1) : c[1] === void 0 ? l = -2 : (l = o.lastIndex - c[2].length, s = c[1], o = c[3] === void 0 ? v : c[3] === "\"" ? we : Ce) : o === we || o === Ce ? o = v : o === xe || o === Se ? o = _ : (o = v, i = void 0);
 		let d = o === v && e[t + 1].startsWith("/>") ? " " : "";
-		a += o === be ? n + ge : l >= 0 ? (r.push(s), n.slice(0, l) + me + n.slice(l) + m + d) : n + m + (l === -2 ? t : d);
+		a += o === _ ? n + _e : l >= 0 ? (r.push(s), n.slice(0, l) + he + n.slice(l) + p + d) : n + p + (l === -2 ? t : d);
 	}
 	return [ke(e, a + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), r];
 }, je = class e {
@@ -283,8 +283,8 @@ var Ae = (e, t) => {
 		}
 		for (; (i = S.nextNode()) !== null && c.length < s;) {
 			if (i.nodeType === 1) {
-				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(me)) {
-					let t = u[o++], n = i.getAttribute(e).split(m), r = /([.?@])?(.*)/.exec(t);
+				if (i.hasAttributes()) for (let e of i.getAttributeNames()) if (e.endsWith(he)) {
+					let t = u[o++], n = i.getAttribute(e).split(p), r = /([.?@])?(.*)/.exec(t);
 					c.push({
 						type: 1,
 						index: a,
@@ -292,45 +292,45 @@ var Ae = (e, t) => {
 						strings: n,
 						ctor: r[1] === "." ? Pe : r[1] === "?" ? Fe : r[1] === "@" ? Ie : w
 					}), i.removeAttribute(e);
-				} else e.startsWith(m) && (c.push({
+				} else e.startsWith(p) && (c.push({
 					type: 6,
 					index: a
 				}), i.removeAttribute(e));
 				if (Te.test(i.tagName)) {
-					let e = i.textContent.split(m), t = e.length - 1;
+					let e = i.textContent.split(p), t = e.length - 1;
 					if (t > 0) {
-						i.textContent = fe ? fe.emptyScript : "";
-						for (let n = 0; n < t; n++) i.append(e[n], g()), S.nextNode(), c.push({
+						i.textContent = pe ? pe.emptyScript : "";
+						for (let n = 0; n < t; n++) i.append(e[n], h()), S.nextNode(), c.push({
 							type: 2,
 							index: ++a
 						});
-						i.append(e[t], g());
+						i.append(e[t], h());
 					}
 				}
 			} else if (i.nodeType === 8) {
-				if (i.data === he) c.push({
+				if (i.data === ge) c.push({
 					type: 2,
 					index: a
 				});
 				else {
 					let e = -1;
-					for (; (e = i.data.indexOf(m, e + 1)) !== -1;) c.push({
+					for (; (e = i.data.indexOf(p, e + 1)) !== -1;) c.push({
 						type: 7,
 						index: a
-					}), e += m.length - 1;
+					}), e += p.length - 1;
 				}
 			}
 			a++;
 		}
 	}
 	static createElement(e, t) {
-		let n = h.createElement("template");
+		let n = m.createElement("template");
 		return n.innerHTML = e, n;
 	}
 };
 function C(e, t, n = e, r) {
 	if (t === b) return t;
-	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = _(t) ? void 0 : t._$litDirective$;
+	let i = r === void 0 ? n._$Cl : n._$Co?.[r], a = g(t) ? void 0 : t._$litDirective$;
 	return i?.constructor !== a && (i?._$AO?.(!1), a === void 0 ? i = void 0 : (i = new a(e), i._$AT(e, n, r)), r === void 0 ? n._$Cl = i : (n._$Co ??= [])[r] = i), i !== void 0 && (t = C(e, i._$AS(e, t.values), i, r)), t;
 }
 var Me = class {
@@ -344,7 +344,7 @@ var Me = class {
 		return this._$AM._$AU;
 	}
 	u(e) {
-		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? h).importNode(t, !0);
+		let { el: { content: t }, parts: n } = this._$AD, r = (e?.creationScope ?? m).importNode(t, !0);
 		S.currentNode = r;
 		let i = S.nextNode(), a = 0, o = 0, s = n[0];
 		for (; s !== void 0;) {
@@ -354,7 +354,7 @@ var Me = class {
 			}
 			a !== s?.index && (i = S.nextNode(), a++);
 		}
-		return S.currentNode = h, r;
+		return S.currentNode = m, r;
 	}
 	p(e) {
 		let t = 0;
@@ -378,7 +378,7 @@ var Me = class {
 		return this._$AB;
 	}
 	_$AI(e, t = this) {
-		e = C(this, e, t), _(e) ? e === x || e == null || e === "" ? (this._$AH !== x && this._$AR(), this._$AH = x) : e !== this._$AH && e !== b && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ve(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
+		e = C(this, e, t), g(e) ? e === x || e == null || e === "" ? (this._$AH !== x && this._$AR(), this._$AH = x) : e !== this._$AH && e !== b && this._(e) : e._$litType$ === void 0 ? e.nodeType === void 0 ? ye(e) ? this.k(e) : this._(e) : this.T(e) : this.$(e);
 	}
 	O(e) {
 		return this._$AA.parentNode.insertBefore(e, this._$AB);
@@ -387,7 +387,7 @@ var Me = class {
 		this._$AH !== e && (this._$AR(), this._$AH = this.O(e));
 	}
 	_(e) {
-		this._$AH !== x && _(this._$AH) ? this._$AA.nextSibling.data = e : this.T(h.createTextNode(e)), this._$AH = e;
+		this._$AH !== x && g(this._$AH) ? this._$AA.nextSibling.data = e : this.T(m.createTextNode(e)), this._$AH = e;
 	}
 	$(e) {
 		let { values: t, _$litType$: n } = e, r = typeof n == "number" ? this._$AC(e) : (n.el === void 0 && (n.el = je.createElement(ke(n.h, n.h[0]), this.options)), n);
@@ -402,15 +402,15 @@ var Me = class {
 		return t === void 0 && Oe.set(e.strings, t = new je(e)), t;
 	}
 	k(t) {
-		_e(this._$AH) || (this._$AH = [], this._$AR());
+		ve(this._$AH) || (this._$AH = [], this._$AR());
 		let n = this._$AH, r, i = 0;
-		for (let a of t) i === n.length ? n.push(r = new e(this.O(g()), this.O(g()), this, this.options)) : r = n[i], r._$AI(a), i++;
+		for (let a of t) i === n.length ? n.push(r = new e(this.O(h()), this.O(h()), this, this.options)) : r = n[i], r._$AI(a), i++;
 		i < n.length && (this._$AR(r && r._$AB.nextSibling, i), n.length = i);
 	}
 	_$AR(e = this._$AA.nextSibling, t) {
 		for (this._$AP?.(!1, !0, t); e !== this._$AB;) {
-			let t = de(e).nextSibling;
-			de(e).remove(), e = t;
+			let t = fe(e).nextSibling;
+			fe(e).remove(), e = t;
 		}
 	}
 	setConnected(e) {
@@ -428,10 +428,10 @@ var Me = class {
 	}
 	_$AI(e, t = this, n, r) {
 		let i = this.strings, a = !1;
-		if (i === void 0) e = C(this, e, t, 0), a = !_(e) || e !== this._$AH && e !== b, a && (this._$AH = e);
+		if (i === void 0) e = C(this, e, t, 0), a = !g(e) || e !== this._$AH && e !== b, a && (this._$AH = e);
 		else {
 			let r = e, o, s;
-			for (e = i[0], o = 0; o < i.length - 1; o++) s = C(this, r[n + o], t, o), s === b && (s = this._$AH[o]), a ||= !_(s) || s !== this._$AH[o], s === x ? e = x : e !== x && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
+			for (e = i[0], o = 0; o < i.length - 1; o++) s = C(this, r[n + o], t, o), s === b && (s = this._$AH[o]), a ||= !g(s) || s !== this._$AH[o], s === x ? e = x : e !== x && (e += (s ?? "") + i[o + 1]), this._$AH[o] = s;
 		}
 		a && !r && this.j(e);
 	}
@@ -475,13 +475,13 @@ var Me = class {
 		C(this, e);
 	}
 }, Re = {
-	M: me,
-	P: m,
-	A: he,
+	M: he,
+	P: p,
+	A: ge,
 	C: 1,
 	L: Ae,
 	R: Me,
-	D: ve,
+	D: ye,
 	V: C,
 	I: Ne,
 	H: w,
@@ -489,16 +489,16 @@ var Me = class {
 	U: Ie,
 	B: Pe,
 	F: Le
-}, ze = ue.litHtmlPolyfillSupport;
-ze?.(je, Ne), (ue.litHtmlVersions ??= []).push("3.3.3");
+}, ze = de.litHtmlPolyfillSupport;
+ze?.(je, Ne), (de.litHtmlVersions ??= []).push("3.3.3");
 var Be = (e, t, n) => {
 	let r = n?.renderBefore ?? t, i = r._$litPart$;
 	if (i === void 0) {
 		let e = n?.renderBefore ?? null;
-		r._$litPart$ = i = new Ne(t.insertBefore(g(), e), e, void 0, n ?? {});
+		r._$litPart$ = i = new Ne(t.insertBefore(h(), e), e, void 0, n ?? {});
 	}
 	return i._$AI(e), i;
-}, Ve = globalThis, T = class extends p {
+}, Ve = globalThis, T = class extends f {
 	constructor() {
 		super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
 	}
@@ -525,7 +525,7 @@ var He = Ve.litElementPolyfillSupport;
 He?.({ LitElement: T }), (Ve.litElementVersions ??= []).push("4.2.2");
 //#endregion
 //#region node_modules/@mdi/js/mdi.js
-var Ue = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16V6M19,6H20V18H19V6M2,4V8H0V4A2,2 0 0,1 2,2H6V4H2M22,2A2,2 0 0,1 24,4V8H22V4H18V2H22M2,16V20H6V22H2A2,2 0 0,1 0,20V16H2M22,20V16H24V20A2,2 0 0,1 22,22H18V20H22Z", We = "M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.89 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.89 20.1 3 19 3M19 19H5V8H19V19M12 17V15H8V12H12V10L16 13.5L12 17Z", Ge = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z", Ke = "M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z", qe = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z", Je = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z", Ye = "M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z", Xe = "M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z", Ze = "M20,10C22,13 17,22 15,22C13,22 13,21 12,21C11,21 11,22 9,22C7,22 2,13 4,10C6,7 9,7 11,8V5C5.38,8.07 4.11,3.78 4.11,3.78C4.11,3.78 6.77,0.19 11,5V3H13V8C15,7 18,7 20,10Z", Qe = "M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z", $e = "M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z", et = "M7,10L12,15L17,10H7Z", tt = "M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7", nt = "M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z", rt = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z", it = "M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z", at = "M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z", ot = "M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.64 6.35,17.66C9.37,20.67 14.19,20.78 17.33,17.97Z", st = "M3,12H7A5,5 0 0,1 12,7A5,5 0 0,1 17,12H21A1,1 0 0,1 22,13A1,1 0 0,1 21,14H3A1,1 0 0,1 2,13A1,1 0 0,1 3,12M15,12A3,3 0 0,0 12,9A3,3 0 0,0 9,12H15M12,2L14.39,5.42C13.65,5.15 12.84,5 12,5C11.16,5 10.35,5.15 9.61,5.42L12,2M3.34,7L7.5,6.65C6.9,7.16 6.36,7.78 5.94,8.5C5.5,9.24 5.25,10 5.11,10.79L3.34,7M20.65,7L18.88,10.79C18.74,10 18.47,9.23 18.05,8.5C17.63,7.78 17.1,7.15 16.5,6.64L20.65,7M12.71,16.3L15.82,19.41C16.21,19.8 16.21,20.43 15.82,20.82C15.43,21.21 14.8,21.21 14.41,20.82L12,18.41L9.59,20.82C9.2,21.21 8.57,21.21 8.18,20.82C7.79,20.43 7.79,19.8 8.18,19.41L11.29,16.3C11.5,16.1 11.74,16 12,16C12.26,16 12.5,16.1 12.71,16.3Z", ct = "M3.55 19.09L4.96 20.5L6.76 18.71L5.34 17.29M12 6C8.69 6 6 8.69 6 12S8.69 18 12 18 18 15.31 18 12C18 8.68 15.31 6 12 6M20 13H23V11H20M17.24 18.71L19.04 20.5L20.45 19.09L18.66 17.29M20.45 5L19.04 3.6L17.24 5.39L18.66 6.81M13 1H11V4H13M6.76 5.39L4.96 3.6L3.55 5L5.34 6.81L6.76 5.39M1 13H4V11H1M13 20H11V23H13", lt = {
+var Ue = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z", We = "M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z", Ge = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16V6M19,6H20V18H19V6M2,4V8H0V4A2,2 0 0,1 2,2H6V4H2M22,2A2,2 0 0,1 24,4V8H22V4H18V2H22M2,16V20H6V22H2A2,2 0 0,1 0,20V16H2M22,20V16H24V20A2,2 0 0,1 22,22H18V20H22Z", Ke = "M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.89 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.89 20.1 3 19 3M19 19H5V8H19V19M12 17V15H8V12H12V10L16 13.5L12 17Z", qe = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z", Je = "M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z", Ye = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z", Xe = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z", Ze = "M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z", Qe = "M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z", $e = "M20,10C22,13 17,22 15,22C13,22 13,21 12,21C11,21 11,22 9,22C7,22 2,13 4,10C6,7 9,7 11,8V5C5.38,8.07 4.11,3.78 4.11,3.78C4.11,3.78 6.77,0.19 11,5V3H13V8C15,7 18,7 20,10Z", et = "M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z", tt = "M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z", nt = "M7,10L12,15L17,10H7Z", rt = "M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7", it = "M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z", at = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z", ot = "M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z", st = "M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z", ct = "M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M19.03,7.39L20.45,5.97C20,5.46 19.55,5 19.04,4.56L17.62,6C16.07,4.74 14.12,4 12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22C17,22 21,17.97 21,13C21,10.88 20.26,8.93 19.03,7.39M11,14H13V8H11M15,1H9V3H15V1Z", lt = "M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.64 6.35,17.66C9.37,20.67 14.19,20.78 17.33,17.97Z", ut = "M3,12H7A5,5 0 0,1 12,7A5,5 0 0,1 17,12H21A1,1 0 0,1 22,13A1,1 0 0,1 21,14H3A1,1 0 0,1 2,13A1,1 0 0,1 3,12M15,12A3,3 0 0,0 12,9A3,3 0 0,0 9,12H15M12,2L14.39,5.42C13.65,5.15 12.84,5 12,5C11.16,5 10.35,5.15 9.61,5.42L12,2M3.34,7L7.5,6.65C6.9,7.16 6.36,7.78 5.94,8.5C5.5,9.24 5.25,10 5.11,10.79L3.34,7M20.65,7L18.88,10.79C18.74,10 18.47,9.23 18.05,8.5C17.63,7.78 17.1,7.15 16.5,6.64L20.65,7M12.71,16.3L15.82,19.41C16.21,19.8 16.21,20.43 15.82,20.82C15.43,21.21 14.8,21.21 14.41,20.82L12,18.41L9.59,20.82C9.2,21.21 8.57,21.21 8.18,20.82C7.79,20.43 7.79,19.8 8.18,19.41L11.29,16.3C11.5,16.1 11.74,16 12,16C12.26,16 12.5,16.1 12.71,16.3Z", dt = "M3.55 19.09L4.96 20.5L6.76 18.71L5.34 17.29M12 6C8.69 6 6 8.69 6 12S8.69 18 12 18 18 15.31 18 12C18 8.68 15.31 6 12 6M20 13H23V11H20M17.24 18.71L19.04 20.5L20.45 19.09L18.66 17.29M20.45 5L19.04 3.6L17.24 5.39L18.66 6.81M13 1H11V4H13M6.76 5.39L4.96 3.6L3.55 5L5.34 6.81L6.76 5.39M1 13H4V11H1M13 20H11V23H13", ft = {
 	"panel.title": "Vorrat",
 	"panel.help": "Anleitung",
 	"panel.menu": "Menü",
@@ -754,7 +754,6 @@ var Ue = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16
 	"recipes.status.unknown": "Menge unbekannt",
 	"recipes.status.skipped": "nicht geprüft",
 	"recipes.status.unmatched": "keine Zutat zugeordnet",
-	"recipes.field.instructions": "Zubereitung",
 	"recipes.field.source_url": "Quelle (Link)",
 	"recipes.field.image_url": "Bild (Link)",
 	"recipes.ingredients": "Zutaten",
@@ -847,14 +846,32 @@ var Ue = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16
 	"canning.recipe_jars": "Ergibt (Gläser)",
 	"canning.recipe_summary": "ergibt {jars} × {name}",
 	"canning.recipe_product": "Ergibt: {name} (aus dem Einkochrezept)",
-	"delete.kind.delete.recipe": "Einkochrezepte werden gelöscht ({n})"
-}, ut = { de: lt }, dt = lt;
-function ft(e) {
+	"delete.kind.delete.recipe": "Einkochrezepte werden gelöscht ({n})",
+	"recipes.steps.step": "Schritt {n}",
+	"recipes.steps.head": "Zwischenüberschrift",
+	"recipes.steps.add": "Schritt hinzufügen",
+	"recipes.steps.head_add": "Zwischenüberschrift hinzufügen",
+	"recipes.steps.up": "Nach oben",
+	"recipes.steps.down": "Nach unten",
+	"recipes.steps.remove": "Entfernen",
+	"valid.too_long": "Höchstens {n} Zeichen.",
+	"cook.open": "Kochmodus",
+	"cook.title": "„{name}“ kochen",
+	"cook.close": "Kochmodus schließen",
+	"cook.hint": "Schritt antippen zum Abhaken.",
+	"cook.timer_start": "Timer {what} starten",
+	"cook.timer": "Schritt {n}, {what}",
+	"cook.timer_done": "abgelaufen",
+	"cook.timer_cancel": "Timer entfernen",
+	"cook.stop": "Kochmodus schließen? Laufende Timer gehen verloren.",
+	"cook.stop_ok": "Schließen"
+}, pt = { de: ft }, mt = ft;
+function ht(e) {
 	let t = e ?? "";
-	dt = ut[t] ?? ut[t.split("-")[0]] ?? lt;
+	mt = pt[t] ?? pt[t.split("-")[0]] ?? ft;
 }
 function E(e, t) {
-	let n = dt[e] ?? lt[e] ?? e;
+	let n = mt[e] ?? ft[e] ?? e;
 	return t ? n.replace(/\{(\w+)\}/g, (e, n) => n in t ? String(t[n]) : e) : n;
 }
 //#endregion
@@ -1050,12 +1067,12 @@ var D = o`
   dialog .actions {
     justify-content: flex-end;
   }
-`, pt = (e) => {
+`, gt = (e) => {
 	let t = e.target;
 	if (t.tagName !== "DIALOG") return !1;
 	let n = t.getBoundingClientRect();
 	return e.clientX < n.left || e.clientX > n.right || e.clientY < n.top || e.clientY > n.bottom;
-}, mt = class extends T {
+}, _t = class extends T {
 	constructor(...e) {
 		super(...e), this.ok = !1;
 	}
@@ -1067,7 +1084,7 @@ var D = o`
 		this.ok = e, this.renderRoot.querySelector("dialog").close();
 	}
 	backdrop(e) {
-		pt(e) && e.target.close();
+		gt(e) && e.target.close();
 	}
 	render() {
 		return y`<dialog
@@ -1129,41 +1146,41 @@ var D = o`
     `];
 	}
 };
-customElements.define("pantry-confirm", mt);
+customElements.define("pantry-confirm", _t);
 function O(e) {
 	return new Promise((t) => {
 		let n = document.createElement("pantry-confirm");
 		n.o = e, n.resolve = t, document.body.append(n);
 	});
 }
-var ht = (e, t) => O({
+var vt = (e, t) => O({
 	title: E("common.delete_name", { name: e }) + "?",
 	message: t,
 	action: E("common.delete"),
 	danger: !0
 }), k = (e) => y`<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
     ${De`<path d=${e} fill="currentColor"></path>`}
-  </svg>`, gt = !1;
-async function _t(e, t) {
+  </svg>`, yt = !1;
+async function bt(e, t) {
 	if (!t?.()) return e.close();
-	if (!gt) {
-		gt = !0;
+	if (!yt) {
+		yt = !0;
 		try {
 			await O({
 				title: E("common.discard"),
 				action: E("common.discard_ok")
 			}) && e.close();
 		} finally {
-			gt = !1;
+			yt = !1;
 		}
 	}
 }
-var vt = (e) => (t) => {
-	pt(t) && _t(t.target, e);
-}, yt = (e) => (t) => {
-	t instanceof KeyboardEvent && t.key !== "Escape" || t.composedPath().find((e) => e instanceof HTMLDialogElement) === t.currentTarget && e() && t.cancelable && (t.preventDefault(), _t(t.currentTarget, e));
+var xt = (e) => (t) => {
+	gt(t) && bt(t.target, e);
+}, St = (e) => (t) => {
+	t instanceof KeyboardEvent && t.key !== "Escape" || t.composedPath().find((e) => e instanceof HTMLDialogElement) === t.currentTarget && e() && t.cancelable && (t.preventDefault(), bt(t.currentTarget, e));
 };
-async function bt(e, t) {
+async function Ct(e, t) {
 	let n = e.currentTarget;
 	if (n.hasAttribute("data-busy")) return e.preventDefault();
 	n.setAttribute("data-busy", "");
@@ -1178,11 +1195,11 @@ var A = (e) => y`<dialog
 	for (let e of t.target.querySelectorAll("[data-touched]")) e.removeAttribute("data-touched");
 	e.onClosed();
 }}
-    @click=${vt(e.dirty)}
-    @keydown=${yt(e.dirty)}
-    @cancel=${yt(e.dirty)}
+    @click=${xt(e.dirty)}
+    @keydown=${St(e.dirty)}
+    @cancel=${St(e.dirty)}
   >
-    <form @submit=${(t) => bt(t, e.onSubmit)}>
+    <form @submit=${(t) => Ct(t, e.onSubmit)}>
       <h2>${e.title}</h2>
       ${e.body} ${e.error ? y`<p class="error" role="alert">${e.error}</p>` : x}
       <div class="actions">
@@ -1210,9 +1227,9 @@ var A = (e) => y`<dialog
     title=${E(e ? "common.collapse" : "common.expand")}
     @click=${t}
   >
-    ${k(e ? Ge : qe)}
+    ${k(e ? qe : Ye)}
   </button>`;
-function xt(e, t) {
+function wt(e, t) {
 	let n = new Set(e);
 	return n.delete(t) || n.add(t), n;
 }
@@ -1223,7 +1240,7 @@ var M = (e) => y`${e.onAdd ? y`<button
             title=${e.addLabel ?? ""}
             @click=${e.onAdd}
           >
-            ${k(rt)}
+            ${k(at)}
           </button>` : x}<button
       class="icon-btn"
       data-testid=${`${e.testid}-edit`}
@@ -1231,7 +1248,7 @@ var M = (e) => y`${e.onAdd ? y`<button
       title=${E("common.edit_name", { name: e.name })}
       @click=${e.onEdit}
     >
-      ${k(nt)}
+      ${k(it)}
     </button>
     ${e.onDelete ? y`<button
             class="icon-btn"
@@ -1240,7 +1257,7 @@ var M = (e) => y`${e.onAdd ? y`<button
             title=${E("common.delete_name", { name: e.name })}
             @click=${e.onDelete}
           >
-            ${k(Xe)}
+            ${k(Qe)}
           </button>` : x}`, N = (e, t, n = !1) => e ? y`<span
         class=${n ? "field-hint" : "field-error"}
         data-testid=${`${t}-${n ? "hint" : "error"}`}
@@ -1248,7 +1265,7 @@ var M = (e) => y`${e.onAdd ? y`<button
       >` : x, P = () => {
 	let e = /* @__PURE__ */ new Date();
 	return (/* @__PURE__ */ new Date(e.getTime() - e.getTimezoneOffset() * 6e4)).toISOString().slice(0, 10);
-}, St = (e) => e >= "2000-01-01" && e <= "2099-12-31", Ct = (e, t) => e || !!t && !St(t), F = (e) => e === "" ? null : Number(e), wt = /^https?:\/\//i, I = (e) => !!e?.user?.is_admin;
+}, Tt = (e) => e >= "2000-01-01" && e <= "2099-12-31", Et = (e, t) => e || !!t && !Tt(t), F = (e) => e === "" ? null : Number(e), Dt = /^https?:\/\//i, I = (e) => !!e?.user?.is_admin;
 async function L(e, t) {
 	let n = t;
 	if (n.translation_key && n.translation_domain && e.loadBackendTranslation) {
@@ -1257,72 +1274,72 @@ async function L(e, t) {
 	}
 	return n.message ?? String(t);
 }
-var R = (e, t) => e.filter((e) => !e.recipe_only || e.id === t), z = (e) => e.callWS({ type: "pantry/master_data" }), Tt = (e, t, n) => e.callWS({
+var R = (e, t) => e.filter((e) => !e.recipe_only || e.id === t), z = (e) => e.callWS({ type: "pantry/master_data" }), Ot = (e, t, n) => e.callWS({
 	type: "pantry/save",
 	table: t,
 	data: n
-}), Et = (e, t) => e.callWS({
+}), kt = (e, t) => e.callWS({
 	type: "pantry/defaults_save",
 	data: t
-}), Dt = (e, t, n, r = {}) => e.callWS({
+}), At = (e, t, n, r = {}) => e.callWS({
 	type: "pantry/delete",
 	table: t,
 	row_id: n,
 	...r
-}), Ot = (e, t, n) => e.callWS({
+}), jt = (e, t, n) => e.callWS({
 	type: "pantry/delete_impact",
 	table: t,
 	row_id: n
-}), kt = (e, t, n) => e.callWS({
+}), Mt = (e, t, n) => e.callWS({
 	type: "pantry/product_type_add",
 	name: t,
 	parent_id: n
-}), At = (e, t) => e.callWS({
+}), Nt = (e, t) => e.callWS({
 	type: "pantry/lookup",
 	code: t
-}), jt = (e, t, n = !1) => e.callWS({
+}), Pt = (e, t, n = !1) => e.callWS({
 	type: "pantry/search",
 	query: t,
 	online: n
-}), Mt = (e, t) => e.callWS({
+}), Ft = (e, t) => e.callWS({
 	type: "pantry/book_in",
 	...t
-}), Nt = (e, t) => e.callWS({
+}), It = (e, t) => e.callWS({
 	type: "pantry/book_out",
 	...t
-}), Pt = (e, t) => e.callWS({
+}), Lt = (e, t) => e.callWS({
 	type: "pantry/put_back",
 	booking_ids: t.map((e) => e.booking_id)
-}), Ft = (e, t) => e.callWS({
+}), Rt = (e, t) => e.callWS({
 	type: "pantry/stock_edit",
 	...t
-}), It = (e, t) => e.callWS({
+}), zt = (e, t) => e.callWS({
 	type: "pantry/stock",
 	product_id: t
-}), B = (e) => e.callWS({ type: "pantry/products" }), Lt = (e, t) => e.callWS({
+}), B = (e) => e.callWS({ type: "pantry/products" }), Bt = (e, t) => e.callWS({
 	type: "pantry/product_save",
 	data: t
-}), Rt = (e) => e.callWS({ type: "pantry/label_config" }), zt = (e, t) => e.callWS({
+}), Vt = (e) => e.callWS({ type: "pantry/label_config" }), Ht = (e, t) => e.callWS({
 	type: "pantry/print_labels",
 	...t
-}), Bt = (e) => e.callWS({ type: "pantry/print_shopping_list" }), Vt = (e, t) => e.callWS({
+}), Ut = (e) => e.callWS({ type: "pantry/print_shopping_list" }), Wt = (e, t) => e.callWS({
 	type: "pantry/book_out_label",
 	code: t
-}), V = (e) => e.callWS({ type: "pantry/recipes" }), Ht = (e, t, n) => e.callWS({
+}), V = (e) => e.callWS({ type: "pantry/recipes" }), Gt = (e, t, n) => e.callWS({
 	type: "pantry/recipe_availability",
 	recipe_id: t,
 	servings: n
-}), Ut = (e, t) => e.callWS({
+}), Kt = (e, t) => e.callWS({
 	type: "pantry/recipe_save",
 	data: t
-}), H = (e) => e.canning_product_id != null, Wt = (e, t) => e.callWS({
+}), H = (e) => e.canning_product_id != null, qt = (e, t) => e.callWS({
 	type: "pantry/recipe_import",
 	url: t
-}), Gt = (e, t, n) => e.callWS({
+}), Jt = (e, t, n) => e.callWS({
 	type: "pantry/unit_add",
 	name: t,
 	symbol: n
-}), Kt = (e) => e?.locale?.language ?? e?.language, qt = (e, t) => new Intl.DateTimeFormat(Kt(e), { dateStyle: "medium" }).format(/* @__PURE__ */ new Date(`${t}T00:00`)), U = (e, t) => new Intl.NumberFormat(Kt(e)).format(t), Jt = (e, t, n, r, i = t) => E(new Intl.PluralRules(Kt(e)).select(t) === "one" ? n : r, { n: i }), Yt = (e, t) => Jt(e, Number(t), "settings.day", "settings.days", t), W = (e, t) => e.toLocaleLowerCase().includes(t.toLocaleLowerCase()), G = (e, t, n = "") => `${U(e, t)} ${n ?? ""}`.trim(), K = (e, t) => Jt(e, t, "recipes.portion", "recipes.portions");
+}), Yt = (e) => e?.locale?.language ?? e?.language, Xt = (e, t) => new Intl.DateTimeFormat(Yt(e), { dateStyle: "medium" }).format(/* @__PURE__ */ new Date(`${t}T00:00`)), U = (e, t) => new Intl.NumberFormat(Yt(e)).format(t), Zt = (e, t, n, r, i = t) => E(new Intl.PluralRules(Yt(e)).select(t) === "one" ? n : r, { n: i }), Qt = (e, t) => Zt(e, Number(t), "settings.day", "settings.days", t), W = (e, t) => e.toLocaleLowerCase().includes(t.toLocaleLowerCase()), G = (e, t, n = "") => `${U(e, t)} ${n ?? ""}`.trim(), K = (e, t) => Zt(e, t, "recipes.portion", "recipes.portions");
 //#endregion
 //#region src/inherit.ts
 function q(e, t) {
@@ -1347,10 +1364,10 @@ function J(e, t, n) {
 		source: E("settings.inherit_from", { name: a ?? "" })
 	};
 }
-var Xt = (e, t) => y`<button type="button" class="reset" data-testid=${`${e}-reset`} @click=${t}>
-    ${k(it)}${E("common.reset")}
+var $t = (e, t) => y`<button type="button" class="reset" data-testid=${`${e}-reset`} @click=${t}>
+    ${k(ot)}${E("common.reset")}
   </button>`;
-function Zt(e) {
+function en(e) {
 	let t = e.own ?? null;
 	return y`<span class="inh">
     <select
@@ -1371,10 +1388,10 @@ function Zt(e) {
       </option>
       ${e.options.map(([e, n]) => y`<option value=${e} .selected=${t === e}>${n}</option>`)}
     </select>
-    ${t == null ? x : Xt(e.testid, () => e.onChange(null))}
+    ${t == null ? x : $t(e.testid, () => e.onChange(null))}
   </span>`;
 }
-function Qt(e) {
+function tn(e) {
 	let t = e.own ?? null;
 	return y`<span class="inh">
     <input
@@ -1395,12 +1412,12 @@ function Qt(e) {
 	}}
     />
     ${e.suffix ? y`<span class="detail">${e.suffix}</span>` : x}
-    ${t == null ? x : Xt(e.testid, () => e.onChange(null))}
+    ${t == null ? x : $t(e.testid, () => e.onChange(null))}
   </span>`;
 }
 //#endregion
 //#region src/category-picker.ts
-var $t = class extends T {
+var nn = class extends T {
 	static {
 		this.properties = {
 			categories: { attribute: !1 },
@@ -1441,7 +1458,7 @@ var $t = class extends T {
 		if (!(e == null || this.busy)) {
 			this.busy = !0;
 			try {
-				let { id: t } = await kt(this.hass, this.creating, e), n = await z(this.hass);
+				let { id: t } = await Mt(this.hass, this.creating, e), n = await z(this.hass);
 				this.dispatchEvent(new CustomEvent("master", {
 					detail: n,
 					bubbles: !0,
@@ -1458,7 +1475,7 @@ var $t = class extends T {
 		this.draft = e, !this.expanded.has(e) && this.kids(e).length && this.toggle(e);
 	}
 	toggle(e) {
-		this.expanded = xt(this.expanded, e);
+		this.expanded = wt(this.expanded, e);
 	}
 	rows() {
 		let e = this.filter.trim();
@@ -1494,9 +1511,9 @@ var $t = class extends T {
         <span class=${this.value == null ? "unset" : ""}>
           ${this.value == null ? this.noneLabel ?? E("book.choose") : q(this.categories, this.value)}
         </span>
-        ${k(et)}
+        ${k(nt)}
       </button>
-      <dialog @click=${vt()}>
+      <dialog @click=${xt()}>
         <h2>
           ${this.creating ? E("book.choose_parent", { name: this.creating }) : E("book.choose_category")}
         </h2>
@@ -1598,16 +1615,16 @@ var $t = class extends T {
     `];
 	}
 };
-customElements.define("pantry-category-picker", $t);
+customElements.define("pantry-category-picker", nn);
 //#endregion
 //#region src/settings-format.ts
-function en(e, t) {
+function rn(e, t) {
 	return e.categories.find((e) => e.id === t)?.name ?? "";
 }
-function tn(e, t) {
-	return t === "default" ? E("settings.inherit_default") : E("settings.inherit_from", { name: en(e, t) });
+function an(e, t) {
+	return t === "default" ? E("settings.inherit_default") : E("settings.inherit_from", { name: rn(e, t) });
 }
-function nn(e, t, n) {
+function on(e, t, n) {
 	let r = e.categories.find((e) => e.id === n);
 	return r ? r[t] == null ? r.effective[t] : {
 		value: r[t],
@@ -1625,15 +1642,15 @@ function Y(e, t, n, r) {
 		let e = i.find((e) => e.id === r);
 		return e ? e.symbol || e.name : E("common.none_dash");
 	}
-	return n === "default_location_id" ? a.find((e) => e.id === r)?.name ?? E("common.none_dash") : n === "expiry_type" ? E(`settings.expiry.${r}`) : Yt(t, r);
+	return n === "default_location_id" ? a.find((e) => e.id === r)?.name ?? E("common.none_dash") : n === "expiry_type" ? E(`settings.expiry.${r}`) : Qt(t, r);
 }
 //#endregion
 //#region src/min-stock.ts
-function rn(e) {
+function sn(e) {
 	let t = {};
 	return e.min_stock != null && !(e.min_stock > 0) && (t.min_stock = E("valid.positive")), e.min_packages != null && !(Number.isInteger(e.min_packages) && e.min_packages >= 1) && (t.min_packages = E("valid.packages")), t;
 }
-function an(e) {
+function cn(e) {
 	let { d: t, errs: n } = e, r = (e) => {
 		let t = e.target.value;
 		return t === "" || Number(t) === 0 ? null : Number(t);
@@ -1687,7 +1704,7 @@ function an(e) {
 }
 //#endregion
 //#region src/settings-model.ts
-var on = {
+var ln = {
 	unit: [
 		"name",
 		"symbol",
@@ -1710,11 +1727,11 @@ var on = {
 		"shelf_days",
 		"food"
 	]
-}, sn = {
+}, un = {
 	unit: "settings.unit.add",
 	location: "settings.location.add",
 	category: "settings.category.add"
-}, cn = ["warn_days", "shelf_days"], ln = class extends T {
+}, dn = ["warn_days", "shelf_days"], fn = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -1729,7 +1746,7 @@ var on = {
 	open(e, t, n = {}) {
 		this.error = "";
 		let r = {};
-		for (let i of on[e]) r[i] = t?.[i] ?? n[i] ?? null;
+		for (let i of ln[e]) r[i] = t?.[i] ?? n[i] ?? null;
 		t && (r.id = t.id), e === "unit" && (r.is_count ??= 0, r.recipe_only ??= 0, r.factor ??= 1, r.symbol ??= ""), r.name ??= "", this.edit = {
 			table: e,
 			d: r,
@@ -1747,15 +1764,15 @@ var on = {
 	}
 	errors() {
 		let { table: e, d: t } = this.edit, n = {}, r = String(t.name ?? "").trim(), i = this.data, a = e === "category" ? i.categories.filter((e) => e.parent_id === (t.parent_id ?? null)) : e === "unit" ? i.units : i.locations;
-		return r ? a.some((e) => e.id !== t.id && e.name.trim().toLocaleLowerCase() === r.toLocaleLowerCase()) && (n.name = E("valid.duplicate")) : n.name = E("valid.required"), e === "unit" && (String(t.symbol ?? "").trim() || (n.symbol = E("valid.required")), t.base_unit_id != null && !(t.factor > 0) && (n.factor = E("valid.positive"))), e === "category" && (t.warn_days != null && !(Number.isInteger(t.warn_days) && t.warn_days >= 0) && (n.warn_days = E("valid.days")), t.shelf_days != null && !(Number.isInteger(t.shelf_days) && t.shelf_days >= 1) && (n.shelf_days = E("valid.shelf_days")), Object.assign(n, rn(t))), n;
+		return r ? a.some((e) => e.id !== t.id && e.name.trim().toLocaleLowerCase() === r.toLocaleLowerCase()) && (n.name = E("valid.duplicate")) : n.name = E("valid.required"), e === "unit" && (String(t.symbol ?? "").trim() || (n.symbol = E("valid.required")), t.base_unit_id != null && !(t.factor > 0) && (n.factor = E("valid.positive"))), e === "category" && (t.warn_days != null && !(Number.isInteger(t.warn_days) && t.warn_days >= 0) && (n.warn_days = E("valid.days")), t.shelf_days != null && !(Number.isInteger(t.shelf_days) && t.shelf_days >= 1) && (n.shelf_days = E("valid.shelf_days")), Object.assign(n, sn(t))), n;
 	}
 	async save(e) {
 		if (e.preventDefault(), Object.keys(this.errors()).length) return;
 		let { table: t, d: n } = this.edit, r = {};
-		for (let e of on[t]) r[e] = n[e];
+		for (let e of ln[t]) r[e] = n[e];
 		n.id && (r.id = n.id);
 		try {
-			await Tt(this.hass, t, r);
+			await Ot(this.hass, t, r);
 		} catch (e) {
 			this.error = await L(this.hass, e);
 			return;
@@ -1782,7 +1799,7 @@ var on = {
 		return y`<span class="num"
         ><input
           type="number"
-          step=${cn.includes(e) ? "1" : "any"}
+          step=${dn.includes(e) ? "1" : "any"}
           min=${e === "factor" ? "0.000001" : "0"}
           placeholder=${t}
           aria-invalid=${!!this.errs[e]}
@@ -1793,7 +1810,7 @@ var on = {
 			this.set(e, F(n));
 		}}
         />${n ? y`<span class="detail">${n}</span>` : x}</span
-      >${cn.includes(e) ? x : N(this.errs[e], e)}`;
+      >${dn.includes(e) ? x : N(this.errs[e], e)}`;
 	}
 	usedAsBase(e) {
 		return !!e.id && this.data.units.some((t) => t.base_unit_id === e.id);
@@ -1814,11 +1831,11 @@ var on = {
 	}
 	reset(e) {
 		return this.edit.d[e] == null ? x : y`<button type="button" class="reset" @click=${() => this.set(e, null)}>
-          ${k(it)}${E("common.reset")}
+          ${k(ot)}${E("common.reset")}
         </button>`;
 	}
 	inh(e, t, n, r = !0) {
-		let i = this.data, a = nn(i, e, this.edit.d.parent_id), o = Y(i, this.hass, e, a.value), s = tn(i, a.source), c = cn.includes(e) ? this.numInput(e, E("common.default", {
+		let i = this.data, a = on(i, e, this.edit.d.parent_id), o = Y(i, this.hass, e, a.value), s = an(i, a.source), c = dn.includes(e) ? this.numInput(e, E("common.default", {
 			value: o,
 			source: s
 		}), E("common.days_unit")) : this.select(e, n, E("common.default", {
@@ -1857,7 +1874,7 @@ var on = {
         ${this.field(E("settings.unit.base"), this.select("base_unit_id", e, E("common.none"), !0, this.usedAsBase(n)))}
         ${this.field(E("settings.unit.factor"), this.numInput("factor"))}`;
 		} else {
-			let e = n.unit_id ?? nn(i, "unit_id", n.parent_id).value, t = i.categories.find((e) => e.id === n.id)?.off_tags ?? [];
+			let e = n.unit_id ?? on(i, "unit_id", n.parent_id).value, t = i.categories.find((e) => e.id === n.id)?.off_tags ?? [];
 			s = y`${this.field(E("common.name"), this.text("name"))}
         <div class="field">
           <span class="lbl">${E("settings.category.parent")}</span>
@@ -1875,7 +1892,7 @@ var on = {
         ${this.inh("warn_days", E("settings.category.warn_days"), [])}
         ${this.inh("shelf_days", E("settings.category.shelf_days"), [])}
         ${this.inh("food", E("settings.food.label"), [[1, E("settings.food.yes")], [0, E("settings.food.no")]])}
-        ${an({
+        ${cn({
 				md: i,
 				d: n,
 				errs: this.errs,
@@ -1884,9 +1901,9 @@ var on = {
 			})}
         ${t.length ? y`<p class="detail">${E("settings.category.off_tags", { tags: t.join(", ") })}</p>` : x}`;
 		}
-		let c = () => on[t].some((e) => (n[e] ?? null) !== (r[e] ?? null)), l = t === "category" && !n.id && n.parent_id != null ? en(i, n.parent_id) : "";
+		let c = () => ln[t].some((e) => (n[e] ?? null) !== (r[e] ?? null)), l = t === "category" && !n.id && n.parent_id != null ? rn(i, n.parent_id) : "";
 		return A({
-			title: n.id ? E("common.edit_name", { name: r.name }) : l ? E("settings.category.add_sub_to", { name: l }) : E(sn[t]),
+			title: n.id ? E("common.edit_name", { name: r.name }) : l ? E("settings.category.add_sub_to", { name: l }) : E(un[t]),
 			body: s,
 			error: this.error,
 			invalid: Object.keys(this.errs).length > 0,
@@ -1899,16 +1916,16 @@ var on = {
 		this.styles = [D];
 	}
 };
-customElements.define("pantry-settings-dialog", ln);
+customElements.define("pantry-settings-dialog", fn);
 //#endregion
 //#region src/defaults-view.ts
-var un = [
+var pn = [
 	["unit_id", "settings.category.unit"],
 	["default_location_id", "settings.category.location"],
 	["expiry_type", "settings.category.expiry_type"],
 	["warn_days", "settings.category.warn_days"],
 	["shelf_days", "settings.category.shelf_days"]
-], dn = class extends T {
+], mn = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -1939,7 +1956,7 @@ var un = [
 	}
 	async save(e) {
 		if (e.preventDefault(), !(this.warnError(this.d) || this.shelfError(this.d))) try {
-			await Et(this.hass, this.d), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			await kt(this.hass, this.d), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -1951,7 +1968,7 @@ var un = [
 		let e = this.data;
 		return e ? y`<p class="detail intro">${E("settings.defaults.hint")}</p>
       <ul>
-        ${un.map(([t, n]) => y`<li>
+        ${pn.map(([t, n]) => y`<li>
               <button class="row" data-testid="default-row" @click=${this.open}>
                 <span>${E(n)}</span>
                 <span class="detail">${Y(e, this.hass, t, e.defaults[t])}</span>
@@ -2038,7 +2055,7 @@ var un = [
         </label>`,
 			error: this.error,
 			invalid: !!n || !!r,
-			dirty: () => un.some(([e]) => t[e] !== this.orig?.[e]),
+			dirty: () => pn.some(([e]) => t[e] !== this.orig?.[e]),
 			onSubmit: (e) => this.save(e),
 			onClosed: () => this.d = void 0
 		});
@@ -2047,31 +2064,31 @@ var un = [
 		this.styles = D;
 	}
 };
-customElements.define("pantry-defaults", dn);
+customElements.define("pantry-defaults", mn);
 //#endregion
 //#region src/delete-flow.ts
-var fn = 5, pn = (e, t) => {
+var hn = 5, gn = (e, t) => {
 	let n = t.names.length || t.count, r = `delete.kind.${e === "location" && t.kind === "delete.stock" ? "location_stock" : t.kind}`, i = E(r, { n });
 	return i === r ? E("delete.kind.other", {
 		table: t.kind.split(".")[1],
 		n
 	}) : i;
-}, mn = (e) => {
-	let t = e.names.length - fn;
-	return e.names.slice(0, fn).join(", ") + (t > 0 ? E("delete.more", { n: t }) : "");
+}, _n = (e) => {
+	let t = e.names.length - hn;
+	return e.names.slice(0, hn).join(", ") + (t > 0 ? E("delete.more", { n: t }) : "");
 };
-async function hn(e, t, n, r) {
-	let i = n === "location" || n === "unit" ? E(`settings.${n}.delete_hint`) : void 0, a = await Ot(e, n, r.id);
+async function vn(e, t, n, r) {
+	let i = n === "location" || n === "unit" ? E(`settings.${n}.delete_hint`) : void 0, a = await jt(e, n, r.id);
 	if (a.blocked) throw {
 		translation_domain: "pantry",
 		translation_key: a.blocked,
 		message: a.blocked
 	};
-	if (!a.groups.length) return await ht(r.name, i) ? (await Dt(e, n, r.id), !0) : !1;
+	if (!a.groups.length) return await vt(r.name, i) ? (await At(e, n, r.id), !0) : !1;
 	let o = t.locations.filter((e) => e.id !== r.id), s = n === "location" ? o[0]?.id ?? null : null, c = y`<ul class="impact" data-testid="delete-impact">
       ${a.groups.map((e) => y`<li>
-            <span class="kind">${pn(n, e)}</span>
-            <span class="names">${mn(e)}</span>
+            <span class="kind">${gn(n, e)}</span>
+            <span class="names">${_n(e)}</span>
             ${e.packages ? y`<span class="names">${E("book.count", { n: e.packages })}</span>` : ""}
           </li>`)}
     </ul>
@@ -2094,19 +2111,19 @@ async function hn(e, t, n, r) {
 		body: c,
 		action: E(l ? "delete.all" : "common.delete"),
 		danger: !0
-	}) ? (await Dt(e, n, r.id, {
+	}) ? (await At(e, n, r.id, {
 		force: !0,
 		move_to: s
 	}), !0) : !1;
 }
 //#endregion
 //#region src/settings-view.ts
-var gn = {
+var yn = {
 	categories: "category",
 	locations: "location",
 	units: "unit",
 	defaults: null
-}, _n = class extends T {
+}, bn = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -2123,7 +2140,7 @@ var gn = {
 		e.has("hass") && this.hass && !this.loaded && (this.loaded = !0, this.load());
 	}
 	get sec() {
-		return this.section && this.section in gn ? this.section : "categories";
+		return this.section && this.section in yn ? this.section : "categories";
 	}
 	async load() {
 		if (this.hass) try {
@@ -2163,7 +2180,7 @@ var gn = {
 		});
 	}
 	toggle(e) {
-		this.expanded = xt(this.expanded, e);
+		this.expanded = wt(this.expanded, e);
 	}
 	catDetail(e) {
 		let t = this.data, n = [
@@ -2179,10 +2196,10 @@ var gn = {
 		return e.min_packages != null && n.push(E("settings.category.min", { value: E("book.count", { n: e.min_packages }) })), n.join(" · ");
 	}
 	render() {
-		let e = this.sec, t = gn[e];
+		let e = this.sec, t = yn[e];
 		return y`
       <nav aria-label=${E("settings.nav")}>
-        ${Object.keys(gn).map((t) => y`<button
+        ${Object.keys(yn).map((t) => y`<button
               data-testid=${`settings-nav-${t}`}
               aria-current=${t === e ? "page" : "false"}
               @click=${() => this.nav(t)}
@@ -2197,7 +2214,7 @@ var gn = {
                     data-testid="settings-add"
                     @click=${() => this.open(t)}
                   >
-                    ${E(sn[t])}
+                    ${E(un[t])}
                   </button>
                 </div>
                 ${e === "categories" ? this.renderCategories() : e === "locations" ? this.renderLocations() : this.renderUnits()}` : y`<pantry-defaults
@@ -2238,7 +2255,7 @@ var gn = {
 	}
 	async delRow(e, t) {
 		try {
-			if (!await hn(this.hass, this.data, e, t)) return;
+			if (!await vn(this.hass, this.data, e, t)) return;
 			this.pageError = "";
 		} catch (e) {
 			this.pageError = await L(this.hass, e);
@@ -2293,23 +2310,23 @@ var gn = {
     `];
 	}
 };
-customElements.define("pantry-settings", _n);
+customElements.define("pantry-settings", bn);
 //#endregion
 //#region src/scanner.ts
-var vn = [
+var xn = [
 	"ean_13",
 	"ean_8",
 	"upc_a",
 	"upc_e",
 	"qr_code"
 ];
-async function yn() {
+async function Sn() {
 	let e = window.BarcodeDetector, t = e ? await e.getSupportedFormats() : [];
-	if (e && t.includes("ean_13")) return new e({ formats: vn.filter((e) => t.includes(e)) });
+	if (e && t.includes("ean_13")) return new e({ formats: xn.filter((e) => t.includes(e)) });
 	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-B4FQvd9R.js"), import("./zxing_reader-Dml86taW.js")]);
-	return r({ overrides: { locateFile: (e, t) => e.endsWith(".wasm") ? i : t + e } }), new n({ formats: [...vn] });
+	return r({ overrides: { locateFile: (e, t) => e.endsWith(".wasm") ? i : t + e } }), new n({ formats: [...xn] });
 }
-var bn = class extends T {
+var Cn = class extends T {
 	static {
 		this.properties = { error: { state: !0 } };
 	}
@@ -2332,7 +2349,7 @@ var bn = class extends T {
 		}
 		let n;
 		try {
-			n = await yn();
+			n = await Sn();
 		} catch {
 			t.getTracks().forEach((e) => e.stop()), this.error = E("scan.detector");
 			return;
@@ -2360,7 +2377,7 @@ var bn = class extends T {
 		super.disconnectedCallback(), this.stop();
 	}
 	render() {
-		return y`<dialog data-testid="scanner" @close=${this.stop} @click=${vt()}>
+		return y`<dialog data-testid="scanner" @close=${this.stop} @click=${xt()}>
       <h2>${E("scan.title")}</h2>
       ${this.error ? y`<p class="error" role="alert">${this.error}</p>` : y`<video muted playsinline></video>`}
       <div class="actions">
@@ -2381,10 +2398,10 @@ var bn = class extends T {
     `];
 	}
 };
-customElements.define("pantry-scanner", bn);
+customElements.define("pantry-scanner", Cn);
 //#endregion
 //#region src/booking-scan.ts
-var xn = class extends T {
+var wn = class extends T {
 	static {
 		this.properties = { value: { attribute: !1 } };
 	}
@@ -2419,7 +2436,7 @@ var xn = class extends T {
           data-testid="camera"
           @click=${() => this.renderRoot.querySelector("pantry-scanner")?.open()}
         >
-          ${k(Ue)}<span>${E("book.camera")}</span>
+          ${k(Ge)}<span>${E("book.camera")}</span>
         </button>
       </form>
       <pantry-scanner @scan=${this.scanned}></pantry-scanner>
@@ -2444,10 +2461,10 @@ var xn = class extends T {
     `];
 	}
 };
-customElements.define("pantry-booking-scan", xn);
+customElements.define("pantry-booking-scan", wn);
 //#endregion
 //#region src/product-fields.ts
-var Sn = (e = {}) => ({
+var Tn = (e = {}) => ({
 	ean: null,
 	name: "",
 	brand: null,
@@ -2456,11 +2473,11 @@ var Sn = (e = {}) => ({
 	content_unit_id: null,
 	...e
 });
-function Cn(e) {
+function En(e) {
 	let t = {};
 	return e.name.trim() || (t.name = E("valid.required")), e.category_id ?? (t.category = E("book.category_required")), e.content_amount != null && !(e.content_amount > 0) ? t.content = E("valid.positive") : e.content_amount == null != (e.content_unit_id == null) && (t.content = E("valid.content_pair")), e.min_packages != null && !(Number.isInteger(e.min_packages) && e.min_packages >= 1) && (t.min_packages = E("valid.packages")), t;
 }
-function wn(e, t, n, r = {}, i) {
+function Dn(e, t, n, r = {}, i) {
 	return y`<label>
       <span class="lbl">${E("common.name")}</span>
       <input
@@ -2525,7 +2542,7 @@ function wn(e, t, n, r = {}, i) {
     ${N(r.content, "content")}
     <label>
       <span class="lbl" title=${E("tip.product_min_packages")}>${E("products.min_packages")}</span>
-      ${Qt({
+      ${tn({
 		testid: "min-packages",
 		own: t.min_packages,
 		dflt: void 0,
@@ -2537,7 +2554,7 @@ function wn(e, t, n, r = {}, i) {
       ${N(r.min_packages, "min-packages")}
     </label>`;
 }
-function Tn(e, t, n, r) {
+function On(e, t, n, r) {
 	let i = e?.units.find((e) => e.id === t.content_unit_id), a = t.content_amount != null && i ? `${U(r, t.content_amount)} ${i.symbol || i.name}` : "";
 	return [
 		t.name,
@@ -2548,7 +2565,7 @@ function Tn(e, t, n, r) {
 }
 //#endregion
 //#region src/plan-dates.ts
-var En = [
+var kn = [
 	"day",
 	"week",
 	"month"
@@ -2558,17 +2575,17 @@ var En = [
 	2,
 	3,
 	4
-], Z = (e) => `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}`, Dn = (e) => {
+], Z = (e) => `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}`, An = (e) => {
 	let [t, n, r] = e.split("-").map(Number);
 	return new Date(t, n - 1, r);
-}, Q = (e, t) => new Date(e.getFullYear(), e.getMonth(), e.getDate() + t), On = (e, t) => Z(Q(Dn(e), t)), kn = (e) => Q(e, -((e.getDay() + 6) % 7));
-function An(e, t) {
-	return e === "day" ? [t, Q(t, 1)] : e === "week" ? [kn(t), Q(kn(t), 7)] : [kn(new Date(t.getFullYear(), t.getMonth(), 1)), Q(kn(new Date(t.getFullYear(), t.getMonth() + 1, 0)), 7)];
+}, Q = (e, t) => new Date(e.getFullYear(), e.getMonth(), e.getDate() + t), jn = (e, t) => Z(Q(An(e), t)), Mn = (e) => Q(e, -((e.getDay() + 6) % 7));
+function Nn(e, t) {
+	return e === "day" ? [t, Q(t, 1)] : e === "week" ? [Mn(t), Q(Mn(t), 7)] : [Mn(new Date(t.getFullYear(), t.getMonth(), 1)), Q(Mn(new Date(t.getFullYear(), t.getMonth() + 1, 0)), 7)];
 }
-var jn = (e, t, n) => e === "month" ? new Date(t.getFullYear(), t.getMonth() + n, 1) : Q(t, n * (e === "week" ? 7 : 1)), Mn = (e) => e?.locale?.language;
+var Pn = (e, t, n) => e === "month" ? new Date(t.getFullYear(), t.getMonth() + n, 1) : Q(t, n * (e === "week" ? 7 : 1)), Fn = (e) => e?.locale?.language;
 //#endregion
 //#region src/label-print.ts
-function Nn(e, t, n, r) {
+function In(e, t, n, r) {
 	let i = document.createElement("iframe");
 	i.style.cssText = "position:fixed;width:0;height:0;border:0", i.addEventListener("load", async () => {
 		let a = i.contentDocument, o = a.createElement("style");
@@ -2582,20 +2599,20 @@ function Nn(e, t, n, r) {
 		c.onafterprint = () => i.remove(), c.print();
 	}, { once: !0 }), document.body.append(i);
 }
-async function Pn(e, t, n) {
+async function Ln(e, t, n) {
 	if (n > 2 && !await O({
 		title: E("label.confirm_many", { n }),
 		action: E("label.submit")
 	})) return null;
-	let r = await zt(e, {
+	let r = await Ht(e, {
 		batch_id: t,
 		count: n
 	});
-	return "printed" in r ? r.printed : (Nn(r.image, r.count, r.width_mm, r.height_mm), 0);
+	return "printed" in r ? r.printed : (In(r.image, r.count, r.width_mm, r.height_mm), 0);
 }
 //#endregion
 //#region src/booking-in-fields.ts
-function Fn(e, t, n, r, i) {
+function Rn(e, t, n, r, i) {
 	let a = !n.expires && e.expires_on && e.expires_on < P();
 	return y`<label>
     <span class="lbl"
@@ -2625,10 +2642,10 @@ function Fn(e, t, n, r, i) {
           >`}
   </label>`;
 }
-function In(e, t, n, r, i, a) {
+function zn(e, t, n, r, i, a) {
 	return y`<label>
       <span class="lbl">${E("book.location")}</span>
-      ${Zt({
+      ${en({
 		testid: "location",
 		own: n.location_id,
 		dflt: a,
@@ -2648,7 +2665,7 @@ function In(e, t, n, r, i, a) {
             />${E("book.make_default")}
           </label>`}`;
 }
-function Ln(e, t, n) {
+function Bn(e, t, n) {
 	return y`<label class="check" title=${E("tip.print")}>
     <input
       type="checkbox"
@@ -2660,8 +2677,8 @@ function Ln(e, t, n) {
 }
 //#endregion
 //#region src/booking-pick.ts
-var Rn = "auto", zn = (e, t) => e?.find((e) => `${e.batch_id}:${e.location_id}` === t), Bn = (e, t) => zn(e, t)?.packages ?? e?.reduce((e, t) => e + t.packages, 0);
-function Vn(e, t, n, r) {
+var Vn = "auto", Hn = (e, t) => e?.find((e) => `${e.batch_id}:${e.location_id}` === t), Un = (e, t) => Hn(e, t)?.packages ?? e?.reduce((e, t) => e + t.packages, 0);
+function Wn(e, t, n, r) {
 	let i = (e, t) => y`<label class="check">
       <input
         type="radio"
@@ -2674,14 +2691,14 @@ function Vn(e, t, n, r) {
     </label>`;
 	return y`<fieldset>
     <legend class="lbl">${E("book.which")}</legend>
-    ${i(Rn, E("book.fefo"))}
+    ${i(Vn, E("book.fefo"))}
     ${t.map((t) => i(`${t.batch_id}:${t.location_id}`, y`<span
-          >${t.expires_on ? qt(e, t.expires_on) : E("book.no_date")} · ${t.location}
+          >${t.expires_on ? Xt(e, t.expires_on) : E("book.no_date")} · ${t.location}
           <span class="detail">${E("book.count", { n: t.packages })}</span></span
         >`))}
   </fieldset>`;
 }
-var Hn = o`
+var Gn = o`
   fieldset {
     border: 0;
     margin: 0 0 12px;
@@ -2690,15 +2707,15 @@ var Hn = o`
   fieldset .check {
     margin-bottom: 8px;
   }
-`, Un = () => ({
+`, Kn = () => ({
 	packages: 1,
 	expires_on: "",
 	location_id: null,
 	makeDefault: !0,
 	dateBad: !1,
-	pick: Rn,
+	pick: Vn,
 	print: null
-}), Wn = null, Gn = class extends T {
+}), qn = null, Jn = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -2717,13 +2734,13 @@ var Hn = o`
 		super(), this.set = (e) => this.f = {
 			...this.f,
 			...e
-		}, this.mode = "in", this.busy = !1, this.run = (e) => e().catch(() => void 0), this.f = Un();
+		}, this.mode = "in", this.busy = !1, this.run = (e) => e().catch(() => void 0), this.f = Kn();
 	}
 	willUpdate(e) {
 		e.has("product") && (this.draft = this.product, this.f = {
-			...Un(),
+			...Kn(),
 			expires_on: this.proposal()
-		}, this.hass && this.mode === "in" && Rt(this.hass).then((e) => this.labels = e, () => void 0));
+		}, this.hass && this.mode === "in" && Vt(this.hass).then((e) => this.labels = e, () => void 0));
 	}
 	focusFirst() {
 		let e = this.mode === "out" ? "#packages" : this.draft?.name ? "#expires" : "#name";
@@ -2737,14 +2754,14 @@ var Hn = o`
 		};
 		let n = J(this.md, this.draft?.category_id, e);
 		if (n) return n;
-		if (e === "default_location_id" && Wn != null) return {
-			value: Wn,
+		if (e === "default_location_id" && qn != null) return {
+			value: qn,
 			source: E("book.last_used")
 		};
 	}
 	proposal() {
 		let e = this.mode === "in" ? this.dflt("shelf_days") : void 0;
-		return e ? On(P(), Number(e.value)) : "";
+		return e ? jn(P(), Number(e.value)) : "";
 	}
 	setProduct(e, t) {
 		let n = this.proposal();
@@ -2773,20 +2790,20 @@ var Hn = o`
 				"min_packages"
 			].map((e) => [e, t[e] === "" ? null : t[e] ?? null]));
 			o && this.f.makeDefault && e !== J(this.md, t.category_id, "default_location_id")?.value && (o.default_location_id = e);
-			let s = await this.run(() => Mt(n, {
+			let s = await this.run(() => Ft(n, {
 				packages: r,
 				expires_on: this.f.expires_on || null,
 				location_id: e,
 				...t.id ? { product_id: t.id } : { product: o }
 			}));
 			if (!s) return;
-			if (Wn = e, this.f.print ?? this.labels?.print_on_book_in) {
-				let e = await this.run(() => Pn(n, s.batch_id, Math.min(r, 20)));
+			if (qn = e, this.f.print ?? this.labels?.print_on_book_in) {
+				let e = await this.run(() => Ln(n, s.batch_id, Math.min(r, 20)));
 				e && (a = e);
 			}
 			i = this.md?.locations.find((t) => t.id === e)?.name ?? "";
 		} else {
-			let e = zn(this.stock, this.f.pick), i = await this.run(() => Nt(n, {
+			let e = Hn(this.stock, this.f.pick), i = await this.run(() => It(n, {
 				product_id: t.id,
 				packages: r,
 				...e ? {
@@ -2813,20 +2830,20 @@ var Hn = o`
 		let t = this.mode === "out";
 		if (t && !this.stock?.length) return this.stock ? y`<h2>${e.name}</h2>
             <p class="empty" data-testid="no-stock">${E("book.no_stock")}</p>` : x;
-		let n = this.mode === "out" ? Bn(this.stock, this.f.pick) : void 0, r = this.errors(e);
+		let n = this.mode === "out" ? Un(this.stock, this.f.pick) : void 0, r = this.errors(e);
 		return y`<form class="book" @submit=${this.submit}>
       ${t ? y`<h2>
               ${e.name}${e.brand ? y` <span class="detail">${e.brand}</span>` : x}
             </h2>` : y`<h2>${E("book.title_in")}</h2>
               <p class="summary" data-testid="summary">
-                ${Tn(this.md, e, q(this.md?.categories, e.category_id), this.hass) || E("book.new_product")}
+                ${On(this.md, e, q(this.md?.categories, e.category_id), this.hass) || E("book.new_product")}
                 ${e.id ? x : y`<span class="detail">${E("book.is_new")}</span>`}
               </p>`}
-      ${t ? Vn(this.hass, this.stock ?? [], this.f.pick, (e) => this.f = {
+      ${t ? Wn(this.hass, this.stock ?? [], this.f.pick, (e) => this.f = {
 			...this.f,
 			pick: e,
 			packages: 1
-		}) : y`${e.id ? x : wn(this.md, e, (e, t) => this.setProduct(e, t), r, this.hass)}${Fn(this.f, this.set, r, this.dflt("expiry_type")?.value, this.f.expires_on && this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : void 0)}`}
+		}) : y`${e.id ? x : Dn(this.md, e, (e, t) => this.setProduct(e, t), r, this.hass)}${Rn(this.f, this.set, r, this.dflt("expiry_type")?.value, this.f.expires_on && this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : void 0)}`}
       <label>
         <span class="lbl">${E("book.packages")}</span>
         <input
@@ -2847,7 +2864,7 @@ var Hn = o`
         />
         ${N(r.packages, "packages")}
       </label>
-      ${t ? x : y`${In(this.md, e, this.f, this.set, r, this.dflt("default_location_id"))}${Ln(this.f, this.set, !!this.labels?.print_on_book_in)}`}
+      ${t ? x : y`${zn(this.md, e, this.f, this.set, r, this.dflt("default_location_id"))}${Bn(this.f, this.set, !!this.labels?.print_on_book_in)}`}
       <div class="actions">
         <button
           class="primary"
@@ -2868,15 +2885,15 @@ var Hn = o`
     </form>`;
 	}
 	errors(e) {
-		let t = this.mode === "in" && !e.id ? Cn(e) : {}, { packages: n, expires_on: r, dateBad: i } = this.f;
-		this.mode === "in" && (Ct(i, r) && (t.expires = E("valid.date")), this.f.location_id == null && !this.dflt("default_location_id") && (t.location = E("valid.location")));
-		let a = this.mode === "out" ? Bn(this.stock, this.f.pick) : void 0;
+		let t = this.mode === "in" && !e.id ? En(e) : {}, { packages: n, expires_on: r, dateBad: i } = this.f;
+		this.mode === "in" && (Et(i, r) && (t.expires = E("valid.date")), this.f.location_id == null && !this.dflt("default_location_id") && (t.location = E("valid.location")));
+		let a = this.mode === "out" ? Un(this.stock, this.f.pick) : void 0;
 		return !Number.isInteger(n) || n < 1 ? t.packages = E("valid.packages") : a != null && n > a && (t.packages = E("valid.max_packages", { n: a })), t;
 	}
 	static {
 		this.styles = [
 			D,
-			Hn,
+			Gn,
 			o`
       .book {
         max-width: 480px;
@@ -2899,10 +2916,10 @@ var Hn = o`
 		];
 	}
 };
-customElements.define("pantry-booking-form", Gn);
+customElements.define("pantry-booking-form", Jn);
 //#endregion
 //#region src/booking-done.ts
-function Kn(e, t, n) {
+function Yn(e, t, n) {
 	return e ? y`<p class="done" role="status" data-testid=${n ? `${n}-done` : "message"}>
     ${e}
     ${t ? y`<button
@@ -2915,7 +2932,7 @@ function Kn(e, t, n) {
           </button>` : x}
   </p>` : x;
 }
-var qn = o`
+var Xn = o`
   .done {
     margin: 0 0 12px;
   }
@@ -2927,7 +2944,7 @@ var qn = o`
 `;
 //#endregion
 //#region src/booking-hits.ts
-function Jn(e, t) {
+function Zn(e, t) {
 	return y`
     ${e.length ? x : y`<p class="empty">${E("book.no_hits")}</p>`}
     <ul>
@@ -2952,7 +2969,7 @@ function Jn(e, t) {
 }
 //#endregion
 //#region src/booking-view.ts
-var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
+var Qn = /^\d{8,14}$/, $n = /^PTRY:/i, er = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3000,17 +3017,17 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
 		let e = this.query.trim();
 		if (!e || !this.hass) return;
 		let t = this.hass, n = ++this.seq;
-		if (this.message = "", this.undo = void 0, this.product = this.stock = this.hits = void 0, this.online = !1, Xn.test(e)) return this.mode === "out" ? this.scanLabel(e.replace(Xn, "")) : void (this.error = E("book.label_out_only"));
-		if (Yn.test(e)) {
-			let r = await this.run(() => At(t, e));
-			return !r || n !== this.seq ? void 0 : r.product ? this.choose(r.product) : this.mode === "out" ? void (this.error = E("book.unknown")) : this.choose(Sn({ ean: e }));
+		if (this.message = "", this.undo = void 0, this.product = this.stock = this.hits = void 0, this.online = !1, $n.test(e)) return this.mode === "out" ? this.scanLabel(e.replace($n, "")) : void (this.error = E("book.label_out_only"));
+		if (Qn.test(e)) {
+			let r = await this.run(() => Nt(t, e));
+			return !r || n !== this.seq ? void 0 : r.product ? this.choose(r.product) : this.mode === "out" ? void (this.error = E("book.unknown")) : this.choose(Tn({ ean: e }));
 		}
-		let r = await this.run(() => jt(t, e));
+		let r = await this.run(() => Pt(t, e));
 		r && n === this.seq && (this.hits = r, this.mode === "out" && r.length === 1 && this.choose(r[0]));
 	}
 	async scanLabel(e) {
 		this.reset();
-		let t = this.seq, n = await this.run(() => Vt(this.hass, e));
+		let t = this.seq, n = await this.run(() => Wt(this.hass, e));
 		if (t === this.seq) {
 			if (!n) return this.focusInput();
 			this.message = E("book.done_label", {
@@ -3020,19 +3037,19 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
 		}
 	}
 	async searchOnline() {
-		let e = this.hass, t = ++this.seq, n = await this.run(() => jt(e, this.query.trim(), !0));
+		let e = this.hass, t = ++this.seq, n = await this.run(() => Pt(e, this.query.trim(), !0));
 		n && t === this.seq && (this.hits = n, this.online = !0);
 	}
 	async pick(e) {
 		if (e.id || !e.ean) return this.choose(e);
-		let t = ++this.seq, n = await this.run(() => At(this.hass, e.ean));
+		let t = ++this.seq, n = await this.run(() => Nt(this.hass, e.ean));
 		n?.product && t === this.seq && this.choose(n.product);
 	}
 	async choose(e) {
 		let t = ++this.seq;
 		if (this.hits = void 0, this.mode === "out" && !e.id) return void (this.error = E("book.unknown"));
 		if (this.product = e, this.mode === "out") {
-			let n = await this.run(() => It(this.hass, e.id));
+			let n = await this.run(() => zt(this.hass, e.id));
 			if (t !== this.seq) return;
 			this.stock = n;
 		}
@@ -3047,15 +3064,15 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
         @query=${(e) => this.query = e.detail}
         @find=${() => this.find()}
       ></pantry-booking-scan>
-      ${Kn(this.message, this.undo && (() => this.putBack()))}
+      ${Yn(this.message, this.undo && (() => this.putBack()))}
       ${this.error ? y`<p class="error" role="alert" data-testid="error">${this.error}</p>` : x}
-      ${this.hits ? Jn(this.hits, {
+      ${this.hits ? Zn(this.hits, {
 			more: this.mode === "in",
 			online: this.online,
 			busy: this.busy,
 			pick: (e) => this.pick(e),
 			searchOnline: () => this.searchOnline(),
-			create: () => this.choose(Sn({ name: this.query.trim() }))
+			create: () => this.choose(Tn({ name: this.query.trim() }))
 		}) : x}
       ${this.renderForm()}
     `;
@@ -3076,7 +3093,7 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
 	}
 	async putBack() {
 		let e = this.undo;
-		this.undo = void 0, await this.run(() => Pt(this.hass, e)) === void 0 ? this.undo = e : (this.message = E("book.undone"), this.focusInput());
+		this.undo = void 0, await this.run(() => Lt(this.hass, e)) === void 0 ? this.undo = e : (this.message = E("book.undone"), this.focusInput());
 	}
 	booked(e) {
 		let t = this.error;
@@ -3085,7 +3102,7 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
 	static {
 		this.styles = [
 			D,
-			qn,
+			Xn,
 			o`
       .after {
         margin-top: 12px;
@@ -3094,10 +3111,10 @@ var Yn = /^\d{8,14}$/, Xn = /^PTRY:/i, Zn = class extends T {
 		];
 	}
 };
-customElements.define("pantry-booking", Zn);
+customElements.define("pantry-booking", er);
 //#endregion
 //#region src/stock-data.ts
-function Qn(e, t, n, r = [], i) {
+function tr(e, t, n, r = [], i) {
 	let a = t.trim(), o = (e) => W(e.join(" "), a), s = /* @__PURE__ */ new Map();
 	for (let t of e) {
 		if (n != null && t.location_id !== n || a && !o([
@@ -3134,15 +3151,15 @@ function Qn(e, t, n, r = [], i) {
 	for (let e of s.values()) c.set(e.category_id, [...c.get(e.category_id) ?? [], e]);
 	return c;
 }
-var $n = (e) => Math.round((Date.parse(`${e}T00:00`) - Date.parse(`${P()}T00:00`)) / 864e5);
-function er(e, t, n, r) {
+var nr = (e) => Math.round((Date.parse(`${e}T00:00`) - Date.parse(`${P()}T00:00`)) / 864e5);
+function rr(e, t, n, r) {
 	if (!e.expires_on) return "";
-	let i = $n(e.expires_on);
+	let i = nr(e.expires_on);
 	return i < 0 ? "expired" : i <= (r ?? Number(t?.warn_days ?? J(n, t?.category_id, "warn_days")?.value ?? 0)) ? "soon" : "";
 }
 //#endregion
 //#region src/stock-tree.ts
-function tr(e, t, n, r) {
+function ir(e, t, n, r) {
 	let i = /* @__PURE__ */ new Map(), a = (n) => {
 		let [r, o] = [0, 0];
 		for (let e of t.get(n) ?? []) [r, o] = [r + e.packages, o + 1];
@@ -3178,17 +3195,17 @@ function tr(e, t, n, r) {
 }
 //#endregion
 //#region src/take-out.ts
-async function nr(e, t) {
+async function ar(e, t) {
 	let n = e.undo;
 	e.error = "", e.undo = void 0;
 	try {
-		e.undo = await t(), e.stock = await It(e.hass);
+		e.undo = await t(), e.stock = await zt(e.hass);
 	} catch (t) {
 		e.undo = n, e.error = await L(e.hass, t);
 	}
 }
-var rr = (e, t, n) => nr(e, async () => {
-	let { taken: r } = await Nt(e.hass, {
+var or = (e, t, n) => ar(e, async () => {
+	let { taken: r } = await It(e.hass, {
 		product_id: n.product_id,
 		packages: 1,
 		batch_id: n.batch_id,
@@ -3198,23 +3215,23 @@ var rr = (e, t, n) => nr(e, async () => {
 		name: t,
 		taken: r
 	};
-}), ir = (e) => {
+}), sr = (e) => {
 	let t = e.undo;
-	if (t) return nr(e, async () => {
-		await Pt(e.hass, t.taken);
+	if (t) return ar(e, async () => {
+		await Lt(e.hass, t.taken);
 	});
-}, ar = (e, t, n, r) => {
+}, cr = (e, t, n, r) => {
 	let i = E("stock.take_one", { name: t });
 	return y`<button
     class="icon-btn"
     data-testid=${r}
     aria-label=${i}
     title=${i}
-    @click=${() => rr(e, t, n)}
+    @click=${() => or(e, t, n)}
   >
-    ${k(tt)}
+    ${k(rt)}
   </button>`;
-}, or = (e, t) => Kn(e.undo ? E("stock.taken_one", { name: e.undo.name }) : "", e.undo && (() => ir(e)), t), sr = (e) => y`<div class="filters">
+}, lr = (e, t) => Yn(e.undo ? E("stock.taken_one", { name: e.undo.name }) : "", e.undo && (() => sr(e)), t), ur = (e) => y`<div class="filters">
       <input
         class="filter"
         type="search"
@@ -3241,14 +3258,14 @@ var rr = (e, t, n) => nr(e, async () => {
         @change=${(t) => e.withEmpty = t.target.checked}
       />
       ${E("stock.with_empty")}
-    </label>`, cr = o`
+    </label>`, dr = o`
   .filters {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 8px;
     margin-bottom: 8px;
   }
-`, lr = o`
+`, fr = o`
   li.item {
     flex-direction: column;
     align-items: stretch;
@@ -3274,7 +3291,7 @@ var rr = (e, t, n) => nr(e, async () => {
   .soon {
     color: var(--warning-color);
   }
-`, ur = [
+`, pr = [
 	"name",
 	"brand",
 	"ean",
@@ -3286,7 +3303,7 @@ var rr = (e, t, n) => nr(e, async () => {
 	"warn_days",
 	"shelf_days",
 	"min_packages"
-], dr = class extends T {
+], mr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3308,7 +3325,7 @@ var rr = (e, t, n) => nr(e, async () => {
 		};
 	}
 	errors(e) {
-		let t = Cn(e);
+		let t = En(e);
 		e.ean && !/^\d{8,14}$/.test(e.ean) && (t.ean = E("valid.ean"));
 		let n = e.ean && this.products.find((t) => t.ean === e.ean && t.id !== e.id);
 		return n && (t.ean = E("valid.ean_taken", { name: n.name })), e.warn_days != null && !(Number.isInteger(e.warn_days) && e.warn_days >= 0) && (t.warn_days = E("valid.days")), e.shelf_days != null && !(Number.isInteger(e.shelf_days) && e.shelf_days >= 1) && (t.shelf_days = E("valid.shelf_days")), t;
@@ -3318,9 +3335,9 @@ var rr = (e, t, n) => nr(e, async () => {
 		let t = this.edit;
 		if (Object.keys(this.errors(t)).length) return;
 		let n = { id: t.id };
-		for (let e of ur) n[e] = t[e] === "" ? null : t[e] ?? null;
+		for (let e of pr) n[e] = t[e] === "" ? null : t[e] ?? null;
 		try {
-			await Lt(this.hass, n), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			await Bt(this.hass, n), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -3334,7 +3351,7 @@ var rr = (e, t, n) => nr(e, async () => {
 		let t = this.errors(e), n = (t) => J(this.md, e.category_id, t);
 		return A({
 			title: E("common.edit_name", { name: this.orig?.name ?? e.name }),
-			body: y`${wn(this.md, e, (e, t) => this.set(e, t), t, this.hass)}
+			body: y`${Dn(this.md, e, (e, t) => this.set(e, t), t, this.hass)}
         <label>
           <span class="lbl">${E("products.ean")}</span>
           <input
@@ -3350,7 +3367,7 @@ var rr = (e, t, n) => nr(e, async () => {
           <span class="lbl" title=${E("tip.default_location_id")}
             >${E("settings.category.location")}</span
           >
-          ${Zt({
+          ${en({
 				testid: "location",
 				own: e.default_location_id,
 				dflt: n("default_location_id"),
@@ -3364,7 +3381,7 @@ var rr = (e, t, n) => nr(e, async () => {
           <span class="lbl" title=${E("tip.expiry_type")}
             >${E("settings.category.expiry_type")}</span
           >
-          ${Zt({
+          ${en({
 				testid: "expiry-type",
 				own: e.expiry_type,
 				dflt: n("expiry_type"),
@@ -3375,11 +3392,11 @@ var rr = (e, t, n) => nr(e, async () => {
         </label>
         <label>
           <span class="lbl" title=${E("tip.warn_days")}>${E("settings.category.warn_days")}</span>
-          ${Qt({
+          ${tn({
 				testid: "warn-days",
 				own: e.warn_days,
 				dflt: n("warn_days"),
-				format: (e) => Yt(this.hass, e),
+				format: (e) => Qt(this.hass, e),
 				suffix: E("common.days_unit"),
 				invalid: !!t.warn_days,
 				onChange: (e) => this.set("warn_days", e)
@@ -3388,11 +3405,11 @@ var rr = (e, t, n) => nr(e, async () => {
         </label>
         <label>
           <span class="lbl" title=${E("tip.shelf_days")}>${E("settings.category.shelf_days")}</span>
-          ${Qt({
+          ${tn({
 				testid: "shelf-days",
 				own: e.shelf_days,
 				dflt: n("shelf_days"),
-				format: (e) => Yt(this.hass, e),
+				format: (e) => Qt(this.hass, e),
 				suffix: E("common.days_unit"),
 				invalid: !!t.shelf_days,
 				onChange: (e) => this.set("shelf_days", e)
@@ -3401,7 +3418,7 @@ var rr = (e, t, n) => nr(e, async () => {
         </label>`,
 			error: this.error,
 			invalid: Object.keys(t).length > 0,
-			dirty: () => ur.some((t) => (e[t] ?? null) !== (this.orig?.[t] ?? null)),
+			dirty: () => pr.some((t) => (e[t] ?? null) !== (this.orig?.[t] ?? null)),
 			onSubmit: (e) => this.save(e),
 			onClosed: () => this.edit = void 0
 		});
@@ -3410,10 +3427,10 @@ var rr = (e, t, n) => nr(e, async () => {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-product-dialog", dr);
+customElements.define("pantry-product-dialog", mr);
 //#endregion
 //#region src/batch-dialog.ts
-var fr = class extends T {
+var hr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3439,13 +3456,13 @@ var fr = class extends T {
 	}
 	errors(e) {
 		let t = {};
-		return Ct(e.dateBad, e.expires_on) && (t.expires = E("valid.date")), /^\d+$/.test(e.packages.trim()) || (t.packages = E("valid.packages_zero")), t;
+		return Et(e.dateBad, e.expires_on) && (t.expires = E("valid.date")), /^\d+$/.test(e.packages.trim()) || (t.packages = E("valid.packages_zero")), t;
 	}
 	async save(e) {
 		e.preventDefault();
 		let t = this.d;
 		if (!Object.keys(this.errors(t)).length) try {
-			await Ft(this.hass, {
+			await Rt(this.hass, {
 				batch_id: this.row.batch_id,
 				location_id: this.row.location_id,
 				expires_on: t.expires_on || null,
@@ -3513,10 +3530,10 @@ var fr = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-batch-dialog", fr);
+customElements.define("pantry-batch-dialog", hr);
 //#endregion
 //#region src/label-dialog.ts
-var pr = class extends T {
+var gr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3533,7 +3550,7 @@ var pr = class extends T {
 	}
 	async print(e) {
 		if (e.preventDefault(), !this.invalid()) try {
-			let e = await Pn(this.hass, this.batch.id, Number(this.count));
+			let e = await Ln(this.hass, this.batch.id, Number(this.count));
 			if (e === null) return;
 			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-printed", {
 				detail: e,
@@ -3580,10 +3597,10 @@ var pr = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-label-dialog", pr);
+customElements.define("pantry-label-dialog", gr);
 //#endregion
 //#region src/stock-view.ts
-var mr = class extends T {
+var _r = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3600,7 +3617,7 @@ var mr = class extends T {
 	}
 	constructor() {
 		super(), this.products = /* @__PURE__ */ new Map(), this.started = !1, this.reload = async () => {
-			let [e, t] = await Promise.all([It(this.hass), B(this.hass)]);
+			let [e, t] = await Promise.all([zt(this.hass), B(this.hass)]);
 			this.products = new Map(t.map((e) => [e.id, e])), this.stock = e;
 		}, this.saved = async () => {
 			this.error = "";
@@ -3627,8 +3644,8 @@ var mr = class extends T {
 		}
 	}
 	tree(e) {
-		let t = Qn(this.stock ?? [], this.filter, this.location, this.withEmpty ? this.products.values() : [], this.md);
-		return tr(this.md?.categories ?? [], t, this.open, e).map((e) => e.kind === "category" ? this.renderCategory(e.id, e.name, e.packages, e.depth, e.open) : this.renderItem(e.item, e.depth, e.open));
+		let t = tr(this.stock ?? [], this.filter, this.location, this.withEmpty ? this.products.values() : [], this.md);
+		return ir(this.md?.categories ?? [], t, this.open, e).map((e) => e.kind === "category" ? this.renderCategory(e.id, e.name, e.packages, e.depth, e.open) : this.renderItem(e.item, e.depth, e.open));
 	}
 	renderCategory(e, t, n, r, i) {
 		return y`<li style="padding-left:${r * 24}px">
@@ -3645,25 +3662,25 @@ var mr = class extends T {
     </li>`;
 	}
 	status(e) {
-		return er(e, this.products.get(e.product_id), this.md);
+		return rr(e, this.products.get(e.product_id), this.md);
 	}
 	date(e) {
-		let t = e.expires_on ? qt(this.hass, e.expires_on) : E("stock.no_date");
+		let t = e.expires_on ? Xt(this.hass, e.expires_on) : E("stock.no_date");
 		return e.charge ? E("stock.charge", {
 			date: t,
 			charge: e.charge
 		}) : t;
 	}
 	toggle(e) {
-		this.open = xt(this.open, e);
+		this.open = wt(this.open, e);
 	}
 	render() {
 		let e = this.error ? y`<p class="error" role="alert">${this.error}</p>` : x;
 		if (!this.stock) return e;
 		let t = this.tree(this.filter.trim() !== "");
 		return y`
-      ${e} ${sr(this)} ${or(this, "stock")}
-      ${Kn(this.message, void 0, "label")}
+      ${e} ${ur(this)} ${lr(this, "stock")}
+      ${Yn(this.message, void 0, "label")}
       ${t.length ? y`<ul>
               ${t}
             </ul>` : y`<p class="empty">
@@ -3688,7 +3705,7 @@ var mr = class extends T {
 	async deleteProduct(e) {
 		this.error = "";
 		try {
-			if (!await hn(this.hass, this.md, "product", e)) return;
+			if (!await vn(this.hass, this.md, "product", e)) return;
 			this.undo = void 0, await this.reload();
 		} catch (e) {
 			this.error = await L(this.hass, e);
@@ -3734,7 +3751,7 @@ var mr = class extends T {
                     <span class=${this.status(t)}>${this.date(t)}</span>
                     <span class="detail">${t.location}</span>
                     <span class="count">${E("book.count", { n: t.packages })}</span>
-                    ${ar(this, e.name, t, "stock-batch-out")}
+                    ${cr(this, e.name, t, "stock-batch-out")}
                     <button
                       class="icon-btn"
                       data-testid="stock-batch-label"
@@ -3742,7 +3759,7 @@ var mr = class extends T {
                       title=${E("label.print")}
                       @click=${() => this.printBatch(t, e.batches)}
                     >
-                      ${k(at)}
+                      ${k(st)}
                     </button>
                     ${M({
 			testid: "batch",
@@ -3756,16 +3773,16 @@ var mr = class extends T {
 	static {
 		this.styles = [
 			D,
-			qn,
-			cr,
-			lr
+			Xn,
+			dr,
+			fr
 		];
 	}
 };
-customElements.define("pantry-stock", mr);
+customElements.define("pantry-stock", _r);
 //#endregion
 //#region src/expiry-view.ts
-var hr = class extends T {
+var vr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -3786,7 +3803,7 @@ var hr = class extends T {
 		try {
 			let [e, t, n] = await Promise.all([
 				z(this.hass),
-				It(this.hass),
+				zt(this.hass),
 				B(this.hass)
 			]);
 			this.products = new Map(n.map((e) => [e.id, e])), [this.md, this.stock] = [e, t];
@@ -3799,14 +3816,14 @@ var hr = class extends T {
 		return e && !/^\d+$/.test(e) ? E("expiry.days_invalid") : void 0;
 	}
 	relative(e) {
-		return new Intl.RelativeTimeFormat(Kt(this.hass), { numeric: "auto" }).format($n(e), "day");
+		return new Intl.RelativeTimeFormat(Yt(this.hass), { numeric: "auto" }).format(nr(e), "day");
 	}
 	render() {
 		let e = this.error ? y`<p class="error" role="alert">${this.error}</p>` : x;
 		if (!this.stock) return e;
 		let t = this.errors(), n = this.days.trim() && !t ? Number(this.days) : void 0, r = this.stock.map((e) => ({
 			r: e,
-			status: er(e, this.products.get(e.product_id), this.md, n)
+			status: rr(e, this.products.get(e.product_id), this.md, n)
 		})).filter((e) => e.status).sort((e, t) => e.r.expires_on.localeCompare(t.r.expires_on));
 		return y`
       ${e}
@@ -3829,11 +3846,11 @@ var hr = class extends T {
         </span>
         ${N(t, "expiry-days")}
       </div>
-      ${or(this, "expiry")}
+      ${lr(this, "expiry")}
       ${r.length ? y`<ul>
               ${r.map(({ r: e, status: t }) => y`<li data-testid="expiry-row">
                     <span class="when">
-                      <span class=${t}>${qt(this.hass, e.expires_on)}</span>
+                      <span class=${t}>${Xt(this.hass, e.expires_on)}</span>
                       <span class="detail">${this.relative(e.expires_on)}</span>
                     </span>
                     <span class="what">
@@ -3843,7 +3860,7 @@ var hr = class extends T {
                       >
                     </span>
                     <span class="detail">${E("book.count", { n: e.packages })}</span>
-                    ${ar(this, e.name, e, "expiry-out")}
+                    ${cr(this, e.name, e, "expiry-out")}
                   </li>`)}
             </ul>` : y`<p class="empty">${E("expiry.empty")}</p>`}
     `;
@@ -3851,7 +3868,7 @@ var hr = class extends T {
 	static {
 		this.styles = [
 			D,
-			qn,
+			Xn,
 			o`
       .num input {
         max-width: 160px;
@@ -3884,7 +3901,7 @@ var hr = class extends T {
 		];
 	}
 };
-customElements.define("pantry-expiry", hr);
+customElements.define("pantry-expiry", vr);
 //#endregion
 //#region node_modules/lit-html/directive.js
 var $ = {
@@ -3894,10 +3911,10 @@ var $ = {
 	BOOLEAN_ATTRIBUTE: 4,
 	EVENT: 5,
 	ELEMENT: 6
-}, gr = (e) => (...t) => ({
+}, yr = (e) => (...t) => ({
 	_$litDirective$: e,
 	values: t
-}), _r = class {
+}), br = class {
 	constructor(e) {}
 	get _$AU() {
 		return this._$AM._$AU;
@@ -3911,10 +3928,10 @@ var $ = {
 	update(e, t) {
 		return this.render(...t);
 	}
-}, { I: vr } = Re, yr = (e) => e.strings === void 0, br = {}, xr = (e, t = br) => e._$AH = t, Sr = gr(class extends _r {
+}, { I: xr } = Re, Sr = (e) => e.strings === void 0, Cr = {}, wr = (e, t = Cr) => e._$AH = t, Tr = yr(class extends br {
 	constructor(e) {
 		if (super(e), e.type !== $.PROPERTY && e.type !== $.ATTRIBUTE && e.type !== $.BOOLEAN_ATTRIBUTE) throw Error("The `live` directive is not allowed on child or event bindings");
-		if (!yr(e)) throw Error("`live` bindings can only contain a single expression");
+		if (!Sr(e)) throw Error("`live` bindings can only contain a single expression");
 	}
 	render(e) {
 		return e;
@@ -3927,38 +3944,38 @@ var $ = {
 		} else if (e.type === $.BOOLEAN_ATTRIBUTE) {
 			if (!!t === n.hasAttribute(r)) return b;
 		} else if (e.type === $.ATTRIBUTE && n.getAttribute(r) === t + "") return b;
-		return xr(e), t;
+		return wr(e), t;
 	}
-}), Cr = (e) => e.callWS({ type: "pantry/shopping" }), wr = (e, t, n) => e.callWS({
+}), Er = (e) => e.callWS({ type: "pantry/shopping" }), Dr = (e, t, n) => e.callWS({
 	type: "pantry/shopping_done",
 	...t.product_id ? { product_id: t.product_id } : { category_id: t.category_id },
 	done: n
-}), Tr = (e, t) => e.callWS({
+}), Or = (e, t) => e.callWS({
 	type: "pantry/shopping_add",
 	...t
-}), Er = (e, t, n) => e.callWS({
+}), kr = (e, t, n) => e.callWS({
 	type: "pantry/shopping_item",
 	item_id: t,
 	...n
-}), Dr = (e, t) => e.callWS({
+}), Ar = (e, t) => e.callWS({
 	type: "pantry/shopping_item_delete",
 	item_id: t
-}), Or = (e) => e.callWS({ type: "pantry/shopping_recipes" }), kr = (e, t, n, r) => e.callWS({
+}), jr = (e) => e.callWS({ type: "pantry/shopping_recipes" }), Mr = (e, t, n, r) => e.callWS({
 	type: "pantry/shopping_recipe_set",
 	recipe_id: t,
 	servings: n,
 	optional: r
-}), Ar = (e, t) => e.callWS({
+}), Nr = (e, t) => e.callWS({
 	type: "pantry/shopping_recipe_remove",
 	recipe_id: t
-}), jr = (e, t, n) => e.callWS({
+}), Pr = (e, t, n) => e.callWS({
 	type: "pantry/shopping_recipe_done",
 	key: t,
 	done: n
 });
 //#endregion
 //#region src/shopping-text.ts
-function Mr(e, t) {
+function Fr(e, t) {
 	let n = (t) => G(e, t.missing, t.unit_symbol);
 	if (t.manual) return [t.product_id ? t.brand : E("shopping.any"), E("book.count", { n: t.packages })].filter(Boolean).join(" · ");
 	if (t.key) return t.amount ? n(t.amount) : E("book.count", { n: t.packages ?? 1 });
@@ -3967,7 +3984,7 @@ function Mr(e, t) {
 	let i = E(t.any_of_subtree ? "shopping.missing_more" : "shopping.missing", { what: r.join(E("shopping.and")) });
 	return [t.brand, i].filter(Boolean).join(" · ");
 }
-function Nr(e, t) {
+function Ir(e, t) {
 	let n = t.recipes.map((t) => {
 		let n = t.amount == null ? null : G(e, t.amount, t.unit_symbol);
 		return {
@@ -3986,7 +4003,7 @@ function Nr(e, t) {
 }
 //#endregion
 //#region src/shopping-row-styles.ts
-var Pr = o`
+var Lr = o`
   .what {
     display: flex;
     flex-wrap: wrap; /* refs go below the name when the line is narrow */
@@ -4025,7 +4042,7 @@ var Pr = o`
     text-decoration: line-through;
     color: var(--secondary-text-color);
   }
-`, Fr = 8, Ir = class extends T {
+`, Rr = 8, zr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4054,7 +4071,7 @@ var Pr = o`
 	}
 	errors() {
 		let e = {}, t = this.choice;
-		!this.item && !t && (e.what = E("shopping.add.pick")), t?.kind === "new-product" && Object.assign(e, Cn(t.product)), t?.kind === "new-category" && !t.name.trim() && (e.name = E("valid.required"));
+		!this.item && !t && (e.what = E("shopping.add.pick")), t?.kind === "new-product" && Object.assign(e, En(t.product)), t?.kind === "new-category" && !t.name.trim() && (e.name = E("valid.required"));
 		let n = this.packages;
 		return (n == null || !Number.isInteger(n) || n < 1) && (e.packages = E("valid.packages")), e;
 	}
@@ -4062,16 +4079,16 @@ var Pr = o`
 		if (e.preventDefault(), Object.keys(this.errors()).length) return;
 		let t = this.choice, n = this.packages;
 		try {
-			this.item ? await Er(this.hass, this.item.id, { packages: n }) : t?.kind === "product" ? await Tr(this.hass, {
+			this.item ? await kr(this.hass, this.item.id, { packages: n }) : t?.kind === "product" ? await Or(this.hass, {
 				packages: n,
 				product_id: t.id
-			}) : t?.kind === "category" ? await Tr(this.hass, {
+			}) : t?.kind === "category" ? await Or(this.hass, {
 				packages: n,
 				category_id: t.id
-			}) : t?.kind === "new-product" ? await Tr(this.hass, {
+			}) : t?.kind === "new-product" ? await Or(this.hass, {
 				packages: n,
 				product: { ...t.product }
-			}) : t?.kind === "new-category" && await Tr(this.hass, {
+			}) : t?.kind === "new-category" && await Or(this.hass, {
 				packages: n,
 				category: {
 					name: t.name.trim(),
@@ -4103,7 +4120,7 @@ var Pr = o`
 	hits() {
 		let e = this.query.trim();
 		if (!e) return x;
-		let t = (t) => !!t && W(t, e), n = this.products.filter((e) => t(e.name) || t(e.brand)).slice(0, Fr), r = (this.md?.categories ?? []).filter((e) => t(e.name)).slice(0, Fr), i = Sn({ name: e });
+		let t = (t) => !!t && W(t, e), n = this.products.filter((e) => t(e.name) || t(e.brand)).slice(0, Rr), r = (this.md?.categories ?? []).filter((e) => t(e.name)).slice(0, Rr), i = Tn({ name: e });
 		return y`<ul>
       ${n.map((e) => this.hit("shopping-hit", e.name, [e.brand, this.path(e.category_id)].filter(Boolean).join(" · "), {
 			kind: "product",
@@ -4151,7 +4168,7 @@ var Pr = o`
         ${t.kind === "product" ? t.name : E("shopping.add.category", { path: this.path(t.id) })}
         ${n}
       </p>` : t.kind === "new-product" ? y`<p class="detail">${E("shopping.add.creates_product")} ${n}</p>
-        ${wn(this.md, t.product, (e, n) => this.choice = {
+        ${Dn(this.md, t.product, (e, n) => this.choice = {
 			...t,
 			product: {
 				...t.product,
@@ -4221,10 +4238,10 @@ var Pr = o`
 		this.styles = D;
 	}
 };
-customElements.define("pantry-shopping-add", Ir);
+customElements.define("pantry-shopping-add", zr);
 //#endregion
 //#region src/shopping-recipe-dialog.ts
-var Lr = class extends T {
+var Br = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4248,9 +4265,9 @@ var Lr = class extends T {
 		}, this.error = "", this.active = !0, await this.updateComplete, this.renderRoot.querySelector("dialog").showModal(), this.renderRoot.querySelector("dialog input")?.focus();
 	}
 	async request(e, t) {
-		let n = (await Or(this.hass)).find((t) => t.recipe_id === e.id), r = t ?? n?.servings ?? e.servings;
+		let n = (await jr(this.hass)).find((t) => t.recipe_id === e.id), r = t ?? n?.servings ?? e.servings;
 		if (e.ingredients.some((e) => e.optional)) return this.open(e, r, n?.optional);
-		await kr(this.hass, e.id, r, []), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		await Mr(this.hass, e.id, r, []), this.dispatchEvent(new CustomEvent("pantry-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -4262,7 +4279,7 @@ var Lr = class extends T {
 	async save(e) {
 		if (e.preventDefault(), !Object.keys(this.errors()).length) {
 			try {
-				await kr(this.hass, this.recipe.id, this.servings, [...this.chosen]);
+				await Mr(this.hass, this.recipe.id, this.servings, [...this.chosen]);
 			} catch (e) {
 				this.error = await L(this.hass, e);
 				return;
@@ -4324,10 +4341,10 @@ var Lr = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-shopping-recipe-dialog", Lr);
+customElements.define("pantry-shopping-recipe-dialog", Br);
 //#endregion
 //#region src/shopping-recipes.ts
-var Rr = class extends T {
+var Vr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4343,7 +4360,7 @@ var Rr = class extends T {
 	}
 	async load() {
 		try {
-			[this.list, this.recipes] = await Promise.all([Or(this.hass), V(this.hass)]), this.error = "";
+			[this.list, this.recipes] = await Promise.all([jr(this.hass), V(this.hass)]), this.error = "";
 		} catch (e) {
 			this.error = await L(this.hass, e);
 		}
@@ -4353,9 +4370,9 @@ var Rr = class extends T {
 		t && this.renderRoot.querySelector("pantry-shopping-recipe-dialog").open(t, e.servings, e.optional);
 	}
 	async removeEntry(e) {
-		if (await ht(e.name)) {
+		if (await vt(e.name)) {
 			try {
-				await Ar(this.hass, e.recipe_id);
+				await Nr(this.hass, e.recipe_id);
 			} catch (e) {
 				this.error = await L(this.hass, e);
 				return;
@@ -4414,10 +4431,10 @@ var Rr = class extends T {
     `];
 	}
 };
-customElements.define("pantry-shopping-recipes", Rr);
+customElements.define("pantry-shopping-recipes", Vr);
 //#endregion
 //#region src/shopping-view.ts
-var zr = class extends T {
+var Hr = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4433,13 +4450,13 @@ var zr = class extends T {
 		super(), this.started = !1, this.error = "", this.receipt = !1, this.printing = !1, this.note = "";
 	}
 	willUpdate(e) {
-		e.has("hass") && this.hass && !this.started && (this.started = !0, this.load(), Rt(this.hass).then((e) => this.receipt = e.receipt, () => void 0));
+		e.has("hass") && this.hass && !this.started && (this.started = !0, this.load(), Vt(this.hass).then((e) => this.receipt = e.receipt, () => void 0));
 	}
 	async print() {
 		if (!this.printing) {
 			this.printing = !0, this.error = this.note = "";
 			try {
-				let { printed: e } = await Bt(this.hass);
+				let { printed: e } = await Ut(this.hass);
 				this.note = E("shopping.printed", { n: e });
 			} catch (e) {
 				this.error = await L(this.hass, e);
@@ -4450,7 +4467,7 @@ var zr = class extends T {
 	}
 	async load(e = !1) {
 		try {
-			[this.items, this.cats] = await Promise.all([Cr(this.hass), z(this.hass).then((e) => e.categories)]), e || (this.error = "");
+			[this.items, this.cats] = await Promise.all([Er(this.hass), z(this.hass).then((e) => e.categories)]), e || (this.error = "");
 		} catch (e) {
 			this.error = await L(this.hass, e);
 		}
@@ -4458,17 +4475,17 @@ var zr = class extends T {
 	async check(e, t) {
 		this.error = "";
 		try {
-			e.manual ? await Er(this.hass, e.id, { done: t }) : e.key ? await jr(this.hass, e.key, t) : await wr(this.hass, e, t);
+			e.manual ? await kr(this.hass, e.id, { done: t }) : e.key ? await Pr(this.hass, e.key, t) : await Dr(this.hass, e, t);
 		} catch (e) {
 			return this.error = await L(this.hass, e), this.load(!0);
 		}
 		await this.load();
 	}
 	async removeItem(e) {
-		if (await ht(e.name)) {
+		if (await vt(e.name)) {
 			this.error = "";
 			try {
-				await Dr(this.hass, e.id);
+				await Ar(this.hass, e.id);
 			} catch (e) {
 				return this.error = await L(this.hass, e), this.load(!0);
 			}
@@ -4479,7 +4496,7 @@ var zr = class extends T {
 		this.renderRoot.querySelector("pantry-shopping-add").open(e);
 	}
 	row(e, t, n = !1) {
-		let r = Mr(this.hass, e), i = Nr(this.hass, e), a = r ? `${e.name} – ${r}` : e.name;
+		let r = Fr(this.hass, e), i = Ir(this.hass, e), a = r ? `${e.name} – ${r}` : e.name;
 		return y`<li
       data-testid="shopping-row"
       class="${e.done ? "done" : ""} ${n ? "cat" : ""}"
@@ -4489,7 +4506,7 @@ var zr = class extends T {
         <input
           type="checkbox"
           data-testid="shopping-check"
-          .checked=${Sr(e.done)}
+          .checked=${Tr(e.done)}
           @change=${(t) => this.check(e, t.target.checked)}
         />
         <span class="what">
@@ -4565,7 +4582,7 @@ var zr = class extends T {
 	static {
 		this.styles = [
 			D,
-			Pr,
+			Lr,
 			o`
       .bar {
         display: flex;
@@ -4593,10 +4610,10 @@ var zr = class extends T {
 		];
 	}
 };
-customElements.define("pantry-shopping", zr);
+customElements.define("pantry-shopping", Hr);
 //#endregion
 //#region src/recipes-styles.ts
-var Br = o`
+var Ur = o`
   .bar {
     display: flex;
     gap: 8px;
@@ -4650,6 +4667,21 @@ var Br = o`
     font-size: 1em;
     font-weight: 500;
   }
+  h4.section {
+    margin: 8px 0 0;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--secondary-text-color);
+  }
+  ol.steps {
+    margin: 4px 0;
+    padding-left: 24px;
+  }
+  ol.steps li {
+    display: list-item; /* formStyles' flex rows hide the number */
+    border-bottom: none;
+    margin: 4px 0;
+  }
   .text {
     white-space: pre-line;
     margin: 0;
@@ -4662,11 +4694,42 @@ var Br = o`
   a {
     color: var(--primary-color);
   }
-`, Vr = (e, t, n, r) => {
+`, Wr = 2e3, Gr = (e) => e.flatMap((e) => [...e.section ? [{
+	kind: "head",
+	text: e.section
+}] : [], {
+	kind: "step",
+	text: e.text
+}]), Kr = (e) => (e ?? "").split(/\n\s*\n/).map((e) => e.trim()).filter(Boolean).map((e) => ({
+	kind: "step",
+	text: e
+})), qr = (e) => {
+	let t = [], n = null;
+	for (let r of e) {
+		let e = r.text.trim();
+		e && (r.kind === "head" ? n = e : (t.push({
+			section: n,
+			text: e
+		}), n = null));
+	}
+	return t;
+}, Jr = (e, t = (e) => e.text) => {
+	let n = [];
+	return e.forEach((e, t) => {
+		(e.section || !n.length) && n.push({
+			section: e.section,
+			first: t,
+			steps: []
+		}), n[n.length - 1].steps.push(e);
+	}), y`${n.map((e) => y`${e.section ? y`<h4 class="section">${e.section}</h4>` : x}
+        <ol class="steps" start=${e.first + 1}>
+          ${e.steps.map((n, r) => y`<li data-testid="recipe-step">${t(n, e.first + r)}</li>`)}
+        </ol>`)}`;
+}, Yr = (e, t, n, r) => {
 	if (n.amount == null) return "";
 	let i = n.amount * r, a = t.units.find((e) => e.id === n.unit_id), o = G(e, i, a?.symbol), s = a?.recipe_only ? t.units.find((e) => e.id === a.base_unit_id) : void 0;
 	return !a || !s ? o : `${o} (${E("recipes.approx", { what: G(e, i * a.factor / s.factor, s.symbol) })})`;
-}, Hr = (e, t) => {
+}, Xr = (e, t) => {
 	let n = t.unit_symbol ?? "";
 	switch (t.status) {
 		case "missing": return t.need == null ? E("recipes.status.missing_plain") : E("recipes.status.missing", { what: G(e, t.missing ?? 0, n) });
@@ -4680,7 +4743,7 @@ var Br = o`
 		case "unmatched": return E("recipes.status.unmatched");
 		default: return E("recipes.status.available");
 	}
-}, Ur = (e) => {
+}, Zr = (e) => {
 	let t = e.recipe;
 	return y`<div class="detail-box">
     <label class="servings">
@@ -4702,11 +4765,11 @@ var Br = o`
     <ul class="ings">
       ${e.ingredients.map((n) => y`<li data-testid="ingredient-row" class="ing">
             <span class="what">
-              ${[Vr(e.hass, e.md, n, e.servings / t.servings), e.md.categories.find((e) => e.id === n.category_id)?.name ?? n.text].filter(Boolean).join(" ")}
+              ${[Yr(e.hass, e.md, n, e.servings / t.servings), e.md.categories.find((e) => e.id === n.category_id)?.name ?? n.text].filter(Boolean).join(" ")}
               ${n.note ? y`<span class="detail">${n.note}</span>` : x}
               ${n.optional ? y`<span class="detail">${E("recipes.optional")}</span>` : x}
             </span>
-            <span class="st ${n.status}" data-testid="ingredient-status">${Hr(e.hass, n)}</span>
+            <span class="st ${n.status}" data-testid="ingredient-status">${Xr(e.hass, n)}</span>
           </li>`)}
     </ul>
     <p class="shopping">
@@ -4732,8 +4795,14 @@ var Br = o`
 		minutes: t.canning_minutes ?? ""
 	})}
           </p>` : x}
-    ${t.instructions ? y`<h3>${E("recipes.instructions")}</h3>
-            <p class="text">${t.instructions}</p>` : x}
+    ${t.steps.length ? y`<h3>${E("recipes.instructions")}</h3>
+            ${Jr(t.steps)}
+            <p>
+              <button type="button" data-testid="recipe-cook" @click=${e.onCook}>
+                ${E("cook.open")}
+              </button>
+            </p>` : t.instructions ? y`<h3>${E("recipes.instructions")}</h3>
+              <p class="text">${t.instructions}</p>` : x}
     ${t.source_url ? y`<p>
             <a href=${t.source_url} target="_blank" rel="noopener noreferrer"
               >${E("recipes.source")}</a
@@ -4747,10 +4816,10 @@ var Br = o`
             referrerpolicy="no-referrer"
           />` : x}
   </div>`;
-}, Wr = (e) => e.category_id == null && !e.text.trim() && e.amount == null && !e.note?.trim(), Gr = (e) => e.map((e) => {
+}, Qr = (e) => e.category_id == null && !e.text.trim() && e.amount == null && !e.note?.trim(), $r = (e) => e.map((e) => {
 	let t = {};
-	return Wr(e) || (!e.text.trim() && e.category_id == null && (t.text = E("valid.ingredient_what")), e.amount != null && !(e.amount > 0) ? t.amount = E("valid.positive") : e.amount != null && e.unit_id == null && (t.pair = e.unit_hint ? E("recipes.ingredient.unit_unknown", { unit: e.unit_hint }) : E("valid.amount_pair"))), t;
-}), Kr = 8, qr = class extends T {
+	return Qr(e) || (!e.text.trim() && e.category_id == null && (t.text = E("valid.ingredient_what")), e.amount != null && !(e.amount > 0) ? t.amount = E("valid.positive") : e.amount != null && e.unit_id == null && (t.pair = e.unit_hint ? E("recipes.ingredient.unit_unknown", { unit: e.unit_hint }) : E("valid.amount_pair"))), t;
+}), ei = 8, ti = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4770,7 +4839,7 @@ var Br = o`
 	async input(e) {
 		if (this.query = e, this.failure = "", !e.trim()) this.products = [];
 		else try {
-			let t = await jt(this.hass, e.trim());
+			let t = await Pt(this.hass, e.trim());
 			if (this.query !== e) return;
 			let n = [];
 			for (let e of t) {
@@ -4790,7 +4859,7 @@ var Br = o`
 	}
 	async create(e) {
 		if (e != null) try {
-			await kt(this.hass, this.creating, e);
+			await Mt(this.hass, this.creating, e);
 			let t = await z(this.hass), n = t.categories.find((t) => t.parent_id === e && t.name === this.creating);
 			this.dispatchEvent(new CustomEvent("master", { detail: t })), this.creating = void 0, n && this.pick(n.id);
 		} catch (e) {
@@ -4802,7 +4871,7 @@ var Br = o`
 	}
 	hits(e) {
 		let t = (e) => this.categories.some((t) => t.parent_id === e.id), n = this.foods().filter((t) => W(t.name, e)).sort((e, n) => Number(t(e)) - Number(t(n))).map((e) => ({ cat: e })), r = this.products.filter((e) => !n.some((t) => t.cat.id === e.cat.id));
-		return [...n, ...r].slice(0, Kr);
+		return [...n, ...r].slice(0, ei);
 	}
 	hit(e) {
 		let t = q(this.categories, e.cat.parent_id), n = [e.via ? E("recipes.ingredient.via", { name: e.via }) : "", t].filter(Boolean).join(" · ");
@@ -4878,10 +4947,10 @@ var Br = o`
 		this.styles = D;
 	}
 };
-customElements.define("pantry-ingredient-pick", qr);
+customElements.define("pantry-ingredient-pick", ti);
 //#endregion
 //#region src/unit-add-dialog.ts
-var Jr = class extends T {
+var ni = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -4902,7 +4971,7 @@ var Jr = class extends T {
 		if (e.preventDefault(), this.name.trim() && !this.busy) {
 			this.busy = !0;
 			try {
-				let { id: e } = await Gt(this.hass, this.name.trim(), this.symbol.trim() || void 0), t = await z(this.hass);
+				let { id: e } = await Jt(this.hass, this.name.trim(), this.symbol.trim() || void 0), t = await z(this.hass);
 				this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("unit-added", { detail: {
 					id: e,
 					md: t
@@ -4952,10 +5021,10 @@ var Jr = class extends T {
 		this.styles = [D];
 	}
 };
-customElements.define("pantry-unit-add-dialog", Jr);
+customElements.define("pantry-unit-add-dialog", ni);
 //#endregion
 //#region src/recipe-ingredients.ts
-var Yr = class extends T {
+var ri = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -5099,13 +5168,13 @@ var Yr = class extends T {
           title=${E("recipes.ingredient.remove")}
           @click=${() => this.emit(this.value.filter((e, n) => n !== t))}
         >
-          ${k(Je)}
+          ${k(Xe)}
         </button>
       </div>
     </li>`;
 	}
 	render() {
-		let e = Gr(this.value);
+		let e = $r(this.value);
 		return y`<pantry-unit-add-dialog
         .hass=${this.hass}
         @unit-added=${(e) => this.unitAdded(e)}
@@ -5175,10 +5244,10 @@ var Yr = class extends T {
     `];
 	}
 };
-customElements.define("pantry-recipe-ingredients", Yr);
+customElements.define("pantry-recipe-ingredients", ri);
 //#endregion
 //#region src/form-fields.ts
-var Xr = (e) => y`<label>
+var ii = (e) => y`<label>
     <span class="lbl">${e.label}</span>
     <span class="num">
       <input
@@ -5194,7 +5263,7 @@ var Xr = (e) => y`<label>
       ${e.unit}
     </span>
     ${N(e.err, e.testid)}
-  </label>`, Zr = (e) => y`<label>
+  </label>`, ai = (e) => y`<label>
     <span class="lbl">${e.label}</span>
     <input
       type="date"
@@ -5212,7 +5281,7 @@ var Xr = (e) => y`<label>
   </label>`;
 //#endregion
 //#region src/product-input.ts
-function Qr(e) {
+function oi(e) {
 	let t = `${e.testid}-product`, n = e.products.some((t) => t.name === e.name.trim()), r = !!e.name.trim() && !n;
 	return y`<label>
       <span class="lbl">${e.label}</span>
@@ -5241,11 +5310,134 @@ function Qr(e) {
           </div>` : x}`;
 }
 //#endregion
+//#region src/recipe-steps-editor.ts
+var si = (e) => e.text.length > (e.kind === "head" ? 100 : 2e3) ? E("valid.too_long", { n: e.kind === "head" ? 100 : Wr }) : void 0, ci = class extends T {
+	static {
+		this.properties = { value: { attribute: !1 } };
+	}
+	constructor() {
+		super(), this.value = [];
+	}
+	emit(e) {
+		this.dispatchEvent(new CustomEvent("change", { detail: e }));
+	}
+	async add(e) {
+		this.emit([...this.value, {
+			kind: e,
+			text: ""
+		}]), await this.updateComplete, this.renderRoot.querySelector("li:last-child textarea, li:last-child input")?.focus();
+	}
+	move(e, t) {
+		let n = [...this.value];
+		[n[e], n[e + t]] = [n[e + t], n[e]], this.emit(n);
+	}
+	btn(e, t, n, r, i = !1) {
+		return y`<button
+      type="button"
+      class="icon-btn"
+      data-testid=${e}
+      aria-label=${t}
+      title=${t}
+      ?disabled=${i}
+      @click=${r}
+    >
+      ${k(n)}
+    </button>`;
+	}
+	render() {
+		let e = 0, t = this.value.length - 1;
+		return y`<span class="lbl">${E("recipes.instructions")}</span>
+      <ol>
+        ${this.value.map((n, r) => {
+			let i = n.kind === "head" ? E("recipes.steps.head") : E("recipes.steps.step", { n: ++e }), a = si(n), o = (e) => this.emit(this.value.map((t, n) => n === r ? {
+				...t,
+				text: e.target.value
+			} : t));
+			return y`<li class=${n.kind}>
+            <div class="row">
+              <span class="no" aria-hidden="true">${n.kind === "head" ? "" : `${e}.`}</span>
+              ${n.kind === "head" ? y`<input
+                      data-testid="step-head"
+                      aria-label=${i}
+                      placeholder=${i}
+                      aria-invalid=${!!a}
+                      .value=${n.text}
+                      @input=${o}
+                    />` : y`<textarea
+                      rows="2"
+                      data-testid="step-text"
+                      aria-label=${i}
+                      aria-invalid=${!!a}
+                      .value=${n.text}
+                      @input=${o}
+                    ></textarea>`}
+              ${this.btn("step-up", E("recipes.steps.up"), We, () => this.move(r, -1), r === 0)}
+              ${this.btn("step-down", E("recipes.steps.down"), Ue, () => this.move(r, 1), r === t)}
+              ${this.btn("step-remove", E("recipes.steps.remove"), Xe, () => this.emit(this.value.filter((e, t) => t !== r)))}
+            </div>
+            ${N(a, `step-${r}`)}
+          </li>`;
+		})}
+      </ol>
+      <p class="adds">
+        <button type="button" data-testid="step-add" @click=${() => this.add("step")}>
+          ${E("recipes.steps.add")}
+        </button>
+        <button type="button" data-testid="step-head-add" @click=${() => this.add("head")}>
+          ${E("recipes.steps.head_add")}
+        </button>
+      </p>`;
+	}
+	static {
+		this.styles = [D, o`
+      ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .row {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        margin: 4px 0;
+      }
+      .no {
+        flex: none;
+        width: 2em;
+        padding-top: 8px;
+        text-align: right;
+        color: var(--secondary-text-color);
+      }
+      textarea,
+      input {
+        flex: 1;
+        min-width: 0;
+        font: inherit;
+        box-sizing: border-box;
+        padding: 8px;
+        color: var(--primary-text-color);
+        background: var(--card-background-color, var(--primary-background-color));
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+      }
+      li.head input {
+        font-weight: 500;
+      }
+      .adds {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    `];
+	}
+};
+customElements.define("pantry-recipe-steps", ci);
+//#endregion
 //#region src/recipe-dialog.ts
-var $r = (e) => ({
+var li = (e) => ({
 	name: e?.name ?? "",
 	servings: e?.servings ?? 4,
-	instructions: e?.instructions ?? "",
+	steps: e?.steps?.length ? Gr(e.steps) : Kr(e?.instructions ?? null),
 	source_url: e?.source_url ?? "",
 	image_url: e?.image_url ?? "",
 	product: e && "canning_product" in e && e.canning_product || "",
@@ -5263,7 +5455,7 @@ var $r = (e) => ({
 		line: e.line,
 		unit_hint: e.unit_hint
 	}))
-}), ei = class extends T {
+}), ui = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -5273,18 +5465,18 @@ var $r = (e) => ({
 		};
 	}
 	constructor() {
-		super(), this.initial = "", this.canningMode = !1, this.products = [], this.draft = $r(), this.active = !1, this.error = "";
+		super(), this.initial = "", this.canningMode = !1, this.products = [], this.draft = li(), this.active = !1, this.error = "";
 	}
 	async open(e, t, n, r = !1) {
-		this.md = e, this.recipe = t, this.canningMode = r, r && (this.products = await B(this.hass).catch(() => [])), this.draft = $r(t ?? n), this.initial = JSON.stringify(n ? $r() : this.draft), this.error = "", this.active = !0, await this.updateComplete, this.renderRoot.querySelector("dialog").showModal(), this.renderRoot.querySelector("dialog input")?.focus();
+		this.md = e, this.recipe = t, this.canningMode = r, r && (this.products = await B(this.hass).catch(() => [])), this.draft = li(t ?? n), this.initial = JSON.stringify(n ? li() : this.draft), this.error = "", this.active = !0, await this.updateComplete, this.renderRoot.querySelector("dialog").showModal(), this.renderRoot.querySelector("dialog input")?.focus();
 	}
 	errors() {
 		let e = this.draft, t = {};
-		e.name.trim() || (t.name = E("valid.required")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = E("valid.servings")), e.source_url.trim() && !wt.test(e.source_url.trim()) && (t.source_url = E("valid.url")), e.image_url.trim() && !wt.test(e.image_url.trim()) && (t.image_url = E("valid.url")), this.canningMode && !e.product.trim() ? t.product = E("valid.required") : this.canningMode && !this.products.some((t) => t.name === e.product.trim()) && e.product_category == null && (t.product_category = E("valid.category"));
+		e.name.trim() || (t.name = E("valid.required")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = E("valid.servings")), e.source_url.trim() && !Dt.test(e.source_url.trim()) && (t.source_url = E("valid.url")), e.image_url.trim() && !Dt.test(e.image_url.trim()) && (t.image_url = E("valid.url")), this.canningMode && !e.product.trim() ? t.product = E("valid.required") : this.canningMode && !this.products.some((t) => t.name === e.product.trim()) && e.product_category == null && (t.product_category = E("valid.category"));
 		let n = e.canning_temp, r = e.canning_minutes;
 		return n != null && !(Number.isInteger(n) && n >= 1 && n <= 200) ? t.canning_temp = E("valid.canning_temp") : n == null && r != null && (t.canning_temp = E("valid.required")), r != null && !(Number.isInteger(r) && r >= 1 && r <= 1440) ? t.canning_minutes = E("valid.canning_minutes") : r == null && n != null && (t.canning_minutes = E("valid.required")), {
 			e: t,
-			bad: Gr(e.ingredients).some((e) => Object.keys(e).length)
+			bad: $r(e.ingredients).some((e) => Object.keys(e).length) || e.steps.some((e) => si(e))
 		};
 	}
 	async save(e) {
@@ -5293,15 +5485,15 @@ var $r = (e) => ({
 		if (Object.keys(t).length || n) return;
 		let r = this.draft;
 		try {
-			await Ut(this.hass, {
+			await Kt(this.hass, {
 				...this.recipe ? { id: this.recipe.id } : {},
 				name: r.name.trim(),
 				servings: r.servings,
-				instructions: r.instructions.trim() || null,
+				steps: qr(r.steps),
 				source_url: r.source_url.trim() || null,
 				image_url: r.image_url.trim() || null,
 				...this.canningMode ? this.canningPayload() : {},
-				ingredients: r.ingredients.filter((e) => !Wr(e)).map((e) => ({
+				ingredients: r.ingredients.filter((e) => !Qr(e)).map((e) => ({
 					category_id: e.category_id,
 					amount: e.amount,
 					unit_id: e.amount == null ? null : e.unit_id,
@@ -5348,7 +5540,7 @@ var $r = (e) => ({
 		};
 	}
 	canning(e, t, n) {
-		return Xr({
+		return ii({
 			testid: `recipe-${e}`,
 			label: E(`recipes.field.${e}`),
 			unit: t,
@@ -5366,7 +5558,7 @@ var $r = (e) => ({
 		return A({
 			title: this.recipe ? E("common.edit_name", { name: this.recipe.name }) : E(this.canningMode ? "canning.recipe_add" : "recipes.add"),
 			body: y`${this.text("name", E("common.name"), e.name)}
-        ${this.canningMode ? Qr({
+        ${this.canningMode ? oi({
 				testid: "recipe",
 				label: E("canning.recipe_makes"),
 				hass: this.hass,
@@ -5410,18 +5602,6 @@ var $r = (e) => ({
           />
           ${N(e.servings, "recipe-servings-input")}
         </label>
-        <label>
-          <span class="lbl">${E("recipes.field.instructions")}</span>
-          <textarea
-            rows="5"
-            data-testid="recipe-instructions"
-            .value=${n.instructions}
-            @input=${(e) => this.draft = {
-				...n,
-				instructions: e.target.value
-			}}
-          ></textarea>
-        </label>
         ${this.canningMode ? y`<div class="pair">
                 ${this.canning("canning_temp", "°C", e.canning_temp)}
                 ${this.canning("canning_minutes", E("recipes.minutes_unit"), e.canning_minutes)}
@@ -5440,7 +5620,14 @@ var $r = (e) => ({
 				...n,
 				ingredients: e.detail
 			}}
-        ></pantry-recipe-ingredients>`,
+        ></pantry-recipe-ingredients>
+        <pantry-recipe-steps
+          .value=${n.steps}
+          @change=${(e) => this.draft = {
+				...n,
+				steps: e.detail
+			}}
+        ></pantry-recipe-steps>`,
 			error: this.error,
 			invalid: Object.keys(e).length > 0 || t,
 			submit: {
@@ -5453,24 +5640,13 @@ var $r = (e) => ({
 		});
 	}
 	static {
-		this.styles = [D, o`
-      textarea {
-        font: inherit;
-        width: 100%;
-        box-sizing: border-box;
-        padding: 8px;
-        color: var(--primary-text-color);
-        background: var(--card-background-color, var(--primary-background-color));
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-      }
-    `];
+		this.styles = [D];
 	}
 };
-customElements.define("pantry-recipe-dialog", ei);
+customElements.define("pantry-recipe-dialog", ui);
 //#endregion
 //#region src/recipe-import.ts
-var ti = class extends T {
+var di = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -5488,13 +5664,13 @@ var ti = class extends T {
 	}
 	errors() {
 		let e = this.url.trim();
-		return e ? wt.test(e) ? void 0 : E("valid.url") : E("valid.required");
+		return e ? Dt.test(e) ? void 0 : E("valid.url") : E("valid.required");
 	}
 	async submit(e) {
 		if (e.preventDefault(), !(this.errors() || this.busy)) {
 			this.busy = !0, this.error = "";
 			try {
-				let e = await Wt(this.hass, this.url.trim());
+				let e = await qt(this.hass, this.url.trim());
 				this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-imported", { detail: e }));
 			} catch (e) {
 				this.error = await L(this.hass, e);
@@ -5541,25 +5717,25 @@ var ti = class extends T {
     `];
 	}
 };
-customElements.define("pantry-recipe-import", ti);
+customElements.define("pantry-recipe-import", di);
 //#endregion
 //#region src/api-plan.ts
-var ni = (e, t, n) => e.callWS({
+var fi = (e, t, n) => e.callWS({
 	type: "pantry/meal_plan",
 	start: t,
 	end: n
-}), ri = (e, t) => e.callWS({
+}), pi = (e, t) => e.callWS({
 	type: "pantry/meal_save",
 	data: t
-}), ii = (e, t) => e.callWS({
+}), mi = (e, t) => e.callWS({
 	type: "pantry/meal_delete",
 	meal_id: t
-}), ai = (e, t, n, r) => e.callWS({
+}), hi = (e, t, n, r) => e.callWS({
 	type: "pantry/meal_shift",
 	day: t,
 	slot: n,
 	apply: r
-}), oi = class extends T {
+}), gi = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -5588,13 +5764,13 @@ var ni = (e, t, n) => e.callWS({
 	}
 	errors() {
 		let e = this.draft, t = {};
-		return e.text.trim() || (t.text = E("valid.required")), (!e.day || Ct(e.dateBad, e.day)) && (t.day = E("valid.date")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = E("valid.servings")), t;
+		return e.text.trim() || (t.text = E("valid.required")), (!e.day || Et(e.dateBad, e.day)) && (t.day = E("valid.date")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = E("valid.servings")), t;
 	}
 	async save(e) {
 		if (e.preventDefault(), Object.keys(this.errors()).length) return;
 		let t = this.draft, n = t.text.trim();
 		try {
-			await ri(this.hass, {
+			await pi(this.hass, {
 				...this.meal ? { id: this.meal.id } : {},
 				day: t.day,
 				slot: t.slot,
@@ -5700,10 +5876,258 @@ var ni = (e, t, n) => e.callWS({
 		this.styles = D;
 	}
 };
-customElements.define("pantry-meal-dialog", oi);
+customElements.define("pantry-meal-dialog", gi);
+//#endregion
+//#region src/cook-mode.ts
+var _i = (e) => {
+	let t = Math.max(0, Math.ceil(e / 1e3)), n = Math.floor(t / 3600), r = String(Math.floor(t % 3600 / 60)).padStart(n ? 2 : 1, "0"), i = String(t % 60).padStart(2, "0");
+	return n ? `${n}:${r}:${i}` : `${r}:${i}`;
+}, vi = () => {
+	navigator.vibrate?.([
+		300,
+		200,
+		300,
+		200,
+		300
+	]);
+	try {
+		let e = new AudioContext();
+		for (let t = 0; t < 3; t++) {
+			let n = e.createOscillator();
+			n.frequency.value = 880, n.connect(e.destination), n.start(e.currentTime + t * .4), n.stop(e.currentTime + t * .4 + .25);
+		}
+	} catch {}
+}, yi = class extends T {
+	static {
+		this.properties = {
+			active: { state: !0 },
+			done: { state: !0 },
+			timers: { state: !0 },
+			now: { state: !0 }
+		};
+	}
+	constructor() {
+		super(), this.ingredients = [], this.servings = 1, this.relock = () => {
+			document.visibilityState === "visible" && this.active && this.keepOn();
+		}, this.active = !1, this.done = /* @__PURE__ */ new Set(), this.timers = [], this.now = Date.now();
+	}
+	async open(e, t, n, r, i) {
+		Object.assign(this, {
+			hass: e,
+			md: t,
+			recipe: n,
+			ingredients: r,
+			servings: i
+		}), this.done = /* @__PURE__ */ new Set(), this.timers = [], this.active = !0, await this.updateComplete, this.renderRoot.querySelector("dialog").showModal(), this.keepOn(), document.addEventListener("visibilitychange", this.relock);
+	}
+	async keepOn() {
+		try {
+			this.lock = await navigator.wakeLock?.request("screen");
+		} catch {}
+	}
+	closed() {
+		this.active = !1, window.clearInterval(this.tick), this.tick = void 0, this.lock?.release(), this.lock = void 0, document.removeEventListener("visibilitychange", this.relock);
+	}
+	async close() {
+		(!this.timers.some((e) => e.end > Date.now()) || await O({
+			title: E("cook.stop"),
+			action: E("cook.stop_ok")
+		})) && this.renderRoot.querySelector("dialog")?.close();
+	}
+	start(e, t, n) {
+		let r = `${e}:${t}`;
+		this.timers = [...this.timers.filter((e) => e.key !== r), {
+			key: r,
+			label: t,
+			step: e,
+			end: Date.now() + n * 1e3
+		}], this.tick ??= window.setInterval(() => this.onTick(), 500), this.now = Date.now();
+	}
+	onTick() {
+		let e = this.now;
+		this.now = Date.now(), this.timers.some((t) => t.end <= this.now && t.end > e) && vi();
+	}
+	toggle(e) {
+		let t = new Set(this.done);
+		t.delete(e) || t.add(e), this.done = t;
+	}
+	step(e, t) {
+		return y`<button
+        type="button"
+        class="step ${this.done.has(t) ? "done" : ""}"
+        data-testid="cook-step"
+        aria-pressed=${this.done.has(t)}
+        @click=${() => this.toggle(t)}
+      >
+        <span class="no">${t + 1}.</span>${e.text}
+      </button>
+      ${(e.timers ?? []).map((e) => y`<button
+            type="button"
+            class="timer-btn"
+            data-testid="cook-timer-start"
+            aria-label=${E("cook.timer_start", { what: e.label })}
+            @click=${() => this.start(t, e.label, e.seconds)}
+          >
+            ${k(ct)} ${e.label}
+          </button>`)}`;
+	}
+	render() {
+		if (!this.active || !this.recipe) return y`<dialog></dialog>`;
+		let e = this.recipe, t = this.servings / e.servings;
+		return y`<dialog
+      @close=${() => this.closed()}
+      @cancel=${(e) => {
+			e.preventDefault(), this.close();
+		}}
+    >
+      <header>
+        <h2>${E("cook.title", { name: e.name })}</h2>
+        <button
+          type="button"
+          class="icon-btn"
+          data-testid="cook-close"
+          aria-label=${E("cook.close")}
+          title=${E("cook.close")}
+          @click=${() => this.close()}
+        >
+          ${k(Xe)}
+        </button>
+      </header>
+      <h3>${E("recipes.ingredients")}</h3>
+      <ul class="ings">
+        ${this.ingredients.map((e) => y`<li>
+              ${[Yr(this.hass, this.md, e, t), this.md.categories.find((t) => t.id === e.category_id)?.name ?? e.text].filter(Boolean).join(" ")}
+              ${e.note ? y`<span class="detail">${e.note}</span>` : x}
+            </li>`)}
+      </ul>
+      <h3>${E("recipes.instructions")}</h3>
+      <p class="detail">${E("cook.hint")}</p>
+      ${Jr(e.steps, (e, t) => this.step(e, t))}
+      ${this.timers.length ? y`<div class="timers" role="status">
+              ${this.timers.map((e) => {
+			let t = e.end - this.now;
+			return y`<span class="timer ${t <= 0 ? "over" : ""}" data-testid="cook-timer">
+                  ${E("cook.timer", {
+				n: e.step + 1,
+				what: e.label
+			})}:
+                  <strong>${t > 0 ? _i(t) : E("cook.timer_done")}</strong>
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    aria-label=${E("cook.timer_cancel")}
+                    title=${E("cook.timer_cancel")}
+                    @click=${() => this.timers = this.timers.filter((t) => t !== e)}
+                  >
+                    ${k(Xe)}
+                  </button>
+                </span>`;
+		})}
+            </div>` : x}
+    </dialog>`;
+	}
+	static {
+		this.styles = [D, o`
+      dialog {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100dvh;
+        max-height: 100dvh;
+        margin: 0;
+        box-sizing: border-box;
+        padding: 16px 16px 96px;
+        border: none;
+        overflow-y: auto;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      h2 {
+        margin: 0;
+      }
+      h3,
+      h4 {
+        margin: 16px 0 4px;
+        font-size: 1em;
+        font-weight: 500;
+      }
+      .ings,
+      ol {
+        max-width: 720px;
+      }
+      ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .no {
+        display: inline-block;
+        min-width: 1.6em;
+        font-weight: 500;
+      }
+      .ings li {
+        padding: 2px 0;
+      }
+      ol li {
+        margin: 8px 0;
+      }
+      .step {
+        display: block;
+        width: 100%;
+        text-align: left;
+        font: inherit;
+        font-size: 1.1em;
+        line-height: 1.5;
+        padding: 6px 8px;
+        color: var(--primary-text-color);
+        background: none;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .step.done {
+        color: var(--secondary-text-color);
+        text-decoration: line-through;
+      }
+      .timer-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin: 2px 8px 0 8px;
+      }
+      .timers {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 16px;
+        padding: 8px 16px;
+        background: var(--card-background-color, var(--primary-background-color));
+        border-top: 1px solid var(--divider-color);
+      }
+      .timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .timer.over strong {
+        color: var(--error-color);
+      }
+      .detail {
+        color: var(--secondary-text-color);
+      }
+    `];
+	}
+};
+customElements.define("pantry-cook-mode", yi);
 //#endregion
 //#region src/recipes-view.ts
-var si = class extends T {
+var bi = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -5739,7 +6163,7 @@ var si = class extends T {
 	async setServings(e, t) {
 		this.servings = new Map(this.servings).set(e.id, t);
 		try {
-			let n = await Ht(this.hass, e.id, t);
+			let n = await Gt(this.hass, e.id, t);
 			if (this.servings.get(e.id) !== t) return;
 			this.scaled = new Map(this.scaled).set(e.id, n);
 		} catch (e) {
@@ -5749,7 +6173,7 @@ var si = class extends T {
 	async removeRecipe(e) {
 		this.error = "";
 		try {
-			if (!await hn(this.hass, this.md, "recipe", e)) return;
+			if (!await vn(this.hass, this.md, "recipe", e)) return;
 		} catch (e) {
 			this.error = await L(this.hass, e);
 			return;
@@ -5786,7 +6210,7 @@ var si = class extends T {
 		return (this.recipes ?? []).filter((t) => H(t) === !!this.canning && (!e || W(t.name, e) || t.ingredients.some((t) => W(t.text, e))));
 	}
 	row(e) {
-		let t = this.open.has(e.id), n = () => this.open = xt(this.open, e.id), r = this.servings.get(e.id) ?? e.servings;
+		let t = this.open.has(e.id), n = () => this.open = wt(this.open, e.id), r = this.servings.get(e.id) ?? e.servings;
 		return y`<li class="recipe" data-testid="recipe-row" data-recipe-id=${e.id}>
       <div class="head">
         ${j(t, n)}
@@ -5807,7 +6231,7 @@ var si = class extends T {
 			onDelete: I(this.hass) ? () => this.removeRecipe(e) : void 0
 		})}
       </div>
-      ${t ? Ur({
+      ${t ? Zr({
 			hass: this.hass,
 			md: this.md,
 			recipe: e,
@@ -5819,7 +6243,8 @@ var si = class extends T {
 				detail: e.id,
 				bubbles: !0,
 				composed: !0
-			})) : this.renderRoot.querySelector("pantry-meal-dialog").open(P(), 3, this.recipes, r, void 0, e.name)
+			})) : this.renderRoot.querySelector("pantry-meal-dialog").open(P(), 3, this.recipes, r, void 0, e.name),
+			onCook: () => this.renderRoot.querySelector("pantry-cook-mode").open(this.hass, this.md, e, this.scaled.get(e.id) ?? e.ingredients, r)
 		}) : x}
     </li>`;
 	}
@@ -5853,6 +6278,7 @@ var si = class extends T {
         @pantry-saved=${() => this.refreshShopping()}
       ></pantry-shopping-recipe-dialog>
       <pantry-meal-dialog .hass=${this.hass}></pantry-meal-dialog>
+      <pantry-cook-mode></pantry-cook-mode>
       <pantry-recipe-dialog
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -5866,23 +6292,23 @@ var si = class extends T {
             </p>`}`;
 	}
 	static {
-		this.styles = [D, Br];
+		this.styles = [D, Ur];
 	}
 };
-customElements.define("pantry-recipes", si);
+customElements.define("pantry-recipes", bi);
 //#endregion
 //#region src/plan-shift.ts
-var ci = (e, t) => y`<button
+var xi = (e, t) => y`<button
     class="icon-btn"
     data-testid="plan-meal-shift"
     aria-label=${E("plan.shift")}
     title=${E("plan.shift")}
     @click=${() => e.shift(t)}
   >
-    ${k(We)}
+    ${k(Ke)}
   </button>`;
-async function li(e, t) {
-	let { meals: n } = await ai(e, t.day, t.slot, !1), r = new Intl.DateTimeFormat(Mn(e), {
+async function Si(e, t) {
+	let { meals: n } = await hi(e, t.day, t.slot, !1), r = new Intl.DateTimeFormat(Fn(e), {
 		weekday: "short",
 		day: "numeric",
 		month: "numeric"
@@ -5891,16 +6317,16 @@ async function li(e, t) {
 		title: E("plan.shift_title", { slot: E(`plan.slot.${t.slot}`) }),
 		body: y`<ul class="impact" data-testid="shift-list">
       ${n.map((e) => {
-			let t = Dn(e.day);
-			return y`<li>${r.format(t)} ${e.name} → ${r.format(Dn(Z(Q(t, 1))))}</li>`;
+			let t = An(e.day);
+			return y`<li>${r.format(t)} ${e.name} → ${r.format(An(Z(Q(t, 1))))}</li>`;
 		})}
     </ul>`,
 		action: E("plan.shift_ok")
-	}) ? (await ai(e, t.day, t.slot, !0), !0) : !1;
+	}) ? (await hi(e, t.day, t.slot, !0), !0) : !1;
 }
 //#endregion
 //#region src/plan-day.ts
-function ui(e, t) {
+function Ci(e, t) {
 	let n = Z(t);
 	return y`<div data-testid="plan-day" data-day=${n}>
     ${X.map((t) => y`<section data-testid="plan-cell" data-slot=${t}>
@@ -5913,7 +6339,7 @@ function ui(e, t) {
               title=${E("plan.add")}
               @click=${() => e.add(n, t)}
             >
-              ${k(rt)}
+              ${k(at)}
             </button>
           </div>
           <ul>
@@ -5926,7 +6352,7 @@ function ui(e, t) {
                     >
                       ${t.name} · ${K(e.hass, t.servings)}
                     </button>
-                    ${ci(e, t)}
+                    ${xi(e, t)}
                     ${M({
 		testid: "plan-meal",
 		name: t.name,
@@ -5938,7 +6364,7 @@ function ui(e, t) {
         </section>`)}
   </div>`;
 }
-var di = o`
+var wi = o`
   .head {
     display: flex;
     align-items: center;
@@ -5950,12 +6376,12 @@ var di = o`
     font-size: 1em;
     font-weight: 500;
   }
-`, fi = "(max-width: 600px)", pi = (e, t) => y`<div class="dish" data-testid="plan-meal">
+`, Ti = "(max-width: 600px)", Ei = (e, t) => y`<div class="dish" data-testid="plan-meal">
     <button type="button" class="open" data-testid="plan-meal-open" @click=${() => e.open(t)}>
       ${t.name}
     </button>
     <span class="sec">${K(e.hass, t.servings)}</span>
-    ${ci(e, t)}
+    ${xi(e, t)}
     <button
       class="icon-btn"
       data-testid="plan-meal-edit"
@@ -5963,7 +6389,7 @@ var di = o`
       title=${E("common.edit_name", { name: t.name })}
       @click=${() => e.edit(t)}
     >
-      ${k(nt)}
+      ${k(it)}
     </button>
     <button
       class="icon-btn"
@@ -5972,24 +6398,24 @@ var di = o`
       title=${E("common.delete_name", { name: t.name })}
       @click=${() => e.remove(t)}
     >
-      ${k(Xe)}
+      ${k(Qe)}
     </button>
-  </div>`, mi = (e, t, n, r) => y`<button
+  </div>`, Di = (e, t, n, r) => y`<button
     class="icon-btn quiet"
     data-testid=${r}
     aria-label=${E("plan.add")}
     title=${E("plan.add")}
     @click=${() => e.add(t, n)}
   >
-    ${k(rt)}
-  </button>`, hi = (e, t, n) => y`<button
+    ${k(at)}
+  </button>`, Oi = (e, t, n) => y`<button
     type="button"
     class="daylink"
     data-testid="plan-day-open"
     @click=${() => e.openDay(t)}
   >
     ${n.format(t)}
-  </button>`, gi = (e) => [
+  </button>`, ki = (e) => [
 	0,
 	1,
 	2,
@@ -5997,23 +6423,23 @@ var di = o`
 	4,
 	5,
 	6
-].map((t) => Q(e, t)), _i = (e, t, n) => e.meals.filter((e) => e.day === t && e.slot === n);
-function vi(e, t, n) {
-	let r = new Intl.DateTimeFormat(Mn(e.hass), {
+].map((t) => Q(e, t)), Ai = (e, t, n) => e.meals.filter((e) => e.day === t && e.slot === n);
+function ji(e, t, n) {
+	let r = new Intl.DateTimeFormat(Fn(e.hass), {
 		weekday: "short",
 		day: "numeric",
 		month: "numeric"
 	}), i = Z(/* @__PURE__ */ new Date());
 	return n ? y`<div data-testid="plan-week">
-      ${gi(t).map((t) => {
+      ${ki(t).map((t) => {
 		let n = Z(t);
 		return y`<section class="daybox" data-testid="plan-day" data-day=${n}>
           <h3 class=${n === i ? "today" : ""}>
-            ${hi(e, t, r)} ${mi(e, n, 3, "plan-add-day")}
+            ${Oi(e, t, r)} ${Di(e, n, 3, "plan-add-day")}
           </h3>
-          ${X.filter((t) => _i(e, n, t).length).map((t) => y`<div class="slotline" data-testid="plan-cell" data-slot=${t}>
+          ${X.filter((t) => Ai(e, n, t).length).map((t) => y`<div class="slotline" data-testid="plan-cell" data-slot=${t}>
                 <span class="slot">${E(`plan.slot.${t}`)}</span>
-                <div>${_i(e, n, t).map((t) => pi(e, t))}</div>
+                <div>${Ai(e, n, t).map((t) => Ei(e, t))}</div>
               </div>`)}
         </section>`;
 	})}
@@ -6021,19 +6447,19 @@ function vi(e, t, n) {
     <thead>
       <tr>
         <th class="slotcol"></th>
-        ${gi(t).map((t) => y`<th scope="col" class=${Z(t) === i ? "today" : ""}>
-              ${hi(e, t, r)}
+        ${ki(t).map((t) => y`<th scope="col" class=${Z(t) === i ? "today" : ""}>
+              ${Oi(e, t, r)}
             </th>`)}
       </tr>
     </thead>
     <tbody>
       ${X.map((n) => y`<tr>
             <th scope="row">${E(`plan.slot.${n}`)}</th>
-            ${gi(t).map((t) => {
+            ${ki(t).map((t) => {
 		let r = Z(t);
 		return y`<td data-testid="plan-day" data-day=${r}>
                 <div data-testid="plan-cell" data-slot=${n}>
-                  ${_i(e, r, n).map((t) => pi(e, t))} ${mi(e, r, n, "plan-add")}
+                  ${Ai(e, r, n).map((t) => Ei(e, t))} ${Di(e, r, n, "plan-add")}
                 </div>
               </td>`;
 	})}
@@ -6041,7 +6467,7 @@ function vi(e, t, n) {
     </tbody>
   </table>`;
 }
-var yi = o`
+var Mi = o`
   /* fixed layout: every day column gets the same width, whatever the dish names */
   table.week {
     border-collapse: collapse;
@@ -6130,15 +6556,15 @@ var yi = o`
     color: var(--secondary-text-color);
     font-size: 0.875em;
   }
-`, bi = [
-	st,
-	ct,
-	Ye,
-	ot,
-	Ze
+`, Ni = [
+	ut,
+	dt,
+	Ze,
+	lt,
+	$e
 ];
-function xi(e, t, n, r) {
-	let i = Mn(e.hass), a = new Intl.DateTimeFormat(i, { weekday: "short" }), o = new Intl.DateTimeFormat(i, { dateStyle: "full" }), s = Z(/* @__PURE__ */ new Date());
+function Pi(e, t, n, r) {
+	let i = Fn(e.hass), a = new Intl.DateTimeFormat(i, { weekday: "short" }), o = new Intl.DateTimeFormat(i, { dateStyle: "full" }), s = Z(/* @__PURE__ */ new Date());
 	return y`<div class="month" data-testid="plan-month">
     ${[
 		0,
@@ -6169,7 +6595,7 @@ function xi(e, t, n, r) {
               data-slot=${e}
               aria-label=${t}
               title=${[t, ...i.filter((t) => t.slot === e).map((e) => e.name)].join("\n")}
-              >${k(bi[e])}</span
+              >${k(Ni[e])}</span
             >`;
 		})}
         </span>
@@ -6177,7 +6603,7 @@ function xi(e, t, n, r) {
 	})}
   </div>`;
 }
-var Si = o`
+var Fi = o`
   .month {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -6224,7 +6650,7 @@ var Si = o`
     height: 14px;
     fill: var(--secondary-text-color);
   }
-`, Ci = class extends T {
+`, Ii = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -6243,18 +6669,18 @@ var Si = o`
 		super.disconnectedCallback(), this.narrow.removeEventListener("change", this.onNarrow);
 	}
 	constructor() {
-		super(), this.started = !1, this.narrow = window.matchMedia(fi), this.onNarrow = () => this.requestUpdate(), this.date = /* @__PURE__ */ new Date(), this.meals = [], this.household = 1, this.recipes = [], this.error = "";
+		super(), this.started = !1, this.narrow = window.matchMedia(Ti), this.onNarrow = () => this.requestUpdate(), this.date = /* @__PURE__ */ new Date(), this.meals = [], this.household = 1, this.recipes = [], this.error = "";
 	}
 	get view() {
-		return En.includes(this.section) ? this.section : "week";
+		return kn.includes(this.section) ? this.section : "week";
 	}
 	willUpdate(e) {
 		e.has("hass") && this.hass && !this.started ? (this.started = !0, this.load(), V(this.hass).then((e) => this.recipes = e, () => void 0)) : e.has("section") && this.started && this.load();
 	}
 	async load() {
-		let [e, t] = An(this.view, this.date);
+		let [e, t] = Nn(this.view, this.date);
 		try {
-			let n = await ni(this.hass, Z(e), Z(t));
+			let n = await fi(this.hass, Z(e), Z(t));
 			this.meals = n.meals, this.household = n.household_servings, this.error = "";
 		} catch (e) {
 			this.error = await L(this.hass, e);
@@ -6289,38 +6715,38 @@ var Si = o`
 			add: (e, t) => this.dialog().open(e, t, this.recipes, this.household),
 			edit: (e) => this.dialog().open(e.day, e.slot, this.recipes, this.household, e),
 			remove: async (e) => {
-				await ht(e.name) && await this.act(() => ii(this.hass, e.id));
+				await vt(e.name) && await this.act(() => mi(this.hass, e.id));
 			},
 			open: (e) => e.recipe_id == null ? this.dialog().open(e.day, e.slot, this.recipes, this.household, e) : this.dispatchEvent(new CustomEvent("pantry-navigate", {
 				detail: `recipes/${e.recipe_id}`,
 				bubbles: !0,
 				composed: !0
 			})),
-			shift: (e) => this.act(() => li(this.hass, e)),
+			shift: (e) => this.act(() => Si(this.hass, e)),
 			openDay: (e) => {
 				this.date = e, this.nav("day");
 			}
 		};
 	}
 	label() {
-		let e = Mn(this.hass), t = this.date;
+		let e = Fn(this.hass), t = this.date;
 		if (this.view === "day") return new Intl.DateTimeFormat(e, { dateStyle: "full" }).format(t);
 		if (this.view === "month") return new Intl.DateTimeFormat(e, {
 			month: "long",
 			year: "numeric"
 		}).format(t);
-		let [n, r] = An("week", t);
+		let [n, r] = Nn("week", t);
 		return new Intl.DateTimeFormat(e, { dateStyle: "medium" }).formatRange(n, new Date(r.getFullYear(), r.getMonth(), r.getDate() - 1));
 	}
 	body() {
-		let e = this.ctx(), [t, n] = An(this.view, this.date);
-		return this.view === "day" ? ui(e, this.date) : this.view === "week" ? vi(e, t, this.narrow.matches) : xi(e, t, Math.round((n.getTime() - t.getTime()) / 6048e5), this.date.getMonth());
+		let e = this.ctx(), [t, n] = Nn(this.view, this.date);
+		return this.view === "day" ? Ci(e, this.date) : this.view === "week" ? ji(e, t, this.narrow.matches) : Pi(e, t, Math.round((n.getTime() - t.getTime()) / 6048e5), this.date.getMonth());
 	}
 	render() {
 		let e = this.view;
 		return y`${this.error ? y`<p class="error" role="alert">${this.error}</p>` : x}
       <nav aria-label=${E("plan.view.label")}>
-        ${En.map((t) => y`<button
+        ${kn.map((t) => y`<button
               data-testid=${`plan-view-${t}`}
               aria-current=${t === e ? "page" : "false"}
               @click=${() => t === "day" ? this.ctx().openDay(/* @__PURE__ */ new Date()) : this.nav(t)}
@@ -6334,9 +6760,9 @@ var Si = o`
           data-testid="plan-prev"
           aria-label=${E("plan.prev")}
           title=${E("plan.prev")}
-          @click=${() => this.go(jn(e, this.date, -1))}
+          @click=${() => this.go(Pn(e, this.date, -1))}
         >
-          ${k(Ke)}
+          ${k(Je)}
         </button>
         <button data-testid="plan-today" @click=${() => this.go(/* @__PURE__ */ new Date())}>
           ${E("plan.today")}
@@ -6346,9 +6772,9 @@ var Si = o`
           data-testid="plan-next"
           aria-label=${E("plan.next")}
           title=${E("plan.next")}
-          @click=${() => this.go(jn(e, this.date, 1))}
+          @click=${() => this.go(Pn(e, this.date, 1))}
         >
-          ${k(qe)}
+          ${k(Ye)}
         </button>
         <span class="range" data-testid="plan-range">${this.label()}</span>
       </div>
@@ -6381,19 +6807,19 @@ var Si = o`
         color: var(--secondary-text-color);
       }
     `,
-			di,
-			yi,
-			Si
+			wi,
+			Mi,
+			Fi
 		];
 	}
 };
-customElements.define("pantry-plan", Ci);
+customElements.define("pantry-plan", Ii);
 //#endregion
 //#region src/api-canning.ts
-var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
+var Li = (e) => e.callWS({ type: "pantry/cannings" }), Ri = (e, t) => e.callWS({
 	type: "pantry/canning_save",
 	data: t
-}), Ei = class extends T {
+}), zi = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -6445,7 +6871,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 	}
 	proposal(e) {
 		let t = this.dflt("shelf_days", e);
-		return t && e.made_on ? On(e.made_on, Number(t.value)) : "";
+		return t && e.made_on ? jn(e.made_on, Number(t.value)) : "";
 	}
 	set(e) {
 		let t = {
@@ -6466,7 +6892,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 	}
 	errors() {
 		let e = this.draft, t = {};
-		return this.canning || ((!e.made_on || Ct(e.dateBad, e.made_on)) && (t.made_on = E("valid.date")), e.name.trim() ? !this.product() && e.category_id == null && (t.category = E("valid.category")) : t.name = E("valid.required"), (e.jars == null || !Number.isInteger(e.jars) || e.jars < 1 || e.jars > 9999) && (t.jars = E("valid.packages")), !this.dflt("default_location_id") && e.location_id == null && (t.location = E("valid.location"))), e.temp != null && !(Number.isInteger(e.temp) && e.temp >= 1 && e.temp <= 200) && (t.temp = E("valid.canning_temp")), e.minutes != null && !(Number.isInteger(e.minutes) && e.minutes >= 1 && e.minutes <= 1440) && (t.minutes = E("valid.canning_minutes")), t;
+		return this.canning || ((!e.made_on || Et(e.dateBad, e.made_on)) && (t.made_on = E("valid.date")), e.name.trim() ? !this.product() && e.category_id == null && (t.category = E("valid.category")) : t.name = E("valid.required"), (e.jars == null || !Number.isInteger(e.jars) || e.jars < 1 || e.jars > 9999) && (t.jars = E("valid.packages")), !this.dflt("default_location_id") && e.location_id == null && (t.location = E("valid.location"))), e.temp != null && !(Number.isInteger(e.temp) && e.temp >= 1 && e.temp <= 200) && (t.temp = E("valid.canning_temp")), e.minutes != null && !(Number.isInteger(e.minutes) && e.minutes >= 1 && e.minutes <= 1440) && (t.minutes = E("valid.canning_minutes")), t;
 	}
 	async save(e) {
 		if (e.preventDefault(), Object.keys(this.errors()).length) return;
@@ -6478,7 +6904,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 			expires_on: t.expires_on || null
 		}, r = this.product();
 		try {
-			let e = await Ti(this.hass, this.canning ? {
+			let e = await Ri(this.hass, this.canning ? {
 				id: this.canning.id,
 				...n
 			} : {
@@ -6505,7 +6931,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 		}
 	}
 	num(e, t, n, r) {
-		return Xr({
+		return ii({
 			testid: `canning-${e}`,
 			label: t,
 			unit: n,
@@ -6515,7 +6941,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 		});
 	}
 	date(e, t, n) {
-		return Zr({
+		return ai({
 			testid: `canning-${e}`,
 			label: t,
 			value: this.draft[e],
@@ -6552,7 +6978,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
       ${this.date("made_on", E("canning.made_on"), e.made_on)}
       ${n ? y`<p class="detail" data-testid="canning-recipe-product">
               ${E("canning.recipe_product", { name: n.canning_product ?? "" })}
-            </p>` : Qr({
+            </p>` : oi({
 			testid: "canning",
 			label: E("canning.product"),
 			hass: this.hass,
@@ -6567,7 +6993,7 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
       ${this.num("jars", E("canning.jars"), "", e.jars)}
       <label>
         <span class="lbl">${E("book.location")}</span>
-        ${Zt({
+        ${en({
 			testid: "canning-location",
 			own: t.location_id,
 			dflt: this.dflt("default_location_id"),
@@ -6617,10 +7043,10 @@ var wi = (e) => e.callWS({ type: "pantry/cannings" }), Ti = (e, t) => e.callWS({
 		this.styles = D;
 	}
 };
-customElements.define("pantry-canning-dialog", Ei);
+customElements.define("pantry-canning-dialog", zi);
 //#endregion
 //#region src/canning-view.ts
-var Di = class extends T {
+var Bi = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -6649,7 +7075,7 @@ var Di = class extends T {
 	async load() {
 		try {
 			[this.rows, this.md, this.products, this.recipes] = await Promise.all([
-				wi(this.hass),
+				Li(this.hass),
 				z(this.hass),
 				B(this.hass),
 				V(this.hass)
@@ -6664,7 +7090,7 @@ var Di = class extends T {
 	async removeCanning(e) {
 		this.error = "";
 		try {
-			if (!await hn(this.hass, this.md, "canning", {
+			if (!await vn(this.hass, this.md, "canning", {
 				id: e.id,
 				name: e.charge
 			})) return;
@@ -6689,7 +7115,7 @@ var Di = class extends T {
 				jars: e.jars,
 				left: e.in_stock
 			}),
-			e.expires_on ? E("canning.until", { date: qt(this.hass, e.expires_on) }) : "",
+			e.expires_on ? E("canning.until", { date: Xt(this.hass, e.expires_on) }) : "",
 			e.temp == null ? "" : `${e.temp} °C`,
 			e.minutes == null ? "" : `${e.minutes} ${E("recipes.minutes_unit")}`,
 			e.recipe ?? ""
@@ -6775,10 +7201,10 @@ var Di = class extends T {
     `];
 	}
 };
-customElements.define("pantry-canning", Di);
+customElements.define("pantry-canning", Bi);
 //#endregion
 //#region src/pantry-panel.ts
-var Oi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", ki = [
+var Vi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Hi = [
 	"stock",
 	"in",
 	"out",
@@ -6788,7 +7214,7 @@ var Oi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", ki = [
 	"plan",
 	"canning",
 	"settings"
-], Ai = class extends T {
+], Ui = class extends T {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -6802,11 +7228,11 @@ var Oi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", ki = [
 		this.addEventListener("input", e), this.addEventListener("focusout", e);
 	}
 	willUpdate(e) {
-		e.has("hass") && this.hass && ft(this.hass.language);
+		e.has("hass") && this.hass && ht(this.hass.language);
 	}
 	get tab() {
 		let e = (this.route?.path ?? "").split("/").filter(Boolean)[0];
-		return e === "settings" && !I(this.hass) ? "stock" : ki.includes(e) ? e : "stock";
+		return e === "settings" && !I(this.hass) ? "stock" : Hi.includes(e) ? e : "stock";
 	}
 	get sub() {
 		return (this.route?.path ?? "").split("/").filter(Boolean)[1];
@@ -6827,22 +7253,22 @@ var Oi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", ki = [
 			composed: !0
 		}))}
               >
-                ${k($e)}
+                ${k(tt)}
               </button>` : x}
         <h1>${E("panel.title")}</h1>
         <a
           class="menu help"
-          href=${`${Oi}.${this.hass?.language?.startsWith("de") ? "de" : "en"}.md`}
+          href=${`${Vi}.${this.hass?.language?.startsWith("de") ? "de" : "en"}.md`}
           target="_blank"
           rel="noopener noreferrer"
           data-testid="help"
           aria-label=${E("panel.help")}
           title=${E("panel.help")}
-          >${k(Qe)}</a
+          >${k(et)}</a
         >
       </header>
       <div role="tablist">
-        ${ki.filter((e) => e !== "settings" || I(this.hass)).map((t) => y`<button
+        ${Hi.filter((e) => e !== "settings" || I(this.hass)).map((t) => y`<button
               role="tab"
               data-testid=${`tab-${t}`}
               aria-selected=${t === e}
@@ -6937,6 +7363,6 @@ var Oi = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", ki = [
   `;
 	}
 };
-customElements.define("pantry-panel", Ai);
+customElements.define("pantry-panel", Ui);
 //#endregion
-export { Ai as PantryPanel };
+export { Ui as PantryPanel };

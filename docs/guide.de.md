@@ -7,10 +7,18 @@ und aus: Lebensmittel, Batterien, Haushaltswaren, Medikamente und selbst eingeko
 die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Installation und
 Technik stehen im [README](../README.md).
 
-Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs **Bestand**,
-**Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan**, **Einkochen** und (nur für Admins)
-**Einstellungen**. Eingebucht und ausgelagert wird im Tab **Bestand**. Das Fragezeichen oben rechts
-öffnet diese Anleitung.
+Du findest Vorrat in der Seitenleiste von Home Assistant. Das Fragezeichen oben rechts öffnet diese
+Anleitung. Oben gibt es diese Tabs:
+
+| Tab | Wofür |
+|---|---|
+| **Bestand** | Einbuchen, auslagern, suchen; was ist wo da? ([2](#2-einkäufe-einbuchen)–[4](#4-bestand-ansehen-und-korrigieren)) |
+| **Ablauf** | Abgelaufenes und bald Fälliges ([5](#5-was-läuft-ab)) |
+| **Einkauf** | Einkaufsliste aus Mindestmengen, Rezepten und von Hand ([6](#6-einkaufsliste)) |
+| **Rezepte** | Rezepte mit Vorratsabgleich, Import und Kochmodus ([7](#7-rezepte)) |
+| **Speiseplan** | Gerichte nach Tag und Mahlzeit ([7a](#7a-speiseplan)) |
+| **Einkochen** | Einkochprotokolle und Einkochrezepte ([7b](#7b-einkochen)) |
+| **Einstellungen** | Nur Admins: Lagerorte, Einheiten, Kategorien, Standards ([1](#1-erste-schritte), [9](#9-kategorien-produktarten-und-vererbung)) |
 
 ## Inhalt
 
@@ -50,16 +58,31 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 Öffne **Bestand** und stelle den Schalter vor dem Eingabefeld auf **+** (Einbuchen). Die drei
 Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der gewählte ist gefüllt.
-Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst. Ein Lesezeichen auf
-`/pantry/in` öffnet den Bestand gleich mit **Einbuchen**.
+Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst.
+
+> [!TIP]
+> Ein Lesezeichen auf `/pantry/in` öffnet den Bestand gleich mit **Einbuchen**, `/pantry/out` mit
+> **Auslagern**. Praktisch fürs Küchentablet.
+
+```mermaid
+flowchart LR
+  A["Scannen, Kamera<br>oder Name"] --> B{"Produkt<br>bekannt?"}
+  B -- ja --> F["Formular:<br>Datum, Packungen, Lagerort"]
+  B -- nein --> C{"Open Food Facts<br>findet es?"}
+  C -- ja --> D["Name, Marke, Inhalt,<br>Kategorie vorbelegt"]
+  C -- nein --> E["Neues Produkt<br>selbst anlegen"]
+  D --> F
+  E --> F
+  F --> G["Einbuchen<br>(+ Etiketten)"]
+```
 
 1. **Produkt finden**, auf eine von drei Arten:
    - Mit einem USB- oder Bluetooth-Barcodescanner scannen. Der Scanner tippt den Barcode ins Feld.
    - **Kamera** antippen und den Barcode vor die Handykamera halten.
-   - Einen Namen tippen und Enter drücken.
+   - Einen Namen tippen und <kbd>Enter</kbd> drücken.
 
    Es öffnet sich ein Fenster: bei einem Namen erst die Treffer zur Auswahl, dann das Formular.
-   **Abbrechen**, Esc oder ein Tipp daneben schließen es. Hast du schon etwas eingegeben, fragt
+   **Abbrechen**, <kbd>Esc</kbd> oder ein Tipp daneben schließen es. Hast du schon etwas eingegeben, fragt
    Vorrat vorher nach.
 2. **Bekanntes Produkt**: Es erscheinen nur die Felder für diese Buchung.
    **Unbekannter Barcode**: Vorrat fragt Open Food Facts und füllt Name, Marke, Inhalt und eine
@@ -80,8 +103,9 @@ Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst 
    zurück. Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten Ort fürs Produkt.
 8. **Etiketten drucken** (falls eingerichtet) und **Einbuchen**.
 
-Gleiche Produkte mit gleichem Datum landen in derselben Charge. Ein anderes Datum ergibt eine neue
-Charge, so siehst du später, welche Packung zuerst weg muss.
+> [!NOTE]
+> Gleiche Produkte mit gleichem Datum landen in derselben Charge. Ein anderes Datum ergibt eine neue
+> Charge, so siehst du später, welche Packung zuerst weg muss.
 
 ## 3. Verbrauchen und auslagern
 
@@ -96,7 +120,8 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pa
 - Im **Bestand** und unter **Ablauf** nimmt das Minus an einer Charge eine Packung aus genau dieser
   Charge.
 
-Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt aus.
+> [!NOTE]
+> Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt aus.
 
 ## 4. Bestand ansehen und korrigieren
 
@@ -104,7 +129,7 @@ Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt 
 
 - Eine Zeile antippen klappt sie auf. Ein Produkt zeigt seine Chargen (Datum, Lagerort, Packungen).
 - Das Eingabefeld filtert die Liste beim Tippen nach Name, Marke, Barcode, Kategorie und Lagerort.
-  Steht der Schalter auf der **Lupe** (Suchen), öffnet Enter kein Fenster. So findest du ein Produkt auch mit dem
+  Steht der Schalter auf der **Lupe** (Suchen), öffnet <kbd>Enter</kbd> kein Fenster. So findest du ein Produkt auch mit dem
   Scanner, um es zu bearbeiten, ohne etwas zu buchen.
 - **Alle Lagerorte** filtert nach einem Lagerort. **Auch Produkte ohne Bestand** zeigt leere Produkte,
   um sie zu bearbeiten oder zu löschen.
@@ -123,12 +148,22 @@ zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geer
 **Warnschwelle** setzt vorübergehend eine Zahl für alle, z. B. 14 Tage zur Essensplanung; gespeichert
 wird nichts.
 
-Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe README), z. B. für eine
-Benachrichtigung aufs Handy.
+> [!TIP]
+> Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe README), z. B. für
+> eine Benachrichtigung aufs Handy.
 
 ## 6. Einkaufsliste
 
 **Einkauf** entsteht aus drei Quellen:
+
+```mermaid
+flowchart LR
+  M["Mindestmengen"] --> L["Einkaufsliste"]
+  H["Von Hand"] --> L
+  R["Rezepte"] --> L
+  L --> T["To-do-Liste in HA<br>und Companion-App"]
+  L --> B["Einkaufszettel<br>(Bondrucker)"]
+```
 
 - **Mindestmengen**: In den Kategorien (Einstellungen) legst du eine *Mindestmenge* (z. B. 2 kg
   Nudeln, egal welche Marke) und/oder eine *Mindestanzahl* (Packungen) fest. Am Produkt gibt es eine
@@ -141,7 +176,16 @@ Benachrichtigung aufs Handy.
   optionalen Zutaten, die du brauchst. Die fehlenden Mengen aller Rezepte werden pro Kategorie
   zusammengezählt. Die Rezepte sind nummeriert (1, 2, 3 …); hinter jedem Eintrag steht klein, welches Rezept wie viel braucht („1:300 g; 2:200 g“). Ein Rezept bleibt auf
   der Liste, bis du es entfernst: Das machst du im Tab **Einkauf** unter **Für Rezepte** mit dem
-  Papierkorb, z. B. nach dem Kochen. Portionen und optionale Zutaten änderst du dort mit dem Stift. Mengen in Rezept-Einheiten wie EL, Tasse oder Prise werden umgerechnet, wenn die Einheit zur Kategorie passt: in ml bei Volumen, in g bei Gewicht (3 EL Öl → 45 ml); sonst, wenn nichts davon im Vorrat ist, die Grundeinheit (2 EL Kapern → 30 ml); nur Scheibe bleibt wie geschrieben („2 Scheiben“). Zutaten ohne Menge zählen als 1 Pkg.
+  Papierkorb, z. B. nach dem Kochen. Portionen und optionale Zutaten änderst du dort mit dem Stift.
+
+  Mengen in Rezept-Einheiten wie EL, Tasse oder Prise werden so umgerechnet:
+
+  | Fall | Ergebnis | Beispiel |
+  |---|---|---|
+  | Einheit passt zur Kategorie | ml bei Volumen, g bei Gewicht | 3 EL Öl → 45 ml |
+  | passt nicht, nichts davon im Vorrat | Grundeinheit der Einheit | 2 EL Kapern → 30 ml |
+  | Scheibe | bleibt wie geschrieben | 2 Scheiben |
+  | ohne Menge | 1 Packung | Salz → 1 Pkg. |
 
 Abhaken streicht einen Eintrag durch. Ein Mindestmengen-Eintrag kommt von selbst zurück, wenn sich
 die fehlende Menge ändert, z. B. wenn du nur einen Teil eingekauft hast.
@@ -176,8 +220,9 @@ rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept 
    Pfeile verschieben einen Schritt, das Kreuz entfernt ihn. **Zwischenüberschrift hinzufügen**
    teilt das Rezept in Abschnitte (z. B. „Teig“, „Füllung“); die Nummern laufen weiter.
 
-Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
-Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
+> [!NOTE]
+> Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
+> Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
 
 **Drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
 die Zutaten zum Abhaken (Mengen für die angezeigten Portionen) und die nummerierten Schritte. Der
@@ -188,10 +233,28 @@ und Schritte im Vollbild. Ein Tipp auf einen Schritt hakt ihn ab (wird nicht ges
 einem Schritt eine Zeit („20 Minuten“, „ca. 10–15 Min.“, „eine halbe Stunde“), gibt es dazu einen
 Timer-Knopf; bei einer Spanne gilt der höhere Wert. Mehrere Timer laufen gleichzeitig und stehen
 unten; ein abgelaufener piept, vibriert und wird rot. Der Bildschirm bleibt an, solange der
-Kochmodus offen ist (wenn der Browser es erlaubt). Die Timer laufen nur in diesem Browserfenster:
-Schließen fragt nach und beendet sie.
+Kochmodus offen ist (wenn der Browser es erlaubt).
 
-Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind Faustregeln: Prise und Messerspitze 0,5 g, Zehe 0,1 Stück (auf der Einkaufsliste wird aufgerundet: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0,05 ml, Spritzer 1 ml, Schuss 20 ml. Scheibe, Zweig und Stiel haben keine Größe und zählen als beliebige Menge. Eine Einheit, die ein Rezeptimport anlegt, ist zunächst nur für Rezepte.
+> [!WARNING]
+> Die Timer laufen nur in diesem Browserfenster. Schließen fragt nach und beendet sie.
+
+Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat
+die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind
+Faustregeln:
+
+| Einheit | Größe |
+|---|---|
+| Tasse | 250 ml |
+| Prise, Messerspitze | 0,5 g |
+| Zehe | 0,1 Stück (Einkaufsliste rundet auf: 3 Zehen → 1 Knoblauch) |
+| Handvoll | 30 g |
+| Tropfen | 0,05 ml |
+| Spritzer | 1 ml |
+| Schuss | 20 ml |
+| Zweig, Stiel | 0,1 Bund |
+| Scheibe | keine Größe, bleibt auf der Einkaufsliste wie geschrieben („2 Scheiben“) |
+
+Eine Einheit, die ein Rezeptimport anlegt, ist zunächst nur für Rezepte.
 
 **Importieren**: Füge die Adresse eines Rezepts ein (z. B. Chefkoch, Mealie, Tandoor). Vorrat liest
 die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt, mit den Schritten der Seite
@@ -221,8 +284,9 @@ Open Food Facts vorgeschlagene Kategorie änderst.
 2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI-Prüfung von Rezeptimporten*:
    die KI-Aufgabe wählen. Leer = keine KI.
 
-Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die KI (etwa 10.000
-Tokens).
+> [!IMPORTANT]
+> Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die gewählte KI
+> (etwa 10.000 Tokens).
 
 Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produkte ohne Inhaltsangabe),
 *keine Zutat zugeordnet*, *nicht geprüft*.
@@ -283,7 +347,9 @@ vorhanden), Temperatur und Dauer.
    Etiketten drucken, eines pro Glas.
 
 **Protokoll bearbeiten**: Der Stift ändert nur Rezept, Temperatur, Dauer, Notizen und **Haltbar bis**.
-Herstellungsdatum, Produkt und Gläser bleiben, weil die Etiketten sie tragen.
+
+> [!NOTE]
+> Herstellungsdatum, Produkt und Gläser bleiben, weil die Etiketten sie tragen.
 
 **Rezepte** (Ansicht im Tab **Einkochen**) zeigt nur die Einkochrezepte, mit derselben Liste, Suche,
 Import und Bearbeitung wie die Rezeptliste. **Einkochrezept anlegen** öffnet den Rezeptdialog:
@@ -345,7 +411,17 @@ Vorrat bringt diese Hauptkategorien mit (bei bestehenden Installationen werden f
   Fleisch & Wurst): Haltbarkeit 365 Tage, Warnung 30 Tage.
 
 **Vererbung**: Einheit, Standard-Lagerort, Datumsart, Warnung vor Ablauf und Haltbarkeit gelten für alles
-darunter, bis eine tiefere Ebene oder das Produkt etwas Eigenes festlegt. Geerbte Werte stehen grau
+darunter, bis eine tiefere Ebene oder das Produkt etwas Eigenes festlegt. Ein Beispiel:
+
+```mermaid
+flowchart TD
+  S["Standards<br>Lagerort: Vorratsschrank, Warnung: 3 Tage"] --> H
+  H["Hauptkategorie: Milchprodukte & Eier<br>Lagerort: Kühlschrank"] --> K
+  K["Kategorie: Joghurt<br>Warnung: 7 Tage"] --> P
+  P["Produktart: Naturjoghurt<br>(nichts Eigenes)"] --> X
+  X["Produkt: Naturjoghurt 3,5 %<br>Kühlschrank (geerbt), 7 Tage (geerbt)"]
+```
+ Geerbte Werte stehen grau
 mit ihrer Herkunft da („Geerbt: 7 Tage (von Milchprodukte)“). **Zurücksetzen** entfernt einen eigenen
 Wert, danach gilt wieder der geerbte. Mindestmengen werden nicht vererbt.
 
@@ -360,18 +436,44 @@ Packungen.
 
 ## 10. Tipps und häufige Fragen
 
-- **Was bedeutet ein Feld?** Gepunktet unterstrichene Beschriftungen erklären sich, wenn du mit der
-  Maus darüber fährst. Symbol-Knöpfe nennen ihre Aktion ebenso. Am Handy gibt es keine Tooltips;
-  dafür ist diese Anleitung da.
-- **Die Kamera startet nicht.** Der Kamerascan braucht HTTPS (oder `localhost`) und die
-  Kamera-Berechtigung im Browser bzw. in der App.
-- **Der Barcode ist unbekannt.** Nicht jedes Produkt steht bei Open Food Facts. Lege es mit
-  **Neues Produkt** an; beim nächsten Scan kennt Vorrat es.
-- **Wer darf was?** Alle Nutzer buchen, bearbeiten Produkte, führen die Einkaufsliste und Rezepte
-  und dürfen neue Produktarten und Einheiten anlegen. Einstellungen, Produkte löschen, Rezepte
-  löschen und Einkochprotokolle löschen sind Admins vorbehalten.
-- **Falsch gebucht?** Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem
-  Stift korrigieren.
-- **Automationen**: Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`,
-  `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die
-  Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe README).
+<details>
+<summary><b>Was bedeutet ein Feld?</b></summary>
+
+Gepunktet unterstrichene Beschriftungen erklären sich, wenn du mit der Maus darüber fährst. Symbol-Knöpfe nennen ihre Aktion ebenso. Am Handy gibt es keine Tooltips; dafür ist diese Anleitung da.
+
+</details>
+
+<details>
+<summary><b>Die Kamera startet nicht.</b></summary>
+
+Der Kamerascan braucht HTTPS (oder `localhost`) und die Kamera-Berechtigung im Browser bzw. in der App.
+
+</details>
+
+<details>
+<summary><b>Der Barcode ist unbekannt.</b></summary>
+
+Nicht jedes Produkt steht bei Open Food Facts. Lege es mit **Neues Produkt** an; beim nächsten Scan kennt Vorrat es.
+
+</details>
+
+<details>
+<summary><b>Wer darf was?</b></summary>
+
+Alle Nutzer buchen, bearbeiten Produkte, führen die Einkaufsliste und Rezepte und dürfen neue Produktarten und Einheiten anlegen. Einstellungen, Produkte löschen, Rezepte löschen und Einkochprotokolle löschen sind Admins vorbehalten.
+
+</details>
+
+<details>
+<summary><b>Falsch gebucht?</b></summary>
+
+Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem Stift korrigieren.
+
+</details>
+
+<details>
+<summary><b>Automationen</b></summary>
+
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe README).
+
+</details>

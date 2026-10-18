@@ -64,7 +64,7 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
     await expect(row).toContainText("E2E ein Glas offen");
 
     await openPage(page, `/pantry/stock`, "Bestand");
-    await page.getByTestId("stock-filter").fill(NAME);
+    await page.getByTestId("code-input").fill(NAME);
     // the jars of the charge (3) and the one booked in by hand stay apart
     await expect(page.getByTestId("stock-batch")).toHaveCount(2);
     await expect(

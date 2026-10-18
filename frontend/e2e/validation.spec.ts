@@ -30,7 +30,7 @@ test.afterAll(async ({ browser }) => {
 
 // Live validation: errors show once a field is edited or left and block saving; nothing is saved here.
 test("booking form validates while typing", async ({ page }) => {
-  await openPage(page, "/pantry/in", "Einbuchen");
+  await openPage(page, "/pantry/in", "Bestand");
   const code = page.getByTestId("code-input");
   await code.fill("E2E Validierung");
   await code.press("Enter");
@@ -64,11 +64,17 @@ test("booking form validates while typing", async ({ page }) => {
   await page.getByTestId("category-confirm").click();
   await page.getByTestId("location").selectOption({ label: LOCATION });
   await expect(submit).toBeEnabled();
+
+  // Esc with unsaved input asks first; discarding closes the booking dialog.
+  await page.keyboard.press("Escape");
+  await expect(page.locator("pantry-confirm h2")).toHaveText("Änderungen verwerfen?");
+  await page.getByTestId("confirm-ok").click();
+  await expect(page.getByTestId("booking-dialog")).toBeHidden();
 });
 
 test("product dialog validates the EAN", async ({ page }) => {
   await openPage(page, "/pantry/stock", "Bestand");
-  await page.getByTestId("stock-filter").fill(PRODUCT); // opens the tree down to the product
+  await page.getByTestId("code-input").fill(PRODUCT); // opens the tree down to the product
   await page.getByTestId("product-edit").click();
   await page.getByTestId("ean").fill("123");
   await expect(page.getByTestId("ean-error")).toBeVisible();

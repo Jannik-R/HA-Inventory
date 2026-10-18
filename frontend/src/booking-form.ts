@@ -71,6 +71,8 @@ export class PantryBookingForm extends LitElement {
     pick: string;
   };
   private set = (patch: Partial<InForm>) => (this.f = { ...this.f, ...patch });
+  /** Form values as opened, to tell unsaved input (see `dirty`). */
+  private initial = "";
 
   constructor() {
     super();
@@ -84,12 +86,18 @@ export class PantryBookingForm extends LitElement {
     if (changed.has("product")) {
       this.draft = this.product;
       this.f = { ...blankForm(), expires_on: this.proposal() };
+      this.initial = JSON.stringify(this.f);
       if (this.hass && this.mode === "in")
         getLabelConfig(this.hass).then(
           (c) => (this.labels = c),
           () => undefined,
         );
     }
+  }
+
+  /** Something was typed or chosen since the form opened. */
+  dirty() {
+    return this.draft !== this.product || JSON.stringify(this.f) !== this.initial;
   }
 
   focusFirst() {
@@ -204,8 +212,9 @@ export class PantryBookingForm extends LitElement {
     if (out && !this.stock?.length) {
       // No stock list means it failed to load: only the error is shown.
       return this.stock
-        ? html`<h2>${p.name}</h2>
-            <p class="empty" data-testid="no-stock">${t("book.no_stock")}</p>`
+        ? html`<h2>${t("book.title_out", { name: p.name })}</h2>
+            <p class="empty" data-testid="no-stock">${t("book.no_stock")}</p>
+            <div class="actions">${this.cancelButton()}</div>`
         : nothing;
     }
     const max = this.mode === "out" ? maxPackages(this.stock, this.f.pick) : undefined;
@@ -214,7 +223,7 @@ export class PantryBookingForm extends LitElement {
       ${
         out
           ? html`<h2>
-              ${p.name}${p.brand ? html` <span class="detail">${p.brand}</span>` : nothing}
+              ${t("book.title_out", { name: p.name })}${p.brand ? html` <span class="detail">${p.brand}</span>` : nothing}
             </h2>`
           : html`<h2>${t("book.title_in")}</h2>
               <p class="summary" data-testid="summary">
@@ -242,6 +251,7 @@ export class PantryBookingForm extends LitElement {
       </label>
       ${out ? nothing : html`${locationFields(this.md, p, this.f, this.set, err, this.dflt("default_location_id"))}${printField(this.f, this.set, !!this.labels?.print_on_book_in)}`}
       <div class="actions">
+        ${this.cancelButton()}
         <button
           class="primary"
           type="submit"
@@ -250,15 +260,18 @@ export class PantryBookingForm extends LitElement {
         >
           ${t(`book.submit_${this.mode}`)}
         </button>
-        <button
-          type="button"
-          data-testid="cancel"
-          @click=${() => this.dispatchEvent(new CustomEvent("cancel"))}
-        >
-          ${t("common.cancel")}
-        </button>
       </div>
     </form>`;
+  }
+
+  private cancelButton() {
+    return html`<button
+      type="button"
+      data-testid="cancel"
+      @click=${() => this.dispatchEvent(new CustomEvent("cancel"))}
+    >
+      ${t("common.cancel")}
+    </button>`;
   }
 
   /** Field errors that block booking; shown live under the fields. */
@@ -280,8 +293,8 @@ export class PantryBookingForm extends LitElement {
     formStyles,
     pickStyles,
     css`
-      .book {
-        max-width: 480px;
+      .actions {
+        justify-content: flex-end;
       }
       .book .detail {
         display: block;

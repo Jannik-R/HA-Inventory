@@ -5,7 +5,6 @@ import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
 import { hasModule, setModules, type Module } from "./modules";
 import "./settings-view";
-import "./booking-view";
 import "./stock-view";
 import "./expiry-view";
 import "./shopping-view";
@@ -16,17 +15,7 @@ import "./canning-view";
 // shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
 const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
 
-const TABS = [
-  "stock",
-  "in",
-  "out",
-  "expiry",
-  "shopping",
-  "recipes",
-  "plan",
-  "canning",
-  "settings",
-] as const;
+const TABS = ["stock", "expiry", "shopping", "recipes", "plan", "canning", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
 const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "canning"];
@@ -67,8 +56,13 @@ export class PantryPanel extends LitElement {
     );
   }
 
+  private get seg(): string | undefined {
+    return (this.route?.path ?? "").split("/").filter(Boolean)[0];
+  }
+
+  /** /in and /out are the stock tab with its switch on book in / book out. */
   private get tab(): Tab {
-    const seg = (this.route?.path ?? "").split("/").filter(Boolean)[0];
+    const seg = this.seg ?? "";
     return (this.tabs as string[]).includes(seg) ? (seg as Tab) : "stock";
   }
 
@@ -126,25 +120,23 @@ export class PantryPanel extends LitElement {
         ${
           active === "settings"
             ? html`<pantry-settings .hass=${this.hass} .section=${this.sub}></pantry-settings>`
-            : active === "in" || active === "out"
-              ? html`<pantry-booking .hass=${this.hass} .mode=${active}></pantry-booking>`
-              : active === "stock"
-                ? html`<pantry-stock .hass=${this.hass}></pantry-stock>`
-                : active === "expiry"
-                  ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
-                  : active === "recipes"
-                    ? html`<pantry-recipes
-                        .hass=${this.hass}
-                        .section=${this.sub}
-                      ></pantry-recipes>`
-                    : active === "plan"
-                      ? html`<pantry-plan .hass=${this.hass} .section=${this.sub}></pantry-plan>`
-                      : active === "canning"
-                        ? html`<pantry-canning
-                            .hass=${this.hass}
-                            .section=${this.sub}
-                          ></pantry-canning>`
-                        : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
+            : active === "stock"
+              ? html`<pantry-stock
+                  .hass=${this.hass}
+                  .mode=${this.seg === "in" || this.seg === "out" ? this.seg : "search"}
+                ></pantry-stock>`
+              : active === "expiry"
+                ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
+                : active === "recipes"
+                  ? html`<pantry-recipes .hass=${this.hass} .section=${this.sub}></pantry-recipes>`
+                  : active === "plan"
+                    ? html`<pantry-plan .hass=${this.hass} .section=${this.sub}></pantry-plan>`
+                    : active === "canning"
+                      ? html`<pantry-canning
+                          .hass=${this.hass}
+                          .section=${this.sub}
+                        ></pantry-canning>`
+                      : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
         }
       </main>
     `;

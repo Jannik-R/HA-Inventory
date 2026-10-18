@@ -34,6 +34,7 @@ export class PantryBookingScan extends LitElement {
   render() {
     return html`
       <form class="scan" @submit=${this.submit}>
+        <slot name="before"></slot>
         <input
           id="code"
           data-testid="code-input"
@@ -67,6 +68,7 @@ export class PantryBookingScan extends LitElement {
       }
       .scan input {
         flex: 1;
+        min-width: 0;
       }
       .scan button {
         flex: none;

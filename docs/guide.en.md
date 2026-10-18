@@ -12,9 +12,9 @@ The panel's interface is in German, so this guide names buttons and fields by th
 (with a translation in brackets where it helps).
 
 Home Inventory is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
-**Einbuchen** (book in), **Auslagern** (book out), **Ablauf** (expiry), **Einkauf** (shopping),
-**Rezepte** (recipes), **Speiseplan** (meal plan), **Einkochen** (canning) and, for admins only, **Einstellungen** (settings). The question mark at the
-top right opens this guide.
+**Ablauf** (expiry), **Einkauf** (shopping), **Rezepte** (recipes), **Speiseplan** (meal plan),
+**Einkochen** (canning) and, for admins only, **Einstellungen** (settings). Booking in and out
+happens in **Bestand**. The question mark at the top right opens this guide.
 
 ## Contents
 
@@ -52,12 +52,18 @@ Admins should take a quick look at **Einstellungen** first:
 
 ## 2. Booking in your shopping
 
-Open **Einbuchen**. The input field is ready right away.
+Open **Bestand** and set the switch in front of the input field to **+** (book in). Its three
+buttons are the **magnifier** (search), **+** (book in) and **−** (book out); the chosen one is
+filled. The input field is ready right away. The switch stays until you change it or leave the tab. A bookmark to
+`/pantry/in` opens the stock with **Einbuchen** already set.
 
 1. **Find the product**, in one of three ways:
    - Scan with a USB or Bluetooth barcode scanner; it types the barcode into the field.
    - Tap **Kamera** and hold the barcode in front of the phone camera.
    - Type a name and press Enter.
+
+   A dialog opens: for a name first the hits to pick from, then the form. **Abbrechen** (cancel),
+   Esc or a tap beside it closes it; if you already entered something, Home Inventory asks first.
 2. **Known product**: only the fields for this booking appear.
    **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
    category. Check them. If nothing is found, create the product with **Neues Produkt** (new
@@ -82,11 +88,12 @@ so later you see which package has to go first.
 
 ## 3. Using up and booking out
 
-**Auslagern** works like booking in: scanner, camera or name.
+Set the switch in **Bestand** to **−** (book out; as a bookmark: `/pantry/out`). Then it works
+like booking in: scanner, camera or name, then the dialog.
 
 - By default the package with the earliest date is taken. You can also pick a batch and location.
-- **Scan a label**: a Home Inventory label (QR code) books out one package of that batch, in both
-  Einbuchen and Auslagern.
+- **Scan a label**: a Home Inventory label (QR code) books out one package of that batch, whether
+  the switch is on Einbuchen or Auslagern.
 - **Rückgängig** (undo) next to the message puts the packages back where they were, once per
   booking.
 - In **Bestand** and **Ablauf** the minus on a batch takes one package out of exactly that batch.
@@ -98,7 +105,9 @@ Cooking a recipe books nothing out automatically; book out the ingredients as us
 **Bestand** shows the category tree with everything in stock, with counts and the earliest date.
 
 - Tap a row to open it. A product shows its batches (date, location, packages).
-- The search finds name, brand, barcode, category and location.
+- The input field filters the list while you type: name, brand, barcode, category and location.
+  With the switch on the **magnifier** (search), Enter opens no dialog, so you can find a product with the
+  scanner to edit it without booking anything.
 - **Alle Lagerorte** filters by location. **Auch Produkte ohne Bestand** also shows products with
   no stock, to edit or delete them.
 - **Pencil on a product**: name, brand, barcode, category, content, minimum packages and own
@@ -291,8 +300,8 @@ usual question.
 **Jars without a protocol**: jars canned earlier that you did not log are booked in like any product
 (category *Eingekochtes*), without a charge.
 
-**Labels**: the label shows the charge in its brand line. The QR code contains it, so a scan in **Einbuchen**
-or **Auslagern** books out a jar of that charge.
+**Labels**: the label shows the charge in its brand line. The QR code contains it, so a scan in **Bestand**
+(switch on Einbuchen or Auslagern) books out a jar of that charge.
 
 ## 8. Labels and receipt printer
 

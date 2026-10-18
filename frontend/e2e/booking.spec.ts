@@ -35,7 +35,8 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("book a new product in and out again", async ({ page, printCalls }) => {
-  await openPage(page, "/pantry/in", "Einbuchen");
+  await openPage(page, "/pantry/in", "Bestand");
+  await expect(page.getByTestId("mode-in")).toHaveAttribute("aria-pressed", "true");
   const code = page.getByTestId("code-input");
   await expect(code).toBeFocused();
   // The help icon opens the user guide in the HA language.
@@ -103,7 +104,7 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
 
   // Stock page: edit a property of the product.
   await openTab(page, "Bestand");
-  await page.getByTestId("stock-filter").fill(NAME);
+  await code.fill(NAME);
   const product = page.getByTestId("stock-product");
   await expect(product).toContainText("4 Pkg.");
   await page.getByTestId("product-edit").click();
@@ -132,9 +133,9 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
     "E2E Marke · 5 Pkg. fehlen",
   );
   await openTab(page, "Bestand");
-  await page.getByTestId("stock-filter").fill(NAME);
+  await code.fill(NAME);
 
-  await openTab(page, "Auslagern");
+  await page.getByTestId("mode-out").click();
   await code.fill(NAME);
   await code.press("Enter");
   await expect(page.getByTestId("packages")).toHaveAttribute("max", "4");
@@ -148,7 +149,7 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
 
   // Admin deletes the product with its remaining stock.
   await openTab(page, "Bestand");
-  await page.getByTestId("stock-filter").fill(NAME);
+  await code.fill(NAME);
   // Delete icon in the list, only on the row with the test's own product name.
   const row = page.locator("pantry-stock li.item").filter({ hasText: NAME });
   await expect(row).toHaveCount(1);

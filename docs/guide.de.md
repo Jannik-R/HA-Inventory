@@ -8,8 +8,9 @@ die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Ins
 Technik stehen im [README](../README.md).
 
 Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs **Bestand**,
-**Einbuchen**, **Auslagern**, **Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan**, **Einkochen** und (nur für Admins)
-**Einstellungen**. Das Fragezeichen oben rechts öffnet diese Anleitung.
+**Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan**, **Einkochen** und (nur für Admins)
+**Einstellungen**. Eingebucht und ausgelagert wird im Tab **Bestand**. Das Fragezeichen oben rechts
+öffnet diese Anleitung.
 
 ## Inhalt
 
@@ -47,12 +48,19 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 ## 2. Einkäufe einbuchen
 
-Öffne **Einbuchen**. Das Eingabefeld ist sofort bereit.
+Öffne **Bestand** und stelle den Schalter vor dem Eingabefeld auf **+** (Einbuchen). Die drei
+Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der gewählte ist gefüllt.
+Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst. Ein Lesezeichen auf
+`/pantry/in` öffnet den Bestand gleich mit **Einbuchen**.
 
 1. **Produkt finden**, auf eine von drei Arten:
    - Mit einem USB- oder Bluetooth-Barcodescanner scannen. Der Scanner tippt den Barcode ins Feld.
    - **Kamera** antippen und den Barcode vor die Handykamera halten.
    - Einen Namen tippen und Enter drücken.
+
+   Es öffnet sich ein Fenster: bei einem Namen erst die Treffer zur Auswahl, dann das Formular.
+   **Abbrechen**, Esc oder ein Tipp daneben schließen es. Hast du schon etwas eingegeben, fragt
+   Vorrat vorher nach.
 2. **Bekanntes Produkt**: Es erscheinen nur die Felder für diese Buchung.
    **Unbekannter Barcode**: Vorrat fragt Open Food Facts und füllt Name, Marke, Inhalt und eine
    passende Kategorie vor. Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
@@ -77,12 +85,12 @@ Charge, so siehst du später, welche Packung zuerst weg muss.
 
 ## 3. Verbrauchen und auslagern
 
-**Auslagern** funktioniert wie Einbuchen: scannen, Kamera oder Name.
+Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pantry/out`). Dann geht es wie beim Einbuchen: scannen, Kamera oder Name, danach das Fenster.
 
 - Standardmäßig wird die Packung mit dem frühesten Datum genommen. Du kannst auch eine bestimmte
   Charge und einen Lagerort wählen.
 - **Etikett scannen**: Ein Vorrat-Etikett (QR-Code) bucht genau eine Packung dieser Charge aus,
-  in Einbuchen und Auslagern.
+  egal ob der Schalter auf Einbuchen oder Auslagern steht.
 - **Rückgängig** neben der Meldung legt die Packungen zurück, wohin sie gehörten. Das geht einmal pro
   Buchung.
 - Im **Bestand** und unter **Ablauf** nimmt das Minus an einer Charge eine Packung aus genau dieser
@@ -95,7 +103,9 @@ Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt 
 **Bestand** zeigt den Kategoriebaum mit allem, was da ist, mit Anzahl und frühestem Datum.
 
 - Eine Zeile antippen klappt sie auf. Ein Produkt zeigt seine Chargen (Datum, Lagerort, Packungen).
-- Das Suchfeld findet Name, Marke, Barcode, Kategorie und Lagerort.
+- Das Eingabefeld filtert die Liste beim Tippen nach Name, Marke, Barcode, Kategorie und Lagerort.
+  Steht der Schalter auf der **Lupe** (Suchen), öffnet Enter kein Fenster. So findest du ein Produkt auch mit dem
+  Scanner, um es zu bearbeiten, ohne etwas zu buchen.
 - **Alle Lagerorte** filtert nach einem Lagerort. **Auch Produkte ohne Bestand** zeigt leere Produkte,
   um sie zu bearbeiten oder zu löschen.
 - **Stift am Produkt**: Name, Marke, Barcode, Kategorie, Inhalt, Mindestanzahl und eigene Vorgaben
@@ -295,7 +305,7 @@ Buchungen, nach der üblichen Rückfrage.
 Produkt ein (Kategorie *Eingekochtes*), ohne Charge.
 
 **Etiketten**: Das Etikett zeigt die Charge in der Markenzeile. Der QR-Code enthält sie, daher bucht ein
-Scan in **Einbuchen** oder **Auslagern** ein Glas dieser Charge aus.
+Scan im **Bestand** (Schalter auf Einbuchen oder Auslagern) ein Glas dieser Charge aus.
 
 ## 8. Etiketten und Bondrucker
 

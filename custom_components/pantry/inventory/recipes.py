@@ -8,6 +8,7 @@ import sqlite3
 from .amounts import _demand, _have, _stock_amount, _stock_by_category, _units, egg_part
 from .common import InventoryError, _exists
 from .inherit import _categories, _resolve, children, defaults
+from .learned import learn
 from .master import save
 from .products import add_product
 from .steps import MAX_STEPS, timers
@@ -52,6 +53,8 @@ def save_recipe(conn: sqlite3.Connection, data: dict) -> int:
             note = (ing.get("note") or "").strip()[:200] or None
             if not text:
                 raise InventoryError("invalid_value")
+            if cid is not None and (source := ing.get("source_text")):
+                learn(conn, "ingredient", source, cid)  # an imported line: remember the choice
             conn.execute(
                 "INSERT INTO recipe_ingredient"
                 " (recipe_id, category_id, amount, unit_id, text, note, optional, skip_stock)"

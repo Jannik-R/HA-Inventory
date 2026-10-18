@@ -185,6 +185,26 @@ text block is split at its line breaks or its own numbering); nothing is saved u
 save. Each ingredient shows its original line; check the suggested product types. An unknown unit
 (e.g. "Tasse", cup) is created with **Anlegen** or replaced by an existing one.
 
+**AI check** (if set up, see below): right after the dialog opens the AI checks the import. The top
+line says "KI prüft das Rezept …" (checking); saving waits, **Nicht abwarten** (do not wait) skips
+the check. Afterwards it says "keine Änderungen" (no changes) or what the AI changed: ingredients
+with a better category are marked ("Von der KI geändert: … (vorher: …)", with **Rückgängig** /
+undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). Check the
+changes before saving. If the AI fails, the draft stays as imported.
+
+Pantry remembers the category you saved for an imported ingredient: the next import of the same
+ingredient gets it directly. It also remembers when you change the category Open Food Facts
+suggested while booking in.
+
+**Set up the AI** (admin, once):
+
+1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
+   integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
+2. *Settings > Devices & services > Pantry > Configure > KI-Prüfung von Rezeptimporten*: pick the
+   AI Task. Empty = no AI.
+
+Each import sends the recipe and the food category tree to the AI (about 10,000 tokens).
+
 Ingredient status: *vorhanden* (in stock), *teilweise* (partly), *fehlt* (missing), *Menge
 unbekannt* (products without content), *keine Zutat zugeordnet* (not matched), *nicht geprüft* (not
 checked).

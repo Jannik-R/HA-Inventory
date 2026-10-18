@@ -8,10 +8,14 @@ import sqlite3
 from ..keywords import KEYWORDS
 from .common import unit_key
 from .inherit import _categories, _chain, category_tags, is_type
+from .learned import learned
 
 
 def suggest_category(conn: sqlite3.Connection, tags: list[str]) -> int | None:
-    """Deepest category whose off_tags meet the product's OFF tags; tie: more specific tag."""
+    """A learned choice for the most specific tag, else the deepest category whose off_tags meet
+    the product's OFF tags; tie: more specific tag."""
+    if tags and (cid := learned(conn, "off_tag", tags[-1])):
+        return cid
     pos = {t: i for i, t in enumerate(tags)}
     cats = _categories(conn)
     found = [

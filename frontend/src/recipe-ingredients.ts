@@ -64,7 +64,7 @@ export class PantryRecipeIngredients extends LitElement {
   private pick(index: number, id: number | null) {
     const cat = this.categories.find((c) => c.id === id);
     const cur = this.value[index];
-    const patch: Partial<Ingredient> = { category_id: id };
+    const patch: Partial<Ingredient> = { category_id: id, ai: undefined };
     if (!cat)
       patch.text = ""; // "change": back to an empty, unmatched row
     else {
@@ -155,6 +155,21 @@ export class PantryRecipeIngredients extends LitElement {
         i.line
           ? html`<div class="orig" data-testid="ingredient-line">
               ${t("recipes.ingredient.line", { line: i.line })}
+            </div>`
+          : nothing
+      }
+      ${
+        i.ai
+          ? html`<div class="orig" data-testid="ingredient-ai">
+              ${t("recipes.ai.changed", { reason: i.ai.reason, before: i.ai.beforeText || "–" })}
+              <button
+                type="button"
+                data-testid="ingredient-ai-undo"
+                @click=${() =>
+                  this.set(n, { category_id: i.ai!.before, text: i.ai!.beforeText, ai: undefined })}
+              >
+                ${t("recipes.ai.undo")}
+              </button>
             </div>`
           : nothing
       }

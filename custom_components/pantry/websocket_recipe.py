@@ -6,7 +6,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from . import inventory, recipe_fetch
+from . import ai, inventory, recipe_fetch
 from .websocket_stock import _NEW_PRODUCT
 from .ws_common import db_of, run, translated
 from .ws_validate import CANNING_MINUTES, CANNING_TEMP, HTTP_URL, ID, NAME, NULL_ID, POSITIVE, text
@@ -20,6 +20,8 @@ INGREDIENT = {
     vol.Optional("note"): vol.Any(None, text(200)),
     vol.Optional("optional"): bool,
     vol.Optional("skip_stock"): bool,
+    # imported rows: the parsed text, so the save can learn the chosen category
+    vol.Optional("source_text"): vol.Any(None, text(200)),
 }
 
 STEP = {vol.Required("text"): text(2000), vol.Optional("section"): vol.Any(None, text(100))}
@@ -31,6 +33,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_recipe_availability,
         ws_recipe_save,
         ws_recipe_import,
+        ws_recipe_ai_check,
         ws_shopping_recipes,
         ws_shopping_recipe_set,
         ws_shopping_recipe_remove,
@@ -153,6 +156,37 @@ async def ws_recipe_import(hass: HomeAssistant, connection, msg: dict) -> None:
     with translated():
         draft = await recipe_fetch.async_import(hass, db_of(hass), msg["url"])
     connection.send_result(msg["id"], draft)
+
+
+# The draft only goes into the AI prompt: bounded, extra keys dropped.
+_DRAFT_INGREDIENT = vol.Schema(
+    {
+        **INGREDIENT,
+        vol.Optional("line"): vol.Any(None, text(500)),
+        vol.Optional("learned"): bool,
+    },
+    extra=vol.REMOVE_EXTRA,
+)
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/recipe_ai_check",
+        vol.Required("draft"): vol.Schema(
+            {
+                vol.Required("name"): NAME,
+                vol.Required("servings"): SERVINGS,
+                vol.Required("steps"): vol.All([STEP], vol.Length(max=100)),
+                vol.Required("ingredients"): vol.All([_DRAFT_INGREDIENT], vol.Length(max=100)),
+            },
+            extra=vol.REMOVE_EXTRA,
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_recipe_ai_check(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Check an import draft with the AI set up in the options: {status: off | ok | changes}."""
+    connection.send_result(msg["id"], await ai.async_check_recipe(hass, msg["draft"]))
 
 
 @websocket_api.websocket_command(

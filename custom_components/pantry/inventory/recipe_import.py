@@ -11,6 +11,7 @@ from collections.abc import Iterator
 from .common import InventoryError
 from .ingredient_line import parse_ingredient, unit_lookup
 from .inherit import is_food
+from .learned import learned
 from .steps import import_steps
 from .suggest import suggest, suggest_type
 
@@ -108,10 +109,13 @@ def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
         # no amount: "Salz und Pfeffer" is two ingredients
         parts = _AND.split(row["text"]) if row["amount"] is None else [row["text"]]
         for part in parts:
-            cid = suggest(conn, [], part)
+            known = learned(conn, "ingredient", part)
+            cid = known or suggest(conn, [], part)
             if cid is not None and not is_food(conn, cid):
                 cid = None  # never suggest a non-food category (the save refuses it)
-            ingredients.append({**row, "text": part, "category_id": cid})
+            # source_text: the save learns the category finally chosen for this text
+            row_out = {**row, "text": part, "category_id": cid, "source_text": part}
+            ingredients.append(row_out | {"learned": known is not None and cid == known})
     ingredients = ingredients[:100]
     return {
         "name": (_text(recipe.get("name")) or url)[:200],

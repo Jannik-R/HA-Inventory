@@ -12,6 +12,8 @@ from homeassistant.config_entries import (
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
+    EntitySelector,
+    EntitySelectorConfig,
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
@@ -21,6 +23,7 @@ from homeassistant.helpers.selector import (
 
 from . import label, receipt
 from .const import (
+    CONF_AI_TASK,
     CONF_HOUSEHOLD_SERVINGS,
     CONF_LABEL_HEIGHT,
     CONF_LABEL_PRINTER,
@@ -73,11 +76,25 @@ class PantryOptionsFlow(OptionsFlow):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
-            step_id="init", menu_options=["label_model", "receipt", "household"]
+            step_id="init", menu_options=["label_model", "receipt", "household", "ai"]
         )
 
     def _save(self, data: dict[str, Any]) -> ConfigFlowResult:
         return self.async_create_entry(data={**self.config_entry.options, **data})
+
+    async def async_step_ai(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """AI Task entity that checks recipe imports; left empty = no AI."""
+        if user_input is not None:
+            return self._save({CONF_AI_TASK: user_input.get(CONF_AI_TASK)})
+        current = self.config_entry.options.get(CONF_AI_TASK)
+        schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_AI_TASK, description={"suggested_value": current}
+                ): EntitySelector(EntitySelectorConfig(domain="ai_task"))
+            }
+        )
+        return self.async_show_form(step_id="ai", data_schema=schema)
 
     async def async_step_household(
         self, user_input: dict[str, Any] | None = None

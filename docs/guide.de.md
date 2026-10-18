@@ -184,6 +184,28 @@ die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt, mit den S
 speicherst. Jede Zutat zeigt ihre Originalzeile; prüfe die vorgeschlagenen Produktarten. Eine
 unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst eine vorhandene.
 
+**KI-Prüfung** (wenn eingerichtet, siehe unten): Direkt nach dem Öffnen prüft die KI den Import.
+Oben steht „KI prüft das Rezept …“; Speichern wartet so lange, **Nicht abwarten** überspringt die
+Prüfung. Danach steht dort „keine Änderungen“ oder was die KI geändert hat: Zutaten mit besserer
+Kategorie sind markiert („Von der KI geändert: … (vorher: …)“, mit **Rückgängig**), ein langer
+Textblock ist in Schritte geteilt (**Schritte zurücksetzen** stellt ihn wieder her). Prüfe die
+Änderungen vor dem Speichern. Schlägt die KI fehl, bleibt der Entwurf wie importiert.
+
+Vorrat merkt sich, welche Kategorie du für eine importierte Zutat gespeichert hast: Beim nächsten
+Import derselben Zutat ist sie gleich gewählt. Ebenso merkt es sich, wenn du beim Einbuchen die von
+Open Food Facts vorgeschlagene Kategorie änderst.
+
+**KI einrichten** (Admin, einmalig):
+
+1. In Home Assistant eine KI mit *KI-Aufgabe* einrichten, z. B. *Einstellungen > Geräte & Dienste >
+   Integration hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio (es gibt ein
+   kostenloses Kontingent).
+2. *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren > KI-Prüfung von Rezeptimporten*:
+   die KI-Aufgabe wählen. Leer = keine KI.
+
+Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die KI (etwa 10.000
+Tokens).
+
 Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produkte ohne Inhaltsangabe),
 *keine Zutat zugeordnet*, *nicht geprüft*.
 

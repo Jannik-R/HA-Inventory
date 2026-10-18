@@ -874,7 +874,7 @@ var He = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"recipes.ai.undo_steps": "Schritte zurücksetzen",
 	"recipes.ai.changed": "Von der KI geändert: {reason} (vorher: {before})",
 	"recipes.ai.undo": "Rückgängig",
-	"recipes.ai.new_type": "KI schlägt neuen Produkttyp „{name}“ unter „{parent}“ vor, wird beim Speichern angelegt: {reason}",
+	"recipes.ai.new_type": "KI schlägt neue Produktart „{name}“ unter „{parent}“ vor, wird beim Speichern angelegt: {reason}",
 	"recipes.ai.changed_one": "KI-Prüfung: 1 Zutat geändert (markiert).",
 	"recipes.ai.changed_many": "KI-Prüfung: {n} Zutaten geändert (markiert).",
 	"recipes.ai.steps": "KI-Prüfung: Schritte neu aufgeteilt.",

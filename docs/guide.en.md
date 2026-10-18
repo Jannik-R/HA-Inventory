@@ -5,7 +5,7 @@
 Home Inventory is a household inventory inside Home Assistant. You book items in and out by barcode or name:
 food, batteries, household goods, medicine and home-canned jars.
 Home Inventory remembers where everything is and when it expires, reminds you of what expires soon and
-writes the shopping list from minimum stock levels. This guide explains how to use it; installation
+keeps the shopping list from minimum stock levels, recipes and your own items. This guide explains how to use it; installation
 and technical details are in the [README](../README.md).
 
 The panel's interface is in German, so this guide names buttons and fields by their German labels
@@ -49,11 +49,11 @@ for non-food (Haushalt & Drogerie, Haustechnik, Hausapotheke, Tierbedarf) and Ei
 
 Admins should take a quick look at **Einstellungen** first:
 
-1. **Lagerorte** (locations): adapt the list to your kitchen (rename, add, delete).
+1. **Lagerorte** (locations): adapt the list to your household (rename, add, delete).
 2. **Standards** (defaults): what applies when a category or product sets nothing of its own
    (unit, location, date type, expiry warning, shelf life).
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
-4. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
+4. **Kategorien**: give categories a default location (e.g. Milchprodukte & Eier → fridge), so booking in rarely
    needs a location choice.
 5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Module* you turn shopping list, recipes, meal plan and canning off one by one (also offered during setup). The tab disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
@@ -103,7 +103,7 @@ flowchart LR
    date type (best before or use by). If the category or product has a *Haltbarkeit* (shelf life),
    today plus that many days is proposed (see [Categories](#9-categories-product-types-and-inheritance)).
 7. **Packungen** (packages) and **Lagerort** (location): the location is prefilled (grey:
-   "Geerbt: Kühlschrank (von Milchprodukte)" = inherited). Another choice applies to this booking
+   "Geerbt: Kühlschrank (von Milchprodukte & Eier)" = inherited). Another choice applies to this booking
    only; **Zurücksetzen** returns to the default. For a new product **Wird Standardlager** keeps the
    chosen location as its default.
 8. **Etiketten drucken** (print labels, if set up) and **Einbuchen**.
@@ -143,7 +143,8 @@ like booking in: scanner, camera or name, then the dialog.
   defaults (location, date type, expiry warning).
 - **Pencil on a batch**: fix the date or the package count, e.g. after a typo; 0 packages removes
   the batch.
-- **Tag icon**: reprint labels for this batch. Canned jars show their charge next to the date.
+- **Tag icon**: reprint labels for this batch.
+- Canned jars show their charge next to the date.
 - Red means expired, orange means expiring soon.
 
 ## 5. What expires soon?
@@ -162,7 +163,7 @@ temporarily sets one value for all, e.g. 14 days for meal planning; nothing is s
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-dark.png"><img src="images/shopping-light.png" alt="Shopping tab with items from a recipe" width="300"></picture></p>
 
-**Einkauf** has three sources:
+The shopping list in the **Einkauf** tab is fed from three sources:
 
 ```mermaid
 flowchart LR
@@ -195,7 +196,7 @@ flowchart LR
   | Scheibe (slice) | stays as written | 2 Scheiben |
   | no amount | 1 package | salt → 1 Pkg. |
 
-Ticking strikes an item through. A minimum stock item comes back by itself when the missing amount
+Ticking strikes an item through. A minimum stock item is unticked by itself when the missing amount
 changes, e.g. after buying only part of it.
 
 The same list is the to-do list **Einkaufsliste** in Home Assistant and the companion app. You can
@@ -278,7 +279,7 @@ the check. Afterwards it says "keine Änderungen" (no changes) or what the AI ch
 with a better category are marked ("Von der KI geändert: … (vorher: …)", with **Rückgängig** /
 undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). When the
 category tree has no fitting product type (e.g. a rare spice), the AI proposes a new one below the
-right category ("KI schlägt neuen Produkttyp … vor"); it is only added when you save, **Rückgängig**
+right category ("KI schlägt neue Produktart … vor"); it is only added when you save, **Rückgängig**
 drops the proposal. Check the
 changes before saving. If the AI fails, the draft stays as imported.
 
@@ -304,7 +305,7 @@ checked).
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-dark.png"><img src="images/plan-light.png" alt="Meal plan week view on a phone" width="300"></picture></p>
 
-**Speiseplan** (meal plan) shows the plan as **Tag** (day), **Woche** (week) or **Monat** (month), buttons at the top. **Zurück** (previous) and **Weiter** (next) move by a day, a week or a month, depending on the view; **Heute** (today) jumps to today's date. **Tag** always shows today.
+**Speiseplan** (meal plan) shows the plan as **Tag** (day), **Woche** (week) or **Monat** (month), buttons at the top. **Zurück** (previous) and **Weiter** (next) move by a day, a week or a month, depending on the view; **Heute** (today) jumps to today's date. The tab opens on today; switching the view keeps the chosen date.
 
 - **Woche**: a table with one row per meal and one equal-width column per day. On a phone each day becomes a block that shows only its dishes, plus a **+**. Tapping a day heading opens that day.
 - **Tag**: a list grouped by meal, with a **+** per meal.
@@ -370,9 +371,9 @@ and editing as the recipe list. **Einkochrezept anlegen** (add canning recipe) o
 - **Ergibt (Gläser)** (yields jars) instead of portions: the ingredients scale by jars.
 - **Temperatur** (°C) and **Dauer** (minutes): optional, both or neither.
 
-So every canning recipe makes a defined product. Opening one shows "ergibt N × Produkt" and the button
+So every canning recipe yields a defined product. Opening one shows "ergibt N × Produkt" and the button
 **Protokoll anlegen**, which switches to **Protokolle** with that recipe chosen. Deleting a product also
-deletes the canning recipes that make it (the delete question lists them).
+deletes the canning recipes that yield it (the delete question lists them).
 
 **Delete a protocol** (admins only): the bin removes the protocol with its stock and bookings, after the
 usual question.
@@ -385,8 +386,9 @@ usual question.
 
 ## 8. Labels and receipt printer
 
-A label shows product, brand, expiry date and a QR code of the batch, so you recognise leftovers in
-the freezer and book them out by scanning.
+A label shows product, brand, expiry date and a QR code of the batch, so every package says what is
+inside and how long it keeps, also repacked, frozen or home-canned food without a printed date.
+Scanning the label books the package out.
 
 - **Setup** (admin): *Settings > Devices & services > Home Inventory > Configure > Etikettendrucker*. Choose the model, e.g.
   *Dymo LabelWriter 450*, then under **Drucker** the address of the USB print server or the device
@@ -395,9 +397,9 @@ the freezer and book them out by scanning.
 - **When booking in**: tick **Etiketten drucken**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
 - **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning)).
-- More than 2 labels at once ask first.
+- Printing more than 2 labels at once asks first.
 
-**Receipt printer** (for the shopping list and recipes): *Settings > Devices & services > Home Inventory > Configure >
+**Receipt printer** (for the shopping list, recipes and meal plan): *Settings > Devices & services > Home Inventory > Configure >
 Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
 `/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
 baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB
@@ -433,8 +435,8 @@ flowchart TD
   X["Product: Naturjoghurt 3.5 %<br>fridge (inherited), 7 days (inherited)"]
 ```
 
-Inherited values are grey with their source
-("Geerbt: 7 Tage (von Milchprodukte)"). **Zurücksetzen** removes an own value, then the inherited
+Inherited values are grey with their source, in the example
+"Geerbt: 7 Tage (von Joghurt)". **Zurücksetzen** removes an own value, then the inherited
 one applies again. Minimum stock is not inherited.
 
 **Expiry date and shelf life**: bought goods carry their date on the package, and that date counts.
@@ -443,7 +445,7 @@ in days) counts: booking in proposes today + shelf life, a canning protocol made
 The date stays editable everywhere.
 
 **Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
-stock, recipe ingredients …). A location with stock asks where its packages should go.
+stock, recipe ingredients …). Deleting a location with stock asks where its packages should go.
 
 ## 10. Tips and FAQ
 
@@ -485,6 +487,6 @@ Right after the booking use **Rückgängig**, otherwise fix the batch with the p
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see [README](../README.md#services-automations)).
+For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`pantry.book_in`, `pantry.book_out`), printing (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), the shopping list (`pantry.shop_recipe`), the meal plan (`pantry.plan_meal`) and canning (`pantry.canning`) (see [README](../README.md#services-automations)).
 
 </details>

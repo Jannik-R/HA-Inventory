@@ -2,9 +2,9 @@
 
 *English version: [guide.en.md](guide.en.md)*
 
-Vorrat ist die Vorratsverwaltung in Home Assistant. Du buchst Vorräte per Barcode oder Name ein
-und aus: Lebensmittel, Batterien, Haushaltswaren, Medikamente und selbst eingekochte Gläser. Vorrat merkt sich, wo was liegt und wann es abläuft, erinnert an Ablaufendes und schreibt
-die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Installation und
+Vorrat ist die Vorratsverwaltung in Home Assistant. Du buchst Vorräte per Barcode oder Namen ein
+und aus: Lebensmittel, Batterien, Haushaltswaren, Medikamente und selbst eingekochte Gläser. Vorrat merkt sich, wo was liegt und wann es abläuft, erinnert an Ablaufendes und führt
+die Einkaufsliste aus Mindestmengen, Rezepten und eigenen Einträgen. Diese Anleitung erklärt die Bedienung; Installation und
 Technik stehen im [README](../README.de.md).
 
 Du findest Vorrat in der Seitenleiste von Home Assistant. Das Fragezeichen oben rechts öffnet diese
@@ -45,13 +45,13 @@ Eingekochtes. Du kannst direkt loslegen.
 
 Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
-1. **Lagerorte**: Passe die Liste an deine Küche an (umbenennen, hinzufügen, löschen).
+1. **Lagerorte**: Passe die Liste an deinen Haushalt an (umbenennen, hinzufügen, löschen).
 2. **Standards**: Lege fest, was gilt, wenn eine Kategorie oder ein Produkt nichts Eigenes hat
    (Einheit, Lagerort, Datumsart, Warnung vor Ablauf, Haltbarkeit).
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
-4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte → Kühlschrank).
+4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte & Eier → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan und Einkochen einzeln ab (auch schon beim Einrichten wählbar). Der Reiter verschwindet, die Daten bleiben erhalten.
+5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan und Einkochen einzeln ab (auch schon beim Einrichten wählbar). Der Tab verschwindet, die Daten bleiben erhalten.
 6. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
@@ -101,17 +101,17 @@ flowchart LR
    oder das Produkt eine *Haltbarkeit*, schlägt Vorrat heute + Haltbarkeit vor (siehe
    [Kategorien](#9-kategorien-produktarten-und-vererbung)).
 7. **Packungen** und **Lagerort**: Der Lagerort ist vorbelegt (grau: „Geerbt: Kühlschrank (von
-   Milchprodukte)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
+   Milchprodukte & Eier)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
    zurück. Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten Ort fürs Produkt.
 8. **Etiketten drucken** (falls eingerichtet) und **Einbuchen**.
 
 > [!NOTE]
-> Gleiche Produkte mit gleichem Datum landen in derselben Charge. Ein anderes Datum ergibt eine neue
+> Dasselbe Produkt mit demselben Datum landet in derselben Charge. Ein anderes Datum ergibt eine neue
 > Charge, so siehst du später, welche Packung zuerst weg muss.
 
 ## 3. Verbrauchen und auslagern
 
-Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pantry/out`). Dann geht es wie beim Einbuchen: scannen, Kamera oder Name, danach das Fenster.
+Stell den Schalter im **Bestand** auf **−** (Auslagern; als Lesezeichen: `/pantry/out`). Dann geht es wie beim Einbuchen: scannen, Kamera oder Name, danach das Fenster.
 
 - Standardmäßig wird die Packung mit dem frühesten Datum genommen. Du kannst auch eine bestimmte
   Charge und einen Lagerort wählen.
@@ -141,8 +141,8 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern) (als Lesezeichen: `/pa
   (Lagerort, Datumsart, Warnung vor Ablauf).
 - **Stift an einer Charge**: Datum oder Packungszahl korrigieren, etwa nach einem Tippfehler.
   0 Packungen entfernt die Charge.
-- **Etikett-Symbol**: Etiketten für diese Charge nachdrucken. Eingekochte Gläser zeigen ihre Charge
-  neben dem Datum.
+- **Etikett-Symbol**: Etiketten für diese Charge nachdrucken.
+- Eingekochte Gläser zeigen ihre Charge neben dem Datum.
 - Rot heißt abgelaufen, orange heißt bald fällig.
 
 ## 5. Was läuft ab?
@@ -162,7 +162,7 @@ wird nichts.
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-dark.png"><img src="images/shopping-light.png" alt="Tab Einkauf mit Einträgen aus einem Rezept" width="300"></picture></p>
 
-**Einkauf** entsteht aus drei Quellen:
+Die Einkaufsliste im Tab **Einkauf** speist sich aus drei Quellen:
 
 ```mermaid
 flowchart LR
@@ -195,8 +195,8 @@ flowchart LR
   | Scheibe | bleibt wie geschrieben | 2 Scheiben |
   | ohne Menge | 1 Packung | Salz → 1 Pkg. |
 
-Abhaken streicht einen Eintrag durch. Ein Mindestmengen-Eintrag kommt von selbst zurück, wenn sich
-die fehlende Menge ändert, z. B. wenn du nur einen Teil eingekauft hast.
+Abhaken streicht einen Eintrag durch. Bei einem Mindestmengen-Eintrag verschwindet der Haken von selbst,
+wenn sich die fehlende Menge ändert, z. B. wenn du nur einen Teil eingekauft hast.
 
 Dieselbe Liste gibt es als To-do-Liste **Einkaufsliste** in Home Assistant und in der Companion-App.
 Dort kannst du abhaken und Einträge mit dem genauen Namen eines Produkts oder einer Kategorie
@@ -224,7 +224,7 @@ rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept 
 2. Pro Zutat: im Feld **Zutat** eine Produktart oder Kategorie suchen (auch über einen Produktnamen,
    „Mutti“ findet Tomatenmark). Fehlt sie, **Neue Produktart „…“ anlegen**.
 3. Menge und Einheit (beide oder keins), optional ein **Hinweis** wie „fein gewürfelt“.
-4. **optional** für Zutaten, die das Rezept nicht braucht. **Nicht gegen den Vorrat prüfen** für
+4. **optional** für Zutaten, die das Rezept nicht unbedingt braucht. **Nicht gegen den Vorrat prüfen** für
    Dinge, die du nicht im Vorrat führst (Salz, Wasser).
 5. Fehlt eine Einheit, wähle **Neue Einheit …** in der Einheitenauswahl.
 6. Unter **Zubereitung** mit **Schritt hinzufügen** die Schritte eintragen, einen pro Feld. Die
@@ -278,13 +278,13 @@ Oben steht „KI prüft das Rezept …“; Speichern wartet so lange, **Nicht ab
 Prüfung. Danach steht dort „keine Änderungen“ oder was die KI geändert hat: Zutaten mit besserer
 Kategorie sind markiert („Von der KI geändert: … (vorher: …)“, mit **Rückgängig**), ein langer
 Textblock ist in Schritte geteilt (**Schritte zurücksetzen** stellt ihn wieder her). Fehlt im
-Kategoriebaum ein passender Produkttyp (z. B. ein seltenes Gewürz), schlägt die KI einen neuen
-unter der passenden Kategorie vor („KI schlägt neuen Produkttyp … vor“); er wird erst beim
+Kategoriebaum eine passende Produktart (z. B. ein seltenes Gewürz), schlägt die KI eine neue
+unter der passenden Kategorie vor („KI schlägt neue Produktart … vor“); er wird erst beim
 Speichern angelegt, **Rückgängig** verwirft den Vorschlag. Prüfe die
 Änderungen vor dem Speichern. Schlägt die KI fehl, bleibt der Entwurf wie importiert.
 
 Vorrat merkt sich, welche Kategorie du für eine importierte Zutat gespeichert hast: Beim nächsten
-Import derselben Zutat ist sie gleich gewählt. Ebenso merkt es sich, wenn du beim Einbuchen die von
+Import derselben Zutat ist sie gleich gewählt. Ebenso merkt sich Vorrat, wenn du beim Einbuchen die von
 Open Food Facts vorgeschlagene Kategorie änderst.
 
 **KI einrichten** (Admin, einmalig):
@@ -306,7 +306,7 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-dark.png"><img src="images/plan-light.png" alt="Speiseplan in der Wochenansicht am Handy" width="300"></picture></p>
 
-**Speiseplan** zeigt den Plan als **Tag**, **Woche** oder **Monat** (Schaltflächen oben). **Zurück** und **Weiter** springen um einen Tag, eine Woche oder einen Monat, je nach Ansicht; **Heute** springt zum heutigen Datum. **Tag** zeigt immer heute.
+**Speiseplan** zeigt den Plan als **Tag**, **Woche** oder **Monat** (Knöpfe oben). **Zurück** und **Weiter** springen um einen Tag, eine Woche oder einen Monat, je nach Ansicht; **Heute** springt zum heutigen Datum. Beim Öffnen des Tabs steht der Plan auf heute; ein Wechsel der Ansicht behält das gewählte Datum.
 
 - **Woche**: Tabelle mit einer Zeile pro Mahlzeit und einer gleich breiten Spalte pro Tag. Auf dem Handy wird jeder Tag zu einem Block, der nur seine Gerichte zeigt, dazu ein **+**. Ein Tipp auf die Tagesüberschrift öffnet die Tagesansicht dieses Tags.
 - **Tag**: Liste nach Mahlzeit gruppiert, mit **+** je Mahlzeit.
@@ -322,7 +322,7 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 
 Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog). Der Stift ändert ein Gericht, der Papierkorb löscht es. Wird ein Rezept gelöscht, bleiben seine Gerichte im Plan als freier Text; die Löschfrage listet sie auf.
 
-**Umplanen**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, um einen Tag nach hinten. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
+**Umplanen**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, auf den jeweils nächsten Tag. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
 
 **Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
 
@@ -336,18 +336,18 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-dark.png"><img src="images/canning-light.png" alt="Tab Einkochen mit Einkochprotokollen" width="300"></picture></p>
 
-Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) bucht Vorrat über ein **Einkochprotokoll**
+Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) buchst du über ein **Einkochprotokoll**
 ein. Jedes Protokoll bekommt eine Charge. Die Etiketten tragen sie, daher bucht ein Scan genau ein
 Glas dieser Charge aus.
 
-Der Tab **Einkochen** hat oben zwei Schaltflächen: **Protokolle** und **Rezepte**.
+Der Tab **Einkochen** hat oben zwei Knöpfe: **Protokolle** und **Rezepte**.
 
 **Protokolle** zeigt die Protokolle, neueste zuerst, mit Charge, Produkt, Gläsern (hergestellt und noch
 vorhanden), Temperatur und Dauer.
 
 **Protokoll anlegen**:
 
-1. Tab **Einkochen**, Ansicht **Protokolle**, Schaltfläche **Protokoll anlegen**.
+1. Tab **Einkochen**, Ansicht **Protokolle**, Knopf **Protokoll anlegen**.
 2. **Einkochrezept** (optional): Mit einem Rezept ist das Produkt festgelegt (es steht als
    **Ergibt: …** da), und **Gläser**, **Temperatur** und **Dauer** werden aus dem Rezept vorausgefüllt.
    Du kannst sie ändern.
@@ -374,9 +374,9 @@ Import und Bearbeitung wie die Rezeptliste. **Einkochrezept anlegen** öffnet de
 - **Ergibt (Gläser)** statt Portionen: Die Zutaten werden nach Gläsern umgerechnet.
 - **Temperatur** (°C) und **Dauer** (Minuten): optional, beide oder keins.
 
-Ein Einkochrezept macht also immer ein festes Produkt. Öffnest du es, siehst du „ergibt N × Produkt“
-und die Schaltfläche **Protokoll anlegen**; sie wechselt zu **Protokolle** mit diesem Rezept vorausgewählt.
-Löschst du ein Produkt, werden die Einkochrezepte gelöscht, die es herstellen (die Rückfrage nennt sie).
+Ein Einkochrezept ergibt also immer ein festes Produkt. Öffnest du es, siehst du „ergibt N × Produkt“
+und den Knopf **Protokoll anlegen**; er wechselt zu **Protokolle** mit diesem Rezept vorausgewählt.
+Löschst du ein Produkt, werden die Einkochrezepte gelöscht, die es ergeben (die Rückfrage nennt sie).
 Einkochrezepte erscheinen weder in der Rezeptliste noch im Speiseplan.
 
 **Protokoll löschen** (nur Admins): Der Papierkorb entfernt das Protokoll mit seinem Bestand und seinen
@@ -390,8 +390,9 @@ Scan im **Bestand** (Schalter auf Einbuchen oder Auslagern) ein Glas dieser Char
 
 ## 8. Etiketten und Bondrucker
 
-Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. Damit erkennst du Reste
-im Gefrierschrank und buchst sie per Scan aus.
+Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. So weißt du bei jeder
+Packung, was drin ist und wie lange es hält, auch bei Umgefülltem, Eingefrorenem oder Eingekochtem
+ohne Aufdruck. Ein Scan des Etiketts bucht die Packung aus.
 
 - **Einrichten** (Admin): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > Etikettendrucker*. Modell wählen,
   z. B. *Dymo LabelWriter 450*, dann unter **Drucker** die Adresse des USB-Druckservers oder den
@@ -400,9 +401,9 @@ im Gefrierschrank und buchst sie per Scan aus.
 - **Beim Einbuchen**: Häkchen **Etiketten drucken**, ein Etikett pro Packung (höchstens 20).
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
 - **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen)).
-- Mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
+- Bei mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 
-**Bondrucker** (für Einkaufszettel und Rezepte): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >
+**Bondrucker** (für Einkaufszettel, Rezepte und Speiseplan): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.
 `/dev/bondrucker`) oder die Netzwerkadresse. Dazu Papierbreite, Abschneiden und bei seriellen
 Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern. Die technische
@@ -436,8 +437,8 @@ flowchart TD
   P["Produktart: Naturjoghurt<br>(nichts Eigenes)"] --> X
   X["Produkt: Naturjoghurt 3,5 %<br>Kühlschrank (geerbt), 7 Tage (geerbt)"]
 ```
- Geerbte Werte stehen grau
-mit ihrer Herkunft da („Geerbt: 7 Tage (von Milchprodukte)“). **Zurücksetzen** entfernt einen eigenen
+
+Geerbte Werte stehen grau mit ihrer Herkunft da, im Beispiel „Geerbt: 7 Tage (von Joghurt)“. **Zurücksetzen** entfernt einen eigenen
 Wert, danach gilt wieder der geerbte. Mindestmengen werden nicht vererbt.
 
 **Ablaufdatum und Haltbarkeit**: Gekaufte Ware hat ihr Datum auf der Packung; das gilt. Ohne Aufdruck
@@ -446,8 +447,8 @@ Einbuchen schlägt heute + Haltbarkeit vor, ein Einkochprotokoll Herstellungsdat
 Datum bleibt überall änderbar.
 
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
-Produkte, Bestand, Rezeptzutaten …). Ein Lagerort mit Bestand bekommt einen Zielort für die
-Packungen.
+Produkte, Bestand, Rezeptzutaten …). Löschst du einen Lagerort mit Bestand, wählst du, wohin die
+Packungen kommen.
 
 ## 10. Tipps und häufige Fragen
 
@@ -489,6 +490,6 @@ Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem St
 <details>
 <summary><b>Automationen</b></summary>
 
-Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe [README](../README.de.md#aktionen-automationen)).
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`pantry.book_in`, `pantry.book_out`), zum Drucken (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), für die Einkaufsliste (`pantry.shop_recipe`), den Speiseplan (`pantry.plan_meal`) und das Einkochen (`pantry.canning`) (siehe [README](../README.de.md#aktionen-automationen)).
 
 </details>

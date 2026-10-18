@@ -47,7 +47,8 @@ Admins should take a quick look at **Einstellungen** first:
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Kategorien**: give categories a default location (e.g. dairy → fridge), so booking in rarely
    needs a location choice.
-5. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
+5. Optional: don't need everything? Under *Settings → Devices & services → Pantry → Configure → Module* you turn shopping list, recipes, meal plan and canning off one by one (also offered during setup). The tab disappears, the data is kept.
+6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
 

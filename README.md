@@ -333,6 +333,7 @@ actions:
   canning protocols made-on date + days. Bought goods keep the date on the package.
 - **KI-Prüfung von Rezeptimporten** (Home Assistant options): the AI Task entity that checks recipe imports (see *Rezepte*); empty = no AI. Set up an AI in Home Assistant first, e.g. *Settings > Devices & services > Add integration > Google Gemini* (API key from Google AI Studio; a free tier exists), then pick its AI Task entity here.
 - **Mahlzeiten** (meal start times, panel settings): from when each meal counts (defaults Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The current meal is the one with the latest start before now; before the first start of the day the last one still counts. Used by `pantry.print_planned` without a meal.
+- **Module** (Home Assistant options): which optional parts the panel shows (see *Installation*).
 - **Haushalt** (household, Home Assistant options): *Portionen im Haushalt* (1 to 99, default 3) is the servings default for new dishes in the week plan. Set it in *Configure* of the integration, step *Haushalt* (menu *Einstellungen*).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
 - **Deleting something that is still in use** works too. Before asking, the integration runs the
@@ -352,7 +353,9 @@ HACS (only once the repository is public; HACS cannot install from private repos
 
 Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
 
-Then: *Settings → Devices & services → Add integration → Pantry*. The panel *Vorrat* appears in the sidebar.
+Then: *Settings → Devices & services → Add integration → Pantry*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
+
+**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
 ## Development
 

@@ -7,15 +7,28 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN, SIGNAL_CHANGED
+from .const import DOMAIN, SIGNAL_CHANGED, modules_of
 
 if TYPE_CHECKING:
     from . import PantryConfigEntry
+
+
+@callback
+def module_off(hass: HomeAssistant, entry: PantryConfigEntry, module: str, platform: str) -> bool:
+    """True when `module` is turned off; then its entities leave the registry (no "unavailable" ghost)."""
+    if module in modules_of(entry.options):
+        return False
+    reg = er.async_get(hass)
+    for e in er.async_entries_for_config_entry(reg, entry.entry_id):
+        if e.domain == platform:
+            reg.async_remove(e.entity_id)
+    return True
 
 
 async def async_coordinator(

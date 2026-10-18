@@ -29,6 +29,8 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert DOMAIN in hass.data["frontend_panels"]
+    panel = hass.data["frontend_panels"][DOMAIN]
+    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning"]
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await async_pre_backup(hass)
@@ -51,6 +53,26 @@ async def _options_entry(hass: HomeAssistant) -> MockConfigEntry:
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     return entry
+
+
+async def test_options_flow_modules(hass: HomeAssistant) -> None:
+    """Turning modules off reloads the entry: the panel gets the list, todo/calendar entities go."""
+    entry = await _options_entry(hass)
+    assert hass.states.async_entity_ids("todo")
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "modules"}
+    )
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"modules": ["recipes"]}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options["modules"] == ["recipes"]
+    assert hass.data["frontend_panels"][DOMAIN].config["modules"] == ["recipes"]
+    assert not hass.states.async_entity_ids("todo")
+    assert not hass.states.async_entity_ids("calendar")
+    assert hass.states.async_entity_ids("sensor")
 
 
 async def test_options_flow_browser(hass: HomeAssistant) -> None:

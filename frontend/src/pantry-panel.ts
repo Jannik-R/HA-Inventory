@@ -3,6 +3,7 @@ import { mdiHelpCircleOutline, mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
+import { hasModule, setModules, type Module } from "./modules";
 import "./settings-view";
 import "./booking-view";
 import "./stock-view";
@@ -28,16 +29,20 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number];
 
+const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "canning"];
+
 export class PantryPanel extends LitElement {
   static properties = {
     hass: { attribute: false },
     narrow: { type: Boolean },
     route: { attribute: false },
+    panel: { attribute: false },
   };
 
   declare hass?: Hass;
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
+  declare panel?: { config?: { modules?: string[] } };
 
   constructor() {
     super();
@@ -51,12 +56,20 @@ export class PantryPanel extends LitElement {
 
   willUpdate(changed: PropertyValues) {
     if (changed.has("hass") && this.hass) setLanguage(this.hass.language);
+    if (changed.has("panel")) setModules(this.panel?.config?.modules);
+  }
+
+  private get tabs(): Tab[] {
+    return TABS.filter(
+      (tab) =>
+        (tab !== "settings" || isAdmin(this.hass)) &&
+        (!MODULE_TABS.includes(tab) || hasModule(tab as Module)),
+    );
   }
 
   private get tab(): Tab {
     const seg = (this.route?.path ?? "").split("/").filter(Boolean)[0];
-    if (seg === "settings" && !isAdmin(this.hass)) return "stock";
-    return (TABS as readonly string[]).includes(seg) ? (seg as Tab) : "stock";
+    return (this.tabs as string[]).includes(seg) ? (seg as Tab) : "stock";
   }
 
   private get sub(): string | undefined {
@@ -97,7 +110,7 @@ export class PantryPanel extends LitElement {
         >
       </header>
       <div role="tablist">
-        ${TABS.filter((tab) => tab !== "settings" || isAdmin(this.hass)).map(
+        ${this.tabs.map(
           (tab) =>
             html`<button
               role="tab"

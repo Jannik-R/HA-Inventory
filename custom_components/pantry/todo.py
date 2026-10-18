@@ -20,7 +20,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from . import inventory
-from .coordinator import async_coordinator, device_info
+from .coordinator import async_coordinator, device_info, module_off
 from .ws_common import translated
 
 if TYPE_CHECKING:
@@ -32,6 +32,8 @@ async def async_setup_entry(
     entry: PantryConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
+    if module_off(hass, entry, "shopping", "todo"):
+        return
     db = entry.runtime_data
 
     async def update() -> list[dict]:

@@ -3,7 +3,8 @@
     "step": {
       "user": {
         "title": "Vorrat",
-        "description": "Vorrat einrichten (Lebensmittel, Haushalt, Eingekochtes). Er erscheint als \"Vorrat\" in der Seitenleiste."
+        "description": "Vorrat einrichten (Lebensmittel, Haushalt, Eingekochtes). Er erscheint als \"Vorrat\" in der Seitenleiste. Bestand, Buchen und Ablaufdaten sind immer dabei; wähle die weiteren Module (später in den Einstellungen änderbar).",
+        "data": { "modules": "Module" }
       }
     },
     "abort": {
@@ -120,11 +121,17 @@
         "title": "Einstellungen",
         "description": "Was möchtest du einrichten?",
         "menu_options": {
+          "modules": "Module",
           "label_model": "Etikettendrucker",
           "receipt": "Bondrucker (Einkaufszettel)",
           "household": "Haushalt",
           "ai": "KI-Prüfung von Rezeptimporten"
         }
+      },
+      "modules": {
+        "title": "Module",
+        "description": "Wähle die Bereiche des Panels, die du nutzt. Abgeschaltete Module blenden ihren Reiter aus; ihre Daten bleiben erhalten.",
+        "data": { "modules": "Module" }
       },
       "label_model": {
         "title": "Etikettendrucker",
@@ -361,6 +368,14 @@
     }
   },
   "selector": {
+    "modules": {
+      "options": {
+        "shopping": "Einkaufsliste (inkl. To-do-Entität)",
+        "recipes": "Rezepte",
+        "plan": "Speiseplan (inkl. Kalender-Entität)",
+        "canning": "Einkochen"
+      }
+    },
     "label_printer": {
       "options": {
         "browser": "Kein Drucker – Druck über den Browser",

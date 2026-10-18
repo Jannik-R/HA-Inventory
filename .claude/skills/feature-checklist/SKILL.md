@@ -40,7 +40,7 @@ cd frontend && npx playwright test                                           # E
 
 ## Docs
 
-- [ ] README: every user-visible change (usage section, features list, status line).
+- [ ] README.md and README.de.md: features list, installation, setup, sensors, services, status line (both languages, same change). How to use it goes into the guides, not the README.
 - [ ] `docs/PLAN.md`: phase row / status, data model, decisions that changed.
 - [ ] CLAUDE.md layout list when files were added or removed.
 

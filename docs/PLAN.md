@@ -417,7 +417,7 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 
 **Open todos** (check before starting the next phase):
 
-- Keep the user guide (`docs/guide.de.md`, `docs/guide.en.md`) current with every user-visible change, like README.
+- Keep the user guide (`docs/guide.de.md`, `docs/guide.en.md`) current with every user-visible change, like README.md and README.de.md.
 - Ongoing: extend the seeded product types (`seed.py`, lowest category level) whenever everyday products are missing; existing DBs get new ones by a migration step (released since 0.1.0).
 
 ## 7. Extension points (not built now)

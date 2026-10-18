@@ -60,6 +60,8 @@ Admins should take a quick look at **Einstellungen** first:
 
 ## 2. Booking in your shopping
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/book-in-dark.png"><img src="images/book-in-light.png" alt="Book-in dialog after scanning a known product" width="300"></picture></p>
+
 Open **Bestand** and set the switch in front of the input field to **+** (book in). Its three
 buttons are the **magnifier** (search), **+** (book in) and **−** (book out); the chosen one is
 filled. The input field is ready right away. The switch stays until you change it or leave the tab.
@@ -127,6 +129,8 @@ like booking in: scanner, camera or name, then the dialog.
 
 ## 4. Viewing and fixing the stock
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stock-dark.png"><img src="images/stock-light.png" alt="Stock tab with the category tree opened" width="300"></picture></p>
+
 **Bestand** shows the category tree with everything in stock, with counts and the earliest date.
 
 - Tap a row to open it. A product shows its batches (date, location, packages).
@@ -144,6 +148,8 @@ like booking in: scanner, camera or name, then the dialog.
 
 ## 5. What expires soon?
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-dark.png"><img src="images/expiry-light.png" alt="Expiry tab with expired and soon expiring batches" width="300"></picture></p>
+
 **Ablauf** lists all expired (red) and soon expiring (orange) batches, earliest first. "Soon" means
 within the product's *Warnung vor Ablauf* (expiry warning, own or inherited). **Warnschwelle**
 temporarily sets one value for all, e.g. 14 days for meal planning; nothing is saved.
@@ -153,6 +159,8 @@ temporarily sets one value for all, e.g. 14 days for meal planning; nothing is s
 > soon), see the README, e.g. for a phone notification.
 
 ## 6. Shopping list
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-dark.png"><img src="images/shopping-light.png" alt="Shopping tab with items from a recipe" width="300"></picture></p>
 
 **Einkauf** has three sources:
 
@@ -198,6 +206,8 @@ unticked items, sorted by main category, and cuts the paper. It only shows when 
 set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 7. Recipes
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/recipe-dark.png"><img src="images/recipe-light.png" alt="Opened recipe with ingredient status and steps" width="300"></picture></p>
 
 **Rezepte** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
 and ingredients. Opening a row shows the ingredients with their status, the numbered steps, source and
@@ -290,6 +300,8 @@ checked).
 
 ## 7a. Meal plan
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-dark.png"><img src="images/plan-light.png" alt="Meal plan week view on a phone" width="300"></picture></p>
+
 **Speiseplan** (meal plan) shows the plan as **Tag** (day), **Woche** (week) or **Monat** (month), buttons at the top. **Zurück** (previous) and **Weiter** (next) move by a day, a week or a month, depending on the view; **Heute** (today) jumps to today's date. **Tag** always shows today.
 
 - **Woche**: a table with one row per meal and one equal-width column per day. On a phone each day becomes a block that shows only its dishes, plus a **+**. Tapping a day heading opens that day.
@@ -317,6 +329,8 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
 ## 7b. Canning
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-dark.png"><img src="images/canning-light.png" alt="Canning tab with canning protocols" width="300"></picture></p>
 
 Home-canned jars (jam, compote, pickles …) are booked in with a **canning protocol** (Einkochprotokoll).
 Each protocol gets a charge. The labels carry it, so scanning a label books out exactly one jar of that charge.

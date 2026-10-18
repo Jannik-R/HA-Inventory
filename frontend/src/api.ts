@@ -316,8 +316,10 @@ export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
 export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
 /** Canning recipes live in the Einkochen tab, the others in Rezepte and the meal plan. */
 export const isCanning = (r: Recipe) => r.canning_product_id != null;
-export const importRecipe = (hass: Hass, url: string) =>
-  hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", url });
+/** One source: a page (schema.org data, else the AI reads it), pasted text or a photo (data URL; both need the AI). */
+export type ImportSource = { url: string } | { text: string } | { image: string };
+export const importRecipe = (hass: Hass, source: ImportSource) =>
+  hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", ...source });
 /** A product type the AI check proposes; added below parent_id when the recipe is saved. */
 export type NewType = { name: string; parent_id: number };
 /** AI check of an import draft (phase 13c): off (no AI set up), ok, or only the changes. */

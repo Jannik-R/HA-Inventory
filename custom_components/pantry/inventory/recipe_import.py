@@ -87,10 +87,16 @@ def _image(value: object) -> str | None:
 
 
 def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
-    """Draft {name, servings, steps, source_url, image_url, ingredients}; nothing is saved."""
+    """Draft from the page's JSON-LD; nothing is saved."""
     recipe = extract_recipe(page)
     if recipe is None:
         raise InventoryError("recipe_not_found")
+    return recipe_draft(conn, recipe, url)
+
+
+def recipe_draft(conn: sqlite3.Connection, recipe: dict, url: str | None) -> dict:
+    """schema.org Recipe dict (JSON-LD or the AI's answer) -> draft {name, servings, steps,
+    source_url, image_url, ingredients}; nothing is saved."""
     units = unit_lookup(conn)
     piece = conn.execute("SELECT id FROM unit WHERE name = 'Stück'").fetchone()
     lines = recipe.get("recipeIngredient") or recipe.get("ingredients") or []
@@ -118,7 +124,7 @@ def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:
             ingredients.append(row_out | {"learned": known is not None and cid == known})
     ingredients = ingredients[:100]
     return {
-        "name": (_text(recipe.get("name")) or url)[:200],
+        "name": (_text(recipe.get("name")) or url or "")[:200],
         "servings": _servings(recipe.get("recipeYield")),
         "steps": import_steps(recipe.get("recipeInstructions")),
         "source_url": url,

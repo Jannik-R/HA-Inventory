@@ -1,4 +1,4 @@
-"""Websocket commands for recipes: list, availability, save, import from a URL, new product type / unit."""
+"""Websocket commands for recipes: list, availability, save, import (URL, text, photo), new product type / unit."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from . import ai, inventory, recipe_fetch
+from . import ai, inventory, recipe_ai
 from .websocket_stock import _NEW_PRODUCT
-from .ws_common import db_of, run, translated
+from .ws_common import run, translated
 from .ws_validate import (
     CANNING_MINUTES,
     CANNING_TEMP,
@@ -173,13 +173,28 @@ async def ws_product_type_add(hass: HomeAssistant, connection, msg: dict) -> Non
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/recipe_import", vol.Required("url"): HTTP_URL}
+    {
+        vol.Required("type"): "pantry/recipe_import",
+        # exactly one source; text and photo need the AI (see recipe_ai.py)
+        vol.Exclusive("url", "source"): HTTP_URL,
+        vol.Exclusive("text", "source"): vol.All(str, vol.Length(min=1, max=inventory.MAX_PASTE)),
+        # the panel scales a photo to a JPEG of max 2000 px; base64 of max 3 MB
+        vol.Exclusive("image", "source"): vol.All(
+            str, vol.Length(max=4_100_000), vol.Match(r"^data:image/(jpeg|png|webp);base64,")
+        ),
+    }
 )
 @websocket_api.async_response
 async def ws_recipe_import(hass: HomeAssistant, connection, msg: dict) -> None:
-    """Recipe draft from a web page (not saved)."""
+    """Recipe draft (not saved) from a web page, pasted text or a photo."""
+    if not any(k in msg for k in ("url", "text", "image")):
+        connection.send_error(msg["id"], "invalid_format", "url, text or image is required")
+        return
     with translated():
-        draft = await recipe_fetch.async_import(hass, db_of(hass), msg["url"])
+        if "url" in msg:
+            draft = await recipe_ai.async_import_url(hass, msg["url"])
+        else:
+            draft = await recipe_ai.async_import_input(hass, msg.get("text"), msg.get("image"))
     connection.send_result(msg["id"], draft)
 
 

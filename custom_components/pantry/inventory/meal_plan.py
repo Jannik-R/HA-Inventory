@@ -7,6 +7,14 @@ from datetime import date, time, timedelta
 
 from .common import InventoryError
 
+MEALS = [
+    "breakfast",
+    "lunch",
+    "coffee",
+    "dinner",
+    "snack",
+]  # names of meal_plan.slot 0..4 (services, AI tools)
+
 
 def meals(conn: sqlite3.Connection, start: str, end: str) -> list[dict]:
     """Dishes of the days start <= day < end (ISO dates), by day, slot, then entry order."""

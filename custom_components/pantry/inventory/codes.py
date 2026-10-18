@@ -18,10 +18,15 @@ from .shopping_recipes import set_shopping_recipe
 
 
 def _product(conn: sqlite3.Connection, ean: str) -> dict:
-    """Local product by EAN; unknown ones are created in the panel (category needs a human)."""
-    if not (product := find_ean(conn, ean.strip())):
+    """Local product by EAN, else by name (voice, AI); unknown ones are created in the panel
+    (category needs a human)."""
+    if product := find_ean(conn, ean.strip()):
+        return product
+    # shortcut: two products with the same name (other brand) -> the oldest; add brand matching if it bites
+    rows = conn.execute("SELECT * FROM product ORDER BY id").fetchall()
+    if (found := id_by_name(rows, ean)) is None:
         raise InventoryError("product_unknown", code=ean.strip())
-    return product
+    return dict(next(r for r in rows if r["id"] == found))
 
 
 def _location(conn: sqlite3.Connection, name: str | None) -> int | None:

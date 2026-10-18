@@ -17,6 +17,11 @@ HEADERS = {"User-Agent": "HA-Pantry (https://github.com/Jannik-R/HA-Inventory)"}
 
 async def async_import(hass: HomeAssistant, db: Database, url: str) -> dict:
     """Recipe draft (not saved) from the schema.org data of the page at `url`."""
+    return await db.run(inventory.recipe_import, await async_fetch(hass, url), url, write=False)
+
+
+async def async_fetch(hass: HomeAssistant, url: str) -> str:
+    """The HTML page at `url` (max 5 MB); InventoryError when it is no HTML or not loadable."""
     try:
         async with async_get_clientsession(hass).get(url, headers=HEADERS, timeout=TIMEOUT) as resp:
             resp.raise_for_status()
@@ -28,7 +33,6 @@ async def async_import(hass: HomeAssistant, db: Database, url: str) -> dict:
                 if len(body) > MAX_BYTES:
                     raise InventoryError("recipe_unreachable")
             # shortcut: <meta charset> is ignored; most recipe sites send UTF-8 in the header
-            page = body.decode(resp.charset or "utf-8", errors="replace")
+            return body.decode(resp.charset or "utf-8", errors="replace")
     except (aiohttp.ClientError, TimeoutError, LookupError) as err:
         raise InventoryError("recipe_unreachable") from err
-    return await db.run(inventory.recipe_import, page, url, write=False)

@@ -178,3 +178,20 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()  # saving reloads the entry
     assert entry.options == {"household_servings": 4}
+
+
+async def test_options_flow_ai(hass: HomeAssistant) -> None:
+    entry = await _options_entry(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "ai"}
+    )
+    assert result["data_schema"]({})["llm_access"] == "plan"
+    with pytest.raises(InvalidData):
+        await hass.config_entries.options.async_configure(result["flow_id"], {"llm_access": "x"})
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"llm_access": "all"}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options == {"ai_task_entity": None, "llm_access": "all"}

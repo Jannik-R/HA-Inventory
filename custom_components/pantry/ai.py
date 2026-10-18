@@ -1,4 +1,4 @@
-"""AI check of recipe imports through HA's AI Task (any AI set up in HA; chosen in the options)."""
+"""AI check and AI reading of recipe imports through HA's AI Task (any AI set up in HA; chosen in the options)."""
 
 from __future__ import annotations
 
@@ -45,11 +45,17 @@ async def _generate(hass: HomeAssistant, **kwargs):
     return await ai_task.async_generate_data(hass, **kwargs)
 
 
+def entity_of(hass: HomeAssistant) -> str | None:
+    """The AI Task entity from the options, None = no AI (unset, or ai_task not loaded)."""
+    entries = hass.config_entries.async_loaded_entries(DOMAIN)
+    entity_id = entries[0].options.get(CONF_AI_TASK) if entries else None
+    return entity_id if entity_id and "ai_task" in hass.config.components else None
+
+
 async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
     """{status: off} without an AI Task entity, else {status: ok} or {status: changes, ...}."""
     db = db_of(hass)
-    entity_id = hass.config_entries.async_loaded_entries(DOMAIN)[0].options.get(CONF_AI_TASK)
-    if not entity_id or "ai_task" not in hass.config.components:
+    if not (entity_id := entity_of(hass)):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_prompt, draft)
     try:

@@ -19,6 +19,10 @@ CONF_RECEIPT_BAUD = "receipt_baud"
 CONF_HOUSEHOLD_SERVINGS = "household_servings"  # default servings of the week planner
 DEFAULT_SERVINGS = 3
 CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; unset = no AI
+# What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.
+CONF_LLM_ACCESS = "llm_access"
+LLM_ACCESS = ["read", "plan", "all"]
+DEFAULT_LLM_ACCESS = "plan"
 # Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all.
 CONF_MODULES = "modules"
 MODULES = ["shopping", "recipes", "plan", "canning"]

@@ -19,8 +19,8 @@ Available:
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
 - Expiry overview with a temporary "expiring soon" threshold and recipe suggestions that use up what expires (recipes ranked by expiring ingredients, then by availability; marked in the recipe list); sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
-- Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode or label code, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
-- Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
+- Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode, label code or product name, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
+- Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites); with an AI set up also posts without recipe data (Instagram, TikTok, YouTube: caption, video, image), pasted text and photos (e.g. a cookbook page)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
@@ -30,10 +30,11 @@ Available:
 - Shelf life (*Haltbarkeit*, days, inherited like the warning): booking in proposes today + shelf life as expiry date; seeded *Eingekochtes* (365 days)
 - Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `pantry.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
+- AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
 
 Planned:
 
-- AI interface (Assist / MCP)
+- User feedback with AI evaluation
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
@@ -44,6 +45,8 @@ Requires Home Assistant 2026.10.1 or newer.
 HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
 
 Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
+
+Python packages (installed by Home Assistant): `segno` (QR codes on labels) and `yt-dlp` (reads the video and caption of a post for the AI recipe import; it is already part of the Home Assistant image, so a standard install downloads nothing).
 
 Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
@@ -58,7 +61,7 @@ German; the English guide names buttons by their German labels.
 ## Setup
 
 All options are under *Settings > Devices & services > Home Inventory > Configure*: modules, label
-printer, receipt printer, AI check of recipe imports and household size.
+printer, receipt printer, AI and household size.
 
 ### Label printer (Etikettendrucker)
 
@@ -106,16 +109,44 @@ the end. Setup for a USB printer on the machine that runs Home Assistant in Dock
    service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
    serial printer: wrong baud rate; try the others.
 
-### AI check of recipe imports (KI-Prüfung)
+### AI (KI)
 
 Optional. Set up an AI in Home Assistant first (an *AI Task* entity, e.g. *Add integration > Google
 Gemini* with an API key from Google AI Studio, which has a free tier, or *Anthropic*), then pick it
-under *Configure > KI-Prüfung von Rezeptimporten*; empty = no AI. Every import then sends the recipe
-and the food category tree to that AI (about 10,000 tokens; the fixed part comes first, so providers
-that cache prompts bill it less often). The AI only proposes changes; nothing is saved without you.
+under *Configure > KI (Rezeptimport, Assistenten) > KI-Aufgabe*; empty = no AI.
 
-Importing itself needs no AI: Home Assistant loads the recipe page only when you click *Importieren*
-(15 s timeout, HTML up to 5 MB, http or https, LAN addresses too) and reads its schema.org recipe data.
+**Recipe import.** Importing a page with schema.org recipe data needs no AI: Home Assistant loads the
+page only when you click *Importieren* (15 s timeout, HTML up to 5 MB, http or https, LAN addresses
+too). With an AI set up:
+
+- Every import is checked once: the recipe and the food category tree go to the AI (about 10,000
+  tokens; the fixed part comes first, so providers that cache prompts bill it less often). The AI
+  only proposes changes; nothing is saved without you.
+- A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
+  fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p),
+  otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
+  to the AI (attachments go through a hidden folder `.pantry_import` in the first media directory and
+  are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
+  video (Google Gemini does); otherwise it gets the text only. Instagram often refuses videos without
+  login; then only the caption and the image are used.
+- *Text* and *Foto* in the import dialog send pasted text (up to 20,000 characters) or a photo
+  (scaled to 2000 px in the browser) to the AI.
+
+Reading a post takes 15 to 60 seconds and costs one AI call, plus the check.
+
+**Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an
+Assist agent (e.g. *Google Gemini > Configure > Control Home Assistant*) or in the *Model Context
+Protocol Server* integration (for Claude Desktop and other MCP clients). *Zugriff für Assistenten*
+decides what they may do:
+
+| Level | Tools |
+|---|---|
+| *Nur lesen* | `get_stock`, `get_expiring`, `get_recipes`, `get_recipe` (with stock status), `get_shopping_list`, `get_meal_plan` |
+| *Lesen, Einkaufsliste und Speiseplan* (default) | plus `add_to_shopping_list` (product or category by name), `add_recipe_to_shopping_list`, `plan_meal` |
+| *Alles, auch Ein- und Ausbuchen und Anbrechen* | plus `book_in`, `book_out`, `open_package` (product by name or EAN) |
+
+Tools use names, like the services; the write tools run the services below, so a booking records the
+user of the conversation.
 
 ## Sensors
 
@@ -150,9 +181,9 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 
 | Service | Fields | Response |
 |---|---|---|
-| `pantry.book_in` | `code` (EAN of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
-| `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
-| `pantry.open_package` | `code` (EAN: earliest expiry first; label code `PTRY:…`: a package of that batch), `location` (name, optional, not with a label code) | `batch_id` (the opened package's batch), `location_id`, `booking_id`, `expires_on` (new expiry date), `name`, `location` |
+| `pantry.book_in` | `code` (EAN or name of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
+| `pantry.book_out` | `code` (EAN, label code `PTRY:…` or product name), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
+| `pantry.open_package` | `code` (EAN or product name: earliest expiry first; label code `PTRY:…`: a package of that batch), `location` (name, optional, not with a label code) | `batch_id` (the opened package's batch), `location_id`, `booking_id`, `expires_on` (new expiry date), `name`, `location` |
 | `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
 | `pantry.print_shopping_list` | none | `printed` (number of items) |
 | `pantry.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |

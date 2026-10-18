@@ -7,3 +7,9 @@ export const setModules = (list: readonly string[] | undefined) => (active = lis
 
 /** Unknown (no config yet, e.g. in tests) = all on, like the backend default. */
 export const hasModule = (m: Module) => !active || active.includes(m);
+
+let ai = false;
+
+/** An AI Task entity is set up in the options: the recipe import also reads text and photos. */
+export const setAi = (on: boolean | undefined) => (ai = !!on);
+export const hasAi = () => ai;

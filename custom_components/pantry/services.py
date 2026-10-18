@@ -48,8 +48,7 @@ BOOK_OUT = vol.Schema(
 OPEN_PACKAGE = vol.Schema({vol.Required("code"): _CODE, vol.Optional("location"): _LOCATION})
 _DATE = vol.Any(None, "", cv.date)
 _SERVINGS = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
-# order = meal_plan.slot (0 breakfast … 4 snack)
-MEALS = ["breakfast", "lunch", "coffee", "dinner", "snack"]
+MEALS = inventory.MEALS
 SHOP_RECIPE = vol.Schema({vol.Required("recipe"): NAME, vol.Optional("servings"): _SERVINGS})
 PLAN_MEAL = vol.Schema(
     {

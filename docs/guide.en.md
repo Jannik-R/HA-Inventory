@@ -11,10 +11,18 @@ and technical details are in the [README](../README.md).
 The panel's interface is in German, so this guide names buttons and fields by their German labels
 (with a translation in brackets where it helps).
 
-Home Inventory is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
-**Ablauf** (expiry), **Einkauf** (shopping), **Rezepte** (recipes), **Speiseplan** (meal plan),
-**Einkochen** (canning) and, for admins only, **Einstellungen** (settings). Booking in and out
-happens in **Bestand**. The question mark at the top right opens this guide.
+Home Inventory is in the Home Assistant sidebar as *Vorrat*. The question mark at the top right
+opens this guide. These are the tabs:
+
+| Tab | For |
+|---|---|
+| **Bestand** (stock) | Book in, book out, search; what is where? ([2](#2-booking-in-your-shopping)–[4](#4-viewing-and-fixing-the-stock)) |
+| **Ablauf** (expiry) | Expired and soon expiring items ([5](#5-what-expires-soon)) |
+| **Einkauf** (shopping) | Shopping list from minimum stock, recipes and by hand ([6](#6-shopping-list)) |
+| **Rezepte** (recipes) | Recipes checked against stock, import and cook mode ([7](#7-recipes)) |
+| **Speiseplan** (meal plan) | Dishes by day and meal ([7a](#7a-meal-plan)) |
+| **Einkochen** (canning) | Canning protocols and canning recipes ([7b](#7b-canning)) |
+| **Einstellungen** (settings) | Admins only: locations, units, categories, defaults ([1](#1-getting-started), [9](#9-categories-product-types-and-inheritance)) |
 
 ## Contents
 
@@ -54,16 +62,31 @@ Admins should take a quick look at **Einstellungen** first:
 
 Open **Bestand** and set the switch in front of the input field to **+** (book in). Its three
 buttons are the **magnifier** (search), **+** (book in) and **−** (book out); the chosen one is
-filled. The input field is ready right away. The switch stays until you change it or leave the tab. A bookmark to
-`/pantry/in` opens the stock with **Einbuchen** already set.
+filled. The input field is ready right away. The switch stays until you change it or leave the tab.
+
+> [!TIP]
+> A bookmark to `/pantry/in` opens the stock with **Einbuchen** (book in) already set, `/pantry/out`
+> with **Auslagern** (book out). Handy for a kitchen tablet.
+
+```mermaid
+flowchart LR
+  A["Scanner, camera<br>or name"] --> B{"Known<br>product?"}
+  B -- yes --> F["Form:<br>date, packages, location"]
+  B -- no --> C{"Found in<br>Open Food Facts?"}
+  C -- yes --> D["Name, brand, content,<br>category prefilled"]
+  C -- no --> E["Create the<br>new product"]
+  D --> F
+  E --> F
+  F --> G["Book in<br>(+ labels)"]
+```
 
 1. **Find the product**, in one of three ways:
    - Scan with a USB or Bluetooth barcode scanner; it types the barcode into the field.
    - Tap **Kamera** and hold the barcode in front of the phone camera.
-   - Type a name and press Enter.
+   - Type a name and press <kbd>Enter</kbd>.
 
    A dialog opens: for a name first the hits to pick from, then the form. **Abbrechen** (cancel),
-   Esc or a tap beside it closes it; if you already entered something, Home Inventory asks first.
+   <kbd>Esc</kbd> or a tap beside it closes it; if you already entered something, Home Inventory asks first.
 2. **Known product**: only the fields for this booking appear.
    **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
    category. Check them. If nothing is found, create the product with **Neues Produkt** (new
@@ -83,8 +106,9 @@ filled. The input field is ready right away. The switch stays until you change i
    chosen location as its default.
 8. **Etiketten drucken** (print labels, if set up) and **Einbuchen**.
 
-The same product with the same date goes into the same batch. A different date makes a new batch,
-so later you see which package has to go first.
+> [!NOTE]
+> The same product with the same date goes into the same batch. A different date makes a new batch,
+> so later you see which package has to go first.
 
 ## 3. Using up and booking out
 
@@ -98,7 +122,8 @@ like booking in: scanner, camera or name, then the dialog.
   booking.
 - In **Bestand** and **Ablauf** the minus on a batch takes one package out of exactly that batch.
 
-Cooking a recipe books nothing out automatically; book out the ingredients as usual.
+> [!NOTE]
+> Cooking a recipe books nothing out automatically; book out the ingredients as usual.
 
 ## 4. Viewing and fixing the stock
 
@@ -106,7 +131,7 @@ Cooking a recipe books nothing out automatically; book out the ingredients as us
 
 - Tap a row to open it. A product shows its batches (date, location, packages).
 - The input field filters the list while you type: name, brand, barcode, category and location.
-  With the switch on the **magnifier** (search), Enter opens no dialog, so you can find a product with the
+  With the switch on the **magnifier** (search), <kbd>Enter</kbd> opens no dialog, so you can find a product with the
   scanner to edit it without booking anything.
 - **Alle Lagerorte** filters by location. **Auch Produkte ohne Bestand** also shows products with
   no stock, to edit or delete them.
@@ -123,12 +148,22 @@ Cooking a recipe books nothing out automatically; book out the ingredients as us
 within the product's *Warnung vor Ablauf* (expiry warning, own or inherited). **Warnschwelle**
 temporarily sets one value for all, e.g. 14 days for meal planning; nothing is saved.
 
-For automations there are the sensors *Abgelaufen* (expired) and *Läuft bald ab* (expiring soon),
-see the README, e.g. for a phone notification.
+> [!TIP]
+> For automations there are the sensors *Abgelaufen* (expired) and *Läuft bald ab* (expiring
+> soon), see the README, e.g. for a phone notification.
 
 ## 6. Shopping list
 
 **Einkauf** has three sources:
+
+```mermaid
+flowchart LR
+  M["Minimum stock"] --> L["Shopping list"]
+  H["By hand"] --> L
+  R["Recipes"] --> L
+  L --> T["To-do list in HA<br>and companion app"]
+  L --> B["Printed list<br>(receipt printer)"]
+```
 
 - **Minimum stock**: on categories (settings) you set a *Mindestmenge* (amount, e.g. 2 kg pasta of
   any brand) and/or a *Mindestanzahl* (packages). A product can have its own *Mindestanzahl* for
@@ -141,7 +176,16 @@ see the README, e.g. for a phone notification.
   servings and the optional ingredients you need. The missing amounts of all recipes are added up per
   category. The recipes are numbered 1, 2, 3 …; after each item, in smaller text, is which recipe needs how much ("1:300 g; 2:200 g"). A recipe stays on the
   list until you remove it: in the **Einkauf** tab under **Für Rezepte**, use the bin, e.g. after
-  cooking. Change servings or optional ingredients there with the pencil. Amounts in recipe units such as EL, Tasse or Prise are converted when the unit fits the category: ml for volume, g for weight (3 EL oil → 45 ml); otherwise, if nothing of it is in stock, the base unit is used (2 EL capers → 30 ml); only Scheibe stays as written ("2 Scheiben"). An ingredient without an amount counts as 1 package.
+  cooking. Change servings or optional ingredients there with the pencil.
+
+  Amounts in recipe units such as EL, Tasse or Prise are converted like this:
+
+  | Case | Result | Example |
+  |---|---|---|
+  | unit fits the category | ml for volume, g for weight | 3 EL oil → 45 ml |
+  | does not fit, nothing of it in stock | the unit's base unit | 2 EL capers → 30 ml |
+  | Scheibe (slice) | stays as written | 2 Scheiben |
+  | no amount | 1 package | salt → 1 Pkg. |
 
 Ticking strikes an item through. A minimum stock item comes back by itself when the missing amount
 changes, e.g. after buying only part of it.
@@ -177,8 +221,9 @@ Canning recipes are not listed here; they are in the **Einkochen** (canning) tab
    arrows move a step, the cross removes it. **Zwischenüberschrift hinzufügen** (add heading) splits
    the recipe into parts (e.g. "Teig", "Füllung"); numbering runs on.
 
-Older recipes still have a single instructions text. The next time you edit one, the dialog shows
-it split into steps at blank lines; saving turns it into the step list.
+> [!NOTE]
+> Older recipes still have a single instructions text. The next time you edit one, the dialog shows
+> it split into steps at blank lines; saving turns it into the step list.
 
 **Drucken** (print): with a receipt printer this button in an open recipe prints name, servings,
 the ingredients to tick off (amounts for the shown servings) and the numbered steps. It only shows
@@ -188,10 +233,26 @@ when a receipt printer is set up.
 servings) and the steps full screen. A tap ticks a step off (not saved). A step that mentions a time
 ("20 Minuten", "ca. 10–15 Min.", "eine halbe Stunde") gets a timer button; a range uses its upper
 value. Several timers can run at once and are listed at the bottom; a finished one beeps, vibrates
-and turns red. The screen stays on while the cook mode is open (if the browser allows it). Timers
-only run in this browser window: closing asks first and ends them.
+and turns red. The screen stays on while the cook mode is open (if the browser allows it).
 
-Units marked *Nur für Rezepte* (recipe only, e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb: Prise and Messerspitze 0.5 g, Zehe 0.1 piece (the shopping list rounds up: 3 Zehen → 1 Knoblauch), Handvoll 30 g, Tropfen 0.05 ml, Spritzer 1 ml, Schuss 20 ml, Zweig and Stiel 0.1 Bund. Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). A unit created by a recipe import starts as recipe-only.
+> [!WARNING]
+> Timers only run in this browser window. Closing asks first and ends them.
+
+Units marked *Nur für Rezepte* (recipe only, e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb:
+
+| Unit | Size |
+|---|---|
+| Tasse (cup) | 250 ml |
+| Prise, Messerspitze (pinch) | 0.5 g |
+| Zehe (clove) | 0.1 piece (the shopping list rounds up: 3 Zehen → 1 Knoblauch) |
+| Handvoll (handful) | 30 g |
+| Tropfen (drop) | 0.05 ml |
+| Spritzer (dash) | 1 ml |
+| Schuss (splash) | 20 ml |
+| Zweig, Stiel (sprig, stalk) | 0.1 Bund (bunch) |
+| Scheibe (slice) | no size, stays as written on the shopping list ("2 Scheiben") |
+
+A unit created by a recipe import starts as recipe-only.
 
 **Importieren** (import): paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Home Inventory
 reads the page's recipe data and opens the recipe dialog prefilled, with the page's steps (a single
@@ -220,7 +281,8 @@ suggested while booking in.
 2. *Settings > Devices & services > Home Inventory > Configure > KI-Prüfung von Rezeptimporten*: pick the
    AI Task. Empty = no AI.
 
-Each import sends the recipe and the food category tree to the AI (about 10,000 tokens).
+> [!IMPORTANT]
+> Each import sends the recipe and the food category tree to the chosen AI (about 10,000 tokens).
 
 Ingredient status: *vorhanden* (in stock), *teilweise* (partly), *fehlt* (missing), *Menge
 unbekannt* (products without content), *keine Zutat zugeordnet* (not matched), *nicht geprüft* (not
@@ -280,7 +342,9 @@ temperature and duration.
    label per jar.
 
 **Edit a protocol**: the pencil changes only the recipe, temperature, duration, notes and **Haltbar bis**.
-Made-on date, product and jars stay, since the labels carry them.
+
+> [!NOTE]
+> Made-on date, product and jars stay, since the labels carry them.
 
 **Rezepte** (view in the **Einkochen** tab) lists only canning recipes, with the same list, search, import
 and editing as the recipe list. **Einkochrezept anlegen** (add canning recipe) opens the recipe dialog:
@@ -342,7 +406,18 @@ Home Inventory comes with these main categories (existing installations get the 
   Fleisch & Wurst): shelf life 365 days, warning 30 days.
 
 **Inheritance**: unit, default location, date type, expiry warning and shelf life apply to everything below
-until a lower level or the product sets its own. Inherited values are grey with their source
+until a lower level or the product sets its own. An example:
+
+```mermaid
+flowchart TD
+  S["Defaults<br>location: pantry cupboard, warning: 3 days"] --> H
+  H["Main category: Milchprodukte & Eier<br>location: fridge"] --> K
+  K["Category: Joghurt<br>warning: 7 days"] --> P
+  P["Product type: Naturjoghurt<br>(nothing of its own)"] --> X
+  X["Product: Naturjoghurt 3.5 %<br>fridge (inherited), 7 days (inherited)"]
+```
+
+Inherited values are grey with their source
 ("Geerbt: 7 Tage (von Milchprodukte)"). **Zurücksetzen** removes an own value, then the inherited
 one applies again. Minimum stock is not inherited.
 
@@ -356,18 +431,44 @@ stock, recipe ingredients …). A location with stock asks where its packages sh
 
 ## 10. Tips and FAQ
 
-- **What does a field mean?** Labels with a dotted underline explain themselves when you hover the
-  mouse over them; icon buttons name their action the same way. Phones show no tooltips, which is
-  what this guide is for.
-- **The camera does not start.** Camera scanning needs HTTPS (or `localhost`) and camera permission
-  in the browser or app.
-- **Unknown barcode.** Not every product is in Open Food Facts. Create it with **Neues Produkt**;
-  the next scan knows it.
-- **Who may do what?** All users book, edit products, keep the shopping list and recipes, and may
-  add product types and units. Settings, deleting products, deleting recipes and deleting canning
-  protocols are for admins.
-- **Booked wrongly?** Right after the booking use **Rückgängig**, otherwise fix the batch with the
-  pencil in Bestand.
-- **Automations**: for scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`,
-  `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the
-  shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see README).
+<details>
+<summary><b>What does a field mean?</b></summary>
+
+Labels with a dotted underline explain themselves when you hover the mouse over them; icon buttons name their action the same way. Phones show no tooltips, which is what this guide is for.
+
+</details>
+
+<details>
+<summary><b>The camera does not start.</b></summary>
+
+Camera scanning needs HTTPS (or `localhost`) and camera permission in the browser or app.
+
+</details>
+
+<details>
+<summary><b>Unknown barcode.</b></summary>
+
+Not every product is in Open Food Facts. Create it with **Neues Produkt**; the next scan knows it.
+
+</details>
+
+<details>
+<summary><b>Who may do what?</b></summary>
+
+All users book, edit products, keep the shopping list and recipes, and may add product types and units. Settings, deleting products, deleting recipes and deleting canning protocols are for admins.
+
+</details>
+
+<details>
+<summary><b>Booked wrongly?</b></summary>
+
+Right after the booking use **Rückgängig**, otherwise fix the batch with the pencil in Bestand.
+
+</details>
+
+<details>
+<summary><b>Automations</b></summary>
+
+For scanners on ESPHome, NFC tags, voice commands etc. there are the actions `pantry.book_in`, `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (recipe on the shopping list), `pantry.plan_meal` (plan a dish) and `pantry.canning` (canning protocol) (see README).
+
+</details>

@@ -1,5 +1,5 @@
-"""HA services for automations (scanners, NFC tags, ESPHome): book in/out by code, print labels,
-print the shopping list."""
+"""HA services for automations (scanners, NFC tags, ESPHome, voice): book in/out by code, print
+labels and the shopping list, a recipe on the shopping list, plan a dish, a canning protocol."""
 
 from __future__ import annotations
 
@@ -9,9 +9,10 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, SupportsResponse
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.util import dt as dt_util
 
 from . import inventory
-from .const import DOMAIN, MAX_LABELS
+from .const import CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS, DOMAIN, MAX_LABELS
 from .websocket_label import async_print_labels, async_print_shopping_list
 from .ws_common import db_of, translated
 from .ws_validate import ID, NAME, PACKAGES
@@ -37,6 +38,30 @@ BOOK_OUT = vol.Schema(
         vol.Optional("location"): _LOCATION,
     }
 )
+_DATE = vol.Any(None, "", cv.date)
+_SERVINGS = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
+# order = meal_plan.slot (0 breakfast … 4 snack)
+MEALS = ["breakfast", "lunch", "coffee", "dinner", "snack"]
+SHOP_RECIPE = vol.Schema({vol.Required("recipe"): NAME, vol.Optional("servings"): _SERVINGS})
+PLAN_MEAL = vol.Schema(
+    {
+        vol.Exclusive("recipe", "dish"): NAME,
+        vol.Exclusive("text", "dish"): vol.All(cv.string, vol.Length(min=1, max=200)),
+        vol.Optional("day"): _DATE,
+        vol.Optional("meal", default="dinner"): vol.In(MEALS),
+        vol.Optional("servings"): _SERVINGS,
+    }
+)
+CANNING = vol.Schema(
+    {
+        vol.Required("recipe"): NAME,
+        vol.Optional("jars"): vol.Any(None, "", _PACKAGES),
+        vol.Optional("made_on"): _DATE,
+        vol.Optional("expires_on"): _DATE,
+        vol.Optional("location"): _LOCATION,
+        vol.Optional("notes"): vol.Any(None, vol.All(cv.string, vol.Length(max=2000))),
+    }
+)
 PRINT_LABELS = vol.Schema(
     {
         vol.Required("batch_id"): vol.All(vol.Coerce(int), ID),
@@ -52,6 +77,11 @@ async def _run(hass: HomeAssistant, fn, *args) -> dict:
     db = db_of(hass)
     with translated(ServiceValidationError):
         return await db.run(fn, *args)
+
+
+def _household(hass: HomeAssistant) -> int:
+    entry = hass.config_entries.async_loaded_entries(DOMAIN)[0]
+    return entry.options.get(CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS)
 
 
 def async_register(hass: HomeAssistant) -> None:
@@ -82,11 +112,46 @@ def async_register(hass: HomeAssistant) -> None:
     async def print_shopping_list(call: ServiceCall) -> ServiceResponse:
         return await async_print_shopping_list(hass)
 
+    async def shop_recipe(call: ServiceCall) -> ServiceResponse:
+        servings = call.data.get("servings") or _household(hass)
+        return await _run(hass, inventory.shop_recipe_by_name, call.data["recipe"], servings)
+
+    async def plan_meal(call: ServiceCall) -> ServiceResponse:
+        d = call.data
+        if not (d.get("recipe") or d.get("text")):
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="dish_required")
+        fn = partial(
+            inventory.plan_meal_by_name,
+            d.get("day") or dt_util.now().date(),
+            MEALS.index(d["meal"]),
+            d.get("servings") or _household(hass),
+            recipe=d.get("recipe"),
+            text=d.get("text"),
+        )
+        return await _run(hass, fn)
+
+    async def canning(call: ServiceCall) -> ServiceResponse:
+        d = call.data
+        fn = partial(
+            inventory.canning_by_name,
+            d["recipe"],
+            d.get("made_on") or dt_util.now().date(),
+            jars=d.get("jars") or None,
+            location=d.get("location") or None,
+            expires_on=d.get("expires_on") or None,
+            notes=d.get("notes"),
+            user_id=call.context.user_id,
+        )
+        return await _run(hass, fn)
+
     for name, handler, schema in (
         ("book_in", book_in, BOOK_IN),
         ("book_out", book_out, BOOK_OUT),
         ("print_labels", print_labels, PRINT_LABELS),
         ("print_shopping_list", print_shopping_list, vol.Schema({})),
+        ("shop_recipe", shop_recipe, SHOP_RECIPE),
+        ("plan_meal", plan_meal, PLAN_MEAL),
+        ("canning", canning, CANNING),
     ):
         hass.services.async_register(
             DOMAIN, name, handler, schema, supports_response=SupportsResponse.OPTIONAL

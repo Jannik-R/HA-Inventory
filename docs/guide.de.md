@@ -313,5 +313,6 @@ Packungen.
   löschen und Einkochprotokolle löschen sind Admins vorbehalten.
 - **Falsch gebucht?** Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem
   Stift korrigieren.
-- **Automationen**: Für Scanner an ESPHome, NFC-Tags usw. gibt es die Dienste `pantry.book_in`,
-  `pantry.book_out` und `pantry.print_labels` (siehe README).
+- **Automationen**: Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es die Aktionen `pantry.book_in`,
+  `pantry.book_out`, `pantry.print_labels`, `pantry.print_shopping_list`, `pantry.shop_recipe` (Rezept auf die
+  Einkaufsliste), `pantry.plan_meal` (Gericht planen) und `pantry.canning` (Einkochprotokoll) (siehe README).

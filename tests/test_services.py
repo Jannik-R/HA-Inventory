@@ -1,5 +1,7 @@
-"""Services: booking by code and location name, label printing (label.send is always patched)."""
+"""Services: booking by code and location name, recipes by name (shopping list, meal plan, canning),
+label printing (label.send is always patched)."""
 
+from datetime import date
 from functools import partial
 from unittest.mock import AsyncMock, patch
 
@@ -42,6 +44,51 @@ def test_book_in_and_out_by_code(conn):
         assert err.value.translation_key == key
 
 
+def test_recipes_by_name(conn):
+    dish = inv.save_recipe(conn, {"name": "Lasagne", "servings": 4, "ingredients": []})
+    cat = conn.execute("SELECT id FROM category WHERE name = 'Marmelade & Gelee'").fetchone()[0]
+    jam = inv.save_recipe(
+        conn,
+        {
+            "name": "Erdbeermarmelade",
+            "servings": 5,
+            "canning_product": {"name": "Erdbeermarmelade", "category_id": cat},
+            "canning_temp": 80,
+            "canning_minutes": 10,
+            "ingredients": [],
+        },
+    )
+    assert inv.shop_recipe_by_name(conn, " lasagne ", 3) == {"recipe_id": dish}
+    assert tuple(conn.execute("SELECT recipe_id, servings FROM shopping_recipe").fetchone()) == (
+        dish,
+        3,
+    )
+
+    inv.plan_meal_by_name(conn, date(2026, 10, 19), 3, 2, recipe="LASAGNE")
+    inv.plan_meal_by_name(conn, date(2026, 10, 19), 0, 2, text="Müsli")
+    plan = inv.meals(conn, "2026-10-19", "2026-10-20")
+    assert {(m["slot"], m["recipe_id"], m["name"]) for m in plan} == {
+        (3, dish, "Lasagne"),
+        (0, None, "Müsli"),
+    }
+
+    # the canning recipe sets product, jars, temperature, minutes; shelf life 365 days
+    res = inv.canning_by_name(conn, "erdbeermarmelade", date(2026, 10, 18))
+    (row,) = inv.cannings(conn)
+    assert res["charge"] == "20261018-1"
+    assert (row["recipe_id"], row["jars"], row["temp"], row["minutes"]) == (jam, 5, 80, 10)
+    assert row["expires_on"] == "2027-10-18"
+    assert conn.execute("SELECT source FROM booking").fetchone()[0] == "service"
+
+    for call in (
+        lambda: inv.shop_recipe_by_name(conn, "Erdbeermarmelade", 2),  # canning recipe: no dish
+        lambda: inv.plan_meal_by_name(conn, date(2026, 10, 19), 3, 2, recipe="Pizza"),
+        lambda: inv.canning_by_name(conn, "Lasagne", date(2026, 10, 18)),  # no canning recipe
+    ):
+        with pytest.raises(InventoryError, match="recipe_unknown"):
+            call()
+
+
 @pytest.fixture
 async def entry(hass: HomeAssistant) -> MockConfigEntry:
     assert await async_setup_component(hass, "http", {})
@@ -70,6 +117,20 @@ async def test_services(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     with pytest.raises(ServiceValidationError) as err:
         await call(hass, "book_out", code="12345678")
     assert err.value.translation_key == "product_unknown"
+
+    # Recipes by name; servings default to the household size
+    recipe = {"name": "Lasagne", "servings": 4, "ingredients": []}
+    await entry.runtime_data.run(inv.save_recipe, recipe)
+    await call(hass, "shop_recipe", recipe="Lasagne")
+    planned = await call(hass, "plan_meal", text="Pizza", day="2026-10-19", meal="lunch")
+    rows = await entry.runtime_data.run(inv.meals, "2026-10-19", "2026-10-20")
+    assert [(m["id"], m["slot"], m["servings"]) for m in rows] == [(planned["meal_id"], 1, 3)]
+    with pytest.raises(ServiceValidationError) as err:
+        await call(hass, "plan_meal")
+    assert err.value.translation_key == "dish_required"
+    with pytest.raises(ServiceValidationError) as err:
+        await call(hass, "canning", recipe="Lasagne")
+    assert err.value.translation_key == "recipe_unknown"
 
     # Browser-only setup: a service cannot print
     with pytest.raises(ServiceValidationError) as err:

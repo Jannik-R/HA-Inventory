@@ -97,6 +97,12 @@
     },
     "not_food": {
       "message": "Diese Kategorie ist kein Lebensmittel und kann keine Rezeptzutat sein."
+    },
+    "recipe_unknown": {
+      "message": "Kein Rezept namens „{name}“."
+    },
+    "dish_required": {
+      "message": "Rezept oder Text angeben."
     }
   },
   "options": {
@@ -221,6 +227,75 @@
     "print_shopping_list": {
       "name": "Einkaufszettel drucken",
       "description": "Die offenen Einträge der Einkaufsliste auf dem Bondrucker drucken."
+    },
+    "shop_recipe": {
+      "name": "Rezept auf die Einkaufsliste",
+      "description": "Ein Rezept auf die Einkaufsliste setzen: Fehlende Zutaten werden eingekauft. Steht es schon darauf, ändern sich seine Portionen.",
+      "fields": {
+        "recipe": {
+          "name": "Rezept",
+          "description": "Name des Rezepts (kein Einkochrezept)."
+        },
+        "servings": {
+          "name": "Portionen",
+          "description": "Leer = Haushaltsgröße (Einstellungen)."
+        }
+      }
+    },
+    "plan_meal": {
+      "name": "Gericht planen",
+      "description": "Ein Gericht in den Speiseplan eintragen: ein Rezept oder freier Text.",
+      "fields": {
+        "recipe": {
+          "name": "Rezept",
+          "description": "Name des Rezepts; oder stattdessen einen Text angeben."
+        },
+        "text": {
+          "name": "Text",
+          "description": "Freier Text statt Rezept, z. B. „Pizza vom Lieferdienst“."
+        },
+        "day": {
+          "name": "Tag",
+          "description": "Leer = heute."
+        },
+        "meal": {
+          "name": "Mahlzeit",
+          "description": "Standard: Abendessen."
+        },
+        "servings": {
+          "name": "Portionen",
+          "description": "Leer = Haushaltsgröße (Einstellungen)."
+        }
+      }
+    },
+    "canning": {
+      "name": "Einkochprotokoll",
+      "description": "Einen Einkochvorgang nach einem Einkochrezept erfassen: neue Charge, Gläser werden eingebucht. Gibt batch_id (für Etiketten drucken) und charge zurück.",
+      "fields": {
+        "recipe": {
+          "name": "Einkochrezept",
+          "description": "Name des Einkochrezepts; es legt Produkt, Temperatur und Minuten fest."
+        },
+        "jars": {
+          "name": "Gläser",
+          "description": "Leer = Ergebnis des Rezepts."
+        },
+        "made_on": {
+          "name": "Hergestellt am",
+          "description": "Leer = heute."
+        },
+        "expires_on": {
+          "name": "Haltbar bis",
+          "description": "Leer = Herstellungsdatum + Haltbarkeit."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Name des Lagerorts; leer = Standard-Lagerort des Produkts."
+        },
+        "notes": {
+          "name": "Notizen"
+        }
+      }
     }
   },
   "selector": {
@@ -228,6 +303,15 @@
       "options": {
         "browser": "Kein Drucker – Druck über den Browser",
         "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (Netzwerk über USB-Druckserver, Port 9100, oder USB)"
+      }
+    },
+    "meal": {
+      "options": {
+        "breakfast": "Frühstück",
+        "lunch": "Mittag",
+        "coffee": "Kaffee",
+        "dinner": "Abendessen",
+        "snack": "Snack"
       }
     }
   }

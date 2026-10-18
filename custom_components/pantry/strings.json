@@ -97,6 +97,12 @@
     },
     "not_food": {
       "message": "This category is not a food and cannot be a recipe ingredient."
+    },
+    "recipe_unknown": {
+      "message": "No recipe named “{name}”."
+    },
+    "dish_required": {
+      "message": "Give a recipe or a text."
     }
   },
   "options": {
@@ -221,6 +227,75 @@
     "print_shopping_list": {
       "name": "Print shopping list",
       "description": "Print the open shopping list items on the receipt printer."
+    },
+    "shop_recipe": {
+      "name": "Recipe on the shopping list",
+      "description": "Put a recipe on the shopping list: its missing ingredients are shopped for. Again for a recipe already on it: its servings change.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Name of the recipe (not a canning recipe)."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "Empty = household size (settings)."
+        }
+      }
+    },
+    "plan_meal": {
+      "name": "Plan a dish",
+      "description": "Add a dish to the meal plan: a recipe or free text.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Name of the recipe; or give a text instead."
+        },
+        "text": {
+          "name": "Text",
+          "description": "Free text instead of a recipe, e.g. “Pizza from the delivery service”."
+        },
+        "day": {
+          "name": "Day",
+          "description": "Empty = today."
+        },
+        "meal": {
+          "name": "Meal",
+          "description": "Default: dinner."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "Empty = household size (settings)."
+        }
+      }
+    },
+    "canning": {
+      "name": "Canning protocol",
+      "description": "Record a canning run from a canning recipe: a new charge with its jars booked in. Returns batch_id (for printing labels) and charge.",
+      "fields": {
+        "recipe": {
+          "name": "Canning recipe",
+          "description": "Name of the canning recipe; it sets product, temperature and minutes."
+        },
+        "jars": {
+          "name": "Jars",
+          "description": "Empty = the recipe's yield."
+        },
+        "made_on": {
+          "name": "Made on",
+          "description": "Empty = today."
+        },
+        "expires_on": {
+          "name": "Best before",
+          "description": "Empty = made-on date + shelf life."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Name of the location; empty = the product's default location."
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
     }
   },
   "selector": {
@@ -228,6 +303,15 @@
       "options": {
         "browser": "No printer - print via the browser",
         "dymo_lw4xx": "Dymo LabelWriter 450 / 4xx (network via a USB print server, port 9100, or USB)"
+      }
+    },
+    "meal": {
+      "options": {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "coffee": "Coffee",
+        "dinner": "Dinner",
+        "snack": "Snack"
       }
     }
   }

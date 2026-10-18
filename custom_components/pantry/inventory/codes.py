@@ -1,15 +1,19 @@
-"""Booking by barcode / label code and location name, for services and automations (no ids)."""
+"""Services and automations: booking by barcode / label code, recipes and locations by name (no ids)."""
 
 from __future__ import annotations
 
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 
 from .booking import book_in, book_out
+from .canning import save_canning
 from .common import InventoryError, id_by_name
+from .inherit import effective
 from .labels import book_out_code
 from .master import list_rows
+from .meal_plan import save_meal
 from .products import find_ean
+from .shopping_recipes import set_shopping_recipe
 
 
 def _product(conn: sqlite3.Connection, ean: str) -> dict:
@@ -66,3 +70,64 @@ def book_out_by_code(
         user_id=user_id,
     )
     return {"taken": taken, "name": product["name"]}
+
+
+def _recipe(conn: sqlite3.Connection, name: str, canning: bool = False) -> sqlite3.Row:
+    """Dish recipe or (canning) canning recipe by name, ignoring case."""
+    rows = conn.execute(
+        "SELECT * FROM recipe WHERE (canning_product_id IS NOT NULL) = ? ORDER BY id", (canning,)
+    ).fetchall()
+    if (found := id_by_name(rows, name)) is None:
+        raise InventoryError("recipe_unknown", name=name)
+    return next(r for r in rows if r["id"] == found)
+
+
+def shop_recipe_by_name(conn: sqlite3.Connection, recipe: str, servings: int) -> dict:
+    """Put a recipe on the shopping list (again: its servings change, optional ones are dropped)."""
+    recipe_id = _recipe(conn, recipe)["id"]
+    set_shopping_recipe(conn, recipe_id, servings)
+    return {"recipe_id": recipe_id}
+
+
+def plan_meal_by_name(
+    conn: sqlite3.Connection,
+    day: date,
+    slot: int,
+    servings: int,
+    recipe: str | None = None,
+    text: str | None = None,
+) -> dict:
+    """Plan a recipe (by name) or free text."""
+    recipe_id = _recipe(conn, recipe)["id"] if recipe else None
+    data = {"day": day.isoformat(), "recipe_id": recipe_id, "text": text or "", "slot": slot}
+    return {"meal_id": save_meal(conn, data | {"servings": servings})}
+
+
+def canning_by_name(
+    conn: sqlite3.Connection,
+    recipe: str,
+    made_on: date,
+    jars: int | None = None,
+    location: str | None = None,
+    expires_on: date | None = None,
+    notes: str | None = None,
+    user_id: str | None = None,
+) -> dict:
+    """Protocol from a canning recipe: its product, jars (default: its yield), temperature and
+    minutes; best-before = made-on date + shelf life unless given. Returns {id, batch_id, charge}."""
+    r = _recipe(conn, recipe, canning=True)
+    if expires_on is None and (
+        days := effective(conn, r["canning_product_id"])["shelf_days"]["value"]
+    ):
+        expires_on = made_on + timedelta(days=days)
+    data = {
+        "made_on": made_on.isoformat(),
+        "jars": jars or r["servings"],
+        "recipe_id": r["id"],
+        "location_id": _location(conn, location),
+        "temp": r["canning_temp"],
+        "minutes": r["canning_minutes"],
+        "notes": notes,
+        "expires_on": expires_on.isoformat() if expires_on else None,
+    }
+    return save_canning(conn, data, user_id, "service")

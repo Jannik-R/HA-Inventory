@@ -17,7 +17,7 @@ Available:
 - Stock overview with search, take-out and batch correction
 - Expiry overview with a temporary "expiring soon" threshold; sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
-- Services for automations (hardware scanners, NFC tags, ESPHome): book in / out by barcode or label code, print labels
+- Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode or label code, print labels and the shopping list, a recipe on the shopping list, plan a dish, record a canning run
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
@@ -257,8 +257,8 @@ The receipt is printed as an image (umlauts and fonts work on every ESC/POS prin
 
 ### Services (automations)
 
-All four return a response (use `response_variable` in a script or automation). Errors (unknown
-barcode, unknown location, not enough stock, printer not reachable) make the action fail with a message.
+All return a response (use `response_variable` in a script or automation). Errors (unknown
+barcode, recipe or location, not enough stock, printer not reachable) make the action fail with a message.
 
 | Service | Fields | Response |
 |---|---|---|
@@ -266,12 +266,17 @@ barcode, unknown location, not enough stock, printer not reachable) make the act
 | `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
 | `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
 | `pantry.print_shopping_list` | none | `printed` (number of items) |
+| `pantry.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Portionen im Haushalt*) | `recipe_id` |
+| `pantry.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Portionen im Haushalt*) | `meal_id` |
+| `pantry.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
 - **print_labels** needs a label printer (see *Etiketten*); with *Kein Drucker* it fails,
   since a service has no browser to print from.
-- Location names are matched ignoring case. Bookings made by a service are logged with source `service`
+- **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
+- **canning** takes product, temperature and minutes from the canning recipe; print the jar labels with `print_labels` and the returned `batch_id`.
+- Location and recipe names are matched ignoring case. Bookings made by a service are logged with source `service`
   (label codes: `label`) and the calling user, if any.
 
 Example: book in with a scanner that sends the barcode as an event, then print one label per package:

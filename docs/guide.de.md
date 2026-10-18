@@ -8,7 +8,7 @@ die Einkaufsliste aus Mindestmengen. Diese Anleitung erklärt die Bedienung; Ins
 Technik stehen im [README](../README.md).
 
 Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs **Bestand**,
-**Einbuchen**, **Auslagern**, **Ablauf**, **Einkauf**, **Rezepte** und (nur für Admins)
+**Einbuchen**, **Auslagern**, **Ablauf**, **Einkauf**, **Rezepte**, **Speiseplan** und (nur für Admins)
 **Einstellungen**. Das Fragezeichen oben rechts öffnet diese Anleitung.
 
 ## Inhalt
@@ -20,6 +20,7 @@ Du findest Vorrat in der Seitenleiste von Home Assistant. Oben gibt es die Tabs 
 5. [Was läuft ab?](#5-was-läuft-ab)
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
+7a. [Speiseplan](#7a-speiseplan)
 8. [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)
 9. [Kategorien, Produktarten und Vererbung](#9-kategorien-produktarten-und-vererbung)
 10. [Tipps und häufige Fragen](#10-tipps-und-häufige-fragen)
@@ -141,7 +142,8 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“. Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, Anleitung, Quelle und Bild; **Portionen**
 rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept auf die Liste
-(siehe [Einkaufsliste](#6-einkaufsliste)).
+(siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
+[Speiseplan](#7a-speiseplan) ein (Datum: heute, Mahlzeit: Abendessen; im Dialog änderbar).
 
 **Rezept hinzufügen**:
 
@@ -162,6 +164,30 @@ unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst 
 
 Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produkte ohne Inhaltsangabe),
 *keine Zutat zugeordnet*, *nicht geprüft*.
+
+## 7a. Speiseplan
+
+**Speiseplan** zeigt den Plan als **Tag**, **Woche** oder **Monat** (Schaltflächen oben). **Zurück** und **Weiter** springen um einen Tag, eine Woche oder einen Monat, je nach Ansicht; **Heute** springt zum heutigen Datum. **Tag** zeigt immer heute.
+
+- **Woche**: Tabelle mit einer Zeile pro Mahlzeit und einer gleich breiten Spalte pro Tag. Auf dem Handy wird jeder Tag zu einem Block, der nur seine Gerichte zeigt, dazu ein **+**. Ein Tipp auf die Tagesüberschrift öffnet die Tagesansicht dieses Tags.
+- **Tag**: Liste nach Mahlzeit gruppiert, mit **+** je Mahlzeit.
+- **Monat**: Kalender mit einem kleinen Symbol je geplantem Gericht (der Name erscheint beim Darüberfahren oder langen Drücken). Ein Tipp auf einen Tag öffnet seine Tagesansicht.
+
+**Mahlzeit**: Jedes Gericht gehört zu einer Mahlzeit: Frühstück, Mittag, Kaffee, Abendessen oder Snack. Innerhalb eines Tages stehen die Gerichte nach Mahlzeit, dann in der Reihenfolge, in der sie angelegt wurden.
+
+**Gericht hinzufügen** (**+** bei der Mahlzeit):
+
+1. Ein Rezept aus der Namensliste wählen oder freien Text eintippen (z. B. „Pizza vom Lieferdienst“). Ein Rezept wird als Abendessen eingeplant, im Dialog änderbar.
+2. **Portionen** startet mit der Haushaltsgröße (siehe unten); ändern, wenn das Gericht für mehr oder weniger Leute ist.
+3. Speichern.
+
+Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog). Der Stift ändert ein Gericht, der Papierkorb löscht es. Wird ein Rezept gelöscht, bleiben seine Gerichte im Plan als freier Text; die Löschfrage listet sie auf.
+
+**Umplanen**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, um einen Tag nach hinten. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
+
+**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Pantry > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
+
+**Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
 ## 8. Etiketten und Bondrucker
 

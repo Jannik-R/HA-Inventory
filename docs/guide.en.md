@@ -12,7 +12,7 @@ The panel's interface is in German, so this guide names buttons and fields by th
 
 Pantry is in the Home Assistant sidebar as *Vorrat*. The tabs are **Bestand** (stock),
 **Einbuchen** (book in), **Auslagern** (book out), **Ablauf** (expiry), **Einkauf** (shopping),
-**Rezepte** (recipes) and, for admins only, **Einstellungen** (settings). The question mark at the
+**Rezepte** (recipes), **Speiseplan** (meal plan) and, for admins only, **Einstellungen** (settings). The question mark at the
 top right opens this guide.
 
 ## Contents
@@ -24,6 +24,7 @@ top right opens this guide.
 5. [What expires soon?](#5-what-expires-soon)
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
+7a. [Meal plan](#7a-meal-plan)
 8. [Labels and receipt printer](#8-labels-and-receipt-printer)
 9. [Categories, product types and inheritance](#9-categories-product-types-and-inheritance)
 10. [Tips and FAQ](#10-tips-and-faq)
@@ -142,7 +143,8 @@ set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 **Rezepte** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
 and ingredients. Opening a row shows the ingredients with their status, instructions, source and
 image; **Portionen** (servings) scales the amounts (display only). **Auf die Einkaufsliste** (put on
-the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)).
+the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)). **Einplanen** (plan) adds it to the
+[meal plan](#7a-meal-plan) with the shown servings (date: today, meal: Abendessen/dinner, both changeable in the dialog).
 
 **Rezept hinzufügen** (add recipe):
 
@@ -164,6 +166,30 @@ save. Each ingredient shows its original line; check the suggested product types
 Ingredient status: *vorhanden* (in stock), *teilweise* (partly), *fehlt* (missing), *Menge
 unbekannt* (products without content), *keine Zutat zugeordnet* (not matched), *nicht geprüft* (not
 checked).
+
+## 7a. Meal plan
+
+**Speiseplan** (meal plan) shows the plan as **Tag** (day), **Woche** (week) or **Monat** (month), buttons at the top. **Zurück** (previous) and **Weiter** (next) move by a day, a week or a month, depending on the view; **Heute** (today) jumps to today's date. **Tag** always shows today.
+
+- **Woche**: a table with one row per meal and one equal-width column per day. On a phone each day becomes a block that shows only its dishes, plus a **+**. Tapping a day heading opens that day.
+- **Tag**: a list grouped by meal, with a **+** per meal.
+- **Monat**: a calendar grid with a small icon per planned dish (the name appears on hover or long press). Tapping a day opens its day view.
+
+**Mahlzeit** (meal): every dish belongs to a meal: Frühstück (breakfast), Mittag (lunch), Kaffee (coffee), Abendessen (dinner) or Snack. Within a day, dishes are ordered by meal, then in the order they were added.
+
+**Gericht hinzufügen** (add dish, **+** at the meal):
+
+1. Pick a recipe from the list of names, or type free text (e.g. "Pizza from the delivery service"). A recipe is planned for Abendessen (dinner) by default; change it in the dialog if needed.
+2. **Portionen** (servings) starts with the household size (see below); change it if this dish is for more or fewer people.
+3. Save.
+
+Tapping the name opens the recipe (free text: the edit dialog). The pencil changes a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
+
+**Umplanen** (shift): the arrow icon on a dish moves that dish's meal on this day and on every directly following day that has the same meal planned, one day later. The shift stops at the first day without that meal (the gap). Other meals stay where they are. A confirmation lists every dish with its old and new date; only **Verschieben** (move) applies it.
+
+**Household size** (admins only): in *Settings > Devices & services > Pantry > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
+
+**Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
 ## 8. Labels and receipt printer
 

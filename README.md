@@ -4,7 +4,7 @@ Food inventory as a Home Assistant custom integration: book items in and out by 
 track batches with best-before / use-by dates per storage location, see what expires soon,
 and get a brand-independent shopping list from minimum stock levels.
 
-> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes, week planner). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -21,11 +21,12 @@ Available:
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
+- Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
 
 Planned:
 
 - Receipt printer for recipes
-- Week planner (also as HA calendar), shopping list from the plan, recipe suggestions for expiring items
+- Shopping list from the plan, recipe suggestions for expiring items
 - Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
@@ -100,7 +101,7 @@ items added by hand (minimum stock items stay until the stock is there).
 The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen". The search field (focused on
 open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
 their status, instructions, source link and image. *Portionen* in the open row scales the amounts;
-this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf).
+this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf); *Einplanen* adds it to the week plan with the shown servings.
 
 An ingredient is a *Produktart* (e.g. Tomatenmark) or a more general category (e.g. Nudeln; any product in it, including subcategories, counts), plus an optional *Hinweis* (e.g. "fein gewürfelt"), and has an
 optional amount with a unit, or none ("optional" ingredients and those marked *Nicht gegen den Vorrat prüfen*, e.g. Salz or Wasser, are not counted in the summary; the latter show "nicht geprüft" instead of a status and are never put on a shopping list).
@@ -121,6 +122,12 @@ Every unit select in a recipe ingredient row has *Neue Einheit …*: any user ca
 Imported ingredient lines are read in German: fractions (½, 1/2), ranges take the upper value (2-3 becomes 3), "Zehe/n", units by name, symbol or plural, an amount without unit is Stück, text after a comma or in brackets becomes the *Hinweis* (also "1 TL, gestr. Salz" and "Mehl für die Form"), Eigelb / Eiweiß count as Ei with the part as *Hinweis*, "n. B." / "nach Belieben" means no amount, "evtl." means optional.
 
 Lines without an amount like "Salz und Pfeffer" become one ingredient each; a size word (klein, groß, mittel) goes into the note. An unknown unit (e.g. "1 ½ Tassen Mehl") shows *Einheit „Tasse“ ist unbekannt* on that row: create it with *Anlegen* (the name is editable) or pick an existing unit. Saving stays blocked until every such row is decided.
+
+### Speiseplan (week planner)
+
+The tab has three views, *Tag* (day), *Woche* (week) and *Monat* (month), with prev / *Heute* / next moving by day, week or month. Every dish has a meal: Frühstück, Mittag, Kaffee, Abendessen or Snack. *Woche* is a table with one row per meal and one equal-width column per day (on a phone: one block per day); *Tag* lists the dishes grouped by meal; *Monat* shows a small icon per dish. A dish is a recipe picked from the list of recipe names, or free text (e.g. "Pizza from the delivery service"); a recipe is planned for Abendessen by default. Its servings default to the household size (see Settings). The arrow icon on a dish *shifts* its meal: that day and each directly following day with the same meal move one day later, up to the first gap; a confirmation lists the changes first. The pencil edits a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
+
+The plan is also a read-only calendar entity *Speiseplan* in Home Assistant: each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"), the description shows its servings, and the next event looks 7 days ahead.
 
 ### Sensors
 
@@ -284,6 +291,7 @@ actions:
 - **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). Units marked *Nur für Rezepte* (the recipe units EL, TL, Tasse, Prise …) are offered only in recipe ingredients; a unit with a size (EL = 15 ml, TL = 5 ml, Tasse = 250 ml, Prise and Messerspitze = 0.5 g, Zehe = 0.1 Stück, Handvoll = 30 g, Tropfen = 0.05 ml, Spritzer = 1 ml, Schuss = 20 ml, Zweig and Stiel = 0.1 Bund; rules of thumb) also shows its amount in recipes ("3 EL (≈ 45 ml)"), and shopping converts it when its base unit fits the category (ml for volume, g for weight). Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). Zweig and Stiel are 0.1 Bund each (3 Zweige Rosmarin → 1 Bund). Shopping rounds Zehe up: 3 Zehen = 1 Knoblauch. A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
   location, date type, warning days; initially Packung, none, best before, 7 days).
+- **Haushalt** (household, Home Assistant options): *Portionen im Haushalt* (1 to 99, default 3) is the servings default for new dishes in the week plan. Set it in *Configure* of the integration, step *Haushalt* (menu *Einstellungen*).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
 - **Deleting something that is still in use** works too. Before asking, the integration runs the
   delete as a dry run (rolled back) and lists everything it would remove or change, grouped (e.g.

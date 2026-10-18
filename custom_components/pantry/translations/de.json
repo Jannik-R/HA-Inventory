@@ -17,6 +17,9 @@
     },
     "todo": {
       "shopping": { "name": "Einkaufsliste" }
+    },
+    "calendar": {
+      "meal_plan": { "name": "Speiseplan" }
     }
   },
   "exceptions": {
@@ -96,11 +99,12 @@
   "options": {
     "step": {
       "init": {
-        "title": "Drucker",
-        "description": "Welchen Drucker möchtest du einrichten?",
+        "title": "Einstellungen",
+        "description": "Was möchtest du einrichten?",
         "menu_options": {
           "label_model": "Etikettendrucker",
-          "receipt": "Bondrucker (Einkaufszettel)"
+          "receipt": "Bondrucker (Einkaufszettel)",
+          "household": "Haushalt"
         }
       },
       "label_model": {
@@ -123,6 +127,15 @@
         "data_description": {
           "label_printer_host": "Netzwerk: Adresse des Druckservers (Port {port}, wenn nur der Host angegeben wird). USB am Home-Assistant-Host: der Gerätepfad, z. B. /dev/usb/lp0 (bei Docker mit devices: durchreichen).",
           "test_print": "Sendet beim Speichern ein Testetikett an den Drucker."
+        }
+      },
+      "household": {
+        "title": "Haushalt",
+        "data": {
+          "household_servings": "Portionen im Haushalt"
+        },
+        "data_description": {
+          "household_servings": "Portionen, die der Haushalt standardmäßig kocht."
         }
       },
       "receipt": {

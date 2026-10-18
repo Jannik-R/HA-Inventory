@@ -398,6 +398,20 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task`, reusing `ai.py` / `ai_check.py` from phase 13c |
 | 20 | User feedback with AI evaluation | open | users send feedback from the panel (text, view it came from, optional screenshot); `feedback` table; the AI interface (phase 19) groups and summarizes it into issues / plan items; admin view to review and close entries |
 | 21 | Modules | done | options `modules` (`const.MODULES`: shopping, recipes, plan, canning; unset = all), chosen in the config flow user step and the options step *Module*; `OptionsFlowWithReload` reloads the entry on save. Panel gets the list as `panel.config.modules` (`frontend/src/modules.ts` `hasModule`) and hides tabs, recipe buttons (to shopping list / to plan) and the settings section *Mahlzeiten*. `coordinator.module_off`: todo (shopping) / calendar (plan) add no entity and drop it from the registry. Core (stock, booking, expiry, settings, sensors) always on. Data, websocket commands and services are not gated |
+| 22 | Stocktaking | open | *Inventur* mode per location: scan everything there, then the differences (missing / too many per batch) become correction bookings after one confirm |
+| 23 | Location labels | open | QR `PTRY:L<id>` per location (shelf, compartment), printed with the existing label printing; scanning it in the booking field sets the location for the following bookings |
+| 24 | HA events | open | fire `pantry_booked`, `pantry_below_min`, `pantry_expired` on the HA event bus (after the DB write), so automations react without watching sensors |
+| 25 | Blueprints | open | automation blueprints shipped in the repo: daily expiry notification, NFC tag books out a product, print the shopping list when leaving home |
+| 26 | Dashboard card | open | small Lovelace card for a kitchen tablet: expiring soon, missing on the shopping list, today in the meal plan; data from the existing websocket commands |
+| 27 | Emergency stock check | open | compare stock with the BBK checklist (10 days, persons from `household_servings`): what is missing, supply in days; checklist mapped to categories |
+| 28 | Cooked books out | open | button *Gekocht* in recipe / cook mode proposes book-outs of the ingredients (FEFO, scaled servings), one confirm books them all; replaces the extension point "book out by cooking" |
+| 29 | Leftovers as a charge | open | cooked leftovers (fridge / freezer) saved like a canning protocol: own charge with date, shelf life and label |
+| 30 | Allergens and diet | open | allergens and vegan / vegetarian from OFF (product) or inherited on the category; filter recipes by them |
+| 31 | Recipe export | open | recipe as schema.org `Recipe` JSON-LD (import into Mealie, Tandoor, back into this app) and a print / PDF view |
+| 32 | Shop order | open | main categories in aisle order per shop; shopping list and receipt sorted by it |
+| 33 | CSV import / export | open | stock and master data as CSV; import from Grocy as a migration aid |
+| 34 | Product images | open | small product image from OFF (URL only, no download) in stock and booking |
+| 35 | Booking history | open | history view of `booking` (already stores `user_id`): who booked what and when, filter by product / user |
 
 Order decided 2026-10-16. Data model details are designed (agent `architect`) at the start of each phase.
 
@@ -415,6 +429,6 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 | Best-before date from the camera (read the printed date when booking in) | `expires_on` field and the camera scanner of the booking form; on-device OCR or the AI interface (phase 19) |
 | Manual order within a slot | `meal_plan` rows in id order within a slot; add `sort` when needed |
 | Editing the plan from the HA calendar | read-only `calendar.py`; add `CREATE_EVENT` etc. with free-text entries |
-| Remaining amount of opened packages / book out by cooking | phase 18 marks opened packages only; cooking does not book out (manual booking) |
+| Remaining amount of opened packages | phase 18 marks opened packages only; book out by cooking is phase 28 |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

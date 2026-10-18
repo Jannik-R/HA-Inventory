@@ -1,6 +1,6 @@
 # Implementation Plan
 
-Food inventory ("Vorrat") as a Home Assistant **custom integration** (no add-on).
+Household inventory ("Vorrat": food, but also batteries, household goods, medicine, home-canned jars) as a Home Assistant **custom integration** (no add-on).
 Everything runs inside the HA process; UI is a sidebar panel.
 
 ## 1. Architecture
@@ -59,18 +59,20 @@ unit       (id, name UNIQUE, symbol, base_unit_id NULL → unit, factor > 0,
            -- seeded: Stück, Packung, g, kg (=1000 g), ml, l (=1000 ml); user can add (Dose, Glas, Bund ...)
 location   (id, name UNIQUE, sort, active 0|1)   -- never deleted: "delete" deactivates (must be empty),
            -- so bookings keep a valid FK; adding the same name again reactivates it
-defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days)
+defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days, shelf_days NULL)
            -- one row: root of inheritance, editable in Einstellungen › Standards
 category   (id, parent_id NULL → category, name, sort,
-            unit_id, default_location_id, expiry_type, warn_days,   -- inheritable, NULL = inherit
+            unit_id, default_location_id, expiry_type, warn_days, shelf_days,   -- inheritable, NULL = inherit
+            food NULL 0|1,                                           -- 0 = not a food: no recipe ingredient; NULL = inherit, root = food (migration 15)
             min_stock NULL, min_stock_amount_id NULL → unit,           -- amount with its own unit (both or none, CHECK); NOT inherited
             min_packages NULL)                                       -- package count (> 0); NOT inherited (migration 4)
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
-            default_location_id, expiry_type, warn_days,              -- overrides, NULL = inherit
+            default_location_id, expiry_type, warn_days, shelf_days,  -- overrides, NULL = inherit
             image_url, off_json, updated_at,
             min_packages NULL)                                        -- own minimum in packages (migration 11)
-batch      (id, product_id, expires_on DATE, created_at, UNIQUE(product_id, expires_on))
+batch      (id, product_id, expires_on DATE, created_at, canning_id NULL UNIQUE → canning (cascade))
+           -- unique (product_id, expires_on, canning_id) (expression index, migration 15): a canning charge is its own batch
            -- date type is a product property (own or inherited), never per batch (migration 2)
            -- at most one batch without a date per product (partial unique index, migration 6)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
@@ -81,7 +83,11 @@ shopping_item (id, product_id UNIQUE NULL → product, category_id UNIQUE NULL �
 shopping_recipe (recipe_id PK → recipe (cascade), servings > 0)   -- recipe on the shopping list, servings to buy for (migration 12)
 shopping_recipe_optional (recipe_id → shopping_recipe (cascade), ingredient_id → recipe_ingredient (cascade), PK both)   -- optional ingredients chosen for it
 shopping_done_recipe (uid PK, missing)   -- checked recipe item, uid `r<category id>-<base unit id or empty>`, like shopping_done (migration 12)
-recipe     (id, name, servings > 0, instructions, source_url, image_url)   -- migration 7
+recipe     (id, name, servings > 0, instructions, source_url, image_url,   -- migration 7
+            canning_product_id NULL → product (cascade),   -- set: a canning recipe that makes this product (migration 15)
+            canning_temp NULL, canning_minutes NULL)   -- both or none, only on a canning recipe
+canning    (id, made_on DATE, seq > 0, product_id → product (cascade), recipe_id NULL → recipe (set null),
+            jars > 0, temp NULL, minutes NULL, notes, UNIQUE(made_on, seq))   -- canning protocol; charge = YYYYMMDD-seq (migration 15)
 recipe_ingredient (id, recipe_id → recipe (cascade), category_id NULL → category (set null: text stays,
             ingredient unmatched), amount > 0, unit_id → unit, text, note, optional 0|1, skip_stock 0|1)
             -- skip_stock (migration 10): never checked against the stock, status "skipped", not in the summary,
@@ -187,9 +193,17 @@ properties (location, warn days) differ and inherit nicely.
 | Süßes & Snacks | Schokolade, Kekse, Chips, Nüsse | |
 | Getränke | Wasser, Saft, Kaffee, Tee | unit l |
 | Tiefkühlkost | Gemüse TK, Fleisch & Fisch TK, Pizza, Eis | location Gefrierschrank, warn 30 d |
-| Haushalt & Drogerie (optional) | Spülmittel, Papier | no expiry tracking (batches without date; booking form hint: leave the date empty) |
+| Haushalt & Drogerie | Spülmittel, Papier | not a food; no expiry tracking (batches without date) |
+| Haustechnik | Batterien (AA, AAA, C, D, 9V, Knopfzellen), Akkus, Leuchtmittel (by socket: E27, E14, GU10, GU5.3, G9, G4, R7s) | not a food, warn 90 d; migration 16 moves the old type *Batterien* from *Spülmittel* here (it becomes the category) and deletes the old type *Glühbirnen* when unused (else it moves to *Leuchtmittel*) |
+| Hausapotheke | Schmerzmittel, Erkältung, Verbandsmaterial | not a food, warn 30 d |
+| Tierbedarf | Tierfutter, Katzenstreu | not a food |
+| Eingekochtes | Obst & Kompott, Marmelade & Gelee, Gemüse & Eingelegtes, Soßen & Suppen, Fleisch & Wurst | shelf life 365 d, warn 30 d |
 
-Global defaults (integration options): warn 7 days, best-before, unit Stück.
+*Haushalt & Drogerie*, *Haustechnik*, *Hausapotheke* and *Tierbedarf* are
+marked "kein Lebensmittel" (`food` 0); migration 15 adds them to existing DBs (only roots whose name
+does not exist yet) and marks *Haushalt & Drogerie*.
+
+Global defaults (integration options): warn 7 days, best-before, unit Stück, no shelf life.
 
 ## 3. Core flows
 
@@ -221,6 +235,44 @@ product needs a category); update = check mark only; delete = items by hand only
 come from the stock). Todo uids: `c<category id>` (min stock), `p<product id>` (product minimum), `m<item id>` (by hand), `r<category id>-<base unit id or empty>` (recipe, base unit = the group's stable key; a stale key raises `not_found`). Documented shortcuts: renaming a chosen optional ingredient loses the choice (matched by text); the egg rule (yolk/white rows) applies per recipe in the refs but across all recipes in the item total (refs may sum to more); availability applies it per recipe too (yolk/white rows report whole eggs + max(yolks, whites)). Migration 13 skips units already used (content, category, min stock, defaults) and its unit lists are frozen.
 
 **Items from recipes** (`shopping_recipe`, migration 12): each recipe on the list with its servings and chosen optional ingredients. Demand per ingredient = amount × servings / recipe servings. Left out: `skip_stock` ingredients, unmatched ones, optional ones not chosen. Demand is summed per category and unit group; units are converted into the first one, non-convertible units give separate items. Egg rows (note Eigelb / Eiweiß, count unit) count as whole eggs + max(yolks, whites). Have = stock of the category subtree in that unit (unknown content → `unknown_products`, as for min stock). Missing = demand − have, not rounded to packages; count units round up. An ingredient without amount counts as one package ("1 Pkg."). Recipe-only amounts become their base unit (EL → ml) when that fits the category's unit, else (nothing in stock) the base unit of a sized unit, or Scheibe as written (see Recipe-only units). Recipe items do not depend on min stock (no reservation). Source = `recipes: [{no, name, amount}]` on the item; `no` is the number `shopping_recipes` returns (shown in *Für Rezepte*). Panel shows amounts in small text, the receipt leaves references and 'fehlen' out (`summary(short=True)`), the todo entity names the recipes. Checks as for min stock (`shopping_done_recipe`, holds while the shortage is unchanged). A recipe stays until removed by hand, or deleted (cascade). Shortcuts (to upgrade later): demand is flat per category, so overlapping categories (Nudeln vs. Spaghetti) are not netted; recipe demand is not reserved against min stock. Calculation in `inventory/shopping_recipes.py`.
+
+**Not a food** (`category.food`, inherited down the tree like the other category values): such a
+category and its subtree are never offered as recipe ingredients (picker, import suggestion) and the
+backend refuses them (`not_food`). Everything else (stock, expiry, min stock, shopping list) works the same.
+
+**Shelf life** (how the expiry date is defined):
+- The expiry *type* stays a product property: best before, use by, or none (batteries without a date,
+  household goods).
+- The *date* comes from the package when it is printed (bought goods: typed or, later, read by the camera).
+- For things without a printed date (home-canned, home-frozen, bulk goods) the inheritable
+  `shelf_days` gives it: booking in proposes today + shelf life, a canning protocol made-on date + shelf
+  life. Always a proposal, the field stays editable. No shelf life = no proposal (default).
+- Opened packages (phase 18) will shorten it again (`haltbar nach Anbruch`).
+
+**Canning** (tab *Einkochen*):
+- **Process instruction** = a canning recipe: a recipe with `canning_product_id`, the product it
+  always makes; servings are the jars it yields; optional `canning_temp` (°C) and `canning_minutes`.
+  Ingredients, availability, import, shopping list work as for any recipe; the instructions hold the
+  steps. Managed in *Einkochen › Rezepte* (the same list element with `canning` set); never in the
+  *Rezepte* tab or the meal plan. Deleting the product deletes its canning recipes (cascade, listed
+  by the dry run).
+- **Protocol** (`canning`): made on (default today), optional canning recipe (fixes the product, prefills
+  jars, temperature and minutes; the backend takes the recipe's product), else a product (existing, or a
+  new one with a category, created in the same transaction), jars,
+  location, best before (made on + shelf life), temperature, minutes, notes (e.g. jars that did not seal).
+- **Charge**: saving a protocol creates it automatically: `YYYYMMDD-<n>`, n = next number of that
+  made-on day (`seq`). The charge is its own batch (`batch.canning_id`); the jars are booked in there
+  (booking `in`, source `manual`). Booking in the same product by hand never merges into a charge.
+- **Labels**: as for any batch (label dialog opens after saving, count = jars); the label shows the
+  charge in the brand line, the QR code is `PTRY:<key>:<date>:<charge>`, so a scan books out a jar of
+  exactly that charge. Old codes without a charge still work.
+- **Edit**: recipe, temperature, minutes, notes and best before (moves the whole charge; editing the date
+  of a charge's stock row does the same). Made on, product and jars stay (the labels carry them); fix
+  the stock with the usual stock edit. **Delete** (admin, dry run like master data): the protocol with
+  its batch, stock and bookings.
+- **Without a protocol**: already canned jars are booked in like any product (category *Eingekochtes*,
+  date proposed from the shelf life); no charge.
+- Cooking or canning never books out ingredients (as for recipes).
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
@@ -335,6 +387,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 11 | Recipe import | done | `recipe_fetch.py`: page fetch via HA's session, on user click only (15 s timeout, max 5 MB, HTML only, http/https; no private-IP block, so LAN servers like Mealie/Tandoor work; any user). `inventory/recipe_import.py`: schema.org `Recipe` JSON-LD → draft, nothing saved; the recipe dialog confirms it (product type/category suggested, must be checked). `inventory/ingredient_line.py`: German line parser (fractions ½ / 1/2, ranges take the upper value, Chefkoch "Zehe/n" and "Zwiebel(n)" (suffix dropped), leading size word (klein, groß, mittel…) → note, units by name/symbol/plural/alias, amount without unit → Stück, comma/bracket text → note, "n. B."/"nach Belieben" → no amount, "evtl." → optional, qualifier after the unit ("1 TL, gestr. Salz") and a trailing "für/zum/zur …" clause → note, eggs: Eigelb/Eiweiß/Eidotter/Eiklar → text "Ei" (egg category) with note Eigelb/Eiweiß, aliases (Tüte, Stängel, Fläschchen), no amount + "und"/"&" → one ingredient per part), unit matching and dedupe (spelling variants reuse one unit), `unit_add`. Unknown unit (capitalized word between amount and name, unless the category suggestion knows it as an ingredient or a product type starts with it: "2 Zwiebeln rot", "3 Pak Choi" stay 2/3 Stück): the row asks to create it (prefilled) or pick one; save blocked until decided. Commands `pantry/recipe_import`, `pantry/unit_add` in `websocket_recipe.py`; panel `recipe-import.ts`, `unit-add-dialog.ts`. No schema change. Image `@id` references in `@graph` are resolved. Pages without JSON-LD: error. Instagram/free text: phase 19 |
 | 12 | Shopping by recipes | done | migration 12 (`shopping_recipe`, `shopping_recipe_optional`, `shopping_done_recipe`); `inventory/shopping_recipes.py`; `websocket_recipe.py` (`pantry/shopping_recipes`, `shopping_recipe_set`, `shopping_recipe_remove`, `shopping_recipe_done`); panel: *Auf die Einkaufsliste* in the recipe, block *Für Rezepte* on *Einkauf*. Shortcuts: demand flat per category (overlapping categories not netted), no reservation against min stock. Pick recipes + servings → missing amounts (demand − stock per category) → items on the shopping list (same todo entity), source shown as recipe numbers with amounts; ingredients with `skip_stock` never go on the list. Egg parts: ingredient rows on the egg product type with note Eigelb/Eiweiß are summed as eggs = whole eggs + max(yolks, whites) (1 Eigelb + 1 Eiweiß = 1 Ei). Offers (supermarket discounts) deferred: see 7. Recipe-only units (migration 13, `unit.recipe_only`): sections 2 and 3. Details: "Items from recipes" in section 3 |
 | 13 | Week planner | done | migration 14 `meal_plan` (`slot` 0..4: Frühstück, Mittag, Kaffee, Abendessen, Snack; order within a day: slot, then id); `inventory/meal_plan.py`; `websocket_plan.py` (`pantry/meal_plan`, `meal_save`, `meal_delete`, `meal_shift {day, slot, apply}`: shifts a meal over the following days up to the first gap, `apply` false = preview); option step *Haushalt* (`household_servings`, default 3); tab *Speiseplan* with views Tag / Woche / Monat (dish = recipe from a datalist or free text, recipe defaults to Abendessen; *Umplanen* with confirm dialog listing old and new dates); read-only `calendar` entity *Speiseplan* (all-day events titled "Mahlzeit: Gericht"; next event looks 7 days ahead) |
+| 13a | General use + canning | done | migration 15: `category.food` (non-food categories never become recipe ingredients), inheritable `shelf_days` (expiry proposal on book-in and canning), new seeded roots (Haustechnik: Batterien, Akkus, Leuchtmittel by socket; Hausapotheke, Tierbedarf, Eingekochtes), `recipe.canning_product_id` + `canning_temp/minutes` (canning recipe = process instruction that always makes one product, tab *Einkochen › Rezepte*), `canning` protocol with automatic charge (`YYYYMMDD-n`) as its own batch (`batch.canning_id`, rebuilt unique key), labels and scan per charge; `inventory/canning.py`, `websocket_canning.py`, tab *Einkochen*. Details: section 3 *Canning* |
 | 14 | Shopping list from plan | open | plan demand for a date range − stock − forecast (consumption rate from `booking`) → same todo entity |
 | 15 | Recipe suggestions for expiring items | open | expiring batches → their categories → recipes ranked by expiring ingredients used and availability; shown in *Ablauf* and the recipe list |
 | 16 | Move a whole location | open | *Umlagern* action on a location row: move all its stock to another location (logic exists in `force_delete` for a location; reuse it for a location that stays) |

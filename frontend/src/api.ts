@@ -50,7 +50,8 @@ export interface Location {
   sort: number;
 }
 export type Source = "own" | number | "default";
-export type InheritField = "unit_id" | "default_location_id" | "expiry_type" | "warn_days";
+export type InheritField =
+  "unit_id" | "default_location_id" | "expiry_type" | "warn_days" | "shelf_days";
 export interface Category {
   id: number;
   parent_id: number | null;
@@ -64,7 +65,10 @@ export interface Category {
   min_stock: number | null;
   min_stock_unit_id: number | null;
   min_packages: number | null;
-  effective: Record<InheritField, { value: number | string | null; source: Source }>;
+  shelf_days: number | null;
+  /** 0 = not a food (no recipe ingredient), null = inherit; the root is a food. */
+  food: 0 | 1 | null;
+  effective: Record<InheritField | "food", { value: number | string | null; source: Source }>;
 }
 export interface MasterData {
   units: Unit[];
@@ -73,8 +77,8 @@ export interface MasterData {
   defaults: Record<InheritField, number | string | null>;
 }
 export type Table = "unit" | "location" | "category";
-/** What `pantry/delete` accepts: master data plus products and recipes. */
-export type DeleteTable = Table | "product" | "recipe";
+/** What `pantry/delete` accepts: master data plus products, recipes and canning protocols. */
+export type DeleteTable = Table | "product" | "recipe" | "canning";
 
 export const getMasterData = (hass: Hass) =>
   hass.callWS<MasterData>({ type: "pantry/master_data" });
@@ -116,6 +120,7 @@ export interface Product {
   default_location_id?: number | null;
   expiry_type?: "best_before" | "use_by" | null;
   warn_days?: number | null;
+  shelf_days?: number | null;
   /** Below this many packages the product goes on the shopping list. */
   min_packages?: number | null;
   /** Packages in stock (product list only). */
@@ -147,6 +152,8 @@ export interface StockRow {
   ean: string | null;
   category_id: number;
   category_path: string[];
+  /** Canning charge (YYYYMMDD-n) when the batch is one. */
+  charge: string | null;
 }
 interface BookIn {
   packages: number;
@@ -246,6 +253,12 @@ export interface Recipe {
   instructions: string | null;
   source_url: string | null;
   image_url: string | null;
+  /** Set: a canning recipe (Einkochen tab) that makes this product. */
+  canning_product_id: number | null;
+  canning_product: string | null;
+  /** Only on a canning recipe, both or none (°C, minutes). */
+  canning_temp: number | null;
+  canning_minutes: number | null;
   ingredients: Ingredient[];
   summary: { available: number; total: number };
   /** Servings on the shopping list, null when the recipe is not on it. */
@@ -257,6 +270,8 @@ export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: n
 export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "pantry/recipe_save", data });
 export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
+/** Canning recipes live in the Einkochen tab, the others in Rezepte and the meal plan. */
+export const isCanning = (r: Recipe) => r.canning_product_id != null;
 export const importRecipe = (hass: Hass, url: string) =>
   hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", url });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>

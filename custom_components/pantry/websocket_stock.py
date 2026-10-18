@@ -23,6 +23,7 @@ from .ws_validate import (
     PACKAGES_OR_ZERO,
     POSITIVE,
     QUERY,
+    SHELF_DAYS,
     text,
 )
 
@@ -49,6 +50,7 @@ _PRODUCT = vol.Schema(
         **{vol.Optional(str(k)): v for k, v in _NEW_PRODUCT.schema.items()},
         vol.Optional("expiry_type"): _EXPIRY_TYPE,
         vol.Optional("warn_days"): vol.Any(None, DAYS),
+        vol.Optional("shelf_days"): SHELF_DAYS,
     }
 )
 

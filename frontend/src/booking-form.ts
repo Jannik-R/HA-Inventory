@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg, dateInvalid } from "./ui";
+import { fieldMsg, dateInvalid, todayIso } from "./ui";
+import { plusDays } from "./plan-dates";
 import { formStyles } from "./styles";
 import {
   bookIn,
@@ -34,7 +35,7 @@ const blankForm = () => ({
   pick: AUTO,
   print: null as boolean | null,
 });
-type Inherit = "default_location_id" | "expiry_type";
+type Inherit = "default_location_id" | "expiry_type" | "shelf_days";
 // shortcut: last used location lives until the page reloads; persist it if users ask for it.
 let lastLocation: number | null = null;
 
@@ -82,7 +83,7 @@ export class PantryBookingForm extends LitElement {
   willUpdate(changed: PropertyValues) {
     if (changed.has("product")) {
       this.draft = this.product;
-      this.f = blankForm();
+      this.f = { ...blankForm(), expires_on: this.proposal() };
       if (this.hass && this.mode === "in")
         getLabelConfig(this.hass).then(
           (c) => (this.labels = c),
@@ -107,8 +108,17 @@ export class PantryBookingForm extends LitElement {
     return undefined;
   }
 
+  /** Date proposed from the shelf life (today + days), "" without one. */
+  private proposal(): string {
+    const d = this.mode === "in" ? this.dflt("shelf_days") : undefined;
+    return d ? plusDays(todayIso(), Number(d.value)) : "";
+  }
+
   private setProduct(field: keyof Product, value: unknown) {
+    const before = this.proposal();
     this.draft = { ...this.draft!, [field]: value };
+    // a new product's category brings its shelf life, unless the date was typed
+    if (this.f.expires_on === before) this.f = { ...this.f, expires_on: this.proposal() };
   }
 
   private async submit(e: Event) {
@@ -212,7 +222,7 @@ export class PantryBookingForm extends LitElement {
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }
-      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err, this.hass)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value)}`}
+      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err, this.hass)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value, this.f.expires_on && this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : undefined)}`}
       <label>
         <span class="lbl">${t("book.packages")}</span>
         <input

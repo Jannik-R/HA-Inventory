@@ -12,7 +12,9 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
+from .migration_15 import SCHEMA_15
 from .seed import seed
+from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
 
 if TYPE_CHECKING:
@@ -390,6 +392,10 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     );
     CREATE INDEX meal_plan_day ON meal_plan (day);
     """,
+    # 15: non-food categories, shelf life, canning recipes, protocol and charges (see migration_15).
+    SCHEMA_15,
+    # 16: seeded non-food roots and Eingekochtes for existing DBs (a new DB gets them from the seed).
+    add_general,
 ]
 
 
@@ -427,6 +433,7 @@ def migrate(conn: sqlite3.Connection) -> None:
     if conn.execute("SELECT 1 FROM unit").fetchone() is None:
         seed(conn, "de")
         mark_recipe_only(conn)  # not in seed(): old-schema DBs are seeded by tests
+        add_general(conn)  # same
         conn.commit()
 
 

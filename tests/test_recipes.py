@@ -56,7 +56,9 @@ def test_upgrade_from_7_keeps_user_data():
     c.execute("UPDATE category SET name = 'Teigwaren' WHERE name = 'Nudeln'")
     c.commit()
     p = inv.save(c, "product", {"name": "Penne", "category_id": cat(c, "Teigwaren")})
-    inv.book_in(c, p, 2, location_id=loc(c))
+    # by hand: today's book_in reads columns this schema does not have yet
+    b = c.execute("INSERT INTO batch (product_id, created_at) VALUES (?, 'x')", (p,)).lastrowid
+    c.execute("INSERT INTO stock (batch_id, location_id, packages) VALUES (?, ?, 2)", (b, loc(c)))
     c.execute(
         "INSERT INTO recipe (name, servings) VALUES ('R', 2)"
     )  # today's code needs skip_stock

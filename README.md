@@ -1,10 +1,11 @@
 # Pantry (Vorrat) for Home Assistant
 
-Food inventory as a Home Assistant custom integration: book items in and out by barcode or name,
-track batches with best-before / use-by dates per storage location, see what expires soon,
-and get a brand-independent shopping list from minimum stock levels.
+Household inventory (food, batteries, household goods, medicine, home-canned jars) as a Home Assistant
+custom integration: book items in and out by barcode or name, track batches with best-before / use-by
+dates per storage location, see what expires soon, and get a brand-independent shopping list from
+minimum stock levels.
 
-> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes, week planner). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes, week planner, general use and canning). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -22,6 +23,9 @@ Available:
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
+- Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
+- Shelf life (*Haltbarkeit*, days, inherited like the warning): booking in proposes today + shelf life as expiry date; seeded *Eingekochtes* (365 days)
+- Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 
 Planned:
 
@@ -98,7 +102,7 @@ items added by hand (minimum stock items stay until the stock is there).
 
 ### Rezepte (recipes)
 
-The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen". The search field (focused on
+The tab lists all recipes by name with "5 von 7 vorhanden · 4 Portionen" (canning recipes are listed in *Einkochen*, not here). The search field (focused on
 open) finds recipes by name and by ingredient text. A click on a row opens it: ingredients with
 their status, instructions, source link and image. *Portionen* in the open row scales the amounts;
 this is only shown, never saved. *Auf die Einkaufsliste* in the open row puts the recipe on the shopping list (see Einkauf); *Einplanen* adds it to the week plan with the shown servings.
@@ -128,6 +132,19 @@ Lines without an amount like "Salz und Pfeffer" become one ingredient each; a si
 The tab has three views, *Tag* (day), *Woche* (week) and *Monat* (month), with prev / *Heute* / next moving by day, week or month. Every dish has a meal: Frühstück, Mittag, Kaffee, Abendessen or Snack. *Woche* is a table with one row per meal and one equal-width column per day (on a phone: one block per day); *Tag* lists the dishes grouped by meal; *Monat* shows a small icon per dish. A dish is a recipe picked from the list of recipe names, or free text (e.g. "Pizza from the delivery service"); a recipe is planned for Abendessen by default. Its servings default to the household size (see Settings). The arrow icon on a dish *shifts* its meal: that day and each directly following day with the same meal move one day later, up to the first gap; a confirmation lists the changes first. The pencil edits a dish, the bin deletes it. Deleting a recipe keeps its dishes in the plan as free text; the delete question lists them.
 
 The plan is also a read-only calendar entity *Speiseplan* in Home Assistant: each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"), the description shows its servings, and the next event looks 7 days ahead.
+
+### Einkochen (canning)
+
+Tab *Einkochen* has two views, buttons at the top: *Protokolle* and *Rezepte*.
+
+*Protokolle* lists the canning protocols, newest first: charge, product, jars made and still in stock, temperature and duration. *Protokoll anlegen* opens the dialog. First field *Einkochrezept* (optional): with a recipe, the product is fixed to the recipe's product (shown as *Ergibt: …*), and *Gläser*, *Temperatur* and *Dauer* are filled from it (editable). Without a recipe, *Produkt* is an existing product or a new name with a *Kategorie*. Further fields: *Hergestellt am* (default today), *Lagerort*, *Haltbar bis* (proposed from the shelf life), *Notizen*. Saving creates the charge by itself: code `YYYYMMDD-n` (n = running number of that day), books the jars in as their own batch, then offers labels (count = jars).
+
+- Editing changes only recipe, temperature, duration, notes and *Haltbar bis*; made-on date, product and jars stay fixed, since the labels carry them.
+- Delete (admins only) removes the protocol with its stock and bookings, after the usual question.
+- Jars canned without a protocol are booked in like any product (category *Eingekochtes*), without a charge.
+- The stock view shows the charge next to a batch's date.
+
+*Rezepte* lists only canning recipes, with the same list, search, import and editing as the recipe list. *Einkochrezept anlegen* opens the recipe dialog: name, *Ergibt Produkt* (required: an existing product by name, or a new name plus *Kategorie*), *Ergibt (Gläser)* (instead of portions; the ingredients scale by jars), *Zubereitung*, *Temperatur* (°C) and *Dauer* (minutes), both optional or none, source and image link, ingredients. So every canning recipe makes a defined product. Opening one shows "ergibt N × <Produkt>" and the button *Protokoll anlegen*, which switches to *Protokolle* with that recipe chosen. Deleting a product also deletes the canning recipes that make it (the delete question lists them).
 
 ### Sensors
 
@@ -159,7 +176,8 @@ One input field, focused when the tab opens: scan with a USB/Bluetooth barcode s
 the EAN and Enter), tap *Kamera* to scan with the phone camera, or type a name and press Enter.
 
 - **Einbuchen** ("Produkt zubuchen"): expiry date (the label names the product's date type, e.g.
-  "Ablaufdatum (Mindesthaltbarkeit)"; leave it empty for items without one), packages and location.
+  "Ablaufdatum (Mindesthaltbarkeit)"; leave it empty for items without one; with a shelf life
+  (*Haltbarkeit*, own or inherited) today + shelf life is proposed, still editable), packages and location.
   The location defaults to the product's or category's default (shown in grey as
   "Geerbt: … (von Nudeln)"; without one the last used one is used); another choice applies to this
   booking only, *Zurücksetzen* returns to the default. A new product also shows its name, brand,
@@ -181,6 +199,7 @@ barcode detector (iPhone, Firefox, Windows) load a bundled decoder on first use;
 ### Etiketten (labels)
 
 Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN), product name, brand and expiry date.
+Labels of a canning charge show the charge in the brand line; their QR code contains the charge, so scanning one books out a jar of exactly that charge.
 Printing is a checkbox *Etiketten drucken* on *Einbuchen* (its default is an option), and a tag
 button on every batch row in *Bestand* opens a dialog to print 1 to 20 labels for that batch (booking in prints at most 20 as well).
 
@@ -276,7 +295,7 @@ actions:
 
 - **Kategorien**: tree of main category → category → Produktart (product type, e.g. Tomatenmark;
   about 1,700 are seeded; any user can add one from a recipe or the category picker). Each category can set a unit,
-  default storage location, expiry type (best before / use by) and warning days; empty fields are
+  default storage location, expiry type (best before / use by), warning days, shelf life (*Haltbarkeit*, days) and *Lebensmittel* (food / *Kein Lebensmittel*; non-food is never a recipe ingredient); empty fields are
   inherited from the parent category or the global defaults and are shown in grey with their source
   ("von Nudeln"). *Zurücksetzen* removes an own value. Minimum stock is set per category and is not
   inherited: *Mindestmenge* (amount with its own unit, kept when the category's unit changes) and/or
@@ -290,7 +309,9 @@ actions:
   out. Adding the same name again brings it back.
 - **Einheiten**: units; a unit can be defined as a multiple of a base unit (1 kg = 1000 g) or count packages. Seeded: Stück, Packung, g, kg, ml, l and recipe units (Bund, Prise, Messerspitze, EL = 15 ml, TL = 5 ml, cl = 10 ml, dl = 100 ml, Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher, Handvoll, Zweig, Würfel, Beutel, Schuss, Kopf, Stiel, Kugel, Flasche, Tasse, Spritzer, Tropfen). Units marked *Nur für Rezepte* (the recipe units EL, TL, Tasse, Prise …) are offered only in recipe ingredients; a unit with a size (EL = 15 ml, TL = 5 ml, Tasse = 250 ml, Prise and Messerspitze = 0.5 g, Zehe = 0.1 Stück, Handvoll = 30 g, Tropfen = 0.05 ml, Spritzer = 1 ml, Schuss = 20 ml, Zweig and Stiel = 0.1 Bund; rules of thumb) also shows its amount in recipes ("3 EL (≈ 45 ml)"), and shopping converts it when its base unit fits the category (ml for volume, g for weight). Only Scheibe has no size: it stays as written on the list ("2 Scheiben"). Zweig and Stiel are 0.1 Bund each (3 Zweige Rosmarin → 1 Bund). Shopping rounds Zehe up: 3 Zehen = 1 Knoblauch. A counting unit that does not convert counts packages, so "1 TL Salz" is available when any salt is in stock.
 - **Standards**: the global defaults every category and product falls back to (unit, storage
-  location, date type, warning days; initially Packung, none, best before, 7 days).
+  location, date type, warning days, shelf life; initially Packung, none, best before, 7 days, no shelf life).
+  Shelf life is the expiry date for things without a printed date: booking in proposes today + days,
+  canning protocols made-on date + days. Bought goods keep the date on the package.
 - **Haushalt** (household, Home Assistant options): *Portionen im Haushalt* (1 to 99, default 3) is the servings default for new dishes in the week plan. Set it in *Configure* of the integration, step *Haushalt* (menu *Einstellungen*).
 - Delete questions and "Änderungen verwerfen?" are asked in a dialog; *Abbrechen* is preselected.
 - **Deleting something that is still in use** works too. Before asking, the integration runs the

@@ -14,6 +14,7 @@ import {
   type Recipe,
   type RecipeDraft,
   isAdmin,
+  isCanning,
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
 import { recipeDetail } from "./recipe-detail";
@@ -33,6 +34,7 @@ export class PantryRecipes extends LitElement {
   static properties = {
     hass: { attribute: false },
     section: { attribute: false },
+    canning: { attribute: false },
     recipes: { state: true },
     md: { state: true },
     query: { state: true },
@@ -45,6 +47,8 @@ export class PantryRecipes extends LitElement {
   declare hass?: Hass;
   /** Route part after `recipes/`: a recipe id opens that recipe (link from the week plan). */
   declare section?: string;
+  /** Einkochen tab: only canning recipes (each makes a product); else only the others. */
+  declare canning?: boolean;
   declare recipes?: Recipe[];
   declare md?: MasterData;
   declare query: string;
@@ -147,7 +151,9 @@ export class PantryRecipes extends LitElement {
   }
 
   private edit(r?: Recipe) {
-    this.renderRoot.querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!.open(this.md!, r);
+    this.renderRoot
+      .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
+      .open(this.md!, r, undefined, !!this.canning);
   }
 
   private importer() {
@@ -157,7 +163,9 @@ export class PantryRecipes extends LitElement {
   private shown() {
     const q = this.query.trim();
     return (this.recipes ?? []).filter(
-      (r) => !q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q)),
+      (r) =>
+        isCanning(r) === !!this.canning &&
+        (!q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q))),
     );
   }
 
@@ -171,7 +179,8 @@ export class PantryRecipes extends LitElement {
         <button type="button" class="row" data-testid="recipe-toggle" @click=${toggle}>
           <span>${r.name}</span>
           <span class="detail"
-            >${t("recipes.summary", r.summary)} · ${fmtPortions(this.hass, r.servings)}</span
+            >${t("recipes.summary", r.summary)} ·
+            ${isCanning(r) ? t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings }) : fmtPortions(this.hass, r.servings)}</span
           >
         </button>
         ${rowActions({
@@ -191,10 +200,19 @@ export class PantryRecipes extends LitElement {
               servings: n,
               onServings: (v) => this.setServings(r, v),
               onShopping: () => this.toShopping(r),
+              // a canning recipe starts a protocol (handled by the Einkochen tab)
               onPlan: () =>
-                this.renderRoot
-                  .querySelector<PantryMealDialog>("pantry-meal-dialog")!
-                  .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
+                isCanning(r)
+                  ? this.dispatchEvent(
+                      new CustomEvent("pantry-canning-start", {
+                        detail: r.id,
+                        bubbles: true,
+                        composed: true,
+                      }),
+                    )
+                  : this.renderRoot
+                      .querySelector<PantryMealDialog>("pantry-meal-dialog")!
+                      .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
             })
           : nothing
       }
@@ -219,7 +237,7 @@ export class PantryRecipes extends LitElement {
           ${t("recipes.import.open")}
         </button>
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
-          ${t("recipes.add")}
+          ${t(this.canning ? "canning.recipe_add" : "recipes.add")}
         </button>
       </div>
       <pantry-recipe-import
@@ -227,7 +245,7 @@ export class PantryRecipes extends LitElement {
         @pantry-imported=${(e: CustomEvent<RecipeDraft>) =>
           this.renderRoot
             .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
-            .open(this.md!, undefined, e.detail)}
+            .open(this.md!, undefined, e.detail, !!this.canning)}
       ></pantry-recipe-import>
       <pantry-shopping-recipe-dialog
         .hass=${this.hass}
@@ -246,7 +264,7 @@ export class PantryRecipes extends LitElement {
               ${list.map((r) => this.row(r))}
             </ul>`
           : html`<p class="empty">
-              ${t(this.recipes.length ? "recipes.no_hits" : "recipes.empty")}
+              ${t(this.query.trim() ? "recipes.no_hits" : this.canning ? "canning.recipes_empty" : "recipes.empty")}
             </p>`
       }`;
   }

@@ -68,7 +68,7 @@ def _inactive_location(conn: sqlite3.Connection, data: dict) -> int | None:
 
 
 def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
-    """Change the integration-wide defaults (root of inheritance); all four are given."""
+    """Change the integration-wide defaults (root of inheritance); all of them are given."""
     if set(data) != set(INHERITED):
         raise ValueError(f"defaults need exactly {INHERITED}")
     if data["unit_id"] is None or data["expiry_type"] is None or data["warn_days"] is None:
@@ -77,7 +77,7 @@ def save_defaults(conn: sqlite3.Connection, data: dict) -> None:
         _exists(conn, "location", data["default_location_id"])
     try:
         conn.execute(
-            f"INSERT INTO defaults (id, {', '.join(INHERITED)}) VALUES (1, ?, ?, ?, ?)"
+            f"INSERT INTO defaults (id, {', '.join(INHERITED)}) VALUES (1{', ?' * len(INHERITED)})"
             f" ON CONFLICT (id) DO UPDATE SET {', '.join(f'{k} = excluded.{k}' for k in INHERITED)}",
             [data[k] for k in INHERITED],
         )

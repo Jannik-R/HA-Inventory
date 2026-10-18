@@ -17,8 +17,9 @@ export interface InForm {
 }
 type Set = (patch: Partial<InForm>) => void;
 
-/** Expiry date; `type` is the product's date type (own or inherited), if any. */
-export function dateField(f: InForm, set: Set, err: Errors, type: unknown) {
+/** Expiry date; `type` is the product's date type (own or inherited), if any; `shelf`: the
+ * shelf life the shown date was proposed from. */
+export function dateField(f: InForm, set: Set, err: Errors, type: unknown, shelf?: Dflt) {
   const past = !err.expires && f.expires_on && f.expires_on < todayIso();
   return html`<label>
     <span class="lbl"
@@ -40,7 +41,9 @@ export function dateField(f: InForm, set: Set, err: Errors, type: unknown) {
     ${
       err.expires || past
         ? html`${fieldMsg(err.expires, "expires")}${past ? fieldMsg(t("valid.past"), "expires", true) : ""}`
-        : html`<span class="detail">${t("book.no_date_hint")}</span>`
+        : html`<span class="detail" data-testid="shelf-hint"
+            >${shelf ? t("book.shelf_hint", { days: String(shelf.value), source: shelf.source }) : t("book.no_date_hint")}</span
+          >`
     }
   </label>`;
 }

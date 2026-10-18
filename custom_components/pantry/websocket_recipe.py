@@ -7,8 +7,9 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
 from . import inventory, recipe_fetch
+from .websocket_stock import _NEW_PRODUCT
 from .ws_common import db_of, run, translated
-from .ws_validate import HTTP_URL, ID, NAME, NULL_ID, POSITIVE, text
+from .ws_validate import CANNING_MINUTES, CANNING_TEMP, HTTP_URL, ID, NAME, NULL_ID, POSITIVE, text
 
 SERVINGS = vol.All(int, vol.Range(min=1, max=99))
 INGREDIENT = {
@@ -67,6 +68,12 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
             vol.Optional("instructions"): vol.Any(None, text(20000)),
             vol.Optional("source_url"): vol.Any(None, HTTP_URL),
             vol.Optional("image_url"): vol.Any(None, HTTP_URL),
+            # a canning recipe makes this product (existing or new); temperature and minutes
+            # both or none (DB CHECKs as well)
+            vol.Exclusive("canning_product_id", "canning_product"): NULL_ID,
+            vol.Exclusive("canning_product", "canning_product"): _NEW_PRODUCT,
+            vol.Inclusive("canning_temp", "canning"): vol.Any(None, CANNING_TEMP),
+            vol.Inclusive("canning_minutes", "canning"): vol.Any(None, CANNING_MINUTES),
             vol.Required("ingredients"): vol.All([INGREDIENT], vol.Length(max=100)),
         },
     }

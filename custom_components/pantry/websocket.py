@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 
 from . import inventory, off
 from .ws_common import db_of, run, translated
-from .ws_validate import CODE, DAYS, ID, NAME, NULL_ID, PACKAGES, POSITIVE, QUERY
+from .ws_validate import CODE, DAYS, ID, NAME, NULL_ID, PACKAGES, POSITIVE, QUERY, SHELF_DAYS
 
 # Typed columns per table; inventory.save and DB constraints check the rest (cycles, unit rules).
 MASTER_SCHEMAS = {
@@ -32,6 +32,8 @@ MASTER_SCHEMAS = {
             vol.Optional("default_location_id"): NULL_ID,
             vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by"))),
             vol.Optional("warn_days"): vol.Any(None, DAYS),
+            vol.Optional("shelf_days"): SHELF_DAYS,
+            vol.Optional("food"): vol.Any(None, vol.In((0, 1))),
             # amount and its unit only together (DB CHECK as well)
             vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
             vol.Inclusive("min_stock_unit_id", "min_stock"): NULL_ID,
@@ -90,6 +92,7 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
             vol.Required("default_location_id"): NULL_ID,
             vol.Required("expiry_type"): vol.In(("best_before", "use_by")),
             vol.Required("warn_days"): DAYS,
+            vol.Required("shelf_days"): SHELF_DAYS,
         },
     }
 )
@@ -104,7 +107,7 @@ async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/delete",
-        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe")),
+        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe", "canning")),
         vol.Required("row_id"): ID,
         # also delete what uses it (see pantry/delete_impact); locations: move the stock there
         vol.Optional("force", default=False): bool,
@@ -129,7 +132,7 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "pantry/delete_impact",
-        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe")),
+        vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe", "canning")),
         vol.Required("row_id"): ID,
     }
 )

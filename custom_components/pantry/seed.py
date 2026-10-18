@@ -142,7 +142,7 @@ _DE_CATEGORIES = [
             ("Eis", ["en:ice-creams"]),
         ],
     ),
-    # No expiry tracking in the plan; the schema has no flag for it yet.
+    # Not a food (seed_general marks it); no expiry tracking: batches without a date.
     (
         "Haushalt & Drogerie",
         [],

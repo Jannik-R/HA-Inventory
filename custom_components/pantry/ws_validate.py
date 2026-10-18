@@ -11,6 +11,7 @@ NULL_ID = vol.Any(None, ID)
 PACKAGES = vol.All(int, vol.Range(min=1, max=9999))
 PACKAGES_OR_ZERO = vol.All(int, vol.Range(min=0, max=9999))
 DAYS = vol.All(int, vol.Range(min=0, max=2**31))
+SHELF_DAYS = vol.Any(None, vol.All(int, vol.Range(min=1, max=36500)))
 
 
 def _finite(value: float) -> float:
@@ -33,3 +34,5 @@ OFF_JSON = text(100_000)
 QUERY = text(200)
 CODE = text(64)
 HTTP_URL = vol.All(text(2000), vol.Match(r"^https?://", msg="must be an http(s) URL"))
+CANNING_TEMP = vol.All(int, vol.Range(min=1, max=200))  # °C
+CANNING_MINUTES = vol.All(int, vol.Range(min=1, max=1440))

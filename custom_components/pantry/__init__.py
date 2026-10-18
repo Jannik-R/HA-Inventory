@@ -13,6 +13,7 @@ from homeassistant.helpers.typing import ConfigType
 from . import (
     services,
     websocket,
+    websocket_canning,
     websocket_label,
     websocket_plan,
     websocket_recipe,
@@ -37,6 +38,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_label.async_register(hass)
     websocket_recipe.async_register(hass)
     websocket_plan.async_register(hass)
+    websocket_canning.async_register(hass)
     services.async_register(hass)
     return True
 

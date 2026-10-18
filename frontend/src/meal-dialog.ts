@@ -2,7 +2,7 @@ import { LitElement, html } from "lit";
 import { t } from "./i18n";
 import { dateInvalid, editDialog, fieldMsg, numOrNull } from "./ui";
 import { formStyles } from "./styles";
-import { errorMessage, type Hass, type Recipe } from "./api";
+import { errorMessage, isCanning, type Hass, type Recipe } from "./api";
 import { DINNER, SLOTS } from "./plan-dates";
 import { saveMeal, type Meal } from "./api-plan";
 
@@ -46,7 +46,7 @@ export class PantryMealDialog extends LitElement {
     meal?: Meal,
     text = "",
   ) {
-    this.recipes = recipes;
+    this.recipes = recipes.filter((r) => !isCanning(r)); // canning recipes are no dishes
     this.meal = meal;
     this.draft = {
       day: meal?.day ?? day,

@@ -6,6 +6,7 @@ import sqlite3
 from datetime import date
 
 from .canning import charge
+from .common import opened_until
 from .inherit import _categories, _path, _resolve, defaults
 
 
@@ -15,11 +16,13 @@ def stock_list(
     location_id: int | None = None,
     product_id: int | None = None,
 ) -> list[dict]:
-    """One row per batch and location; expiry_type is the product's (own or inherited)."""
+    """One row per batch and location; expiry_type is the product's (own or inherited), expires_on
+    the effective expiry (earlier when opened), batch_expires_on the batch's own date."""
     cats, dflt = _categories(conn), defaults(conn)
     sql = (
-        "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on,"
-        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type, c.made_on, c.seq"
+        "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on, b.opened_on,"
+        " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type, p.opened_days,"
+        " c.made_on, c.seq"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"
         " JOIN location l ON l.id = s.location_id LEFT JOIN canning c ON c.id = b.canning_id"
     )
@@ -33,13 +36,20 @@ def stock_list(
     if where:
         sql += " WHERE " + " AND ".join(where)
     rows = []
-    for r in conn.execute(sql + " ORDER BY p.name, b.expires_on IS NULL, b.expires_on", args):
+    for r in conn.execute(sql + " ORDER BY p.name", args):
         row = dict(r)
         made_on, seq = row.pop("made_on"), row.pop("seq")
         row["charge"] = made_on and charge(made_on, seq)
         row["category_path"] = _path(cats, r["category_id"])
-        row["expiry_type"] = _resolve(cats, row, r["category_id"], dflt)["expiry_type"]["value"]
+        eff = _resolve(cats, row, r["category_id"], dflt)
+        del row["opened_days"]
+        row["expiry_type"] = eff["expiry_type"]["value"]
+        row["batch_expires_on"] = r["expires_on"]
+        row["expires_on"] = opened_until(
+            r["expires_on"], r["opened_on"], eff["opened_days"]["value"]
+        )
         rows.append(row)
+    rows.sort(key=lambda r: (r["name"], r["expires_on"] is None, r["expires_on"] or ""))
     if search:
         needle = search.casefold()
         rows = [

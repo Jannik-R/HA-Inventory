@@ -29,6 +29,7 @@ export const COLUMNS: Record<Table, string[]> = {
     "min_stock_unit_id",
     "min_packages",
     "shelf_days",
+    "opened_days",
     "food",
   ],
 };

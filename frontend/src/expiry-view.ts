@@ -124,7 +124,7 @@ export class PantryExpiry extends LitElement {
                     <span class="what">
                       <span>${r.name}</span>
                       <span class="detail"
-                        >${[r.brand, r.location].filter(Boolean).join(" · ")}</span
+                        >${[r.brand, r.opened_on && t("stock.opened"), r.location].filter(Boolean).join(" · ")}</span
                       >
                     </span>
                     <span class="detail">${t("book.count", { n: r.packages })}</span>

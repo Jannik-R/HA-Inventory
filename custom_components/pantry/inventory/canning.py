@@ -20,9 +20,10 @@ def cannings(conn: sqlite3.Connection) -> list[dict]:
     """All protocols, newest first, with their charge, best-before date and jars in stock."""
     rows = conn.execute(
         "SELECT c.*, p.name, r.name AS recipe, b.id AS batch_id, b.expires_on,"
-        " (SELECT ifnull(sum(s.packages), 0) FROM stock s WHERE s.batch_id = b.id) AS in_stock"
-        " FROM canning c JOIN product p ON p.id = c.product_id"
-        " LEFT JOIN recipe r ON r.id = c.recipe_id LEFT JOIN batch b ON b.canning_id = c.id"
+        " (SELECT ifnull(sum(s.packages), 0) FROM stock s JOIN batch x ON x.id = s.batch_id"
+        "  WHERE x.canning_id = c.id) AS in_stock"
+        " FROM canning c JOIN product p ON p.id = c.product_id LEFT JOIN recipe r ON r.id = c.recipe_id"
+        " LEFT JOIN batch b ON b.canning_id = c.id AND b.opened_on IS NULL"
         " ORDER BY c.made_on DESC, c.seq DESC"
     )
     return [{**dict(r), "charge": charge(r["made_on"], r["seq"])} for r in rows]
@@ -50,7 +51,7 @@ def save_canning(
         )
         row = conn.execute(
             "SELECT c.made_on, c.seq, b.id FROM canning c JOIN batch b ON b.canning_id = c.id"
-            " WHERE c.id = ?",
+            " WHERE c.id = ? AND b.opened_on IS NULL",
             (canning_id,),
         ).fetchone()
         return {"id": canning_id, "batch_id": row["id"], "charge": charge(row[0], row[1])}

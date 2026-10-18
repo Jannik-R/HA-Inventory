@@ -51,7 +51,7 @@ export interface Location {
 }
 export type Source = "own" | number | "default";
 export type InheritField =
-  "unit_id" | "default_location_id" | "expiry_type" | "warn_days" | "shelf_days";
+  "unit_id" | "default_location_id" | "expiry_type" | "warn_days" | "shelf_days" | "opened_days";
 export interface Category {
   id: number;
   parent_id: number | null;
@@ -66,6 +66,8 @@ export interface Category {
   min_stock_unit_id: number | null;
   min_packages: number | null;
   shelf_days: number | null;
+  /** Days an opened package keeps (shortens its expiry), null = inherit. */
+  opened_days: number | null;
   /** 0 = not a food (no recipe ingredient), null = inherit; the root is a food. */
   food: 0 | 1 | null;
   effective: Record<InheritField | "food", { value: number | string | null; source: Source }>;
@@ -123,6 +125,7 @@ export interface Product {
   expiry_type?: "best_before" | "use_by" | null;
   warn_days?: number | null;
   shelf_days?: number | null;
+  opened_days?: number | null;
   /** Below this many packages the product goes on the shopping list. */
   min_packages?: number | null;
   /** Packages in stock (product list only). */
@@ -145,7 +148,12 @@ export interface StockRow {
   location_id: number;
   location: string;
   packages: number;
+  /** Effective expiry: earlier than the batch date when opened (opened_on + opened days). */
   expires_on: string | null;
+  /** The batch's own date (what the stock edit changes). */
+  batch_expires_on: string | null;
+  /** Set on an opened package (its own batch). */
+  opened_on: string | null;
   /** The product's date type (own or inherited); batches have none of their own. */
   expiry_type: "best_before" | "use_by";
   product_id: number;

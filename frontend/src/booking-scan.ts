@@ -49,6 +49,7 @@ export class PantryBookingScan extends LitElement {
         <button
           type="button"
           data-testid="camera"
+          aria-label=${t("book.camera")}
           @click=${() => this.renderRoot.querySelector<PantryScanner>("pantry-scanner")?.open()}
         >
           ${icon(mdiBarcodeScan)}<span>${t("book.camera")}</span>
@@ -75,6 +76,12 @@ export class PantryBookingScan extends LitElement {
         display: flex;
         align-items: center;
         gap: 6px;
+      }
+      /* Phone: the input needs the room; the camera button is named by its aria-label. */
+      @media (max-width: 480px) {
+        .scan button span {
+          display: none;
+        }
       }
     `,
   ];

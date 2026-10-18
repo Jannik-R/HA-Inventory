@@ -51,6 +51,7 @@ _PRODUCT = vol.Schema(
         vol.Optional("expiry_type"): _EXPIRY_TYPE,
         vol.Optional("warn_days"): vol.Any(None, DAYS),
         vol.Optional("shelf_days"): SHELF_DAYS,
+        vol.Optional("opened_days"): SHELF_DAYS,
     }
 )
 

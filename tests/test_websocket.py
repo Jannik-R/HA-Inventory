@@ -390,6 +390,29 @@ async def test_undo_book_out_by_booking_id(ws) -> None:
         assert (await ws.call({**undo, "booking_ids": bad}))["success"] is False
 
 
+async def test_open_package_and_undo(ws) -> None:
+    data = await master(ws)
+    cat_id = by_name(data["categories"], "Nudeln")["id"]
+    res = await ws.call(
+        {"type": "pantry/book_in", "packages": 2, "location_id": data["locations"][0]["id"],
+         "expires_on": "2027-01-01", "product": {"name": "Offen-Nudeln", "category_id": cat_id}}
+    )  # fmt: skip
+    pid, batch_id = res["result"]["product_id"], res["result"]["batch_id"]
+    opened = await ws.call({"type": "pantry/open_package", "product_id": pid, "batch_id": batch_id})
+    assert opened["result"]["name"] == "Offen-Nudeln" and opened["result"]["batch_id"] != batch_id
+    label = await ws.call({"type": "pantry/open_label", "code": f"P{pid}:2027-01-01"})
+    assert label["result"]["batch_id"] == opened["result"]["batch_id"]
+    undo = {"type": "pantry/open_undo", "booking_id": label["result"]["booking_id"]}
+    assert (await ws.call(undo))["success"]
+    assert (await ws.call(undo))["error"]["translation_key"] == "already_undone"
+    again = {
+        "type": "pantry/open_package",
+        "product_id": pid,
+        "batch_id": opened["result"]["batch_id"],
+    }
+    assert (await ws.call(again))["error"]["translation_key"] == "already_opened"
+
+
 async def test_input_validation(ws) -> None:
     data = await master(ws)
     cat_id = by_name(data["categories"], "Nudeln")["id"]

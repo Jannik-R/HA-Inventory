@@ -5,7 +5,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import date
 
-from .common import InventoryError, _exists, _now, _packages
+from .common import InventoryError, _exists, _now, _packages, opened_until
 from .inherit import effective
 from .products import add_product
 
@@ -61,18 +61,22 @@ def _iso(expires_on: date | str | None) -> str | None:
         raise InventoryError("invalid_date") from None
 
 
-def _batch(conn, product_id: int, expires_on: date | str | None) -> int:
-    """Id of the batch with this product and date (never a canning charge); created if missing."""
-    expires_on = _iso(expires_on)
+def _batch(
+    conn, product_id: int, expires_on: date | str | None, opened_on=None, canning_id=None
+) -> int:
+    """Id of the batch with this key (default: unopened, no canning charge); created if missing."""
+    key = (product_id, _iso(expires_on), canning_id, opened_on)
     row = conn.execute(
-        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS NULL",
-        (product_id, expires_on),
+        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS ?"
+        " AND opened_on IS ?",
+        key,
     ).fetchone()
     if row:
         return row["id"]
     return conn.execute(
-        "INSERT INTO batch (product_id, expires_on, created_at) VALUES (?, ?, ?)",
-        (product_id, expires_on, _now()),
+        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, created_at)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (*key, _now()),
     ).lastrowid
 
 
@@ -113,7 +117,7 @@ def book_out(
     source: str = "manual",
     user_id: str | None = None,
 ) -> list[dict]:
-    """Take packages, earliest expiry first (no date last). Nothing changes if too few.
+    """Take packages, earliest (effective) expiry first, no date last. Nothing changes if too few.
 
     Returns the taken rows {batch_id, location_id, packages, booking_id}; `put_back` takes the booking ids."""
     _packages(packages)
@@ -121,8 +125,8 @@ def book_out(
     _exists(conn, "batch", batch_id)
     _exists(conn, "location", location_id)
     sql = (
-        "SELECT s.batch_id, s.location_id, s.packages FROM stock s JOIN batch b ON b.id = s.batch_id"
-        " WHERE b.product_id = ?"
+        "SELECT s.batch_id, s.location_id, s.packages, b.expires_on, b.opened_on FROM stock s"
+        " JOIN batch b ON b.id = s.batch_id WHERE b.product_id = ?"
     )
     args: list = [product_id]
     if batch_id is not None:
@@ -131,9 +135,10 @@ def book_out(
     if location_id is not None:
         sql += " AND s.location_id = ?"
         args.append(location_id)
-    rows = conn.execute(
-        sql + " ORDER BY b.expires_on IS NULL, b.expires_on, s.location_id", args
-    ).fetchall()
+    days = effective(conn, product_id)["opened_days"]["value"]
+    rows = conn.execute(sql + " ORDER BY s.location_id", args).fetchall()
+    until = {r["batch_id"]: opened_until(r["expires_on"], r["opened_on"], days) for r in rows}
+    rows.sort(key=lambda r: (until[r["batch_id"]] is None, until[r["batch_id"]] or ""))
     available = sum(r["packages"] for r in rows)
     if available < packages:
         raise InventoryError("not_enough_stock", available=available)
@@ -257,18 +262,18 @@ def edit_stock(
     """
     _packages(packages, 0)
     row = conn.execute(
-        "SELECT product_id, canning_id FROM batch WHERE id = ?", (batch_id,)
+        "SELECT product_id, canning_id, opened_on FROM batch WHERE id = ?", (batch_id,)
     ).fetchone()
     if not row or not _stock_of(conn, batch_id, location_id):
         raise InventoryError("not_found")
     if row["canning_id"] is not None:  # a charge keeps its batch: the date moves the whole charge
-        conn.execute(
-            "UPDATE batch SET expires_on = ? WHERE id = ?",
-            (_iso(expires_on), batch_id),
+        conn.execute(  # incl. its opened batches
+            "UPDATE batch SET expires_on = ? WHERE canning_id = ?",
+            (_iso(expires_on), row["canning_id"]),
         )
         target = batch_id
-    else:
-        target = _batch(conn, row["product_id"], expires_on)
+    else:  # an opened package stays opened
+        target = _batch(conn, row["product_id"], expires_on, row["opened_on"])
     if target != batch_id:
         correct(conn, batch_id, location_id, 0, source, user_id)
         packages += _stock_of(conn, target, location_id)  # merge into what is already there

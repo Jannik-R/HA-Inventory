@@ -60,6 +60,9 @@
     "location_required": {
       "message": "Please choose a storage location."
     },
+    "already_opened": {
+      "message": "This package is already opened."
+    },
     "already_undone": {
       "message": "This booking was already undone."
     },
@@ -230,6 +233,20 @@
         "packages": {
           "name": "Packages",
           "description": "Number of packages (label code: 1)."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Only from this location (not with a label code)."
+        }
+      }
+    },
+    "open_package": {
+      "name": "Open a package",
+      "description": "Mark one package as opened by barcode (earliest expiry first) or by a scanned label code (PTRY:…, a package of that batch). Its expiry date gets shorter by the shelf life after opening.",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN or label code PTRY:…"
         },
         "location": {
           "name": "Storage location",

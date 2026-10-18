@@ -18,6 +18,8 @@ import { expiryStatus, groupStock, type Item } from "./stock-data";
 import { stockTree } from "./stock-tree";
 import { fmtDate } from "./format";
 import { outButton, undoLine, type Undo } from "./take-out";
+import { openButton, openedLine, undoOpened, type LabelRequest } from "./open-action";
+import type { Opened } from "./api-open";
 import { doneLine, doneStyles } from "./booking-done";
 import type { PantryProductDialog } from "./product-dialog";
 import type { PantryBatchDialog } from "./batch-dialog";
@@ -45,6 +47,7 @@ export class PantryStock extends LitElement {
     open: { state: true },
     error: { state: true },
     undo: { state: true },
+    opened: { state: true },
     message: { state: true },
   };
 
@@ -60,6 +63,8 @@ export class PantryStock extends LitElement {
   declare open: Set<string>;
   declare error: string;
   declare undo?: Undo;
+  /** The last package opened (undo, label offer). */
+  declare opened?: Opened;
   declare message: string;
   private products = new Map<number, Product>();
 
@@ -81,6 +86,9 @@ export class PantryStock extends LitElement {
       this.started = true; // once: `hass` changes on every state event
       this.load();
     }
+    // One undo line at a time: taking out and opening replace each other's.
+    if (changed.has("undo") && this.undo) this.opened = undefined;
+    if (changed.has("opened") && this.opened) this.undo = undefined;
     // The "label printed" note belongs to the moment of printing.
     if (["filter", "location", "withEmpty", "stock"].some((k) => changed.has(k))) this.message = "";
   }
@@ -136,7 +144,8 @@ export class PantryStock extends LitElement {
   }
 
   private date(r: StockRow) {
-    const date = r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
+    let date = r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
+    if (r.opened_on) date = t("stock.opened_on", { date, opened: fmtDate(this.hass, r.opened_on) });
     return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
   }
 
@@ -151,6 +160,7 @@ export class PantryStock extends LitElement {
       .mode=${this.mode}
       @query=${(e: CustomEvent<string>) => (this.filter = e.detail)}
       @booked=${this.saved}
+      @pantry-print-label=${(e: CustomEvent<LabelRequest>) => this.label(e.detail)}
     ></pantry-booking>`;
     // One outer template: the input must survive the stock loading (Lit swaps elements per template).
     return html`${head} ${error} ${this.stock ? this.list(this.stock) : nothing}`;
@@ -159,7 +169,15 @@ export class PantryStock extends LitElement {
   private list(stock: StockRow[]) {
     const rows = this.tree(this.filter.trim() !== "");
     return html`
-      ${stockFilters(this)} ${undoLine(this, "stock")} ${doneLine(this.message, undefined, "label")}
+      ${stockFilters(this)} ${undoLine(this, "stock")}
+      ${openedLine(
+        this.hass,
+        this.opened,
+        () => undoOpened(this),
+        () => this.label({ id: this.opened!.batch_id, name: this.opened!.name, packages: 1 }),
+        "opened",
+      )}
+      ${doneLine(this.message, undefined, "label")}
       ${
         rows.length
           ? html`<ul>
@@ -216,9 +234,11 @@ export class PantryStock extends LitElement {
     const packages = batches
       .filter((x) => x.batch_id === b.batch_id)
       .reduce((sum, x) => sum + x.packages, 0);
-    this.renderRoot
-      .querySelector<PantryLabelDialog>("pantry-label-dialog")!
-      .open({ id: b.batch_id, name: b.name, packages });
+    this.label({ id: b.batch_id, name: b.name, packages });
+  }
+
+  private label(r: LabelRequest) {
+    this.renderRoot.querySelector<PantryLabelDialog>("pantry-label-dialog")?.open(r);
   }
 
   private editBatch(b: StockRow) {
@@ -260,21 +280,24 @@ export class PantryStock extends LitElement {
                     <span class=${this.status(b)}>${this.date(b)}</span>
                     <span class="detail">${b.location}</span>
                     <span class="count">${t("book.count", { n: b.packages })}</span>
-                    ${outButton(this, p.name, b, "stock-batch-out")}
-                    <button
-                      class="icon-btn"
-                      data-testid="stock-batch-label"
-                      aria-label=${t("label.print_name", { name: p.name })}
-                      title=${t("label.print")}
-                      @click=${() => this.printBatch(b, p.batches)}
-                    >
-                      ${icon(mdiTagOutline)}
-                    </button>
-                    ${rowActions({
-                      testid: "batch",
-                      name: `${p.name}, ${this.date(b)}`,
-                      onEdit: () => this.editBatch(b),
-                    })}
+                    <span class="acts">
+                      ${outButton(this, p.name, b, "stock-batch-out")}
+                      ${openButton(this, p.name, b)}
+                      <button
+                        class="icon-btn"
+                        data-testid="stock-batch-label"
+                        aria-label=${t("label.print_name", { name: p.name })}
+                        title=${t("label.print")}
+                        @click=${() => this.printBatch(b, p.batches)}
+                      >
+                        ${icon(mdiTagOutline)}
+                      </button>
+                      ${rowActions({
+                        testid: "batch",
+                        name: `${p.name}, ${this.date(b)}`,
+                        onEdit: () => this.editBatch(b),
+                      })}
+                    </span>
                   </li>`,
               )}
             </ul>`

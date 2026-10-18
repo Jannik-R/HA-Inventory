@@ -113,6 +113,11 @@ async def test_services(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     assert again["batch_id"] == res["batch_id"]
     assert res["name"] == "Spaghetti"
     assert len((await call(hass, "book_out", code=EAN))["taken"]) == 1
+    opened = await call(hass, "open_package", code=EAN, location="")
+    assert (opened["name"], opened["location"]) == ("Spaghetti", "Kühlschrank")
+    with pytest.raises(ServiceValidationError) as err:
+        await call(hass, "open_package", code=EAN, location="Keller")
+    assert err.value.translation_key == "location_unknown"
 
     with pytest.raises(ServiceValidationError) as err:
         await call(hass, "book_out", code="12345678")

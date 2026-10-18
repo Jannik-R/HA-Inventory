@@ -59,20 +59,21 @@ unit       (id, name UNIQUE, symbol, base_unit_id NULL → unit, factor > 0,
            -- seeded: Stück, Packung, g, kg (=1000 g), ml, l (=1000 ml); user can add (Dose, Glas, Bund ...)
 location   (id, name UNIQUE, sort, active 0|1)   -- never deleted: "delete" deactivates (must be empty),
            -- so bookings keep a valid FK; adding the same name again reactivates it
-defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days, shelf_days NULL)
+defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days, shelf_days NULL, opened_days NULL)
            -- one row: root of inheritance, editable in Einstellungen › Standards
 category   (id, parent_id NULL → category, name, sort,
-            unit_id, default_location_id, expiry_type, warn_days, shelf_days,   -- inheritable, NULL = inherit
+            unit_id, default_location_id, expiry_type, warn_days, shelf_days, opened_days,   -- inheritable, NULL = inherit (opened_days: migration 20)
             food NULL 0|1,                                           -- 0 = not a food: no recipe ingredient; NULL = inherit, root = food (migration 15)
             min_stock NULL, min_stock_amount_id NULL → unit,           -- amount with its own unit (both or none, CHECK); NOT inherited
             min_packages NULL)                                       -- package count (> 0); NOT inherited (migration 4)
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
-            default_location_id, expiry_type, warn_days, shelf_days,  -- overrides, NULL = inherit
+            default_location_id, expiry_type, warn_days, shelf_days, opened_days,  -- overrides, NULL = inherit
             image_url, off_json, updated_at,
             min_packages NULL)                                        -- own minimum in packages (migration 11)
-batch      (id, product_id, expires_on DATE, created_at, canning_id NULL UNIQUE → canning (cascade))
-           -- unique (product_id, expires_on, canning_id) (expression index, migration 15): a canning charge is its own batch
+batch      (id, product_id, expires_on DATE, created_at, canning_id NULL → canning (cascade), opened_on DATE NULL)
+           -- unique (product_id, expires_on, canning_id, opened_on) (expression index, migrations 15/20): a canning charge is its own batch,
+           -- an opened package too (same product, date and charge, opened_on set; canning_id no longer UNIQUE since migration 20)
            -- date type is a product property (own or inherited), never per batch (migration 2)
            -- at most one batch without a date per product (partial unique index, migration 6)
 stock      (batch_id, location_id, packages > 0, PRIMARY KEY(batch_id, location_id))
@@ -95,9 +96,10 @@ recipe_ingredient (id, recipe_id → recipe (cascade), category_id NULL → cate
 meal_plan (id, day DATE, slot INTEGER 0..4 (0 Frühstück, 1 Mittag, 2 Kaffee, 3 Abendessen, 4 Snack), recipe_id NULL → recipe (set null: text stays as free text), text, servings > 0)   -- week planner (migration 14); text = recipe name snapshot or free text; a day's dishes in slot, then id order
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
 category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
-booking    (id, ts, kind 'in'|'out'|'move'|'correct', batch_id → batch (cascade), location_id → location,
+booking    (id, ts, kind 'in'|'out'|'move'|'correct'|'open', batch_id → batch (cascade), location_id → location,
             to_location_id → location,           -- only 'move' (location_id = source)
-            packages,                            -- always positive; 'correct' = signed difference
+            packages,                            -- always positive; 'correct' = signed difference; 'open' (migration 20):
+                                                 -- batch_id = the opened batch, +n opened, -n = undo (reverts_id names it)
             source 'scan'|'manual'|'label'|'service'|'undo', user_id,
             reverts_id UNIQUE NULL → booking)    -- an undo's 'in' names the 'out' it reverses: undone once (migration 6)
             -- root category names are unique too (partial unique index, migration 6)
@@ -247,7 +249,21 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
 - For things without a printed date (home-canned, home-frozen, bulk goods) the inheritable
   `shelf_days` gives it: booking in proposes today + shelf life, a canning protocol made-on date + shelf
   life. Always a proposal, the field stays editable. No shelf life = no proposal (default).
-- Opened packages (phase 18) will shorten it again (`haltbar nach Anbruch`).
+- Opened packages (phase 18) shorten it again: see **Opened packages**.
+
+**Opened packages** (phase 18, `inventory/opened.py`):
+- *Anbrechen* moves one package of an unopened batch to the batch with the same product, date and charge
+  and `opened_on` = today (same location; the same day merges). Booking `open` on the opened batch.
+- Effective expiry = min(batch date, opened_on + `opened_days`), computed on read (`stock_list`:
+  `expires_on` = effective, `batch_expires_on` = own date), so a changed `opened_days` applies to open
+  packages too. No `opened_days` anywhere = no change. FEFO book-out, expiry view, sensors, expiring
+  recipes and labels use it; opened packages count toward stock and minimums.
+- Ways: batch row button, booking mode *Anbrechen* (`/pantry/open`; label → that batch, EAN / name →
+  earliest unopened), service `pantry.open_package`. Undo (`pantry/open_undo`) once, while in stock.
+  After opening the panel offers *Etikett drucken* (label dialog = the confirm).
+- Labels: the code keeps the batch key (product, date, charge), the printed date is the effective one.
+  `shortcut: a label scan takes an opened package of that key first, so scanning a closed package's
+  label takes the opened one; add an opened marker to the code if that bites.`
 
 **Canning** (tab *Einkochen*):
 - **Process instruction** = a canning recipe: a recipe with `canning_product_id`, the product it
@@ -394,7 +410,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 15 | Recipe suggestions for expiring items | done | `inventory/expiry_recipes.py`, command `pantry/expiring_recipes` (optional `days`, like the view's temporary threshold): `queries.expiring` batches (expired or within the warn days) of food categories → recipes whose non-optional, non-skipped ingredients have an expiring product in their category subtree (same match as availability). Ranking: used ingredients, then available/total, then name. Panel: list *Rezepte für Ablaufendes* in *Ablauf* (opens the recipe; only with the recipes module), marker "Ablaufendes: n" and filter *Nur mit Ablaufendem* in the recipe list. Read-only, so no service. No schema change |
 | 16 | Move a whole location | done | *Umlagern* action on a location row: move all its stock to another location (logic exists in `force_delete` for a location; shared `_relocate` in `inventory/removal.py` serves `force_delete` and `move_location`; websocket `pantry/move_location`, panel only, no HA service because it is a stock correction; dialog shows batches/packages from the delete dry run) |
 | 17 | Category mapping feedback | merged into 13c (learned mappings) | `mapping_log` table: each product whose OFF tags matched no category or whose suggested category was changed (EAN, OFF `categories_tags`, suggested and chosen category); view/export to improve the seed `off_tags` (`add_product` already knows both cases) |
-| 18 | Opened packages | open | mark a package as opened (no remaining amount): it gets its own stock row with `opened_on`; new inherited field *haltbar nach Anbruch* (days) on category/product, empty = no change (e.g. Nudeln); effective expiry = min(batch expiry, opened_on + days); expiry view, sensors and labels use it |
+| 18 | Opened packages | done | migration 20 (`migration_20.py`): inheritable `opened_days` (*Haltbar nach Anbruch*, > 0, on defaults / category / product, NULL = inherit, unset = no change, e.g. Nudeln); an opened package is its own **batch** (`batch.opened_on`; batch key gets opened_on, `canning_id` loses UNIQUE so a charge can have an opened batch), so book-out, move, stock edit and labels work unchanged by batch id; booking kind `open` (booking rebuilt for the CHECK; one row on the opened batch, the unopened one is implied by the key; undo = `open` −1 with `reverts_id`). Effective expiry = min(batch date, opened_on + days), computed on read. Panel: *Anbrechen* button on batch rows, booking mode *Anbrechen* (route `/pantry/open`), undo and *Etikett drucken* offer in the done line; websocket `pantry/open_package` / `open_label` / `open_undo` (`websocket_open.py`); service `pantry.open_package` (EAN or label code, location by name). No remaining amount (see section 7) |
 | 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task`, reusing `ai.py` / `ai_check.py` from phase 13c |
 | 20 | User feedback with AI evaluation | open | users send feedback from the panel (text, view it came from, optional screenshot); `feedback` table; the AI interface (phase 19) groups and summarizes it into issues / plan items; admin view to review and close entries |
 | 21 | Modules | done | options `modules` (`const.MODULES`: shopping, recipes, plan, canning; unset = all), chosen in the config flow user step and the options step *Module*; `OptionsFlowWithReload` reloads the entry on save. Panel gets the list as `panel.config.modules` (`frontend/src/modules.ts` `hasModule`) and hides tabs, recipe buttons (to shopping list / to plan) and the settings section *Mahlzeiten*. `coordinator.module_off`: todo (shopping) / calendar (plan) add no entity and drop it from the registry. Core (stock, booking, expiry, settings, sensors) always on. Data, websocket commands and services are not gated |
@@ -430,6 +446,6 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 | Best-before date from the camera (read the printed date when booking in) | `expires_on` field and the camera scanner of the booking form; on-device OCR or the AI interface (phase 19) |
 | Manual order within a slot | `meal_plan` rows in id order within a slot; add `sort` when needed |
 | Editing the plan from the HA calendar | read-only `calendar.py`; add `CREATE_EVENT` etc. with free-text entries |
-| Remaining amount of opened packages | phase 18 marks opened packages only; book out by cooking is phase 28 |
+| Remaining amount of opened packages | phase 18 (done) marks opened packages as their own batch (`opened_on`); a remaining amount would be a column on that batch; book out by cooking is phase 28 |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

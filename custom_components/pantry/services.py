@@ -1,5 +1,5 @@
 """HA services for automations (scanners, NFC tags, ESPHome, voice): book in/out by code, print
-labels, the shopping list, the meal plan (day / week) and recipes (also the one planned for a meal), a recipe on the shopping
+labels, open a package, the shopping list, the meal plan (day / week) and recipes (also the one planned for a meal), a recipe on the shopping
 list, plan a dish, a canning protocol."""
 
 from __future__ import annotations
@@ -45,6 +45,7 @@ BOOK_OUT = vol.Schema(
         vol.Optional("location"): _LOCATION,
     }
 )
+OPEN_PACKAGE = vol.Schema({vol.Required("code"): _CODE, vol.Optional("location"): _LOCATION})
 _DATE = vol.Any(None, "", cv.date)
 _SERVINGS = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
 # order = meal_plan.slot (0 breakfast … 4 snack)
@@ -124,6 +125,15 @@ def async_register(hass: HomeAssistant) -> None:
         )
         return await _run(hass, fn, d["code"], d["packages"])
 
+    async def open_package(call: ServiceCall) -> ServiceResponse:
+        d = call.data
+        fn = partial(
+            inventory.open_by_code,
+            location=d.get("location") or None,
+            user_id=call.context.user_id,
+        )
+        return await _run(hass, fn, d["code"], dt_util.now().date())
+
     async def print_labels(call: ServiceCall) -> ServiceResponse:
         return await async_print_labels(
             hass, call.data["batch_id"], call.data["count"], browser=False
@@ -193,6 +203,7 @@ def async_register(hass: HomeAssistant) -> None:
     for name, handler, schema in (
         ("book_in", book_in, BOOK_IN),
         ("book_out", book_out, BOOK_OUT),
+        ("open_package", open_package, OPEN_PACKAGE),
         ("print_labels", print_labels, PRINT_LABELS),
         ("print_shopping_list", print_shopping_list, vol.Schema({})),
         ("print_recipe", print_recipe, PRINT_RECIPE),

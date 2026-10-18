@@ -130,6 +130,12 @@ export class PantrySettings extends LitElement {
           days: fmt(md, this.hass, "shelf_days", c.shelf_days),
         }),
       );
+    if (c.opened_days != null)
+      parts.push(
+        t("settings.category.opened_short", {
+          days: fmt(md, this.hass, "opened_days", c.opened_days),
+        }),
+      );
     if (c.food === 0) parts.push(t("settings.food.no"));
     if (c.min_stock != null) {
       const u = fmt(md, this.hass, "unit_id", c.min_stock_unit_id);

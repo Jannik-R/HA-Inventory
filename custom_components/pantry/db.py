@@ -13,6 +13,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
 from .migration_15 import SCHEMA_15
+from .migration_20 import SCHEMA_20
 from .seed import seed
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -428,6 +429,8 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     INSERT INTO meal_time (slot, start)
         VALUES (0, '05:00'), (1, '11:00'), (2, '14:30'), (3, '17:00'), (4, '20:30');
     """,
+    # 20: opened packages: inheritable opened_days, batch.opened_on, booking kind 'open' (see migration_20).
+    SCHEMA_20,
 ]
 
 

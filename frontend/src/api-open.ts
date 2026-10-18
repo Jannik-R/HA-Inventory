@@ -1,0 +1,23 @@
+import type { Hass } from "./api";
+
+/** What opening a package did: the opened batch (own batch with opened_on) and its booking. */
+export interface Opened {
+  batch_id: number;
+  location_id: number;
+  booking_id: number;
+  /** Effective expiry of the opened package. */
+  expires_on: string | null;
+  name: string;
+  location: string;
+}
+
+/** One package of that batch / location, else the earliest unopened one of the product. */
+export const openPackage = (
+  hass: Hass,
+  data: { product_id: number; batch_id?: number; location_id?: number },
+) => hass.callWS<Opened>({ type: "pantry/open_package", ...data });
+/** A scanned label (code without PTRY:): one package of its batch. */
+export const openLabel = (hass: Hass, code: string) =>
+  hass.callWS<Opened>({ type: "pantry/open_label", code });
+export const undoOpen = (hass: Hass, booking_id: number) =>
+  hass.callWS<null>({ type: "pantry/open_undo", booking_id });

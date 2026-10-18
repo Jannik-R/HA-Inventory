@@ -1,9 +1,14 @@
-import { css, html, nothing } from "lit";
+import { css, html, nothing, type TemplateResult } from "lit";
 import { t } from "./i18n";
 
-/** Status line after a booking, with an undo button when something can be put back.
- *  Testids `message` / `undo`, or `<prefix>-done` / `<prefix>-undo`. */
-export function doneLine(message: string, undo: (() => void) | undefined, prefix?: string) {
+/** Status line after a booking, with an undo button when something can be put back, and an
+ *  optional further action after it. Testids `message` / `undo`, or `<prefix>-done` / `<prefix>-undo`. */
+export function doneLine(
+  message: string,
+  undo: (() => void) | undefined,
+  prefix?: string,
+  more?: TemplateResult,
+) {
   if (!message) return nothing;
   return html`<p class="done" role="status" data-testid=${prefix ? `${prefix}-done` : "message"}>
     ${message}
@@ -19,6 +24,7 @@ export function doneLine(message: string, undo: (() => void) | undefined, prefix
           </button>`
         : nothing
     }
+    ${more ?? nothing}
   </p>`;
 }
 

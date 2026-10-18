@@ -60,6 +60,9 @@
     "location_required": {
       "message": "Bitte einen Lagerort wählen."
     },
+    "already_opened": {
+      "message": "Diese Packung ist schon angebrochen."
+    },
     "already_undone": {
       "message": "Bereits rückgängig gemacht."
     },
@@ -230,6 +233,20 @@
         "packages": {
           "name": "Packungen",
           "description": "Anzahl der Packungen (Etikett-Code: 1)."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Nur aus diesem Lagerort (nicht mit Etikett-Code)."
+        }
+      }
+    },
+    "open_package": {
+      "name": "Packung anbrechen",
+      "description": "Eine Packung per Barcode als angebrochen markieren (früheste Ablaufzeit zuerst) oder per gescanntem Etikett (PTRY:…, eine Packung dieser Charge). Ihr Ablaufdatum verkürzt sich um die Haltbarkeit nach Anbruch.",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN oder Etikett-Code PTRY:…"
         },
         "location": {
           "name": "Lagerort",

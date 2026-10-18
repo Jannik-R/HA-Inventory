@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, recipe_print).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, recipe_print, opened).
 """
 
 from .ai_check import changes as ai_changes
@@ -13,6 +13,7 @@ from .codes import (
     book_in_by_code,
     book_out_by_code,
     canning_by_name,
+    open_by_code,
     plan_meal_by_name,
     recipe_by_name,
     shop_recipe_by_name,
@@ -21,7 +22,7 @@ from .common import InventoryError, check_ean
 from .expiry_recipes import expiring_recipes
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
-from .labels import book_out_code, label_info
+from .labels import book_out_code, label_info, open_code
 from .master import delete, list_rows, master_data, save, save_defaults
 from .meal_plan import (
     delete_meal,
@@ -33,6 +34,7 @@ from .meal_plan import (
     save_meal_times,
     shift_meals,
 )
+from .opened import open_package, undo_open
 from .plan_shopping import plan_to_shopping_list
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
@@ -96,6 +98,9 @@ __all__ = [
     "meals",
     "move",
     "move_location",
+    "open_by_code",
+    "open_code",
+    "open_package",
     "parse_ingredient",
     "plan_meal_by_name",
     "plan_to_shopping_list",
@@ -127,6 +132,7 @@ __all__ = [
     "suggest",
     "suggest_by_keywords",
     "suggest_category",
+    "undo_open",
     "unit_add",
     "update_shopping_item",
 ]

@@ -75,6 +75,7 @@ export const toPayload = (d: Draft, products: Product[] | null) => {
         note: i.note?.trim() || null,
         // The backend takes the category's name; text only for rows without one.
         ...(i.category_id == null ? { text: i.text.trim() } : {}),
+        ...(i.category_id == null && i.new_type ? { new_type: i.new_type } : {}),
       })),
   };
 };

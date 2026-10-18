@@ -872,6 +872,7 @@ var Ue = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"recipes.ai.undo_steps": "Schritte zurücksetzen",
 	"recipes.ai.changed": "Von der KI geändert: {reason} (vorher: {before})",
 	"recipes.ai.undo": "Rückgängig",
+	"recipes.ai.new_type": "KI schlägt neuen Produkttyp „{name}“ unter „{parent}“ vor, wird beim Speichern angelegt: {reason}",
 	"recipes.ai.changed_one": "KI-Prüfung: 1 Zutat geändert (markiert).",
 	"recipes.ai.changed_many": "KI-Prüfung: {n} Zutaten geändert (markiert).",
 	"recipes.ai.steps": "KI-Prüfung: Schritte neu aufgeteilt.",
@@ -5225,7 +5226,8 @@ var ui = class extends T {
 	pick(e, t) {
 		let n = this.categories.find((e) => e.id === t), r = this.value[e], i = {
 			category_id: t,
-			ai: void 0
+			ai: void 0,
+			new_type: void 0
 		};
 		if (!n) i.text = "";
 		else if (i.text = n.name, r.unit_id == null && r.amount == null) {
@@ -5300,7 +5302,11 @@ var ui = class extends T {
               ${E("recipes.ingredient.line", { line: e.line })}
             </div>` : x}
       ${e.ai ? y`<div class="orig" data-testid="ingredient-ai">
-              ${E("recipes.ai.changed", {
+              ${e.new_type ? E("recipes.ai.new_type", {
+			name: e.new_type.name,
+			parent: this.categories.find((t) => t.id === e.new_type.parent_id)?.name ?? "–",
+			reason: e.ai.reason
+		}) : E("recipes.ai.changed", {
 			reason: e.ai.reason,
 			before: e.ai.beforeText || "–"
 		})}
@@ -5310,7 +5316,8 @@ var ui = class extends T {
                 @click=${() => this.set(t, {
 			category_id: e.ai.before,
 			text: e.ai.beforeText,
-			ai: void 0
+			ai: void 0,
+			new_type: void 0
 		})}
               >
                 ${E("recipes.ai.undo")}
@@ -5665,7 +5672,8 @@ var gi = (e) => ({
 			skip_stock: e.skip_stock,
 			source_text: e.source_text ?? null,
 			note: e.note?.trim() || null,
-			...e.category_id == null ? { text: e.text.trim() } : {}
+			...e.category_id == null ? { text: e.text.trim() } : {},
+			...e.category_id == null && e.new_type ? { new_type: e.new_type } : {}
 		}))
 	};
 }, vi = (e, t, n, r) => ({
@@ -5690,7 +5698,8 @@ var gi = (e) => ({
 		a[r] = {
 			...a[r],
 			category_id: n.category_id,
-			text: s?.name ?? a[r].source_text ?? a[r].text,
+			new_type: n.new_type,
+			text: n.new_type?.name ?? s?.name ?? a[r].source_text ?? a[r].text,
 			ai: {
 				before: e.category_id,
 				beforeText: e.text,

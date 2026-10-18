@@ -6,8 +6,10 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from .inherit import _categories, children, is_food
+from .inherit import _categories, children, food_named, is_food
 from .steps import MAX_SECTION, MAX_STEPS, MAX_TEXT
+
+MAX_TYPE_NAME = 60
 
 # The fixed part stays byte-identical between calls (only the category tree changes it), so
 # providers that cache prompt prefixes (Gemini implicitly, Claude) only bill it once in a while.
@@ -17,6 +19,10 @@ stock of that category and its subcategories. The best category is the most spec
 fits the ingredient (a product type on the lowest level when one fits); a more general category
 only when the recipe accepts any kind of it (e.g. "Nudeln"). Things nobody keeps in stock
 (water, ice cubes) may have no category (category_id 0).
+When no product type in the tree fits but the ingredient is a distinct food that people keep in
+stock (e.g. "Sumach" with no such type below "Gewürze"), propose a new product type: "new_type"
+{"name": <singular German name>, "parent_id": <the most specific category it belongs below>}.
+Only a product type, never a new intermediate category; never one the tree already has.
 Steps: one action-sized step each, in the recipe's order and wording. Split a long block into
 steps, do not invent or drop content. A section name only for real sub-parts (e.g. "Teig",
 "Füllung"); one section for the whole recipe is no section.
@@ -25,7 +31,8 @@ Answer with JSON only.
 - Everything fine: {"ok": true}
 - Otherwise {"ok": false} with only what changes:
   "ingredients": [{"index": <index from the draft>, "category_id": <id from the tree, 0 = none>,
-  "reason": <a few words, German>}] for ingredients whose category is wrong or missing;
+  "new_type": <only when proposing one>, "reason": <a few words, German>}] for ingredients
+  whose category is wrong or missing;
   "steps": the complete new step list [{"text": ..., "section": ...}] only if the steps need
   splitting or fixing.
 Ingredients with "learned": true were confirmed by the user before: change them only when
@@ -93,9 +100,20 @@ def _headings(steps: list[dict]) -> list[dict]:
     return out
 
 
+def _new_type(conn: sqlite3.Connection, new: object, ids: set[int]) -> dict | None:
+    """A proposed product type {name, parent_id} below an existing food category, else None."""
+    if not isinstance(new, dict):
+        return None
+    name, parent = str(new.get("name") or "").strip(), new.get("parent_id")
+    if not name or len(name) > MAX_TYPE_NAME or parent not in ids or not is_food(conn, parent):
+        return None
+    return {"name": name, "parent_id": parent}
+
+
 def changes(conn: sqlite3.Connection, draft: dict, answer: object) -> dict:
     """The AI answer, checked: only real changes to existing food categories and valid steps.
-    Returns {ok: true} or {ok: false, ingredients: [{index, category_id|None, reason}], steps?}."""
+    Returns {ok: true} or {ok: false, ingredients: [{index, category_id|None, new_type?, reason}],
+    steps?}; new_type {name, parent_id} is a product type to add on save (category_id None)."""
     if not isinstance(answer, dict):
         return {"ok": True}
     rows = draft.get("ingredients") or []
@@ -106,6 +124,13 @@ def changes(conn: sqlite3.Connection, draft: dict, answer: object) -> dict:
             continue
         n, cid = c.get("index"), c.get("category_id") or None
         if not isinstance(n, int) or not 0 <= n < len(rows) or n in picked:
+            continue
+        new = _new_type(conn, c.get("new_type"), names)
+        if new and (same := food_named(conn, new["name"])):
+            cid, new = same, None  # the tree has it after all
+        if new:
+            reason = str(c.get("reason") or "")[:200]
+            picked[n] = {"index": n, "category_id": None, "new_type": new, "reason": reason}
             continue
         if cid is not None and (cid not in names or not is_food(conn, cid)):
             continue  # an id the tree does not have (or non-food): ignore, never guess

@@ -64,7 +64,7 @@ export class PantryRecipeIngredients extends LitElement {
   private pick(index: number, id: number | null) {
     const cat = this.categories.find((c) => c.id === id);
     const cur = this.value[index];
-    const patch: Partial<Ingredient> = { category_id: id, ai: undefined };
+    const patch: Partial<Ingredient> = { category_id: id, ai: undefined, new_type: undefined };
     if (!cat)
       patch.text = ""; // "change": back to an empty, unmatched row
     else {
@@ -161,12 +161,29 @@ export class PantryRecipeIngredients extends LitElement {
       ${
         i.ai
           ? html`<div class="orig" data-testid="ingredient-ai">
-              ${t("recipes.ai.changed", { reason: i.ai.reason, before: i.ai.beforeText || "–" })}
+              ${
+                i.new_type
+                  ? t("recipes.ai.new_type", {
+                      name: i.new_type.name,
+                      parent:
+                        this.categories.find((c) => c.id === i.new_type!.parent_id)?.name ?? "–",
+                      reason: i.ai.reason,
+                    })
+                  : t("recipes.ai.changed", {
+                      reason: i.ai.reason,
+                      before: i.ai.beforeText || "–",
+                    })
+              }
               <button
                 type="button"
                 data-testid="ingredient-ai-undo"
                 @click=${() =>
-                  this.set(n, { category_id: i.ai!.before, text: i.ai!.beforeText, ai: undefined })}
+                  this.set(n, {
+                    category_id: i.ai!.before,
+                    text: i.ai!.beforeText,
+                    ai: undefined,
+                    new_type: undefined,
+                  })}
               >
                 ${t("recipes.ai.undo")}
               </button>

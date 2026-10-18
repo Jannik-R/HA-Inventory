@@ -34,18 +34,23 @@ ANSWER = probatio.Schema(
 )
 
 
+async def _generate(hass: HomeAssistant, **kwargs):
+    """ai_task.async_generate_data, imported only when an AI is set up (tests patch this)."""
+    from homeassistant.components import ai_task
+
+    return await ai_task.async_generate_data(hass, **kwargs)
+
+
 async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
     """{status: off} without an AI Task entity, else {status: ok} or {status: changes, ...}."""
     db = db_of(hass)
     entity_id = hass.config_entries.async_loaded_entries(DOMAIN)[0].options.get(CONF_AI_TASK)
     if not entity_id or "ai_task" not in hass.config.components:
         return {"status": "off"}
-    from homeassistant.components import ai_task
-
     instructions = await db.run(inventory.ai_prompt, draft)
     try:
         async with asyncio.timeout(_TIMEOUT):
-            result = await ai_task.async_generate_data(
+            result = await _generate(
                 hass,
                 task_name="Vorrat: Rezeptimport prüfen",
                 entity_id=entity_id,

@@ -132,9 +132,7 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
     hass.config_entries.async_update_entry(entry, options={CONF_AI_TASK: "ai_task.test"})
     hass.config.components.add("ai_task")
     answer = SimpleNamespace(data={"ok": False, "steps": [{"text": "Kochen."}, {"text": "Essen."}]})
-    with patch(
-        "homeassistant.components.ai_task.async_generate_data", new=AsyncMock(return_value=answer)
-    ) as gen:
+    with patch("custom_components.pantry.ai._generate", new=AsyncMock(return_value=answer)) as gen:
         await client.send_json_auto_id({"type": "pantry/recipe_ai_check", "draft": d})
         res = (await client.receive_json())["result"]
     assert res["status"] == "changes" and len(res["steps"]) == 2

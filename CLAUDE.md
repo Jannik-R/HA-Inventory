@@ -89,7 +89,7 @@ docs/guide.de.md, guide.en.md  user guide (German, English), opened from the pan
 - After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
-- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` with `{status: "off"}` unless a test stubs it (`wsStub`); backend tests patch `ai_task.async_generate_data`.
+- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` with `{status: "off"}` unless a test stubs it (`wsStub`); backend tests patch `ai._generate`.
 - **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_labels` call (the dev HA may have the real printer configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX

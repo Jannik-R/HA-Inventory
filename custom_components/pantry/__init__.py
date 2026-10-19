@@ -22,7 +22,7 @@ from . import (
     websocket_recipe,
     websocket_stock,
 )
-from .const import CONF_AI_TASK, DOMAIN, PANEL_URL, modules_of
+from .const import CONF_AI_TASK, CONF_OFF, DOMAIN, PANEL_URL, modules_of
 from .db import Database
 
 type PantryConfigEntry = ConfigEntry[Database]
@@ -70,6 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
             config={
                 "modules": modules_of(entry.options),
                 "ai": bool(entry.options.get(CONF_AI_TASK)),
+                "off": entry.options.get(CONF_OFF, True),
             },
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

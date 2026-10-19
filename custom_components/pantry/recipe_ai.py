@@ -16,8 +16,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from . import ai, inventory, recipe_fetch, recipe_media
+from .const import CONF_AI_VIDEO
 from .inventory import InventoryError
-from .ws_common import db_of
+from .ws_common import db_of, options_of
 
 _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 180  # s; the AI provider processes an uploaded video first
@@ -88,11 +89,13 @@ async def async_import_url(hass: HomeAssistant, url: str) -> dict:
         raise error
     sources = await hass.async_add_executor_job(inventory.ai_page_sources, page) if page else {}
     async with recipe_media.async_folder(hass) as (folder, media_id):
-        try:
-            async with asyncio.timeout(recipe_media.VIDEO_TIMEOUT):
-                post = await hass.async_add_executor_job(recipe_media.video, url, folder)
-        except TimeoutError:
-            post = None
+        post = None
+        if options_of(hass).get(CONF_AI_VIDEO, False):
+            try:
+                async with asyncio.timeout(recipe_media.VIDEO_TIMEOUT):
+                    post = await hass.async_add_executor_job(recipe_media.video, url, folder)
+            except TimeoutError:
+                pass
         files = []
         if post:
             sources = {

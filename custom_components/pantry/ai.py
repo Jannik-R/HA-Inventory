@@ -10,8 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from . import inventory
-from .const import CONF_AI_TASK, DOMAIN
-from .ws_common import db_of, translated
+from .const import CONF_AI_PRODUCT, CONF_AI_TASK, DOMAIN
+from .ws_common import db_of, options_of, translated
 
 _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 120  # s; a big prompt on a free tier can take a while
@@ -114,7 +114,7 @@ async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
 async def async_check_product(hass: HomeAssistant, draft: dict) -> dict:
     """Like async_check_recipe, for a new product from Open Food Facts."""
     db = db_of(hass)
-    if not entity_of(hass):
+    if not entity_of(hass) or not options_of(hass).get(CONF_AI_PRODUCT, True):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_product_prompt, draft)
     data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_CHECK_SCHEMA)

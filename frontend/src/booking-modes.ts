@@ -1,6 +1,7 @@
 import { css, html } from "lit";
 import { mdiMagnify, mdiMinus, mdiPackageVariant, mdiPlus } from "@mdi/js";
 import { t } from "./i18n";
+import { hasModule } from "./modules";
 import { icon } from "./ui";
 
 /** "search" only filters the stock list; Enter (scanners send one) books nothing. "open" marks a
@@ -16,7 +17,7 @@ const MODES: [Mode, string][] = [
 /** The mode switch in front of the booking input (slot "before"). */
 export const modeSwitch = (mode: Mode, pick: (m: Mode) => void) =>
   html`<div slot="before" class="modes" role="group" aria-label=${t("stock.mode")}>
-    ${MODES.map(
+    ${MODES.filter(([m]) => m !== "open" || hasModule("opened")).map(
       ([m, path]) =>
         html`<button
           type="button"

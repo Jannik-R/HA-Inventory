@@ -56,7 +56,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
 4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte & Eier → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan und Einkochen einzeln ab (auch schon beim Einrichten wählbar). Der Tab verschwindet, die Daten bleiben erhalten.
+5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan, Einkochen und Anbrechen einzeln ab (auch schon beim Einrichten wählbar). Der Tab oder Knopf verschwindet, die Daten bleiben erhalten.
 6. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
@@ -425,7 +425,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
-<a id="haushalt-einstellungen"></a>**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte. Im selben Schritt: **Geschätztes Ablaufdatum vorausfüllen** (Standard aus) schreibt beim Einbuchen heute + Haltbarkeit schon ins Datumsfeld; aus bleibt das Feld leer und das Datum wird erst beim Speichern geschätzt.
+<a id="haushalt-einstellungen"></a>**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte. Im selben Schritt: **Geschätztes Ablaufdatum vorausfüllen** (Standard aus) schreibt beim Einbuchen heute + Haltbarkeit schon ins Datumsfeld; aus bleibt das Feld leer und das Datum wird erst beim Speichern geschätzt. **Produkte in Open Food Facts nachschlagen** (Standard an): aus wird ein unbekannter Barcode nicht nachgeschlagen und *Online suchen* fehlt; neue Produkte legst du von Hand an.
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 

@@ -3,7 +3,7 @@ import { mdiHelpCircleOutline, mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
-import { hasModule, setAi, setModules, type Module } from "./modules";
+import { hasModule, setAi, setModules, setOff, type Module } from "./modules";
 import "./settings-view";
 import "./stock-view";
 import "./expiry-view";
@@ -31,7 +31,7 @@ export class PantryPanel extends LitElement {
   declare hass?: Hass;
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
-  declare panel?: { config?: { modules?: string[]; ai?: boolean } };
+  declare panel?: { config?: { modules?: string[]; ai?: boolean; off?: boolean } };
 
   constructor() {
     super();
@@ -48,6 +48,7 @@ export class PantryPanel extends LitElement {
     if (changed.has("panel")) {
       setModules(this.panel?.config?.modules);
       setAi(this.panel?.config?.ai);
+      setOff(this.panel?.config?.off);
     }
   }
 
@@ -126,7 +127,7 @@ export class PantryPanel extends LitElement {
             : active === "stock"
               ? html`<pantry-stock
                   .hass=${this.hass}
-                  .mode=${this.seg === "in" || this.seg === "out" || this.seg === "open" ? this.seg : "search"}
+                  .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) ? this.seg : "search"}
                 ></pantry-stock>`
               : active === "expiry"
                 ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`

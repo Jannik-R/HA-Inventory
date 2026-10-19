@@ -21,13 +21,16 @@ DEFAULT_SERVINGS = 3
 # Booking in: fill the date field with the guess (today + shelf life); off = empty field, guessed on save.
 CONF_PREFILL_EXPIRY = "prefill_expiry"
 CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; unset = no AI
+CONF_AI_PRODUCT = "ai_product_check"  # AI checks new products from Open Food Facts (default on)
+CONF_AI_VIDEO = "ai_video"  # AI recipe import may download a post's video via yt-dlp (default off)
+CONF_OFF = "off_lookup"  # look up unknown EANs and search names in Open Food Facts (default on)
 # What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.
 CONF_LLM_ACCESS = "llm_access"
 LLM_ACCESS = ["read", "plan", "all"]
 DEFAULT_LLM_ACCESS = "plan"
 # Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all.
 CONF_MODULES = "modules"
-MODULES = ["shopping", "recipes", "plan", "canning"]
+MODULES = ["shopping", "recipes", "plan", "canning", "opened"]
 
 
 def modules_of(options) -> list[str]:

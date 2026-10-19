@@ -1,4 +1,5 @@
 import { LitElement, html } from "lit";
+import { hasModule } from "./modules";
 import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
@@ -164,21 +165,25 @@ export class PantryProductDialog extends LitElement {
           })}
           ${fieldMsg(err.shelf_days, "shelf-days")}
         </label>
-        <label>
-          <span class="lbl" title=${t("tip.opened_days")}
-            >${t("settings.category.opened_days")}</span
-          >
-          ${inheritNumber({
-            testid: "opened-days",
-            own: p.opened_days,
-            dflt: dflt("opened_days"),
-            format: (v) => fmtDays(this.hass, v),
-            suffix: t("common.days_unit"),
-            invalid: !!err.opened_days,
-            onChange: (v) => this.set("opened_days", v),
-          })}
-          ${fieldMsg(err.opened_days, "opened-days")}
-        </label>`,
+        ${
+          hasModule("opened")
+            ? html`<label>
+                <span class="lbl" title=${t("tip.opened_days")}
+                  >${t("settings.category.opened_days")}</span
+                >
+                ${inheritNumber({
+                  testid: "opened-days",
+                  own: p.opened_days,
+                  dflt: dflt("opened_days"),
+                  format: (v) => fmtDays(this.hass, v),
+                  suffix: t("common.days_unit"),
+                  invalid: !!err.opened_days,
+                  onChange: (v) => this.set("opened_days", v),
+                })}
+                ${fieldMsg(err.opened_days, "opened-days")}
+              </label>`
+            : ""
+        }`,
       error: this.error,
       invalid: Object.keys(err).length > 0,
       dirty,

@@ -1,4 +1,5 @@
 import { LitElement, html } from "lit";
+import { hasModule } from "./modules";
 import { t } from "./i18n";
 import { editDialog, fieldMsg, numOrNull, rowActions } from "./ui";
 import { formStyles } from "./styles";
@@ -86,7 +87,7 @@ export class PantryDefaults extends LitElement {
     if (!md) return html``;
     return html`<p class="detail intro">${t("settings.defaults.hint")}</p>
       <ul>
-        ${FIELDS.map(
+        ${FIELDS.filter(([f]) => f !== "opened_days" || hasModule("opened")).map(
           ([f, label]) =>
             html`<li>
               <button class="row" data-testid="default-row" @click=${this.open}>
@@ -169,7 +170,7 @@ export class PantryDefaults extends LitElement {
           ${fieldMsg(err, "default-warn_days")}
         </label>
         ${this.optionalDays(d, "shelf_days", shelfErr)}
-        ${this.optionalDays(d, "opened_days", openedErr)}`,
+        ${hasModule("opened") ? this.optionalDays(d, "opened_days", openedErr) : ""}`,
       error: this.error,
       invalid: !!err || !!shelfErr || !!openedErr,
       dirty: () => FIELDS.some(([f]) => d[f] !== this.orig?.[f]),

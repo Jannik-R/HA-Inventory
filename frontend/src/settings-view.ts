@@ -130,7 +130,7 @@ export class PantrySettings extends LitElement {
           days: fmt(md, this.hass, "shelf_days", c.shelf_days),
         }),
       );
-    if (c.opened_days != null)
+    if (c.opened_days != null && hasModule("opened"))
       parts.push(
         t("settings.category.opened_short", {
           days: fmt(md, this.hass, "opened_days", c.opened_days),

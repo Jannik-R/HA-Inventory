@@ -3963,13 +3963,22 @@ var Ir = s`
 //#endregion
 //#region src/ocr.ts
 async function Lr(t, n) {
-	let { createWorker: r } = await import("./src-MUpJjT8c.js").then((t) => /* @__PURE__ */ e(t.default, 1)), i = await r("deu", 1, { logger: (e) => {
-		e.status === "recognizing text" && n(e.progress);
-	} });
+	let { createWorker: r } = await import("./src-MUpJjT8c.js").then((t) => /* @__PURE__ */ e(t.default, 1)), i = new URL(
+		/* @vite-ignore */
+		"vendor/",
+		import.meta.url
+	).href, a = await r("deu", 1, {
+		workerPath: `${i}tesseract-worker.min.js`,
+		corePath: `${i}tesseract-core-simd-lstm.wasm.js`,
+		langPath: i,
+		logger: (e) => {
+			e.status === "recognizing text" && n(e.progress);
+		}
+	});
 	try {
-		return (await i.recognize(t)).data.text;
+		return (await a.recognize(t)).data.text;
 	} finally {
-		await i.terminate();
+		await a.terminate();
 	}
 }
 //#endregion
@@ -3978,7 +3987,11 @@ async function Rr(e, t) {
 	let n = await createImageBitmap(e), r = Math.min(1, t / Math.max(n.width, n.height)), i = document.createElement("canvas");
 	return i.width = Math.round(n.width * r), i.height = Math.round(n.height * r), i.getContext("2d").drawImage(n, 0, 0, i.width, i.height), n.close(), i;
 }
-var zr = async (e, t = 2e3) => (await Rr(e, t)).toDataURL("image/jpeg", .85), Br = "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js", Vr;
+var zr = async (e, t = 2e3) => (await Rr(e, t)).toDataURL("image/jpeg", .85), Br = new URL(
+	/* @vite-ignore */
+	"vendor/opencv.js",
+	import.meta.url
+).href, Vr;
 function Hr() {
 	return Vr ??= new Promise((e, t) => {
 		let n = document.createElement("script");

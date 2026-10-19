@@ -223,7 +223,7 @@
           "ai_product_check": "Beim Einbuchen eines neuen Produkts aus Open Food Facts gehen seine Daten, der Kategoriebaum und die Einheiten an die KI.",
           "ai_import": "Schickt Seitentext und Vorschaubild eines Links ohne Rezeptdaten, eingefügten Text oder ein Foto an die KI.",
           "ai_video": "Lädt das Video eines Instagram-, TikTok- oder YouTube-Beitrags herunter (yt-dlp, wird beim ersten Mal installiert) und schickt es an die KI. Viele Plattformen verbieten Downloads in ihren Nutzungsbedingungen.",
-          "receipt_import": "Der Browser lädt OpenCV.js und tesseract.js von jsDelivr; an die KI gehen nur der erkannte Text und deine Produktliste, nicht das Foto."
+          "receipt_import": "Der Bontext wird im Browser erkannt; an die KI gehen nur dieser Text und deine Produktliste, nicht das Foto."
         }
       },
       "ai": {

@@ -223,7 +223,7 @@
           "ai_product_check": "When booking in a new product from Open Food Facts, its data, the category tree and the units go to the AI.",
           "ai_import": "Sends the page text and preview image of a link without recipe data, pasted text or a photo to the AI.",
           "ai_video": "Downloads the video of an Instagram, TikTok or YouTube post (yt-dlp, installed on first use) and sends it to the AI. Many platforms forbid downloads in their terms of use.",
-          "receipt_import": "The browser loads OpenCV.js and tesseract.js from jsDelivr; only the recognized text and your product list go to the AI, not the photo."
+          "receipt_import": "The receipt text is recognized in the browser; only that text and your product list go to the AI, not the photo."
         }
       },
       "ai": {

@@ -10,7 +10,8 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("a receipt photo is read in the browser, checked and booked in", async ({ page, wsStub }) => {
-  test.setTimeout(120_000); // the first OCR run loads engine and German data from the CDN
+  test.setTimeout(120_000); // the first OCR run loads engine and German data (www/vendor/)
+  await page.context().route("**/cdn.jsdelivr.net/**", (route) => route.abort()); // never from a CDN
   const api = await apiPage(page.context().browser()!);
   const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   const milk = md.categories.find((c) => c.name === "H-Milch")!.id;

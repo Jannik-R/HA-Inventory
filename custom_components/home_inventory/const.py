@@ -30,7 +30,7 @@ EXTERNAL = {
     "ai_product_check": True,  # AI checks a new product from Open Food Facts
     "ai_import": True,  # AI reads a link without recipe data, pasted text, a photo
     "ai_video": False,  # yt-dlp downloads a post's video for the AI (platform terms forbid it)
-    "receipt_import": True,  # AI reads the receipt text; the browser loads OCR libraries from jsDelivr
+    "receipt_import": True,  # AI reads the receipt text (OCR runs in the browser)
 }
 _NEEDS_AI = {"ai_recipe_check", "ai_product_check", "ai_import", "ai_video", "receipt_import"}
 # What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.

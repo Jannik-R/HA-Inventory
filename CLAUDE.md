@@ -64,7 +64,7 @@ custom_components/home_inventory/   integration (Python)
   receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
   fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
-frontend/                   panel source (Lit + TypeScript, Vite); licenses.ts: build plugin writing www/THIRD_PARTY_LICENSES.txt
+frontend/                   panel source (Lit + TypeScript, Vite); licenses.ts: build plugin writing www/THIRD_PARTY_LICENSES.txt; vendor.ts: copies runtime files (OCR) to www/vendor/ (no CDN; notices/: license texts not in the npm packages)
   src/i18n/de.json, en.json UI strings (German, English; other languages fall back to English)
   e2e/                      Playwright specs (local only)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)

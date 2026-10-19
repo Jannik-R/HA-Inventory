@@ -162,7 +162,7 @@ Eine einmal eingebuchte Bonzeile merkt sich Vorrat je Händler und wählt sie be
 **Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in
 einem Assist-Agenten (z. B. *Google Gemini > Konfigurieren > Home Assistant steuern*) oder in der
 Integration *Model Context Protocol Server* (für Claude Desktop und andere MCP-Clients). *Zugriff für
-Assistenten* legt fest, was sie dürfen:
+Assistenten (LLM-API)* legt fest, was sie dürfen:
 
 | Stufe | Werkzeuge |
 |---|---|

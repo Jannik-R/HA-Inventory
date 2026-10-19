@@ -391,7 +391,7 @@ ab?“, „Was kann ich mit dem Vorrat kochen?“ oder „Setz Milch auf die Ein
 
 1. Im Assist-Agenten (z. B. *Google Gemini > Konfigurieren*) unter *Home Assistant steuern* die
    LLM-API **Home Inventory** anhaken, oder in der Integration *Model Context Protocol Server*.
-2. Unter *Konfigurieren > KI (Rezeptimport, Assistenten) > Zugriff für Assistenten* festlegen, was
+2. Unter *Konfigurieren > KI (Rezeptimport, Assistenten) > Zugriff für Assistenten (LLM-API)* festlegen, was
    er darf: *Nur lesen*, *Lesen, Einkaufsliste und Speiseplan* (Standard) oder *Alles, auch Ein- und
    Ausbuchen und Anbrechen*.
 

@@ -27,9 +27,9 @@ Available:
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 - Shopping list from the meal plan: the recipes planned in a date range (button *Einkaufsliste* in the meal plan, action `home_inventory.plan_to_shopping_list`) go on the list minus stock; no consumption forecast yet
-- Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
+- Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Meal plan*
 - Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
-- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `home_inventory.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Geschätztes Ablaufdatum vorausfüllen* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
+- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `home_inventory.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Fill in the guessed expiry date* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
 - Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `home_inventory.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; seeded for the food categories, e.g. milk 3; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
@@ -44,11 +44,11 @@ HACS (only once the repository is public; HACS cannot install from private repos
 
 Manual: download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
 
-Python packages (installed by Home Assistant): `segno` (QR codes on labels). `yt-dlp` (video of a post for the AI recipe import) is installed only on first use with *Externe Dienste > Videos für den Rezeptimport laden* turned on; the Home Assistant image already contains it, so a standard install downloads nothing.
+Python packages (installed by Home Assistant): `segno` (QR codes on labels). `yt-dlp` (video of a post for the AI recipe import) is installed only on first use with *External services > Load videos for the recipe import* turned on; the Home Assistant image already contains it, so a standard install downloads nothing.
 
 Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
-**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*), *Anbrechen* (button *Anbrechen* on batch rows, booking mode *Anbrechen* and the field *Haltbar nach Anbruch*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
+**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Shopping list* (tab *Einkauf* and the shopping list to-do entity), *Recipes* (tab *Rezepte*), *Meal plan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Canning* (tab *Einkochen*), *Opened packages* (button *Anbrechen* on batch rows, booking mode *Anbrechen* and the field *Haltbar nach Anbruch*). Change them later under *Configure > Modules*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
 ## Usage
 
@@ -62,25 +62,25 @@ All options are under *Settings > Devices & services > Home Inventory > Configur
 printer, receipt printer, household (servings, expiry guess), AI and external services (see
 [Privacy](#privacy)).
 
-### Label printer (Etikettendrucker)
+### Label printer
 
 Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN; canning
 labels contain the charge), product name, brand and expiry date. Scanning a label in *Bestand* books
 out one package of that batch.
 
-Choose *Etikettendrucker*. Step 1: the *Modell des Etikettendruckers*. Step 2: the settings of that
-model, label size in mm and whether to print on book-in. Models:
+Choose *Label printer*. Step 1: the *Label printer model*. Step 2: the settings of that
+model, label size in mm and *Print labels when booking in*. Models:
 
 - *Dymo LabelWriter 450 / 4xx*: network via a USB print server (e.g. TP-Link with a fixed IP and raw
   printing enabled): enter the printer as `host` or `host:port` (port defaults to 9100). Or USB on the
   HA host: enter the device path, e.g. `/dev/usb/lp0` (in Docker pass it with `devices:`, as for the
   receipt printer). Width 10 to 57 mm, height 10 to 200 mm (default 57 x 32). The 450 never prints
-  the last ~3 mm of a 57 x 32 label, so that space stays blank. *Testetikett drucken* sends one label
+  the last ~3 mm of a 57 x 32 label, so that space stays blank. *Print a test label* sends one label
   when you save; if the printer is not reachable the form says so.
-- *Kein Drucker*: the browser print dialog opens with one page per label (choose the label printer
+- *No printer - print via the browser*: the browser print dialog opens with one page per label (choose the label printer
   there; the page size is the label size, 10 to 200 mm).
 
-### Receipt printer (Bondrucker)
+### Receipt printer
 
 Prints the shopping list, recipes and the meal plan on an ESC/POS receipt printer (58 or 80 mm, e.g.
 TPG A799), as an image, so umlauts and fonts work on every printer; with a cutter the paper is cut at
@@ -99,20 +99,20 @@ the end. Setup for a USB printer on the machine that runs Home Assistant in Dock
    Recreate the container (`docker compose up -d homeassistant`). The printer must be on and
    plugged in when the container starts; after unplugging it, restart the container.
    HA OS passes USB devices on its own: use the device path directly.
-3. *Configure > Bondrucker*: *Drucker* = `/dev/bondrucker` (a network printer: `host` or `host:port`,
-   port 9100), paper width, *Papier am Ende abschneiden*, baud rate (serial printers only: the
+3. *Configure > Receipt printer (shopping list)*: *Printer* = `/dev/bondrucker` (a network printer: `host` or `host:port`,
+   port 9100), paper width, *Cut the paper at the end*, baud rate (serial printers only: the
    printer's setting, often 9600 or 115200; a self-test page, usually FEED held while switching on,
-   shows it). *Testbon drucken* sends one short test receipt when you save; an unreachable printer is
+   shows it). *Print a test receipt* sends one short test receipt when you save; an unreachable printer is
    reported in the form.
-4. "Der Drucker ist nicht erreichbar": the Home Assistant log names the reason (e.g. busy: another
+4. "The printer is not reachable.": the Home Assistant log names the reason (e.g. busy: another
    service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
    serial printer: wrong baud rate; try the others.
 
-### AI (KI)
+### AI
 
 Optional. Set up an AI in Home Assistant first (an *AI Task* entity, e.g. *Add integration > Google
 Gemini* with an API key from Google AI Studio, which has a free tier, or *Anthropic*), then pick it
-under *Configure > KI (Rezeptimport, Assistenten) > KI-Aufgabe*; empty = no AI.
+under *Configure > AI (recipe import, assistants) > AI Task entity*; empty = no AI.
 
 **Recipe import.** Importing a page with schema.org recipe data needs no AI: Home Assistant loads the
 page only when you click *Importieren* (15 s timeout, HTML up to 5 MB, http or https, LAN addresses
@@ -124,7 +124,7 @@ too). With an AI set up:
   answers "ok" or the changes, and only proposes them; nothing is saved without you.
 - A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
   fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p,
-  when *Externe Dienste > Videos für den Rezeptimport laden* is on; default off, as many platforms forbid downloads in
+  when *External services > Load videos for the recipe import* is on; default off, as many platforms forbid downloads in
   their terms of use), otherwise the page's title, description, visible text and preview image (up
   to 5 MB), and sends them to the AI (attachments go through a hidden folder
   `.home_inventory_import` in the first media directory and are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
@@ -141,7 +141,7 @@ once as well: its name, brand, the Open Food Facts quantity and categories, the 
 (food and non-food) and the units go to the AI. It fixes the name (without brand and size), the
 category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
 new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
-fields you edited are kept. Turn this check off with *Externe Dienste > Neue Produkte prüfen*.
+fields you edited are kept. Turn this check off with *External services > AI checks new products*.
 
 **Receipt import.** *Kassenbon importieren* (booking in, only with an AI) scans the receipt like a
 phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and
@@ -155,14 +155,14 @@ line booked once is remembered per store and preselected next time without askin
 
 **Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an
 Assist agent (e.g. *Google Gemini > Configure > Control Home Assistant*) or in the *Model Context
-Protocol Server* integration (for Claude Desktop and other MCP clients). *Zugriff für Assistenten*
+Protocol Server* integration (for Claude Desktop and other MCP clients). *Access for assistants (LLM API)*
 decides what they may do:
 
 | Level | Tools |
 |---|---|
-| *Nur lesen* | `get_stock`, `get_expiring`, `get_recipes`, `get_recipe` (with stock status), `get_shopping_list`, `get_meal_plan` |
-| *Lesen, Einkaufsliste und Speiseplan* (default) | plus `add_to_shopping_list` (product or category by name), `add_recipe_to_shopping_list`, `plan_meal` |
-| *Alles, auch Ein- und Ausbuchen und Anbrechen* | plus `book_in`, `book_out`, `open_package` (product by name or EAN) |
+| *Read only (stock, expiring, recipes, shopping list, meal plan)* | `get_stock`, `get_expiring`, `get_recipes`, `get_recipe` (with stock status), `get_shopping_list`, `get_meal_plan` |
+| *Read, shopping list and meal plan* (default) | plus `add_to_shopping_list` (product or category by name), `add_recipe_to_shopping_list`, `plan_meal` |
+| *Everything, including booking in and out and opening packages* | plus `book_in`, `book_out`, `open_package` (product by name or EAN) |
 
 Tools use names, like the services; the write tools run the services below, so a booking records the
 user of the conversation.
@@ -170,21 +170,21 @@ user of the conversation.
 ## Privacy
 
 The database (`home_inventory.db` in the config directory) stays on your Home Assistant. Data leaves
-it only through the services below. Each one has its own switch under *Configure > Externe Dienste*
-(AI services also need the AI Task entity under *KI*); a service that is off sends nothing.
+it only through the services below. Each one has its own switch under *Configure > External services*
+(AI services also need the AI Task entity under *AI*); a service that is off sends nothing.
 
 | Service (switch) | What is sent, to whom | When | Default |
 |---|---|---|---|
-| *Produkte in Open Food Facts nachschlagen* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Online suchen* | on |
-| *Rezepte aus Links importieren* | a request for the linked page to that site (from Home Assistant) | *Importieren* with a link | on |
-| *KI prüft Rezeptimporte* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |
-| *Neue Produkte prüfen* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |
-| *KI liest Rezepte (Link ohne Rezeptdaten, Text, Foto)* | page text and preview image, pasted text or the photo to the AI | link without recipe data, *Text*, *Foto* | on (with AI) |
-| *Videos für den Rezeptimport laden* | the post's video is downloaded (yt-dlp, installed on first use) and sent to the AI | link to Instagram, TikTok, YouTube | off |
-| *Kassenbon-Import* | the browser loads OpenCV.js and tesseract.js (with German data) from jsDelivr; the recognized text and your product list (id, name, brand) go to the AI, not the photo | *Kassenbon importieren* | on (with AI) |
+| *Look up products in Open Food Facts* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Online suchen* | on |
+| *Import recipes from links* | a request for the linked page to that site (from Home Assistant) | *Importieren* with a link | on |
+| *AI checks recipe imports* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |
+| *AI checks new products* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |
+| *AI reads recipes (link without recipe data, text, photo)* | page text and preview image, pasted text or the photo to the AI | link without recipe data, *Text*, *Foto* | on (with AI) |
+| *Load videos for the recipe import* | the post's video is downloaded (yt-dlp, installed on first use) and sent to the AI | link to Instagram, TikTok, YouTube | off |
+| *Receipt import* | the browser loads OpenCV.js and tesseract.js (with German data) from jsDelivr; the recognized text and your product list (id, name, brand) go to the AI, not the photo | *Kassenbon importieren* | on (with AI) |
 
 Not switched here, because you set them up yourself: the label and receipt printer (your network or
-USB) and the LLM API for assistants (what they may read or change is the access level under *KI*;
+USB) and the LLM API for assistants (what they may read or change is the access level under *AI*;
 what the assistant's provider receives depends on that assistant).
 
 Product data from Open Food Facts is under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
@@ -193,12 +193,13 @@ This integration, and any export of its data, is meant for private use in your h
 ## Sensors
 
 The integration adds a device *Vorrat* with two sensors (packages, no polling, updated after every
-booking and at midnight):
+booking and at midnight). Entity names and ids follow the Home Assistant language (German:
+*Abgelaufen*, `sensor.vorrat_abgelaufen`; *Läuft bald ab*, `sensor.vorrat_lauft_bald_ab`):
 
 | Sensor | Value | Attribute `items` |
 |---|---|---|
-| *Abgelaufen* | packages past their date | name, expires_on, days_left, packages, location per batch |
-| *Läuft bald ab* | packages within their warning period | same |
+| *Expired* | packages past their date | name, expires_on, days_left, packages, location per batch |
+| *Expiring soon* | packages within their warning period | same |
 
 An opened package counts with its shorter date (opened on + *Haltbar nach Anbruch*).
 
@@ -207,13 +208,13 @@ Example: notify when something has expired.
 ```yaml
 triggers:
   - trigger: numeric_state
-    entity_id: sensor.vorrat_abgelaufen
+    entity_id: sensor.vorrat_expired
     above: 0
 actions:
   - action: notify.notify
     data:
       message: >
-        Abgelaufen: {{ state_attr('sensor.vorrat_abgelaufen', 'items') | map(attribute='name') | join(', ') }}
+        Expired: {{ state_attr('sensor.vorrat_expired', 'items') | map(attribute='name') | join(', ') }}
 ```
 
 ## Services (automations)
@@ -231,15 +232,15 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 | `home_inventory.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |
 | `home_inventory.print_planned` | `day` (date, default today), `meal` (`breakfast` … `snack`; default: the current meal by the start times under *Einstellungen > Mahlzeiten*) | `printed` (number of recipes), `day`, `meal` |
 | `home_inventory.print_recipe` | `recipe` (name, also a canning recipe), `servings` (optional; default: the recipe's own) | `printed` |
-| `home_inventory.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Portionen im Haushalt*) | `recipe_id` |
+| `home_inventory.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Household servings*) | `recipe_id` |
 | `home_inventory.plan_to_shopping_list` | `start` (date, default today), `days` (default 7, max 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (free-text dishes) |
-| `home_inventory.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Portionen im Haushalt*) | `meal_id` |
+| `home_inventory.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Household servings*) | `meal_id` |
 | `home_inventory.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
 - **print_planned** prints each recipe planned for that meal with its planned servings (free-text dishes are skipped); nothing planned fails with a message. Example: a button in the kitchen prints what is cooked next.
-- **print_labels** needs a label printer (see [Label printer](#label-printer-etikettendrucker)); with *Kein Drucker* it fails,
+- **print_labels** needs a label printer (see [Label printer](#label-printer)); with *No printer - print via the browser* it fails,
   since a service has no browser to print from.
 - **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
 - **plan_to_shopping_list** puts every recipe planned in the range on the list with the summed servings of its meals (like **shop_recipe**, keeps optional ingredients chosen in the panel; a recipe already on the list keeps the larger servings, so running it twice changes nothing). Free-text dishes are skipped.

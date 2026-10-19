@@ -11,9 +11,9 @@ const packageRoot = (id: string): string | undefined => {
 
 const licenseText = (root: string): string => {
   const file = readdirSync(root).find((f) => /^(licen[cs]e|copying)(\.|$)/i.test(f));
-  return file ? readFileSync(join(root, file), "utf8").replaceAll("
-", "
-").trim() : "(no license file in the package)";
+  // license files may use CRLF; the committed bundle is LF
+  const text = file ? readFileSync(join(root, file), "utf8").replaceAll("\r\n", "\n") : "";
+  return text.trim() || "(no license file in the package)";
 };
 
 /**

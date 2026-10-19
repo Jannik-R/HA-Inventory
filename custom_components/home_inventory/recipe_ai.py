@@ -78,15 +78,17 @@ async def _extract(
     return await db_of(hass).run(inventory.recipe_draft, recipe, url, write=False)
 
 
-async def async_import_url(hass: HomeAssistant, url: str) -> dict:
+async def async_import_url(hass: HomeAssistant, url: str, public_only: bool = False) -> dict:
     """Draft from a URL: schema.org data, else (with an AI set up) what the AI reads there."""
     if not external_on(hass, "recipe_url"):
         raise InventoryError("external_off")
     db, page, error = db_of(hass), None, None
     try:
-        page = await recipe_fetch.async_fetch(hass, url)
+        page = await recipe_fetch.async_fetch(hass, url, public_only)
         return await db.run(inventory.recipe_import, page, url, write=False)
     except InventoryError as err:  # no recipe data, no HTML or not loadable (Instagram: often)
+        if err.translation_key == "url_private":
+            raise
         error = err
     if not external_on(hass, "ai_import") or not (entity_id := ai.entity_of(hass)):
         raise error
@@ -97,7 +99,9 @@ async def async_import_url(hass: HomeAssistant, url: str) -> dict:
             try:
                 await async_process_requirements(hass, DOMAIN, [recipe_media.YT_DLP])
                 async with asyncio.timeout(recipe_media.VIDEO_TIMEOUT):
-                    post = await hass.async_add_executor_job(recipe_media.video, url, folder)
+                    post = await hass.async_add_executor_job(
+                        recipe_media.video, url, folder, public_only
+                    )
             except TimeoutError:
                 pass
             except HomeAssistantError as err:  # yt-dlp not installable: caption and page only
@@ -113,7 +117,7 @@ async def async_import_url(hass: HomeAssistant, url: str) -> dict:
             }
             files = [post["file"]] if post["file"] else []
         if not files and sources.get("image"):
-            image = await recipe_media.async_image(hass, sources["image"], folder)
+            image = await recipe_media.async_image(hass, sources["image"], folder, public_only)
             files = [image] if image else []
         return await _extract(hass, entity_id, sources, files, media_id, url)
 

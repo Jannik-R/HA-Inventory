@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Recipe import: links into the local network (e.g. a Mealie on the NAS) only for admins.
 - **Breaking**: the domain is now `home_inventory` (was `pantry`): folder `custom_components/home_inventory`, actions `home_inventory.*`, websocket `home_inventory/*`, panel URL `/home_inventory`, database `home_inventory.db`, LLM API `home_inventory`, entity ids (set up anew, named after the HA language). Remove the old integration and set it up again; data of `pantry.db` is not taken over.
 - Opening packages is a module (*Anbrechen*, on by default).
 - Privacy: new options step *Externe Dienste* with one switch per service that sends data out (Open Food Facts, recipe links, AI recipe check, AI product check, AI recipe reading, video download, receipt import); see the README section *Privacy*. `yt-dlp` is no longer a requirement; it is installed on first use when video download is turned on (default off).

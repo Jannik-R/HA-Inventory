@@ -7,7 +7,8 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from . import ai, inventory, recipe_ai
+from . import ai, inventory, recipe_ai, recipe_fetch
+from .inventory import InventoryError
 from .websocket_stock import _NEW_PRODUCT
 from .ws_common import run, translated
 from .ws_validate import (
@@ -193,6 +194,8 @@ async def ws_recipe_import(hass: HomeAssistant, connection, msg: dict) -> None:
         return
     with translated():
         if "url" in msg:
+            if not connection.user.is_admin and await recipe_fetch.async_private(hass, msg["url"]):
+                raise InventoryError("url_private")
             draft = await recipe_ai.async_import_url(hass, msg["url"])
         else:
             draft = await recipe_ai.async_import_input(hass, msg.get("text"), msg.get("image"))

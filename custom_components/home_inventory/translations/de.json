@@ -75,6 +75,9 @@
     "invalid_ean": {
       "message": "Ungültiger Barcode (8 bis 14 Ziffern)."
     },
+    "url_private": {
+      "message": "Links ins Heimnetz kann nur ein Administrator importieren."
+    },
     "recipe_unreachable": {
       "message": "Die Seite konnte nicht geladen werden."
     },

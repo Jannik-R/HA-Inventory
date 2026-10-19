@@ -75,6 +75,9 @@
     "invalid_ean": {
       "message": "Invalid barcode (8 to 14 digits)."
     },
+    "url_private": {
+      "message": "Links into the local network can only be imported by an administrator."
+    },
     "recipe_unreachable": {
       "message": "The page could not be loaded."
     },

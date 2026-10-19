@@ -335,7 +335,7 @@ Faustregeln:
 
 Eine Einheit, die ein Rezeptimport anlegt, ist zunächst nur für Rezepte.
 
-**Importieren**: Füge die Adresse eines Rezepts ein (z. B. Chefkoch, Mealie, Tandoor). Vorrat liest
+**Importieren**: Füge die Adresse eines Rezepts ein (z. B. Chefkoch, Mealie, Tandoor; Links ins Heimnetz, etwa ein Mealie auf dem NAS, nur als Admin). Vorrat liest
 die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt, mit den Schritten der Seite
 (steht dort nur ein Textblock, wird er an Zeilenumbrüchen oder seiner eigenen Nummerierung geteilt). Gespeichert wird erst, wenn du
 speicherst. Jede Zutat zeigt ihre Originalzeile; prüfe die vorgeschlagenen Produktarten. Eine

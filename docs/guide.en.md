@@ -60,7 +60,7 @@ Admins should take a quick look at **Einstellungen** first:
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Kategorien**: give categories a default location (e.g. Milchprodukte & Eier → fridge), so booking in rarely
    needs a location choice.
-5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Module* you turn shopping list, recipes, meal plan, canning and opening packages (*Anbrechen*) off one by one (also offered during setup). The tab or button disappears, the data is kept.
+5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Modules* you turn shopping list, recipes, meal plan, canning and opened packages off one by one (also offered during setup). The tab or button disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
@@ -113,7 +113,7 @@ flowchart LR
    Home Inventory then guesses today + shelf life (the hint below the field names the days). In the stock
    such a date shows "(geschätzt)" (guessed) until you change or confirm it in the stock row. Without a
    shelf life an empty field means no date (see [Categories](#9-categories-product-types-and-inheritance)).
-   To have the guessed date already in the field, turn on **Geschätztes Ablaufdatum vorausfüllen**
+   To have the guessed date already in the field, turn on **Fill in the guessed expiry date**
    (see [Household size](#household-settings)).
 7. **Packungen** (packages) and **Lagerort** (location): the location is prefilled (grey:
    "Geerbt: Kühlschrank (von Milchprodukte & Eier)" = inherited). Another choice applies to this booking
@@ -226,7 +226,7 @@ ingredients come first, then the one with more ingredients in stock. Tap one to 
 items) filters on it.
 
 > [!TIP]
-> For automations there are the sensors *Abgelaufen* (expired) and *Läuft bald ab* (expiring
+> For automations there are the sensors *Expired* and *Expiring soon* (expiring
 > soon), see the [README](../README.md#sensors), e.g. for a phone notification.
 
 ## 6. Shopping list
@@ -269,7 +269,7 @@ flowchart LR
 Ticking strikes an item through. A minimum stock item is unticked by itself when the missing amount
 changes, e.g. after buying only part of it.
 
-The same list is the to-do list **Einkaufsliste** in Home Assistant and the companion app. You can
+The same list is the to-do list **Shopping list** in Home Assistant and the companion app. You can
 tick items there and add items by the exact name of a product or category (the entity is
 `todo.vorrat_einkaufsliste`). **Erledigte entfernen** (remove completed) there only deletes ticked items
 added by hand; minimum stock items stay until the stock is there.
@@ -376,10 +376,10 @@ suggested while booking in.
 
 1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
    integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
-2. *Settings > Devices & services > Home Inventory > Configure > KI (Rezeptimport, Assistenten)*: pick the
+2. *Settings > Devices & services > Home Inventory > Configure > AI (recipe import, assistants)*: pick the
    AI Task. Empty = no AI.
-3. Optional: under *Configure > Externe Dienste* turn single AI services off, e.g. **Neue Produkte
-   prüfen** (check new products); **Videos für den Rezeptimport laden** (load videos) stays off until
+3. Optional: under *Configure > External services* turn single AI services off, e.g. **AI checks new
+   products**; **Load videos for the recipe import** stays off until
    you turn it on (many platforms forbid downloads). The README section *Privacy* lists what goes where.
 
 > [!IMPORTANT]
@@ -391,10 +391,9 @@ suggested while booking in.
 
 1. In the Assist agent (e.g. *Google Gemini > Configure*) tick the LLM API **Home Inventory** under
    *Control Home Assistant*, or in the *Model Context Protocol Server* integration.
-2. Under *Configure > KI (Rezeptimport, Assistenten) > Zugriff für Assistenten* choose what it may do:
-   *Nur lesen* (read only), *Lesen, Einkaufsliste und Speiseplan* (read, shopping list and meal plan;
-   default) or *Alles, auch Ein- und Ausbuchen und Anbrechen* (everything, including booking and
-   opening packages).
+2. Under *Configure > AI (recipe import, assistants) > Access for assistants (LLM API)* choose what it
+   may do: *Read only*, *Read, shopping list and meal plan* (default) or *Everything, including
+   booking in and out and opening packages*.
 
 Name products, recipes and locations as they are called in Home Inventory.
 
@@ -430,9 +429,9 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
-<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving. Open Food Facts and the other services that send data out are turned off one by one in the step **Externe Dienste**.
+<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Household** (menu *Settings*), set **Household servings** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Fill in the guessed expiry date** (default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving. Open Food Facts and the other services that send data out are turned off one by one in the step **External services**.
 
-**Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
+**Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Meal plan* (German: *Speiseplan*). Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
 ## 7b. Canning
 
@@ -493,9 +492,9 @@ A label shows product, brand, expiry date and a QR code of the batch, so every p
 inside and how long it keeps, also repacked, frozen or home-canned food without a printed date.
 Scanning the label books the package out.
 
-- **Setup** (admin): *Settings > Devices & services > Home Inventory > Configure > Etikettendrucker*. Choose the model, e.g.
-  *Dymo LabelWriter 450*, then under **Drucker** the address of the USB print server or the device
-  path (USB on the Home Assistant machine, e.g. `/dev/usb/lp0`) and the label size. With *Kein Drucker*
+- **Setup** (admin): *Settings > Devices & services > Home Inventory > Configure > Label printer*. Choose the model, e.g.
+  *Dymo LabelWriter 450*, then under **Printer (host, host:port or device path)** the address of the USB print server or the device
+  path (USB on the Home Assistant machine, e.g. `/dev/usb/lp0`) and the label size. With *No printer - print via the browser*
   the browser's print dialog opens.
 - **When booking in**: tick **Etiketten drucken**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
@@ -503,10 +502,10 @@ Scanning the label books the package out.
 - Printing more than 2 labels at once asks first.
 
 **Receipt printer** (for the shopping list, recipes and meal plan): *Settings > Devices & services > Home Inventory > Configure >
-Bondrucker*. **Drucker** is the device path (USB on the Home Assistant machine, e.g.
+Receipt printer (shopping list)*. **Printer** is the device path (USB on the Home Assistant machine, e.g.
 `/dev/bondrucker`) or the network address; also paper width, cutting and, for serial printers, the
-baud rate. **Testbon drucken** checks the connection when you save. The technical setup (passing USB
-into Docker) is in the [README](../README.md#receipt-printer-bondrucker).
+baud rate. **Print a test receipt** checks the connection when you save. The technical setup (passing USB
+into Docker) is in the [README](../README.md#receipt-printer).
 
 ## 9. Categories, product types and inheritance
 

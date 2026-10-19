@@ -377,11 +377,13 @@ suggested while booking in.
 1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
    integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
 2. *Settings > Devices & services > Home Inventory > Configure > KI (Rezeptimport, Assistenten)*: pick the
-   AI Task. Empty = no AI.
+   AI Task. Empty = no AI. Same step: **Neue Produkte prüfen** (check new products, default on) and
+   **Videos für den Rezeptimport laden** (load videos for the recipe import, default off; many
+   platforms forbid downloads).
 
 > [!IMPORTANT]
 > Each import sends the recipe and the food category tree to the chosen AI (about 10,000 tokens);
-> reading a post also sends its video or image.
+> reading a post also sends its image, and its video with the option above.
 
 **With an AI assistant** (Assist, Claude Desktop through MCP): ask e.g. "What expires this week?",
 "What can I cook from my stock?" or "Put milk on the shopping list". Set up (admin):

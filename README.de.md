@@ -44,7 +44,7 @@ HACS (erst wenn das Repository öffentlich ist; HACS kann nicht aus privaten Rep
 
 Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/home_inventory` nach `config/custom_components/` kopieren und Home Assistant neu starten.
 
-Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und `yt-dlp` (liest Video und Beschreibung eines Beitrags für den KI-Rezeptimport; ist schon Teil des Home-Assistant-Images, eine normale Installation lädt also nichts herunter).
+Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und `yt-dlp` (liest für den KI-Rezeptimport die Beschreibung eines Beitrags, mit der Option *Videos für den Rezeptimport laden* auch sein Video; ist schon Teil des Home-Assistant-Images, eine normale Installation lädt also nichts herunter).
 
 Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
 
@@ -58,7 +58,7 @@ Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant.
 ## Einrichtung
 
 Alle Optionen stehen unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*:
-Module, Etikettendrucker, Bondrucker, KI und Haushaltsgröße.
+Module, Etikettendrucker, Bondrucker, Haushalt (Portionen, geschätztes Ablaufdatum, Open Food Facts) und KI.
 
 **Open Food Facts.** Ein unbekannter Barcode und *Online suchen* fragen Open Food Facts und seine
 Schwester-Datenbanken (Barcode bzw. Suchtext gehen an openfoodfacts.org). Abschalten unter
@@ -131,9 +131,10 @@ im Heimnetz). Mit eingerichteter KI:
   die du im Dialog anlegst). Die KI antwortet nur „ok“ oder mit den Änderungen und schlägt sie nur
   vor; gespeichert wird nichts ohne dich.
 - Einen Link ohne Rezeptdaten (Instagram, TikTok, YouTube, ein Blog) liest die KI aus: Home Assistant
-  holt den Beitrag mit `yt-dlp` (Beschreibung und das Video bis 15 Minuten und 50 MB, höchstens 720p),
-  wenn *Videos für den Rezeptimport laden* an ist (Standard aus: viele Plattformen verbieten Downloads
-  in ihren Nutzungsbedingungen), sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
+  holt den Beitrag mit `yt-dlp` (Beschreibung und, wenn *Videos für den Rezeptimport laden* an ist,
+  das Video bis 15 Minuten und 50 MB, höchstens 720p; Standard aus, weil viele Plattformen Downloads
+  in ihren Nutzungsbedingungen verbieten), sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild
+  (bis 5 MB) der Seite, und schickt sie an
   die KI (Anhänge laufen über einen versteckten Ordner `.home_inventory_import` im ersten Medienverzeichnis und
   werden gleich danach gelöscht). Gesprochenes und eingeblendeten Text eines Videos liest die KI, wenn
   sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert

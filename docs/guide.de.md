@@ -377,11 +377,12 @@ Open Food Facts vorgeschlagene Kategorie änderst.
    Integration hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio (es gibt ein
    kostenloses Kontingent).
 2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI (Rezeptimport, Assistenten)*:
-   die KI-Aufgabe wählen. Leer = keine KI.
+   die KI-Aufgabe wählen. Leer = keine KI. Im selben Schritt: **Neue Produkte prüfen** (Standard an)
+   und **Videos für den Rezeptimport laden** (Standard aus; viele Plattformen verbieten Downloads).
 
 > [!IMPORTANT]
 > Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die gewählte KI
-> (etwa 10.000 Tokens); das Auslesen eines Beitrags schickt auch sein Video oder Bild.
+> (etwa 10.000 Tokens); das Auslesen eines Beitrags schickt auch sein Bild, mit der Option oben sein Video.
 
 **Mit einem KI-Assistenten** (Assist, Claude Desktop über MCP): Frag z. B. „Was läuft diese Woche
 ab?“, „Was kann ich mit dem Vorrat kochen?“ oder „Setz Milch auf die Einkaufsliste“. Einrichten (Admin):

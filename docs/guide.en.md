@@ -94,12 +94,13 @@ flowchart LR
    A dialog opens: for a name first the hits to pick from, then the form. **Abbrechen** (cancel),
    <kbd>Esc</kbd> or a tap beside it closes it; if you already entered something, Home Inventory asks first.
 2. **Known product**: only the fields for this booking appear.
-   **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
+   **Unknown barcode**: Home Inventory asks Open Food Facts (for non-food its sister databases Open Beauty
+   Facts, Open Pet Food Facts and Open Products Facts) and prefills name, brand, content and a matching
    category. With an AI set up, it checks them right after ("KI prüft das neue Produkt …") and fixes
    name, category and content; the top line then says "Von der KI geändert: … (vorher: …)" (changed
    by the AI, before) with **Rückgängig** (undo). When no product type fits, the AI proposes a new
    one ("Neue Produktart … wird beim Einbuchen angelegt", added when you book in). Check them. If nothing is found, create the product with **Neues Produkt** (new
-   product); **Online suchen** searches Open Food Facts by name.
+   product); **Online suchen** searches Open Food Facts and its sister databases by name.
 3. **Kategorie**: every new product needs a category, ideally a product type (e.g. "Tomatenmark").
    Type into the filter of the category picker. If it is missing, choose **„…“ neu anlegen**
    (create) and then the parent category.

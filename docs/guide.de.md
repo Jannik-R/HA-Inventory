@@ -91,12 +91,13 @@ flowchart LR
    **Abbrechen**, <kbd>Esc</kbd> oder ein Tipp daneben schließen es. Hast du schon etwas eingegeben, fragt
    Vorrat vorher nach.
 2. **Bekanntes Produkt**: Es erscheinen nur die Felder für diese Buchung.
-   **Unbekannter Barcode**: Vorrat fragt Open Food Facts und füllt Name, Marke, Inhalt und eine
-   passende Kategorie vor. Ist eine KI eingerichtet, prüft sie diese Angaben gleich danach („KI prüft
+   **Unbekannter Barcode**: Vorrat fragt Open Food Facts (bei Non-Food die Schwester-Datenbanken
+   Open Beauty Facts, Open Pet Food Facts und Open Products Facts) und füllt Name, Marke, Inhalt und
+   eine passende Kategorie vor. Ist eine KI eingerichtet, prüft sie diese Angaben gleich danach („KI prüft
    das neue Produkt …“) und korrigiert Name, Kategorie und Inhalt; oben steht dann „Von der KI
    geändert: … (vorher: …)“ mit **Rückgängig**. Fehlt eine passende Produktart, schlägt die KI eine
    neue vor („Neue Produktart … wird beim Einbuchen angelegt“). Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
-   **Neues Produkt** selbst an; über **Online suchen** suchst du bei Open Food Facts nach Namen.
+   **Neues Produkt** selbst an; über **Online suchen** suchst du in Open Food Facts und den Schwester-Datenbanken nach Namen.
 3. **Kategorie**: Jedes neue Produkt braucht eine Kategorie, am besten eine Produktart
    (z. B. „Tomatenmark“). Tippe in das Filterfeld der Kategorieauswahl. Fehlt die passende,
    wähle **„…“ neu anlegen** und danach die übergeordnete Kategorie.

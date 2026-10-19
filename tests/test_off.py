@@ -177,10 +177,20 @@ async def test_async_lookup(hass: HomeAssistant, aioclient_mock, tmp_path) -> No
     aioclient_mock.get(url + "8076800195057", json={"status": 1, "product": SPAGHETTI})
     aioclient_mock.get(url + "40400000", status=404, json={"status": 0})
     aioclient_mock.get(url + "50000000", status=500)
+    other = "product found with a different product type: product"
+    aioclient_mock.get(
+        url + "4005900512178", status=404, json={"status": 0, "status_verbose": other}
+    )
+    lotion = {"code": "4005900512178", "product_name": "Body Lotion", "brands": "Nivea"}
+    aioclient_mock.get(
+        f"{off.SITES['product']}/api/v2/product/4005900512178",
+        json={"status": 1, "product": lotion},
+    )
 
     draft = await off.async_lookup(hass, database, "8076800195057")
     assert draft["name"] == "Spaghetti No. 5" and "id" not in draft
     assert await off.async_lookup(hass, database, "40400000") is None
+    assert (await off.async_lookup(hass, database, "4005900512178"))["name"] == "Body Lotion"
     with pytest.raises(inv.InventoryError, match="off_unavailable"):
         await off.async_lookup(hass, database, "50000000")
     for bad in ("123", "../../x", "12345678?a=b"):
@@ -201,13 +211,17 @@ async def test_async_search(hass: HomeAssistant, aioclient_mock) -> None:
         {"product_name": "C"},
     ]
     aioclient_mock.get(f"{off.BASE}/cgi/search.pl", json={"products": products})
+    beauty = [{"code": "9", "product_name": "Duschgel"}, {"code": "1", "product_name": "A2"}]
+    aioclient_mock.get(f"{off.SITES['beauty']}/cgi/search.pl", json={"products": beauty})
+    aioclient_mock.get(f"{off.SITES['product']}/cgi/search.pl", status=500)  # left out
+    aioclient_mock.get(f"{off.SITES['petfood']}/cgi/search.pl", json={})
     assert await off.async_search(hass, "  ") == []
     assert aioclient_mock.call_count == 0
     with patch.object(off, "asyncio") as aio:  # only off's asyncio, not HA's loop
         sleep = aio.sleep = AsyncMock()
         hits = await off.async_search(hass, "a")
         await off.async_search(hass, "b")  # right after: waits for its slot
-    assert [h["ean"] for h in hits] == ["1"]
+    assert [h["ean"] for h in hits] == ["1", "9"]  # food first, duplicates once
     assert sleep.call_args_list[-1].args[0] > off.SEARCH_INTERVAL - 1
 
 

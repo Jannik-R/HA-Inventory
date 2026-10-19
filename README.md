@@ -13,7 +13,7 @@ minimum stock levels.
 
 Available:
 
-- Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts
+- Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts, for non-food from Open Beauty Facts, Open Pet Food Facts and Open Products Facts
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)

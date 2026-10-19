@@ -14,7 +14,7 @@ markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 
 Vorhanden:
 
-- Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts
+- Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts, bei Non-Food von Open Beauty Facts, Open Pet Food Facts und Open Products Facts
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)

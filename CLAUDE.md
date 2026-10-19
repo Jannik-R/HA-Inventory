@@ -71,6 +71,7 @@ frontend/                   panel source (Lit + TypeScript, Vite); licenses.ts: 
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
 scripts/receipt_bridge.py   dev only (Windows): raw TCP 9100 -> Windows printer queue, so the dev HA reaches a USB receipt printer
+scripts/dev.ps1             dev only (Windows): start/stop the dev HA with the receipt printer bridge
 scripts/import_check.py     dev tool only: recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/; site terms usually forbid automated fetching, so run it rarely)
 docs/PLAN.md                architecture and roadmap
 docs/guide.de.md, guide.en.md  user guide (German, English), opened from the panel header
@@ -134,6 +135,7 @@ cd frontend && npm run docs:screenshots  # regenerate the guide screenshots in d
 cd frontend && npm run typecheck:e2e  # type-check the E2E specs (runs in CI)
 docker compose -f dev/docker-compose.yml run --rm --entrypoint sh test -c "pip install -q -r requirements_test.txt && ruff check --fix . && ruff format ."   # Python lint + format (CI checks both)
 docker compose -f dev/docker-compose.yml up -d homeassistant   # dev HA on :8123
+pwsh scripts/dev.ps1                  # Windows: dev HA + receipt printer bridge (-Stop, -Proxy, -NoBridge)
 ```
 
 ## Subagents (`.claude/agents/`)

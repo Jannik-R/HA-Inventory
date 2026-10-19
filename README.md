@@ -274,6 +274,14 @@ Requires Docker (running) and Node.js LTS. Python lint and format: ruff (config 
 docker compose -f dev/docker-compose.yml up -d homeassistant
 ```
 
+On Windows, `scripts/dev.ps1` starts the dev HA together with the receipt printer bridge (see below)
+and waits until HA answers; `-Proxy` adds the phone proxy, `-Printer "<name>"` picks another Windows
+printer, `-NoBridge` skips the bridge, `-Stop` stops everything:
+
+```powershell
+.\scripts\dev.ps1
+```
+
 Opens Home Assistant on http://localhost:8123 with the integration mounted from
 `custom_components/home_inventory`. All dev HA data is stored in `dev/config/` and is git-ignored.
 The dev HA is reachable only from this machine (port bound to `127.0.0.1`) and logs in without a
@@ -303,7 +311,8 @@ driver *Generic / Text Only* on its USB port, then run the bridge (stdlib only, 
 python scripts/receipt_bridge.py "Bondrucker"
 ```
 
-and set the receipt printer of the dev HA to `host.docker.internal:9100`. `file:<path>` instead of a
+(or let `scripts/dev.ps1` start it hidden; log in `dev/config/receipt_bridge.log`) and set the receipt
+printer of the dev HA to `host.docker.internal:9100`. `file:<path>` instead of a
 printer name appends the bytes to a file (no printing). E2E tests block printing either way.
 
 Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/home_inventory/www/` (the built file is committed):

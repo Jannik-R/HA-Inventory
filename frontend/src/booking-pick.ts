@@ -38,8 +38,8 @@ export function renderPick(
       opt(
         `${r.batch_id}:${r.location_id}`,
         html`<span
-          >${r.expires_on ? fmtDate(hass, r.expires_on) : t("book.no_date")} · ${r.location}
-          <span class="detail">${t("book.count", { n: r.packages })}</span></span
+          >${r.expires_on ? fmtDate(hass, r.expires_on) : t("book.no_date")}${r.opened_on ? ` · ${t("stock.opened")}` : ""}
+          · ${r.location} <span class="detail">${t("book.count", { n: r.packages })}</span></span
         >`,
       ),
     )}

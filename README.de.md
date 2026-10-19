@@ -29,11 +29,12 @@ Vorhanden:
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
 - Nicht-Lebensmittel: Kategorien mit *Kein Lebensmittel* (vererbt) sind nie Rezeptzutaten; vorbelegt *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel nach Sockel), *Hausapotheke* (verbrauchen bis, Warnung 30 Tage) und *Tierbedarf*
 - Haltbarkeit (Tage, vererbt wie die Warnung): Einbuchen schlägt heute + Haltbarkeit als Ablaufdatum vor; vorbelegt *Eingekochtes* (365 Tage)
+- Angebrochene Packungen (*Anbrechen*): eine Packung als angebrochen markieren (Knopf an der Chargenzeile, Scan-Modus *Anbrechen*, Aktion `pantry.open_package`); sie wird eine eigene Bestandszeile und läuft früher ab, um die vererbte *Haltbar nach Anbruch* (Tage; leer = das Datum bleibt, z. B. Nudeln); Ablaufübersicht, Sensoren, Etiketten und Rezeptvorschläge nutzen dieses Datum; ein neues Etikett wird angeboten (gedruckt erst nach dem Etikettendialog)
 - Einkochen (Tab *Einkochen*): Protokolle mit einer Charge je Gläser-Partie (JJJJMMTT-n); die Etiketten tragen die Charge, ein Scan bucht ein Glas dieser Charge aus; Einkochrezepte (jedes ergibt ein Produkt, optional Temperatur und Dauer) in der eigenen Ansicht *Rezepte* des Tabs
 
 Geplant:
 
-- Geöffnete Packungen mit kürzerer Haltbarkeit, KI-Schnittstelle (Assist / MCP)
+- KI-Schnittstelle (Assist / MCP)
 
 Reihenfolge und Details: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
 
@@ -132,6 +133,8 @@ aktualisiert nach jeder Buchung und um Mitternacht):
 | *Abgelaufen* | Packungen nach ihrem Datum | name, expires_on, days_left, packages, location je Charge |
 | *Läuft bald ab* | Packungen innerhalb ihrer Warnzeit | ebenso |
 
+Eine angebrochene Packung zählt mit ihrem kürzeren Datum (angebrochen am + *Haltbar nach Anbruch*).
+
 Beispiel: Benachrichtigung, wenn etwas abgelaufen ist.
 
 ```yaml
@@ -156,6 +159,7 @@ Aktion mit einer Meldung fehlschlagen.
 |---|---|---|
 | `pantry.book_in` | `code` (EAN eines vorhandenen Produkts; neue Produkte werden einmal im Panel angelegt, wo die Kategorie gewählt wird), `packages` (Standard 1), `expires_on` (Datum, optional), `location` (Name, optional; Standard: Standardlager des Produkts) | `product_id`, `batch_id`, `name` |
 | `pantry.book_out` | `code` (EAN oder Etikettencode `PTRY:…`), `packages` (Standard 1), `location` (Name, optional) | `taken` (Charge, Lagerort, Packungen, Buchungs-ID je Zeile), `name` (Etikettencode: auch `location`) |
+| `pantry.open_package` | `code` (EAN: früheste Ablaufzeit zuerst; Etikettencode `PTRY:…`: eine Packung dieser Charge), `location` (Name, optional, nicht mit Etikettencode) | `batch_id` (Charge der angebrochenen Packung), `location_id`, `booking_id`, `expires_on` (neues Ablaufdatum), `name`, `location` |
 | `pantry.print_labels` | `batch_id` (aus `book_in`), `count` (1 bis 20, Standard 1) | `printed` |
 | `pantry.print_shopping_list` | keine | `printed` (Anzahl Einträge) |
 | `pantry.print_plan` | `day` (Datum, Standard heute), `period` (`day` oder `week`, Standard `day`; eine Woche läuft Montag bis Sonntag um `day`) | `printed` (Anzahl Gerichte) |

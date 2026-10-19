@@ -123,7 +123,7 @@ export class PantryPanel extends LitElement {
             : active === "stock"
               ? html`<pantry-stock
                   .hass=${this.hass}
-                  .mode=${this.seg === "in" || this.seg === "out" ? this.seg : "search"}
+                  .mode=${this.seg === "in" || this.seg === "out" || this.seg === "open" ? this.seg : "search"}
                 ></pantry-stock>`
               : active === "expiry"
                 ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`

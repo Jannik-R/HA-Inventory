@@ -4,6 +4,7 @@
 
 ### Added
 
+- Opened packages: *Anbrechen* on a batch row, in the booking switch (label scan, barcode, name) and as action `pantry.open_package` marks one package as opened; it becomes its own stock row and expires after the new inherited field *Haltbar nach Anbruch* (never later than its date). Undo, and a new label is offered. Migration 20 rebuilds `batch` and `booking` (ids kept, no data removed).
 - Meal plan on the receipt printer: *Drucken* in the day and week view, action `pantry.print_plan` (day or week). Action `pantry.print_planned` prints the recipes planned for a meal (default: today, the current meal by the new start times under *Einstellungen > Mahlzeiten*; database migration 19, runs automatically)
 - Recipes on the receipt printer: *Drucken* in an open recipe and action `pantry.print_recipe` print name, servings, the ingredients to tick off (scaled) and the numbered steps
 - AI check of recipe imports: with an AI Task entity chosen in the options (any AI set up in Home Assistant, e.g. Google Gemini), every import is checked once; the AI answers "fine" or only the changes (better ingredient categories, a text block split into steps), shown marked in the dialog with undo; saving waits for it or skips it. Learned choices: the category saved for an imported ingredient text, and a changed Open Food Facts suggestion for a new product, are remembered for the next time (database migration 18, runs automatically)

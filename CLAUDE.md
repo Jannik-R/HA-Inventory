@@ -36,12 +36,13 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, steps, learned, ai_check, recipe_print
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, steps, learned, ai_check, recipe_print
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of db.py for size
+  migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   off.py                    Open Food Facts client
@@ -51,8 +52,8 @@ custom_components/pantry/   integration (Python)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   calendar.py               read-only meal plan calendar (Speiseplan): all-day event per dish
   backup.py                 locks the DB during HA backups
-  services.py               HA services for automations (booking by code, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
-  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning protocol commands; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
+  services.py               HA services for automations (booking by code, opening a package, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
+  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning protocol commands; websocket_open.py: open a package / undo; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP

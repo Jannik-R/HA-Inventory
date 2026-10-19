@@ -18,6 +18,7 @@ const FIELDS: [InheritField, string][] = [
   ["expiry_type", "settings.category.expiry_type"],
   ["warn_days", "settings.category.warn_days"],
   ["shelf_days", "settings.category.shelf_days"],
+  ["opened_days", "settings.category.opened_days"],
 ];
 type Draft = Record<InheritField, number | string | null>;
 
@@ -59,9 +60,9 @@ export class PantryDefaults extends LitElement {
     return v === null || !Number.isInteger(v) || (v as number) < 0 ? t("valid.days") : undefined;
   }
 
-  /** Shelf life is optional (empty: no date proposal). */
-  private shelfError(d: Draft) {
-    const v = d.shelf_days;
+  /** Shelf life (empty: no date proposal) and shelf life after opening (empty: no change) are optional. */
+  private shelfError(d: Draft, field: "shelf_days" | "opened_days" = "shelf_days") {
+    const v = d[field];
     return v !== null && !(Number.isInteger(v) && (v as number) >= 1)
       ? t("valid.shelf_days")
       : undefined;
@@ -69,7 +70,8 @@ export class PantryDefaults extends LitElement {
 
   private async save(e: Event) {
     e.preventDefault();
-    if (this.warnError(this.d!) || this.shelfError(this.d!)) return;
+    const d = this.d!;
+    if (this.warnError(d) || this.shelfError(d) || this.shelfError(d, "opened_days")) return;
     try {
       await saveDefaults(this.hass!, this.d!);
       this.renderRoot.querySelector("dialog")?.close();
@@ -118,6 +120,7 @@ export class PantryDefaults extends LitElement {
     if (!d) return html`<dialog></dialog>`;
     const err = this.warnError(d);
     const shelfErr = this.shelfError(d);
+    const openedErr = this.shelfError(d, "opened_days");
     return editDialog({
       title: t("settings.defaults.edit"),
       body: html`<label>
@@ -165,30 +168,34 @@ export class PantryDefaults extends LitElement {
           </span>
           ${fieldMsg(err, "default-warn_days")}
         </label>
-        <label>
-          <span class="lbl" title=${t("tip.shelf_days")}>${t("settings.category.shelf_days")}</span>
-          <span class="num">
-            <input
-              data-testid="default-shelf_days"
-              type="number"
-              min="1"
-              step="1"
-              inputmode="numeric"
-              aria-invalid=${!!shelfErr}
-              .value=${String(d.shelf_days ?? "")}
-              @input=${(e: Event) =>
-                this.set("shelf_days", numOrNull((e.target as HTMLInputElement).value))}
-            />
-            ${t("common.days_unit")}
-          </span>
-          ${fieldMsg(shelfErr, "default-shelf_days")}
-        </label>`,
+        ${this.optionalDays(d, "shelf_days", shelfErr)}
+        ${this.optionalDays(d, "opened_days", openedErr)}`,
       error: this.error,
-      invalid: !!err || !!shelfErr,
+      invalid: !!err || !!shelfErr || !!openedErr,
       dirty: () => FIELDS.some(([f]) => d[f] !== this.orig?.[f]),
       onSubmit: (e) => this.save(e),
       onClosed: () => (this.d = undefined),
     });
+  }
+
+  private optionalDays(d: Draft, field: "shelf_days" | "opened_days", error?: string) {
+    return html`<label>
+      <span class="lbl" title=${t(`tip.${field}`)}>${t(`settings.category.${field}`)}</span>
+      <span class="num">
+        <input
+          data-testid=${`default-${field}`}
+          type="number"
+          min="1"
+          step="1"
+          inputmode="numeric"
+          aria-invalid=${!!error}
+          .value=${String(d[field] ?? "")}
+          @input=${(e: Event) => this.set(field, numOrNull((e.target as HTMLInputElement).value))}
+        />
+        ${t("common.days_unit")}
+      </span>
+      ${fieldMsg(error, `default-${field}`)}
+    </label>`;
   }
 
   static styles = formStyles;

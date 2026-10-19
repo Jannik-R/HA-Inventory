@@ -35,7 +35,7 @@ export class PantryBatchDialog extends LitElement {
     this.error = "";
     this.row = row;
     this.d = {
-      expires_on: row.expires_on ?? "",
+      expires_on: row.batch_expires_on ?? "",
       packages: String(row.packages),
       dateBad: false,
     };

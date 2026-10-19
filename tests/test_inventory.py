@@ -392,7 +392,7 @@ def test_migration_3_normalizes_and_cleans_up():
     assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
     assert inv.defaults(c) == {
         "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7,
-        "shelf_days": None,
+        "shelf_days": None, "opened_days": None,
     }  # fmt: skip
     with pytest.raises(sqlite3.IntegrityError):
         c.execute("UPDATE unit SET is_count = 2")

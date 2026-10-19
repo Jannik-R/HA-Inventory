@@ -19,6 +19,7 @@ const COLUMNS = [
   "expiry_type",
   "warn_days",
   "shelf_days",
+  "opened_days",
   "min_packages",
 ] as const;
 
@@ -68,6 +69,8 @@ export class PantryProductDialog extends LitElement {
       e.warn_days = t("valid.days");
     if (p.shelf_days != null && !(Number.isInteger(p.shelf_days) && p.shelf_days >= 1))
       e.shelf_days = t("valid.shelf_days");
+    if (p.opened_days != null && !(Number.isInteger(p.opened_days) && p.opened_days >= 1))
+      e.opened_days = t("valid.shelf_days");
     return e;
   }
 
@@ -90,8 +93,9 @@ export class PantryProductDialog extends LitElement {
     const p = this.edit;
     if (!p) return html`<dialog></dialog>`;
     const err = this.errors(p);
-    const dflt = (field: "default_location_id" | "expiry_type" | "warn_days" | "shelf_days") =>
-      categoryDefault(this.md, p.category_id, field);
+    const dflt = (
+      field: "default_location_id" | "expiry_type" | "warn_days" | "shelf_days" | "opened_days",
+    ) => categoryDefault(this.md, p.category_id, field);
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
     return editDialog({
       title: t("common.edit_name", { name: this.orig?.name ?? p.name }),
@@ -159,6 +163,21 @@ export class PantryProductDialog extends LitElement {
             onChange: (v) => this.set("shelf_days", v),
           })}
           ${fieldMsg(err.shelf_days, "shelf-days")}
+        </label>
+        <label>
+          <span class="lbl" title=${t("tip.opened_days")}
+            >${t("settings.category.opened_days")}</span
+          >
+          ${inheritNumber({
+            testid: "opened-days",
+            own: p.opened_days,
+            dflt: dflt("opened_days"),
+            format: (v) => fmtDays(this.hass, v),
+            suffix: t("common.days_unit"),
+            invalid: !!err.opened_days,
+            onChange: (v) => this.set("opened_days", v),
+          })}
+          ${fieldMsg(err.opened_days, "opened-days")}
         </label>`,
       error: this.error,
       invalid: Object.keys(err).length > 0,

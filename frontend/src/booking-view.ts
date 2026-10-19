@@ -1,13 +1,10 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { formStyles } from "./styles";
-import { backdropClick, escGuard, icon } from "./ui";
-import { mdiMagnify, mdiMinus, mdiPlus } from "@mdi/js";
+import { backdropClick, escGuard } from "./ui";
 import {
   errorMessage,
   getMasterData,
-  bookOutLabel,
-  putBack,
   type Taken,
   getStock,
   lookup,
@@ -22,17 +19,15 @@ import "./booking-scan";
 import type { PantryBookingScan } from "./booking-scan";
 import { blankProduct } from "./product-fields";
 import "./booking-form";
-import { doneLine, doneStyles } from "./booking-done";
+import { doneStyles } from "./booking-done";
 import { hitList } from "./booking-hits";
 import type { Booked, PantryBookingForm } from "./booking-form";
+import { modeSwitch, modesStyles, type Mode } from "./booking-modes";
+import { openLabel, openPackage, type Opened } from "./api-open";
+import { afterLine, openWith, scanLabel } from "./booking-after";
 
-/** "search" only filters the stock list; Enter (scanners send one) books nothing. */
-export type Mode = "search" | "in" | "out";
-const MODES: [Mode, string][] = [
-  ["search", mdiMagnify],
-  ["in", mdiPlus],
-  ["out", mdiMinus],
-];
+export type { Mode };
+
 const EAN = /^\d{8,14}$/;
 const LABEL = /^PTRY:/i;
 
@@ -49,6 +44,7 @@ export class PantryBooking extends LitElement {
     stock: { state: true },
     message: { state: true },
     undo: { state: true },
+    opened: { state: true },
     error: { state: true },
     busy: { state: true },
   };
@@ -63,12 +59,14 @@ export class PantryBooking extends LitElement {
   declare message: string;
   /** What the last book-out took; shown with the message as undo. */
   declare undo?: Taken[];
+  /** The last package opened ("open" mode); shown with the message as undo and label offer. */
+  declare opened?: Opened;
   declare error: string;
   declare busy: boolean;
 
   private md?: MasterData;
   /** Latest request; slower older answers (and answers after a reset) are dropped. */
-  private seq = 0;
+  seq = 0;
 
   constructor() {
     super();
@@ -79,7 +77,7 @@ export class PantryBooking extends LitElement {
     this.reset();
   }
 
-  private reset() {
+  reset() {
     this.seq++;
     this.query = "";
     this.hits = undefined;
@@ -95,7 +93,7 @@ export class PantryBooking extends LitElement {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
-      this.undo = undefined;
+      this.undo = this.opened = undefined;
     }
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
@@ -150,7 +148,7 @@ export class PantryBooking extends LitElement {
   }
 
   /** Run a backend call with busy state and translated errors. */
-  private run = async <T>(fn: () => Promise<T>): Promise<T | undefined> => {
+  run = async <T>(fn: () => Promise<T>): Promise<T | undefined> => {
     this.busy = true;
     this.error = "";
     try {
@@ -169,37 +167,27 @@ export class PantryBooking extends LitElement {
     const hass = this.hass;
     const id = ++this.seq;
     this.message = "";
-    this.undo = undefined;
+    this.undo = this.opened = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
     if (LABEL.test(q)) {
-      // A label names its batch: it always books out.
-      return this.scanLabel(q.replace(LABEL, ""));
+      // A label names its batch: it books out, or opens one package in "open" mode.
+      const code = q.replace(LABEL, "");
+      return this.mode === "open"
+        ? openWith(this, () => openLabel(hass, code))
+        : scanLabel(this, code);
     }
     if (EAN.test(q)) {
       const res = await this.run(() => lookup(hass, q));
       if (!res || id !== this.seq) return;
       if (res.product) return this.choose(res.product);
-      if (this.mode === "out") return void (this.error = t("book.unknown"));
+      if (this.mode !== "in") return void (this.error = t("book.unknown"));
       return this.choose(blankProduct({ ean: q }));
     }
     const hits = await this.run(() => search(hass, q));
     if (!hits || id !== this.seq) return;
     this.hits = hits;
-    if (this.mode === "out" && hits.length === 1) this.choose(hits[0] as Product);
-  }
-
-  /** A printed label books out one package of its batch (Auslagern only). */
-  private async scanLabel(code: string) {
-    this.reset();
-    const id = this.seq;
-    const res = await this.run(() => bookOutLabel(this.hass!, code));
-    if (id !== this.seq) return;
-    if (!res) return this.focusInput();
-    this.message = t("book.done_label", { name: res.name, where: res.location });
-    this.undo = res.taken;
-    this.dispatchEvent(new CustomEvent("booked"));
-    this.focusInput();
+    if (this.mode !== "in" && hits.length === 1) this.choose(hits[0] as Product);
   }
 
   private async searchOnline() {
@@ -220,7 +208,9 @@ export class PantryBooking extends LitElement {
   private async choose(p: Product) {
     const id = ++this.seq;
     this.hits = undefined;
-    if (this.mode === "out" && !p.id) return void (this.error = t("book.unknown"));
+    if (this.mode !== "in" && !p.id) return void (this.error = t("book.unknown"));
+    if (this.mode === "open")
+      return openWith(this, () => openPackage(this.hass!, { product_id: p.id! }));
     this.product = p;
     if (this.mode === "out") {
       const stock = await this.run(() => getStock(this.hass!, p.id!));
@@ -244,23 +234,9 @@ export class PantryBooking extends LitElement {
         @query=${(e: CustomEvent<string>) => (this.query = e.detail)}
         @find=${() => this.find()}
       >
-        <div slot="before" class="modes" role="group" aria-label=${t("stock.mode")}>
-          ${MODES.map(
-            ([m, path]) =>
-              html`<button
-                type="button"
-                data-testid=${`mode-${m}`}
-                aria-pressed=${m === this.mode}
-                aria-label=${t(`stock.mode_${m}`)}
-                title=${t(`stock.mode_${m}`)}
-                @click=${() => this.setMode(m)}
-              >
-                ${icon(path)}
-              </button>`,
-          )}
-        </div>
+        ${modeSwitch(this.mode, (m) => this.setMode(m))}
       </pantry-booking-scan>
-      ${doneLine(this.message, this.undo && (() => this.putBack()))} ${open ? nothing : error}
+      ${afterLine(this)} ${open ? nothing : error}
       <dialog
         data-testid="booking-dialog"
         @close=${this.closed}
@@ -303,19 +279,6 @@ export class PantryBooking extends LitElement {
     ></pantry-booking-form>`;
   }
 
-  /** Put back what the last book-out took. */
-  private async putBack() {
-    const taken = this.undo!;
-    this.undo = undefined; // a second click cannot undo twice
-    if ((await this.run(() => putBack(this.hass!, taken))) === undefined) {
-      this.undo = taken; // failed: still undoable
-      return;
-    }
-    this.message = t("book.undone");
-    this.dispatchEvent(new CustomEvent("booked"));
-    this.focusInput();
-  }
-
   private booked(e: CustomEvent<Booked>) {
     const error = this.error; // a failed label print stays visible
     this.reset();
@@ -329,38 +292,10 @@ export class PantryBooking extends LitElement {
   static styles = [
     formStyles,
     doneStyles,
+    modesStyles,
     css`
       .after {
         margin-top: 12px;
-      }
-      /* Search / book in / book out: a segmented switch (one framed group, the chosen one filled). */
-      .modes {
-        flex: none;
-        display: flex;
-        border: 1px solid var(--divider-color);
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .modes button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 40px;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        color: var(--secondary-text-color);
-      }
-      .modes button + button {
-        border-left: 1px solid var(--divider-color);
-      }
-      .modes button[aria-pressed="true"] {
-        background: var(--primary-color);
-        color: var(--text-primary-color, #fff);
-      }
-      .modes button:focus-visible {
-        outline: 2px solid currentColor;
-        outline-offset: -4px;
       }
     `,
   ];

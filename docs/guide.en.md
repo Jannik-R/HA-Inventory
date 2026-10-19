@@ -29,6 +29,7 @@ opens this guide. These are the tabs:
 1. [Getting started](#1-getting-started)
 2. [Booking in your shopping](#2-booking-in-your-shopping)
 3. [Using up and booking out](#3-using-up-and-booking-out)
+3a. [Opening a package](#3a-opening-a-package)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
 5. [What expires soon?](#5-what-expires-soon)
 6. [Shopping list](#6-shopping-list)
@@ -122,13 +123,37 @@ like booking in: scanner, camera or name, then the dialog.
 
 - By default the package with the earliest date is taken. You can also pick a batch and location.
 - **Scan a label**: a Home Inventory label (QR code) books out one package of that batch, whether
-  the switch is on Einbuchen or Auslagern.
+  the switch is on Einbuchen or Auslagern (on Anbrechen it opens one, see 3a).
 - **Rückgängig** (undo) next to the message puts the packages back where they were, once per
   booking.
 - In **Bestand** and **Ablauf** the minus on a batch takes one package out of exactly that batch.
 
 > [!NOTE]
 > Cooking a recipe books nothing out automatically; book out the ingredients as usual.
+
+## 3a. Opening a package
+
+Milk, jam or pesto do not keep until the printed date once opened. Mark the package as opened when
+you open it, and Home Inventory uses the shorter date.
+
+- **In Bestand**: tap the open box icon (**Anbrechen**, open) on the batch. It opens exactly one
+  package of that batch at that location.
+- **By scan**: set the switch to the open box (Anbrechen; as a bookmark: `/pantry/open`). A scanned
+  Home Inventory label opens a package of that batch; a barcode or name opens the package with the
+  earliest date.
+- **By automation**: action `pantry.open_package` (see [README](../README.md#services-automations)).
+
+The opened package gets its own row "… · angebrochen am …" (opened on) and expires after the
+*Haltbar nach Anbruch* (shelf life after opening) of its category or product (e.g. milk 3 days), never
+later than the printed date. If nothing is set there (pasta), the date stays. It still counts toward the
+stock and the minimum stock; **Ablauf**, the sensors and the recipe suggestions use the new date.
+Booking out and label scans take the opened package first.
+
+After opening, next to the message:
+
+- **Rückgängig** (undo): makes the package unopened again (once, while it is still in stock).
+- **Etikett drucken** (print label): opens the label dialog with the new date. Nothing is printed
+  until you press **Drucken** there, never automatically.
 
 ## 4. Viewing and fixing the stock
 
@@ -454,6 +479,9 @@ one applies again. Minimum stock is not inherited.
 Without a printed date (home-made, frozen, or portioned from a bulk pack), the *Haltbarkeit* (shelf life,
 in days) counts: booking in proposes today + shelf life, a canning protocol made-on date + shelf life.
 The date stays editable everywhere.
+
+**Haltbar nach Anbruch** (shelf life after opening): days an opened package still keeps (see 3a),
+inherited like the shelf life. Empty means opening does not change the date.
 
 **Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). Deleting a location with stock asks where its packages should go.

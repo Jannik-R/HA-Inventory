@@ -37,6 +37,17 @@ book_out:
       example: Kühlschrank
       selector:
         text:
+open_package:
+  fields:
+    code:
+      required: true
+      example: "4006040053026"
+      selector:
+        text:
+    location:
+      example: Kühlschrank
+      selector:
+        text:
 print_labels:
   fields:
     batch_id:

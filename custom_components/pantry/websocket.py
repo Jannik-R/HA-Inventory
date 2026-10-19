@@ -33,6 +33,7 @@ MASTER_SCHEMAS = {
             vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by"))),
             vol.Optional("warn_days"): vol.Any(None, DAYS),
             vol.Optional("shelf_days"): SHELF_DAYS,
+            vol.Optional("opened_days"): SHELF_DAYS,
             vol.Optional("food"): vol.Any(None, vol.In((0, 1))),
             # amount and its unit only together (DB CHECK as well)
             vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
@@ -94,6 +95,7 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
             vol.Required("expiry_type"): vol.In(("best_before", "use_by")),
             vol.Required("warn_days"): DAYS,
             vol.Required("shelf_days"): SHELF_DAYS,
+            vol.Required("opened_days"): SHELF_DAYS,
         },
     }
 )

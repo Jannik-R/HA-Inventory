@@ -18,7 +18,7 @@ import { minErrors, minFields } from "./min-stock";
 import { ADD, COLUMNS, type Draft, type Opts } from "./settings-model";
 
 /** Inherited day counts: number inputs with "Tage". */
-const DAYS = ["warn_days", "shelf_days"];
+const DAYS = ["warn_days", "shelf_days", "opened_days"];
 
 /** Add/edit dialog for one master-data row. Call `open()`; fires `pantry-saved` after a successful save. */
 export class PantrySettingsDialog extends LitElement {
@@ -97,6 +97,8 @@ export class PantrySettingsDialog extends LitElement {
         e.warn_days = t("valid.days");
       if (d.shelf_days != null && !(Number.isInteger(d.shelf_days) && d.shelf_days >= 1))
         e.shelf_days = t("valid.shelf_days");
+      if (d.opened_days != null && !(Number.isInteger(d.opened_days) && d.opened_days >= 1))
+        e.opened_days = t("valid.shelf_days");
       Object.assign(e, minErrors(d));
     }
     return e;
@@ -266,6 +268,7 @@ export class PantrySettingsDialog extends LitElement {
         )}
         ${this.inh("warn_days", t("settings.category.warn_days"), [])}
         ${this.inh("shelf_days", t("settings.category.shelf_days"), [])}
+        ${this.inh("opened_days", t("settings.category.opened_days"), [])}
         ${this.inh("food", t("settings.food.label"), [
           [1, t("settings.food.yes")],
           [0, t("settings.food.no")],

@@ -25,6 +25,7 @@ Anleitung. Oben gibt es diese Tabs:
 1. [Erste Schritte](#1-erste-schritte)
 2. [Einkäufe einbuchen](#2-einkäufe-einbuchen)
 3. [Verbrauchen und auslagern](#3-verbrauchen-und-auslagern)
+3a. [Packung anbrechen](#3a-packung-anbrechen)
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
 5. [Was läuft ab?](#5-was-läuft-ab)
 6. [Einkaufsliste](#6-einkaufsliste)
@@ -119,7 +120,7 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern; als Lesezeichen: `/pan
 - Standardmäßig wird die Packung mit dem frühesten Datum genommen. Du kannst auch eine bestimmte
   Charge und einen Lagerort wählen.
 - **Etikett scannen**: Ein Vorrat-Etikett (QR-Code) bucht genau eine Packung dieser Charge aus,
-  egal ob der Schalter auf Einbuchen oder Auslagern steht.
+  egal ob der Schalter auf Einbuchen oder Auslagern steht (auf Anbrechen bricht er sie an, siehe 3a).
 - **Rückgängig** neben der Meldung legt die Packungen zurück, wohin sie gehörten. Das geht einmal pro
   Buchung.
 - Im **Bestand** und unter **Ablauf** nimmt das Minus an einer Charge eine Packung aus genau dieser
@@ -127,6 +128,30 @@ Stell den Schalter im **Bestand** auf **−** (Auslagern; als Lesezeichen: `/pan
 
 > [!NOTE]
 > Kochen nach Rezept bucht nichts automatisch aus. Lagere die Zutaten wie gewohnt aus.
+
+## 3a. Packung anbrechen
+
+Milch, Marmelade oder Pesto halten offen nicht mehr bis zum aufgedruckten Datum. Markiere die Packung
+beim Öffnen als angebrochen, dann rechnet Vorrat mit dem kürzeren Datum.
+
+- **Im Bestand**: an der Charge das Symbol mit der offenen Schachtel (**Anbrechen**) antippen. Es bricht
+  genau eine Packung dieser Charge an diesem Lagerort an.
+- **Per Scan**: den Schalter auf die offene Schachtel stellen (Anbrechen; als Lesezeichen:
+  `/pantry/open`). Ein gescanntes Vorrat-Etikett bricht eine Packung dieser Charge an; Barcode oder
+  Name brechen die Packung mit dem frühesten Datum an.
+- **Per Automation**: Aktion `pantry.open_package` (siehe [README](../README.de.md#aktionen-automationen)).
+
+Die angebrochene Packung bekommt eine eigene Zeile „… · angebrochen am …“ und läuft nach der
+*Haltbar nach Anbruch* der Kategorie oder des Produkts ab (z. B. Milch 3 Tage), nie später als das
+aufgedruckte Datum. Ist dort nichts eingetragen (Nudeln), bleibt das Datum. Sie zählt weiter zum
+Bestand und zur Mindestmenge; **Ablauf**, die Sensoren und die Rezeptvorschläge nutzen das neue Datum.
+Beim Auslagern und beim Etikett-Scan wird die angebrochene Packung zuerst genommen.
+
+Nach dem Anbrechen stehen neben der Meldung:
+
+- **Rückgängig**: macht die Packung wieder ungeöffnet (einmal, solange sie noch im Bestand ist).
+- **Etikett drucken**: öffnet den Etikettendialog mit dem neuen Datum. Gedruckt wird erst mit
+  **Drucken** dort, nie automatisch.
 
 ## 4. Bestand ansehen und korrigieren
 
@@ -455,6 +480,9 @@ Wert, danach gilt wieder der geerbte. Mindestmengen werden nicht vererbt.
 (selbst gemacht, eingefroren, aus einer Großpackung umgefüllt) zählt die *Haltbarkeit* in Tagen:
 Einbuchen schlägt heute + Haltbarkeit vor, ein Einkochprotokoll Herstellungsdatum + Haltbarkeit. Das
 Datum bleibt überall änderbar.
+
+**Haltbar nach Anbruch**: Tage, die eine angebrochene Packung noch hält (siehe 3a), vererbt wie die
+Haltbarkeit. Leer heißt: Anbrechen ändert das Datum nicht.
 
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
 Produkte, Bestand, Rezeptzutaten …). Löschst du einen Lagerort mit Bestand, wählst du, wohin die

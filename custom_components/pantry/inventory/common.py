@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import re
 import sqlite3
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 
-INHERITED = ("unit_id", "default_location_id", "expiry_type", "warn_days", "shelf_days")
+INHERITED = (
+    "unit_id", "default_location_id", "expiry_type", "warn_days", "shelf_days", "opened_days",
+)  # fmt: skip
 # Inherited down the category tree only (no product or defaults column); NULL at the root = food.
 CATEGORY_INHERITED = ("food",)
 
@@ -18,12 +20,12 @@ COLUMNS = {
     "category": (
         "parent_id", "name", "sort", "unit_id", "default_location_id",
         "expiry_type", "warn_days", "min_stock", "min_stock_unit_id", "min_packages",
-        "shelf_days", "food",
+        "shelf_days", "food", "opened_days",
     ),
     "product": (
         "ean", "name", "brand", "category_id", "content_amount", "content_unit_id",
         "default_location_id", "expiry_type", "warn_days", "image_url", "off_json", "min_packages",
-        "shelf_days",
+        "shelf_days", "opened_days",
     ),
     "recipe": (
         "name", "servings", "instructions", "source_url", "image_url", "canning_product_id",
@@ -59,6 +61,14 @@ def id_by_name(rows, name: str) -> int | None:
     """Id of the first row whose name equals `name`, ignoring case and outer spaces."""
     key = name.strip().casefold()
     return next((r["id"] for r in rows if r["name"].casefold() == key), None)
+
+
+def opened_until(expires_on: str | None, opened_on: str | None, days: int | None) -> str | None:
+    """Effective expiry: the batch date, or earlier when opened (opened_on + days)."""
+    if not opened_on or not days:
+        return expires_on
+    until = (date.fromisoformat(opened_on) + timedelta(days=days)).isoformat()
+    return min(until, expires_on) if expires_on else until
 
 
 def _now() -> str:

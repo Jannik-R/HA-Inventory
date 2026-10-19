@@ -9,9 +9,10 @@ from .booking import book_in, book_out
 from .canning import save_canning
 from .common import InventoryError, id_by_name
 from .inherit import effective
-from .labels import book_out_code
+from .labels import book_out_code, open_code
 from .master import list_rows
 from .meal_plan import save_meal
+from .opened import open_package
 from .products import find_ean
 from .shopping_recipes import set_shopping_recipe
 
@@ -70,6 +71,25 @@ def book_out_by_code(
         user_id=user_id,
     )
     return {"taken": taken, "name": product["name"]}
+
+
+def open_by_code(
+    conn: sqlite3.Connection,
+    code: str,
+    today: date,
+    location: str | None = None,
+    user_id: str | None = None,
+) -> dict:
+    """Open one package. EAN: earliest expiry first (at `location` if given). Label code: its batch."""
+    if code.strip().upper().startswith("PTRY:"):
+        if location is not None:  # the label names the batch; it is opened where it is
+            raise InventoryError("invalid_value")
+        return open_code(conn, code.strip()[5:], today, user_id, "service")
+    product = _product(conn, code)
+    return open_package(
+        conn, product["id"], location_id=_location(conn, location), today=today,
+        source="service", user_id=user_id,
+    )  # fmt: skip
 
 
 def _recipe(conn: sqlite3.Connection, name: str, canning: bool = False) -> sqlite3.Row:

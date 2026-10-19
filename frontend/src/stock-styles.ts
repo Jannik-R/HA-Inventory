@@ -13,13 +13,19 @@ export const stockStyles = css`
   .head .row {
     padding-left: 0;
   }
+  /* On a phone the row actions wrap to their own line, right-aligned. */
   .batches li {
-    gap: 12px;
+    flex-wrap: wrap;
+    gap: 4px 12px;
     padding: 0 0 0 36px;
     border-bottom: 0;
   }
   .batches .detail {
     flex: 1;
+  }
+  .batches .acts {
+    display: flex;
+    margin-left: auto;
   }
   .expired {
     color: var(--error-color);

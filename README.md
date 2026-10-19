@@ -28,11 +28,12 @@ Available:
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
 - Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
 - Shelf life (*Haltbarkeit*, days, inherited like the warning): booking in proposes today + shelf life as expiry date; seeded *Eingekochtes* (365 days)
+- Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `pantry.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 
 Planned:
 
-- Opened packages with a shorter shelf life, AI interface (Assist / MCP)
+- AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 
@@ -126,6 +127,8 @@ booking and at midnight):
 | *Abgelaufen* | packages past their date | name, expires_on, days_left, packages, location per batch |
 | *Läuft bald ab* | packages within their warning period | same |
 
+An opened package counts with its shorter date (opened on + *Haltbar nach Anbruch*).
+
 Example: notify when something has expired.
 
 ```yaml
@@ -149,6 +152,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 |---|---|---|
 | `pantry.book_in` | `code` (EAN of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
 | `pantry.book_out` | `code` (EAN, or a label code `PTRY:…`), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
+| `pantry.open_package` | `code` (EAN: earliest expiry first; label code `PTRY:…`: a package of that batch), `location` (name, optional, not with a label code) | `batch_id` (the opened package's batch), `location_id`, `booking_id`, `expires_on` (new expiry date), `name`, `location` |
 | `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
 | `pantry.print_shopping_list` | none | `printed` (number of items) |
 | `pantry.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |

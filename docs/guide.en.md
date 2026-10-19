@@ -95,7 +95,10 @@ flowchart LR
    <kbd>Esc</kbd> or a tap beside it closes it; if you already entered something, Home Inventory asks first.
 2. **Known product**: only the fields for this booking appear.
    **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
-   category. Check them. If nothing is found, create the product with **Neues Produkt** (new
+   category. With an AI set up, it checks them right after ("KI prüft das neue Produkt …") and fixes
+   name, category and content; the top line then says "Von der KI geändert: … (vorher: …)" (changed
+   by the AI, before) with **Rückgängig** (undo). When no product type fits, the AI proposes a new
+   one ("Neue Produktart … wird beim Einbuchen angelegt", added when you book in). Check them. If nothing is found, create the product with **Neues Produkt** (new
    product); **Online suchen** searches Open Food Facts by name.
 3. **Kategorie**: every new product needs a category, ideally a product type (e.g. "Tomatenmark").
    Type into the filter of the category picker. If it is missing, choose **„…“ neu anlegen**
@@ -325,8 +328,8 @@ YouTube link if the post is there too.
 **AI check** (if set up, see below): right after the dialog opens the AI checks the import. The top
 line says "KI prüft das Rezept …" (checking); saving waits, **Nicht abwarten** (do not wait) skips
 the check. Afterwards it says "keine Änderungen" (no changes) or what the AI changed: ingredients
-with a better category are marked ("Von der KI geändert: … (vorher: …)", with **Rückgängig** /
-undo), a long text block is split into steps (**Schritte zurücksetzen** restores it). When the
+with a better category or unit are marked ("Von der KI geändert: … (vorher: …)", with
+**Rückgängig** / undo); a new unit the AI proposes is added with **Anlegen** (create). A long text block is split into steps (**Schritte zurücksetzen** restores it). When the
 category tree has no fitting product type (e.g. a rare spice), the AI proposes a new one below the
 right category ("KI schlägt neue Produktart … vor"); it is only added when you save, **Rückgängig**
 drops the proposal. Check the

@@ -36,7 +36,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, steps, learned, ai_check, recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer)
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer)
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
@@ -44,7 +44,7 @@ custom_components/pantry/   integration (Python)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of db.py for size
   migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
-  ai.py                     AI check of recipe imports via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
+  ai.py                     AI check of recipe imports and new products via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)
   recipe_media.py           media for the AI import: yt-dlp video + caption, image download, hidden `.pantry_import` folder in the media dir (ai_task attachments)
   llm_api.py                LLM API `pantry` for Assist agents / HA MCP Server: tools per access level (options `llm_access`); write tools call the services
@@ -94,7 +94,7 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
-- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` with `{status: "off"}` and refuses `pantry/recipe_import` (it may reach the AI) unless a test stubs it (`wsStub`); backend tests patch `ai._generate` and `recipe_media.video` (yt-dlp).
+- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` and `pantry/product_ai_check` with `{status: "off"}` and refuses `pantry/recipe_import` (it may reach the AI) unless a test stubs it (`wsStub`); backend tests patch `ai._generate` and `recipe_media.video` (yt-dlp).
 - **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_*` command (labels, shopping list, recipe, meal plan; the dev HA may have the real printers configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX

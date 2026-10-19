@@ -92,7 +92,10 @@ flowchart LR
    Vorrat vorher nach.
 2. **Bekanntes Produkt**: Es erscheinen nur die Felder für diese Buchung.
    **Unbekannter Barcode**: Vorrat fragt Open Food Facts und füllt Name, Marke, Inhalt und eine
-   passende Kategorie vor. Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
+   passende Kategorie vor. Ist eine KI eingerichtet, prüft sie diese Angaben gleich danach („KI prüft
+   das neue Produkt …“) und korrigiert Name, Kategorie und Inhalt; oben steht dann „Von der KI
+   geändert: … (vorher: …)“ mit **Rückgängig**. Fehlt eine passende Produktart, schlägt die KI eine
+   neue vor („Neue Produktart … wird beim Einbuchen angelegt“). Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
    **Neues Produkt** selbst an; über **Online suchen** suchst du bei Open Food Facts nach Namen.
 3. **Kategorie**: Jedes neue Produkt braucht eine Kategorie, am besten eine Produktart
    (z. B. „Tomatenmark“). Tippe in das Filterfeld der Kategorieauswahl. Fehlt die passende,
@@ -324,7 +327,8 @@ Link von TikTok oder YouTube, falls es den Beitrag dort auch gibt.
 **KI-Prüfung** (wenn eingerichtet, siehe unten): Direkt nach dem Öffnen prüft die KI den Import.
 Oben steht „KI prüft das Rezept …“; Speichern wartet so lange, **Nicht abwarten** überspringt die
 Prüfung. Danach steht dort „keine Änderungen“ oder was die KI geändert hat: Zutaten mit besserer
-Kategorie sind markiert („Von der KI geändert: … (vorher: …)“, mit **Rückgängig**), ein langer
+Kategorie oder Einheit sind markiert („Von der KI geändert: … (vorher: …)“, mit **Rückgängig**);
+eine neue Einheit, die die KI vorschlägt, legst du mit **Anlegen** an. Ein langer
 Textblock ist in Schritte geteilt (**Schritte zurücksetzen** stellt ihn wieder her). Fehlt im
 Kategoriebaum eine passende Produktart (z. B. ein seltenes Gewürz), schlägt die KI eine neue
 unter der passenden Kategorie vor („KI schlägt neue Produktart … vor“); er wird erst beim

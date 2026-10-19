@@ -50,6 +50,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_recipe_save,
         ws_recipe_import,
         ws_recipe_ai_check,
+        ws_product_ai_check,
         ws_shopping_recipes,
         ws_shopping_recipe_set,
         ws_shopping_recipe_remove,
@@ -227,6 +228,24 @@ _DRAFT_INGREDIENT = vol.Schema(
 async def ws_recipe_ai_check(hass: HomeAssistant, connection, msg: dict) -> None:
     """Check an import draft with the AI set up in the options: {status: off | ok | changes}."""
     connection.send_result(msg["id"], await ai.async_check_recipe(hass, msg["draft"]))
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/product_ai_check",
+        vol.Required("draft"): vol.Schema(
+            {
+                **{vol.Optional(str(k)): v for k, v in _NEW_PRODUCT.schema.items()},
+                vol.Optional("category_id"): NULL_ID,  # OFF matched no category
+            },
+            extra=vol.REMOVE_EXTRA,
+        ),
+    }
+)
+@websocket_api.async_response
+async def ws_product_ai_check(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Check a new product from Open Food Facts: {status: off | ok | changes}."""
+    connection.send_result(msg["id"], await ai.async_check_product(hass, msg["draft"]))
 
 
 @websocket_api.websocket_command(

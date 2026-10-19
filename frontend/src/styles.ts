@@ -195,3 +195,21 @@ export const formStyles = css`
     justify-content: flex-end;
   }
 `;
+
+/** Status line of an AI check (recipe import, new product). */
+export const aiStyles = css`
+  .ai {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    color: var(--secondary-text-color);
+  }
+  .ai.error {
+    color: var(--error-color);
+  }
+  progress {
+    width: 64px;
+  }
+`;

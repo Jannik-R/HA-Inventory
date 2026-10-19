@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { fieldMsg, dateInvalid, todayIso } from "./ui";
 import { plusDays } from "./plan-dates";
-import { formStyles } from "./styles";
+import { aiStyles, formStyles } from "./styles";
 import {
   bookIn,
   bookOut,
@@ -17,8 +17,15 @@ import {
 import { MAX_LABELS, printLabels } from "./label-print";
 import { categoryDefault, categoryPath, type Dflt } from "./inherit";
 import { dateField, locationFields, printField, type InForm } from "./booking-in-fields";
-import { productErrors, productFields, productSummary, type Errors } from "./product-fields";
+import {
+  newProductData,
+  productErrors,
+  productFields,
+  productSummary,
+  type Errors,
+} from "./product-fields";
 import { AUTO, maxPackages, pickedRow, pickStyles, renderPick } from "./booking-pick";
+import { productAiBanner, runProductAi, withNewType, type ProductAi } from "./product-ai";
 
 /** `booked` event: the done message, and for a book-out what it took (for undo). */
 export interface Booked {
@@ -36,6 +43,8 @@ const blankForm = () => ({
   print: null as boolean | null,
 });
 type Inherit = "default_location_id" | "expiry_type" | "shelf_days";
+/** The category whose defaults apply: the chosen one, or the parent of a proposed product type. */
+const catOf = (p?: Product) => p?.category_id ?? p?.new_type?.parent_id ?? null;
 // shortcut: last used location lives until the page reloads; persist it if users ask for it.
 let lastLocation: number | null = null;
 
@@ -52,6 +61,7 @@ export class PantryBookingForm extends LitElement {
     draft: { state: true },
     labels: { state: true },
     f: { state: true },
+    ai: { state: true },
   };
 
   declare hass?: Hass;
@@ -65,6 +75,7 @@ export class PantryBookingForm extends LitElement {
   // Editable copy of the product (a new product is filled in here).
   declare draft?: Product;
   declare labels?: LabelConfig;
+  declare ai: ProductAi;
   // Form values; null = use the product's / category's default.
   declare f: InForm & {
     packages: number;
@@ -80,6 +91,7 @@ export class PantryBookingForm extends LitElement {
     this.busy = false;
     this.run = (fn) => fn().catch(() => undefined);
     this.f = blankForm();
+    this.ai = { kind: "none" };
   }
 
   willUpdate(changed: PropertyValues) {
@@ -87,12 +99,31 @@ export class PantryBookingForm extends LitElement {
       this.draft = this.product;
       this.f = { ...blankForm(), expires_on: this.proposal() };
       this.initial = JSON.stringify(this.f);
+      this.ai = { kind: "none" };
+      const p = this.product;
+      // a new product from Open Food Facts is checked once by the AI set up in the options
+      if (this.hass && this.mode === "in" && p && !p.id && p.off_json) void this.check(p);
       if (this.hass && this.mode === "in")
         getLabelConfig(this.hass).then(
           (c) => (this.labels = c),
           () => undefined,
         );
     }
+  }
+
+  private async check(sent: Product) {
+    this.ai = { kind: "running" };
+    const res = await runProductAi(this.hass!, sent, () => this.draft!);
+    if (this.product !== sent) return; // another product meanwhile
+    this.ai = res.state;
+    if (res.draft) this.setFields(res.draft);
+  }
+
+  /** Several product fields at once (AI change or its undo), like `setProduct`. */
+  private setFields(patch: Partial<Product>) {
+    const before = this.proposal();
+    this.draft = { ...this.draft!, ...patch };
+    if (this.f.expires_on === before) this.f = { ...this.f, expires_on: this.proposal() };
   }
 
   /** Something was typed or chosen since the form opened. */
@@ -109,7 +140,7 @@ export class PantryBookingForm extends LitElement {
   private dflt(field: Inherit): Dflt | undefined {
     const own = this.draft?.[field];
     if (own != null) return { value: own, source: t("book.from_product") };
-    const d = categoryDefault(this.md, this.draft?.category_id, field);
+    const d = categoryDefault(this.md, catOf(this.draft), field);
     if (d) return d;
     if (field === "default_location_id" && lastLocation != null)
       return { value: lastLocation, source: t("book.last_used") };
@@ -122,49 +153,35 @@ export class PantryBookingForm extends LitElement {
     return d ? plusDays(todayIso(), Number(d.value)) : "";
   }
 
-  private setProduct(field: keyof Product, value: unknown) {
-    const before = this.proposal();
-    this.draft = { ...this.draft!, [field]: value };
-    // a new product's category brings its shelf life, unless the date was typed
-    if (this.f.expires_on === before) this.f = { ...this.f, expires_on: this.proposal() };
-  }
+  // a new product's category brings its shelf life, unless the date was typed
+  private setProduct = (field: keyof Product, value: unknown) =>
+    this.setFields({ [field]: value, ...(field === "category_id" ? { new_type: undefined } : {}) });
 
   private async submit(e: Event) {
     e.preventDefault();
-    const p = this.draft!;
+    let p = this.draft!;
     const hass = this.hass!;
     const { packages } = this.f;
     let where = "";
     let printed = 0;
     let taken: Taken[] | undefined;
     if (Object.keys(this.errors(p)).length) return;
+    if (!p.id && p.new_type && p.category_id == null) {
+      const typed = await this.run(() => withNewType(hass, p, this));
+      if (!typed) return;
+      p = this.draft = typed;
+    }
     if (this.mode === "in") {
       const location_id =
         this.f.location_id ??
         (this.dflt("default_location_id")?.value as number | undefined) ??
         null;
-      const product = p.id
-        ? undefined
-        : Object.fromEntries(
-            (
-              [
-                "ean",
-                "name",
-                "brand",
-                "category_id",
-                "content_amount",
-                "content_unit_id",
-                "image_url",
-                "off_json",
-                "min_packages",
-              ] as const
-            ).map((k) => [k, p[k] === "" ? null : (p[k] ?? null)]),
-          );
+      const product = p.id ? undefined : newProductData(p);
       // New product: the chosen location becomes its own default, unless the category gives it anyway.
       if (
         product &&
         this.f.makeDefault &&
-        location_id !== categoryDefault(this.md, p.category_id, "default_location_id")?.value
+        location_id !== categoryDefault(this.md, catOf(p), "default_location_id")?.value
       )
         product.default_location_id = location_id;
       const res = await this.run(() =>
@@ -226,6 +243,7 @@ export class PantryBookingForm extends LitElement {
               ${t("book.title_out", { name: p.name })}${p.brand ? html` <span class="detail">${p.brand}</span>` : nothing}
             </h2>`
           : html`<h2>${t("book.title_in")}</h2>
+              ${productAiBanner(this.ai, this.hass, this.md, (b) => ((this.ai = { kind: "none" }), this.setFields(b)))}
               <p class="summary" data-testid="summary">
                 ${productSummary(this.md, p, categoryPath(this.md?.categories, p.category_id), this.hass) || t("book.new_product")}
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
@@ -292,6 +310,7 @@ export class PantryBookingForm extends LitElement {
   static styles = [
     formStyles,
     pickStyles,
+    aiStyles,
     css`
       .actions {
         justify-content: flex-end;

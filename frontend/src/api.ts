@@ -132,6 +132,8 @@ export interface Product {
   packages?: number;
   image_url?: string | null;
   off_json?: string | null;
+  /** Proposed by the AI check (book-in form only, category_id stays null): added before booking. */
+  new_type?: NewType;
 }
 export interface SearchHit {
   id?: number;
@@ -255,7 +257,7 @@ export interface Ingredient {
   source_text?: string | null;
   learned?: boolean;
   /** Changed by the AI check (dialog only, never saved): the previous choice for undo. */
-  ai?: { before: number | null; beforeText: string; reason: string };
+  ai?: AiChange;
   /** Proposed by the AI check (category_id stays null until the save adds it). */
   new_type?: NewType;
   status?: IngredientStatus;
@@ -320,6 +322,16 @@ export const isCanning = (r: Recipe) => r.canning_product_id != null;
 export type ImportSource = { url: string } | { text: string } | { image: string };
 export const importRecipe = (hass: Hass, source: ImportSource) =>
   hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", ...source });
+/** What the AI check changed on an ingredient (`cat` / `unit`), and the values before, for undo. */
+export interface AiChange {
+  cat: boolean;
+  unit: boolean;
+  before: number | null;
+  beforeText: string;
+  beforeUnit: number | null;
+  beforeHint: string | null;
+  reason: string;
+}
 /** A product type the AI check proposes; added below parent_id when the recipe is saved. */
 export type NewType = { name: string; parent_id: number };
 /** AI check of an import draft (phase 13c): off (no AI set up), ok, or only the changes. */
@@ -329,13 +341,24 @@ export type AiCheck =
       status: "changes";
       ingredients: {
         index: number;
-        category_id: number | null;
+        /** Each key only when it changes; new_unit: a unit the user adds in the dialog. */
+        category_id?: number | null;
         new_type?: NewType;
+        unit_id?: number;
+        new_unit?: { name: string };
         reason: string;
       }[];
       steps?: Step[];
     };
 export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>
   hass.callWS<AiCheck>({ type: "pantry/recipe_ai_check", draft });
+/** AI check of a new product from Open Food Facts: only the fields that change. */
+export type ProductAiCheck =
+  | { status: "off" | "ok" }
+  | ({ status: "changes"; reason: string; new_type?: NewType } & Partial<
+      Pick<Product, "name" | "category_id" | "content_amount" | "content_unit_id">
+    >);
+export const checkProduct = (hass: Hass, draft: Record<string, unknown>) =>
+  hass.callWS<ProductAiCheck>({ type: "pantry/product_ai_check", draft });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>
   hass.callWS<{ id: number }>({ type: "pantry/unit_add", name, symbol });

@@ -119,9 +119,10 @@ under *Configure > KI (Rezeptimport, Assistenten) > KI-Aufgabe*; empty = no AI.
 page only when you click *Importieren* (15 s timeout, HTML up to 5 MB, http or https, LAN addresses
 too). With an AI set up:
 
-- Every import is checked once: the recipe and the food category tree go to the AI (about 10,000
-  tokens; the fixed part comes first, so providers that cache prompts bill it less often). The AI
-  only proposes changes; nothing is saved without you.
+- Every import is checked once: the recipe, the food category tree and the units go to the AI (about
+  10,000 tokens; the fixed part comes first, so providers that cache prompts bill it less often). It
+  fixes categories and units (an existing unit, or a new one that you add in the dialog). The AI only
+  answers "ok" or the changes, and only proposes them; nothing is saved without you.
 - A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
   fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p),
   otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
@@ -133,6 +134,13 @@ too). With an AI set up:
   (scaled to 2000 px in the browser) to the AI.
 
 Reading a post takes 15 to 60 seconds and costs one AI call, plus the check.
+
+**New products.** A product that booking in finds on Open Food Facts (not yet in Vorrat) is checked
+once as well: its name, brand, the Open Food Facts quantity and categories, the whole category tree
+(food and non-food) and the units go to the AI. It fixes the name (without brand and size), the
+category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
+new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
+fields you edited are kept.
 
 **Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an
 Assist agent (e.g. *Google Gemini > Configure > Control Home Assistant*) or in the *Model Context

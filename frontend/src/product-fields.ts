@@ -18,11 +18,29 @@ export const blankProduct = (p: Partial<Product> = {}): Product => ({
 
 export type Errors = Record<string, string>;
 
+/** What book-in sends to create a new product ("" = none). */
+export const newProductData = (p: Product): Record<string, unknown> =>
+  Object.fromEntries(
+    (
+      [
+        "ean",
+        "name",
+        "brand",
+        "category_id",
+        "content_amount",
+        "content_unit_id",
+        "image_url",
+        "off_json",
+        "min_packages",
+      ] as const
+    ).map((k) => [k, p[k] === "" ? null : (p[k] ?? null)]),
+  );
+
 /** Field errors of a product's own data (name, category, content). */
 export function productErrors(p: Product): Errors {
   const e: Errors = {};
   if (!p.name.trim()) e.name = t("valid.required");
-  if (p.category_id == null) e.category = t("book.category_required");
+  if (p.category_id == null && !p.new_type) e.category = t("book.category_required");
   if (p.content_amount != null && !(p.content_amount > 0)) e.content = t("valid.positive");
   else if ((p.content_amount == null) !== (p.content_unit_id == null))
     e.content = t("valid.content_pair");

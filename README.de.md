@@ -123,9 +123,11 @@ KI-Aufgabe* wählen; leer = keine KI.
 Seite nur beim Klick auf *Importieren* (15 s Zeitlimit, HTML bis 5 MB, http oder https, auch Adressen
 im Heimnetz). Mit eingerichteter KI:
 
-- Jeder Import wird einmal geprüft: Das Rezept und der Baum der Lebensmittel-Kategorien gehen an die
-  KI (etwa 10.000 Tokens; der feste Teil steht vorn, damit Anbieter mit Prompt-Cache ihn seltener
-  berechnen). Die KI schlägt nur Änderungen vor; gespeichert wird nichts ohne dich.
+- Jeder Import wird einmal geprüft: Das Rezept, der Baum der Lebensmittel-Kategorien und die Einheiten
+  gehen an die KI (etwa 10.000 Tokens; der feste Teil steht vorn, damit Anbieter mit Prompt-Cache ihn
+  seltener berechnen). Sie korrigiert Kategorien und Einheiten (eine vorhandene Einheit oder eine neue,
+  die du im Dialog anlegst). Die KI antwortet nur „ok“ oder mit den Änderungen und schlägt sie nur
+  vor; gespeichert wird nichts ohne dich.
 - Einen Link ohne Rezeptdaten (Instagram, TikTok, YouTube, ein Blog) liest die KI aus: Home Assistant
   holt den Beitrag mit `yt-dlp` (Beschreibung und das Video bis 15 Minuten und 50 MB, höchstens 720p),
   sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
@@ -137,6 +139,14 @@ im Heimnetz). Mit eingerichteter KI:
   Browser auf 2000 px verkleinert) an die KI.
 
 Einen Beitrag auszulesen dauert 15 bis 60 Sekunden und kostet einen KI-Aufruf, dazu die Prüfung.
+
+**Neue Produkte.** Ein Produkt, das beim Einbuchen über Open Food Facts gefunden wird (noch nicht in
+Vorrat), wird ebenfalls einmal geprüft: Name, Marke, Mengenangabe und Kategorien von Open Food Facts,
+der ganze Kategoriebaum (Lebensmittel und Non-Food) und die Einheiten gehen an die KI. Sie korrigiert
+den Namen (ohne Marke und Größe), die Kategorie und den Packungsinhalt (z. B. „4 x 125 g“ = 500 g).
+Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor; die wird beim
+Einbuchen angelegt.
+Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
 
 **Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in
 einem Assist-Agenten (z. B. *Google Gemini > Konfigurieren > Home Assistant steuern*) oder in der

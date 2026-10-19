@@ -40,7 +40,7 @@ def test_code_format_and_book_out(conn):
 
 
 def test_no_ean_and_no_date(conn):
-    p = product(conn)
+    p = product(conn, category="Papier")  # no shelf life: no guessed date
     fridge = loc(conn)
     batch = inv.book_in(conn, p, 1, None, location_id=fridge)
     code = inv.label_info(conn, batch)["code"]

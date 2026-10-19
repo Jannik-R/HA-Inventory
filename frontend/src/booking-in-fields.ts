@@ -42,7 +42,7 @@ export function dateField(f: InForm, set: Set, err: Errors, type: unknown, shelf
       err.expires || past
         ? html`${fieldMsg(err.expires, "expires")}${past ? fieldMsg(t("valid.past"), "expires", true) : ""}`
         : html`<span class="detail" data-testid="shelf-hint"
-            >${shelf ? t("book.shelf_hint", { days: String(shelf.value), source: shelf.source }) : t("book.no_date_hint")}</span
+            >${shelf ? t(f.expires_on ? "book.shelf_hint" : "book.guess_hint", { days: String(shelf.value), source: shelf.source }) : t("book.no_date_hint")}</span
           >`
     }
   </label>`;

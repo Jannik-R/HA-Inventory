@@ -434,6 +434,12 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     SCHEMA_20,
     # 21: typical shelf life and days after opening for seeded categories, only where empty (seed_days).
     fill_days,
+    # 22: the batch date was guessed at book-in (today + shelf life) because none was entered;
+    # a typed date for the same batch clears it.
+    """
+    ALTER TABLE batch ADD COLUMN expiry_guessed INTEGER NOT NULL DEFAULT 0
+        CHECK (expiry_guessed IN (0, 1));
+    """,
 ]
 
 

@@ -97,7 +97,7 @@ export class PantryBookingForm extends LitElement {
   willUpdate(changed: PropertyValues) {
     if (changed.has("product")) {
       this.draft = this.product;
-      this.f = { ...blankForm(), expires_on: this.proposal() };
+      this.f = { ...blankForm(), expires_on: this.prefill() ? this.proposal() : "" };
       this.initial = JSON.stringify(this.f);
       this.ai = { kind: "none" };
       const p = this.product;
@@ -105,7 +105,14 @@ export class PantryBookingForm extends LitElement {
       if (this.hass && this.mode === "in" && p && !p.id && p.off_json) void this.check(p);
       if (this.hass && this.mode === "in")
         getLabelConfig(this.hass).then(
-          (c) => (this.labels = c),
+          (c) => {
+            const fresh = !this.dirty();
+            this.labels = c;
+            if (fresh && c.prefill_expiry) {
+              this.f = { ...this.f, expires_on: this.proposal() };
+              this.initial = JSON.stringify(this.f);
+            }
+          },
           () => undefined,
         );
     }
@@ -123,7 +130,8 @@ export class PantryBookingForm extends LitElement {
   private setFields(patch: Partial<Product>) {
     const before = this.proposal();
     this.draft = { ...this.draft!, ...patch };
-    if (this.f.expires_on === before) this.f = { ...this.f, expires_on: this.proposal() };
+    if (this.prefill() && this.f.expires_on === before)
+      this.f = { ...this.f, expires_on: this.proposal() };
   }
 
   /** Something was typed or chosen since the form opened. */
@@ -145,6 +153,11 @@ export class PantryBookingForm extends LitElement {
     if (field === "default_location_id" && lastLocation != null)
       return { value: lastLocation, source: t("book.last_used") };
     return undefined;
+  }
+
+  /** Option: the date field starts with the proposal; otherwise it stays empty and the backend guesses it. */
+  private prefill() {
+    return !!this.labels?.prefill_expiry;
   }
 
   /** Date proposed from the shelf life (today + days), "" without one. */
@@ -249,7 +262,7 @@ export class PantryBookingForm extends LitElement {
                 ${p.id ? nothing : html`<span class="detail">${t("book.is_new")}</span>`}
               </p>`
       }
-      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err, this.hass)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value, this.f.expires_on && this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : undefined)}`}
+      ${out ? renderPick(this.hass, this.stock ?? [], this.f.pick, (pick) => (this.f = { ...this.f, pick, packages: 1 })) : html`${p.id ? nothing : productFields(this.md, p, (f, v) => this.setProduct(f, v), err, this.hass)}${dateField(this.f, this.set, err, this.dflt("expiry_type")?.value, !this.f.expires_on || this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : undefined)}`}
       <label>
         <span class="lbl">${t("book.packages")}</span>
         <input

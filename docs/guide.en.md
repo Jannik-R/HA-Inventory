@@ -106,9 +106,13 @@ flowchart LR
 4. **Inhalt** (content, optional): e.g. 500 g per package, drained weight for cans. Minimum stock
    and recipes calculate with it.
 5. **Mindestanzahl** (minimum packages, optional): below it the product goes on the shopping list.
-6. **Expiry date** (Ablaufdatum): the date on the package; leave it empty if there is none. The label names the
-   date type (best before or use by). If the category or product has a *Haltbarkeit* (shelf life),
-   today plus that many days is proposed (see [Categories](#9-categories-product-types-and-inheritance)).
+6. **Expiry date** (Ablaufdatum): the date on the package. The label names the date type (best before or
+   use by). If the category or product has a *Haltbarkeit* (shelf life), you may leave the field empty:
+   Home Inventory then guesses today + shelf life (the hint below the field names the days). In the stock
+   such a date shows "(geschätzt)" (guessed) until you change or confirm it in the stock row. Without a
+   shelf life an empty field means no date (see [Categories](#9-categories-product-types-and-inheritance)).
+   To have the guessed date already in the field, turn on **Geschätztes Ablaufdatum vorausfüllen**
+   (see [Household size](#household-settings)).
 7. **Packungen** (packages) and **Lagerort** (location): the location is prefilled (grey:
    "Geerbt: Kühlschrank (von Milchprodukte & Eier)" = inherited). Another choice applies to this booking
    only; **Zurücksetzen** returns to the default. For a new product **Wird Standardlager** keeps the
@@ -394,7 +398,7 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
-**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
+<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving.
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
@@ -507,9 +511,10 @@ Inherited values are grey with their source, in the example
 one applies again. Minimum stock is not inherited.
 
 **Expiry date and shelf life**: bought goods carry their date on the package, and that date counts.
-Without a printed date (home-made, frozen, or portioned from a bulk pack), the *Haltbarkeit* (shelf life,
-in days) counts: booking in proposes today + shelf life, a canning protocol made-on date + shelf life.
-The date stays editable everywhere.
+Without a printed date, or when you do not want to type it, the *Haltbarkeit* (shelf life in days, the
+usual shelf life from purchase, seeded for the food categories) counts: an empty date at book-in becomes
+today + shelf life ("geschätzt", guessed), a canning protocol proposes made-on date + shelf life. Without
+a shelf life nothing is guessed. The date stays editable everywhere.
 
 **Haltbar nach Anbruch** (shelf life after opening): days an opened package still keeps (see 3a),
 inherited like the shelf life. Empty means opening does not change the date.

@@ -37,7 +37,8 @@ def open_package(
         if row["opened_on"]:
             raise InventoryError("already_opened")
     sql = (
-        "SELECT s.batch_id, s.location_id, b.expires_on, b.canning_id, l.name AS location"
+        "SELECT s.batch_id, s.location_id, b.expires_on, b.canning_id, b.expiry_guessed,"
+        " l.name AS location"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN location l ON l.id = s.location_id"
         " WHERE b.product_id = ? AND b.opened_on IS NULL"
     )
@@ -54,7 +55,9 @@ def open_package(
     if not src:
         raise InventoryError("not_enough_stock", available=0)
     opened_on = (today or date.today()).isoformat()
-    target = _batch(conn, product_id, src["expires_on"], opened_on, src["canning_id"])
+    target = _batch(
+        conn, product_id, src["expires_on"], opened_on, src["canning_id"], src["expiry_guessed"]
+    )
     _take(conn, src["batch_id"], src["location_id"], 1)
     _add(conn, target, src["location_id"], 1)
     eff = effective(conn, product_id)
@@ -71,7 +74,7 @@ def open_package(
 def undo_open(conn: sqlite3.Connection, booking_id: int, user_id: str | None = None) -> None:
     """Close the package an 'open' booking opened again (once; it must still be in stock)."""
     row = conn.execute(
-        "SELECT o.batch_id, o.location_id, b.product_id, b.expires_on, b.canning_id"
+        "SELECT o.batch_id, o.location_id, b.product_id, b.expires_on, b.canning_id, b.expiry_guessed"
         " FROM booking o JOIN batch b ON b.id = o.batch_id"
         " WHERE o.id = ? AND o.kind = 'open' AND o.packages > 0",
         (booking_id,),
@@ -82,7 +85,9 @@ def undo_open(conn: sqlite3.Connection, booking_id: int, user_id: str | None = N
         raise InventoryError("already_undone")
     if not _stock_of(conn, row["batch_id"], row["location_id"]):
         raise InventoryError("not_enough_stock", available=0)
-    closed = _batch(conn, row["product_id"], row["expires_on"], None, row["canning_id"])
+    closed = _batch(
+        conn, row["product_id"], row["expires_on"], None, row["canning_id"], row["expiry_guessed"]
+    )
     _take(conn, row["batch_id"], row["location_id"], 1)
     _add(conn, closed, row["location_id"], 1)
     _booking(

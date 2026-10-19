@@ -103,10 +103,14 @@ flowchart LR
 4. **Inhalt** (optional): z. B. 500 g pro Packung, bei Konserven das Abtropfgewicht. Damit rechnen
    Mindestmengen und Rezepte.
 5. **Mindestanzahl** (optional): Unter dieser Packungszahl kommt das Produkt auf die Einkaufsliste.
-6. **Ablaufdatum**: Das Datum von der Packung. Leer lassen, wenn es keins gibt.
-   Die Beschriftung nennt die Datumsart (Mindesthaltbarkeit oder Verbrauchsdatum). Hat die Kategorie
-   oder das Produkt eine *Haltbarkeit*, schlägt Vorrat heute + Haltbarkeit vor (siehe
-   [Kategorien](#9-kategorien-produktarten-und-vererbung)).
+6. **Ablaufdatum**: Das Datum von der Packung. Die Beschriftung nennt die Datumsart
+   (Mindesthaltbarkeit oder Verbrauchsdatum). Hat die Kategorie oder das Produkt eine *Haltbarkeit*,
+   darfst du das Feld leer lassen: Vorrat schätzt dann heute + Haltbarkeit (der Hinweis unter dem
+   Feld nennt die Tage). Im Bestand steht so ein Datum mit „(geschätzt)“, bis du es in der
+   Bestandszeile änderst oder bestätigst. Ohne Haltbarkeit bleibt ein leeres Feld ohne Datum (siehe
+   [Kategorien](#9-kategorien-produktarten-und-vererbung)). Soll das geschätzte Datum schon im Feld
+   stehen, schalte **Geschätztes Ablaufdatum vorausfüllen** ein (siehe
+   [Haushaltsgröße](#haushalt-einstellungen)).
 7. **Packungen** und **Lagerort**: Der Lagerort ist vorbelegt (grau: „Geerbt: Kühlschrank (von
    Milchprodukte & Eier)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
    zurück. Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten Ort fürs Produkt.
@@ -393,7 +397,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
-**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte.
+<a id="haushalt-einstellungen"></a>**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte. Im selben Schritt: **Geschätztes Ablaufdatum vorausfüllen** (Standard aus) schreibt beim Einbuchen heute + Haltbarkeit schon ins Datumsfeld; aus bleibt das Feld leer und das Datum wird erst beim Speichern geschätzt.
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
@@ -507,9 +511,10 @@ Geerbte Werte stehen grau mit ihrer Herkunft da, im Beispiel „Geerbt: 7 Tage (
 Wert, danach gilt wieder der geerbte. Mindestmengen werden nicht vererbt.
 
 **Ablaufdatum und Haltbarkeit**: Gekaufte Ware hat ihr Datum auf der Packung; das gilt. Ohne Aufdruck
-(selbst gemacht, eingefroren, aus einer Großpackung umgefüllt) zählt die *Haltbarkeit* in Tagen:
-Einbuchen schlägt heute + Haltbarkeit vor, ein Einkochprotokoll Herstellungsdatum + Haltbarkeit. Das
-Datum bleibt überall änderbar.
+oder wenn du es nicht eintippen willst, zählt die *Haltbarkeit* in Tagen (übliche Haltbarkeit ab
+Einkauf, für die Lebensmittel-Kategorien vorbelegt): ein leeres Datum beim Einbuchen wird zu heute +
+Haltbarkeit („geschätzt“), ein Einkochprotokoll schlägt Herstellungsdatum + Haltbarkeit vor. Ohne
+Haltbarkeit wird nichts geschätzt. Das Datum bleibt überall änderbar.
 
 **Haltbar nach Anbruch**: Tage, die eine angebrochene Packung noch hält (siehe 3a), vererbt wie die
 Haltbarkeit. Leer heißt: Anbrechen ändert das Datum nicht.

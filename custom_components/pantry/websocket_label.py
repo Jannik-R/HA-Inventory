@@ -15,6 +15,7 @@ from . import inventory, label, receipt
 from .const import (
     CONF_LABEL_HEIGHT,
     CONF_LABEL_WIDTH,
+    CONF_PREFILL_EXPIRY,
     CONF_PRINT_ON_BOOK_IN,
     DOMAIN,
     MAX_LABELS,
@@ -45,6 +46,7 @@ def _config(hass: HomeAssistant) -> dict:
         "model": model,
         "printer": host if model.network else "",
         "print_on_book_in": opts.get(CONF_PRINT_ON_BOOK_IN, True),
+        "prefill_expiry": opts.get(CONF_PREFILL_EXPIRY, False),  # booking form, not labels
         "width_mm": opts.get(CONF_LABEL_WIDTH, 57),
         "height_mm": opts.get(CONF_LABEL_HEIGHT, 32),
         "receipt": bool(receipt.target_of(opts)),

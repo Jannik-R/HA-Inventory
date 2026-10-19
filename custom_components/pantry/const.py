@@ -18,6 +18,8 @@ CONF_RECEIPT_CUT = "receipt_cut"
 CONF_RECEIPT_BAUD = "receipt_baud"
 CONF_HOUSEHOLD_SERVINGS = "household_servings"  # default servings of the week planner
 DEFAULT_SERVINGS = 3
+# Booking in: fill the date field with the guess (today + shelf life); off = empty field, guessed on save.
+CONF_PREFILL_EXPIRY = "prefill_expiry"
 CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; unset = no AI
 # What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.
 CONF_LLM_ACCESS = "llm_access"

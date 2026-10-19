@@ -32,7 +32,29 @@ def test_migration_21_fills_only_empty_values(monkeypatch) -> None:
     c.execute("UPDATE category SET opened_days = 9 WHERE name = 'Käse'")
     c.commit()
     db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == 21
+    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
     assert days(c, "H-Milch") == (4, 3)
     assert days(c, "Käse") == (30, 9)
     assert days(c, "Joghurt") == (21, 5)
+
+
+def test_book_in_without_date_guesses_from_shelf_life(conn) -> None:
+    from datetime import date, timedelta
+
+    from custom_components.pantry import inventory as inv
+    from tests.test_inventory import loc, product
+
+    milk = product(conn, "H-Milch Test", "H-Milch")
+    guessed = inv.book_in(conn, milk, 1, None, loc(conn))
+    row = conn.execute(
+        "SELECT expires_on, expiry_guessed FROM batch WHERE id = ?", (guessed,)
+    ).fetchone()
+    assert tuple(row) == ((date.today() + timedelta(days=90)).isoformat(), 1)
+    assert inv.stock_list(conn)[0]["expiry_guessed"] == 1
+    # the same date typed confirms the batch; no shelf life: no date
+    assert inv.book_in(conn, milk, 1, row["expires_on"], loc(conn)) == guessed
+    assert (
+        conn.execute("SELECT expiry_guessed FROM batch WHERE id = ?", (guessed,)).fetchone()[0] == 0
+    )
+    paper = inv.book_in(conn, product(conn, "Küchenrolle", "Papier"), 1, None, loc(conn))
+    assert conn.execute("SELECT expires_on FROM batch WHERE id = ?", (paper,)).fetchone()[0] is None

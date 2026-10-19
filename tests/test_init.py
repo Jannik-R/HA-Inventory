@@ -177,7 +177,7 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()  # saving reloads the entry
-    assert entry.options == {"household_servings": 4}
+    assert entry.options == {"household_servings": 4, "prefill_expiry": False}
 
 
 async def test_options_flow_ai(hass: HomeAssistant) -> None:

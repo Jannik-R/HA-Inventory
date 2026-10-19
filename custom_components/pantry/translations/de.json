@@ -170,10 +170,12 @@
       "household": {
         "title": "Haushalt",
         "data": {
-          "household_servings": "Portionen im Haushalt"
+          "household_servings": "Portionen im Haushalt",
+          "prefill_expiry": "Geschätztes Ablaufdatum vorausfüllen"
         },
         "data_description": {
-          "household_servings": "Portionen, die der Haushalt standardmäßig kocht."
+          "household_servings": "Portionen, die der Haushalt standardmäßig kocht.",
+          "prefill_expiry": "Beim Einbuchen steht im Datumsfeld schon heute + Haltbarkeit der Kategorie. Aus: das Feld bleibt leer; ein leeres Datum wird beim Speichern trotzdem geschätzt."
         }
       },
       "receipt": {
@@ -225,7 +227,7 @@
         },
         "expires_on": {
           "name": "Ablaufdatum",
-          "description": "MHD / Verbrauchsdatum; leer bei Produkten ohne Datum."
+          "description": "MHD / Verbrauchsdatum; leer: heute + Haltbarkeit (als geschätzt markiert), ohne Haltbarkeit kein Datum."
         },
         "location": {
           "name": "Lagerort",

@@ -33,11 +33,7 @@ Available:
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
 
-Planned:
-
-- User feedback with AI evaluation
-
-Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
+Roadmap: [docs/PLAN.md](docs/PLAN.md) section 6.
 
 ## Installation
 

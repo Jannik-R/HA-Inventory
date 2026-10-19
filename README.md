@@ -44,7 +44,7 @@ HACS (only once the repository is public; HACS cannot install from private repos
 
 Manual: download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
 
-Python packages (installed by Home Assistant): `segno` (QR codes on labels) and `yt-dlp` (reads the caption, and with the option *Videos für den Rezeptimport laden* the video, of a post for the AI recipe import; it is already part of the Home Assistant image, so a standard install downloads nothing).
+Python packages (installed by Home Assistant): `segno` (QR codes on labels). `yt-dlp` (video of a post for the AI recipe import) is installed only on first use with *Externe Dienste > Videos für den Rezeptimport laden* turned on; the Home Assistant image already contains it, so a standard install downloads nothing.
 
 Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
@@ -59,12 +59,8 @@ German; the English guide names buttons by their German labels.
 ## Setup
 
 All options are under *Settings > Devices & services > Home Inventory > Configure*: modules, label
-printer, receipt printer, household (servings, expiry guess, Open Food Facts) and AI.
-
-**Open Food Facts.** An unknown barcode and *Online suchen* ask Open Food Facts and its sister
-databases (the barcode or the search text is sent to openfoodfacts.org). Turn it off under
-*Configure > Haushalt > Produkte in Open Food Facts nachschlagen* (default on); then nothing is sent and
-new products are entered by hand.
+printer, receipt printer, household (servings, expiry guess), AI and external services (see
+[Privacy](#privacy)).
 
 ### Label printer (Etikettendrucker)
 
@@ -128,7 +124,7 @@ too). With an AI set up:
   answers "ok" or the changes, and only proposes them; nothing is saved without you.
 - A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
   fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p,
-  when *Videos für den Rezeptimport laden* is on; default off, as many platforms forbid downloads in
+  when *Externe Dienste > Videos für den Rezeptimport laden* is on; default off, as many platforms forbid downloads in
   their terms of use), otherwise the page's title, description, visible text and preview image (up
   to 5 MB), and sends them to the AI (attachments go through a hidden folder
   `.home_inventory_import` in the first media directory and are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
@@ -145,7 +141,7 @@ once as well: its name, brand, the Open Food Facts quantity and categories, the 
 (food and non-food) and the units go to the AI. It fixes the name (without brand and size), the
 category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
 new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
-fields you edited are kept. Turn this check off with *Neue Produkte prüfen*.
+fields you edited are kept. Turn this check off with *Externe Dienste > Neue Produkte prüfen*.
 
 **Receipt import.** *Kassenbon importieren* (booking in, only with an AI) scans the receipt like a
 phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and
@@ -170,6 +166,29 @@ decides what they may do:
 
 Tools use names, like the services; the write tools run the services below, so a booking records the
 user of the conversation.
+
+## Privacy
+
+The database (`home_inventory.db` in the config directory) stays on your Home Assistant. Data leaves
+it only through the services below. Each one has its own switch under *Configure > Externe Dienste*
+(AI services also need the AI Task entity under *KI*); a service that is off sends nothing.
+
+| Service (switch) | What is sent, to whom | When | Default |
+|---|---|---|---|
+| *Produkte in Open Food Facts nachschlagen* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Online suchen* | on |
+| *Rezepte aus Links importieren* | a request for the linked page to that site (from Home Assistant) | *Importieren* with a link | on |
+| *KI prüft Rezeptimporte* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |
+| *Neue Produkte prüfen* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |
+| *KI liest Rezepte (Link ohne Rezeptdaten, Text, Foto)* | page text and preview image, pasted text or the photo to the AI | link without recipe data, *Text*, *Foto* | on (with AI) |
+| *Videos für den Rezeptimport laden* | the post's video is downloaded (yt-dlp, installed on first use) and sent to the AI | link to Instagram, TikTok, YouTube | off |
+| *Kassenbon-Import* | the browser loads OpenCV.js and tesseract.js (with German data) from jsDelivr; the recognized text and your product list (id, name, brand) go to the AI, not the photo | *Kassenbon importieren* | on (with AI) |
+
+Not switched here, because you set them up yourself: the label and receipt printer (your network or
+USB) and the LLM API for assistants (what they may read or change is the access level under *KI*;
+what the assistant's provider receives depends on that assistant).
+
+Product data from Open Food Facts is under the [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+This integration, and any export of its data, is meant for private use in your household.
 
 ## Sensors
 
@@ -318,7 +337,9 @@ docker compose -f dev/docker-compose.yml run --rm test
 - `.claude/skills/ha-dev`: commands for dev HA, logs, tests, build.
 - `.claude/skills/db-migration`: how a schema change becomes a migration step.
 - `.claude/skills/feature-checklist`: layers, tests, docs and checks of a feature, up to the PR.
-- `.claude/skills/import-check`: recipe import check against random Chefkoch pages.
+- `.claude/skills/import-check`: recipe import check against random Chefkoch pages. Development tool
+  only: it fetches real pages automatically, which site terms usually forbid; run it rarely, it is
+  throttled, and its page cache (`dev/config/`) is never committed.
 - `.claude/skills/release`: version bump, changelog, tag and GitHub release.
 - `.claude/skills/ha-integration-rules`: condensed HA integration rules used in this repo.
 - `.claude/skills/off-api`: Open Food Facts endpoints, limits and the seed category tag check.
@@ -330,4 +351,7 @@ docker compose -f dev/docker-compose.yml run --rm test
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The panel bundle contains third-party code (Lit, Material Design Icons, zxing-wasm,
+barcode-detector, tesseract.js); their licenses are in
+[`www/THIRD_PARTY_LICENSES.txt`](custom_components/home_inventory/www/THIRD_PARTY_LICENSES.txt),
+written by the build.

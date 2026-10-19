@@ -44,7 +44,7 @@ HACS (erst wenn das Repository öffentlich ist; HACS kann nicht aus privaten Rep
 
 Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/home_inventory` nach `config/custom_components/` kopieren und Home Assistant neu starten.
 
-Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und `yt-dlp` (liest für den KI-Rezeptimport die Beschreibung eines Beitrags, mit der Option *Videos für den Rezeptimport laden* auch sein Video; ist schon Teil des Home-Assistant-Images, eine normale Installation lädt also nichts herunter).
+Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten). `yt-dlp` (Video eines Beitrags für den KI-Rezeptimport) wird erst beim ersten Gebrauch installiert, wenn *Externe Dienste > Videos für den Rezeptimport laden* an ist; das Home-Assistant-Image enthält es schon, eine normale Installation lädt also nichts herunter.
 
 Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
 
@@ -58,12 +58,8 @@ Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant.
 ## Einrichtung
 
 Alle Optionen stehen unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*:
-Module, Etikettendrucker, Bondrucker, Haushalt (Portionen, geschätztes Ablaufdatum, Open Food Facts) und KI.
-
-**Open Food Facts.** Ein unbekannter Barcode und *Online suchen* fragen Open Food Facts und seine
-Schwester-Datenbanken (Barcode bzw. Suchtext gehen an openfoodfacts.org). Abschalten unter
-*Konfigurieren > Haushalt > Produkte in Open Food Facts nachschlagen* (Standard an); dann wird nichts
-geschickt und neue Produkte werden von Hand angelegt.
+Module, Etikettendrucker, Bondrucker, Haushalt (Portionen, geschätztes Ablaufdatum), KI und Externe
+Dienste (siehe [Datenschutz](#datenschutz)).
 
 ### Etikettendrucker
 
@@ -131,7 +127,7 @@ im Heimnetz). Mit eingerichteter KI:
   die du im Dialog anlegst). Die KI antwortet nur „ok“ oder mit den Änderungen und schlägt sie nur
   vor; gespeichert wird nichts ohne dich.
 - Einen Link ohne Rezeptdaten (Instagram, TikTok, YouTube, ein Blog) liest die KI aus: Home Assistant
-  holt den Beitrag mit `yt-dlp` (Beschreibung und, wenn *Videos für den Rezeptimport laden* an ist,
+  holt den Beitrag mit `yt-dlp` (Beschreibung und, wenn *Externe Dienste > Videos für den Rezeptimport laden* an ist,
   das Video bis 15 Minuten und 50 MB, höchstens 720p; Standard aus, weil viele Plattformen Downloads
   in ihren Nutzungsbedingungen verbieten), sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild
   (bis 5 MB) der Seite, und schickt sie an
@@ -151,7 +147,7 @@ den Namen (ohne Marke und Größe), die Kategorie und den Packungsinhalt (z. B. 
 Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor; die wird beim
 Einbuchen angelegt.
 Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
-Abschalten mit *Neue Produkte prüfen*.
+Abschalten mit *Externe Dienste > Neue Produkte prüfen*.
 
 **Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) scannt den Bon wie der
 Dokumentenscanner eines Handys: die Live-Kamera markiert den Rand des Bons, die Ecken lassen sich
@@ -176,6 +172,30 @@ Assistenten* legt fest, was sie dürfen:
 
 Die Werkzeuge nehmen Namen, wie die Aktionen; die schreibenden rufen die Aktionen unten auf, eine
 Buchung vermerkt also den Nutzer des Gesprächs.
+
+## Datenschutz
+
+Die Datenbank (`home_inventory.db` im Konfigurationsordner) bleibt auf deinem Home Assistant. Daten
+verlassen ihn nur über die Dienste unten. Jeder hat einen eigenen Schalter unter *Konfigurieren >
+Externe Dienste* (KI-Dienste brauchen zusätzlich die KI-Aufgabe unter *KI*); ein abgeschalteter Dienst
+schickt nichts.
+
+| Dienst (Schalter) | Was geht an wen | Wann | Standard |
+|---|---|---|---|
+| *Produkte in Open Food Facts nachschlagen* | Barcode oder Suchtext an openfoodfacts.org (und die Schwester-Datenbanken) | unbekannter Barcode beim Einbuchen, *Online suchen* | an |
+| *Rezepte aus Links importieren* | eine Anfrage nach der verlinkten Seite an diese Website (von Home Assistant aus) | *Importieren* mit Link | an |
+| *KI prüft Rezeptimporte* | Rezept, Baum der Lebensmittel-Kategorien und Einheiten an die gewählte KI | jeder Rezeptimport | an (mit KI) |
+| *Neue Produkte prüfen* | die Open-Food-Facts-Daten des Produkts, Kategoriebaum und Einheiten an die KI | neues Produkt beim Einbuchen | an (mit KI) |
+| *KI liest Rezepte (Link ohne Rezeptdaten, Text, Foto)* | Seitentext und Vorschaubild, eingefügter Text oder das Foto an die KI | Link ohne Rezeptdaten, *Text*, *Foto* | an (mit KI) |
+| *Videos für den Rezeptimport laden* | das Video des Beitrags wird heruntergeladen (yt-dlp, beim ersten Mal installiert) und an die KI geschickt | Link zu Instagram, TikTok, YouTube | aus |
+| *Kassenbon-Import* | der Browser lädt OpenCV.js und tesseract.js (mit deutschen Sprachdaten) von jsDelivr; an die KI gehen der erkannte Text und deine Produktliste (ID, Name, Marke), nicht das Foto | *Kassenbon importieren* | an (mit KI) |
+
+Nicht hier geschaltet, weil du sie selbst einrichtest: Etiketten- und Bondrucker (dein Netz oder USB)
+und die LLM-API für Assistenten (was sie lesen oder ändern dürfen, legt die Zugriffsstufe unter *KI*
+fest; was der Anbieter des Assistenten bekommt, hängt von diesem Assistenten ab).
+
+Produktdaten von Open Food Facts stehen unter der [Open Database License](https://opendatacommons.org/licenses/odbl/1-0/).
+Diese Integration und jeder Export ihrer Daten sind für den privaten Gebrauch im eigenen Haushalt gedacht.
 
 ## Sensoren
 
@@ -257,4 +277,7 @@ Siehe [README.md, Development](README.md#development) (englisch).
 
 ## Lizenz
 
-MIT, siehe [LICENSE](LICENSE).
+MIT, siehe [LICENSE](LICENSE). Das Panel-Bundle enthält Code Dritter (Lit, Material Design Icons,
+zxing-wasm, barcode-detector, tesseract.js); deren Lizenzen stehen in
+[`www/THIRD_PARTY_LICENSES.txt`](custom_components/home_inventory/www/THIRD_PARTY_LICENSES.txt), vom
+Build erzeugt.

@@ -79,6 +79,8 @@ export async function panelConfig(page: Page, config: Record<string, unknown>) {
       }
     };
     const el = walk(document)!;
-    el.panel = { ...el.panel, config: { ...el.panel?.config, ...cfg } };
+    const old = (el.panel?.config ?? {}) as { external?: object };
+    const external = { ...old.external, ...(cfg as { external?: object }).external };
+    el.panel = { ...el.panel, config: { ...old, ...cfg, external } };
   }, config);
 }

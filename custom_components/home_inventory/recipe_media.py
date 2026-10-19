@@ -25,6 +25,8 @@ MAX_SECONDS = 900  # longer videos are no recipe clip; only their caption is use
 MAX_IMAGE = 5_000_000
 VIDEO_TIMEOUT = 120  # s, metadata + download
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp")
+# Not in the manifest: installed on first use, only when the option allows video downloads.
+YT_DLP = "yt-dlp>=2025.1.1"
 FOLDER = ".home_inventory_import"  # dot: hidden from the media browser search
 
 

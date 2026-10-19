@@ -29,7 +29,7 @@ import "./cook-mode";
 import type { HomeInventoryCookMode } from "./cook-mode";
 import type { HomeInventoryMealDialog } from "./meal-dialog";
 import type { HomeInventoryShoppingRecipeDialog } from "./shopping-recipe-dialog";
-import type { HomeInventoryRecipeImport } from "./recipe-import";
+import { importSources, type HomeInventoryRecipeImport } from "./recipe-import";
 import type { HomeInventoryRecipeDialog } from "./recipe-dialog";
 
 /** Recipe list: search (name and ingredients), open a row for ingredients with availability. */
@@ -260,9 +260,13 @@ export class HomeInventoryRecipes extends LitElement {
           .value=${this.query}
           @input=${(e: Event) => (this.query = (e.target as HTMLInputElement).value)}
         />
-        <button data-testid="recipe-import" @click=${() => this.importer().open()}>
-          ${t("recipes.import.open")}
-        </button>
+        ${
+          importSources().length
+            ? html`<button data-testid="recipe-import" @click=${() => this.importer().open()}>
+                ${t("recipes.import.open")}
+              </button>`
+            : nothing
+        }
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
           ${t(this.canning ? "canning.recipe_add" : "recipes.add")}
         </button>

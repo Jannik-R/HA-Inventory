@@ -57,6 +57,7 @@ test("an import is checked by the AI: changes are marked and can be undone", asy
     ],
   });
   await openPage(page, "/home_inventory/recipes", "Rezepte");
+  await panelConfig(page, { external: { ai_recipe_check: true } }); // dev HA: no AI entity
   await page.getByTestId("recipe-import").click();
   const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/gelee");
@@ -114,6 +115,7 @@ test("a product type proposed by the AI is added when the recipe is saved", asyn
     ],
   });
   await openPage(page, "/home_inventory/recipes", "Rezepte");
+  await panelConfig(page, { external: { ai_recipe_check: true } }); // dev HA: no AI entity
   await page.getByTestId("recipe-import").click();
   const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/typ");
@@ -169,6 +171,7 @@ test("the AI picks an existing unit or proposes a new one", async ({ page, wsStu
     ],
   });
   await openPage(page, "/home_inventory/recipes", "Rezepte");
+  await panelConfig(page, { external: { ai_recipe_check: true } }); // dev HA: no AI entity
   await page.getByTestId("recipe-import").click();
   const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/einheit");
@@ -212,7 +215,7 @@ test("a new product from Open Food Facts is checked by the AI", async ({ page, w
     reason: "ohne Marke",
   });
   await openPage(page, "/home_inventory/in", "Bestand");
-  await panelConfig(page, { ai_product: true }); // the dev HA has no AI entity
+  await panelConfig(page, { external: { ai_product_check: true } }); // dev HA: no AI entity
   await page.getByTestId("code-input").fill("4000000000017");
   await page.getByTestId("code-input").press("Enter");
 
@@ -250,7 +253,7 @@ test("the AI proposes a product type for a new product", async ({ page, wsStub }
     reason: "neue Sorte",
   });
   await openPage(page, "/home_inventory/in", "Bestand");
-  await panelConfig(page, { ai_product: true }); // the dev HA has no AI entity
+  await panelConfig(page, { external: { ai_product_check: true } }); // dev HA: no AI entity
   await page.getByTestId("code-input").fill("4000000000024");
   await page.getByTestId("code-input").press("Enter");
 

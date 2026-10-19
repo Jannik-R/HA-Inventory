@@ -1,4 +1,6 @@
-"""Run random Chefkoch recipes through the recipe import parser; print only suspicious rows.
+"""Development tool only, never part of the integration: run random Chefkoch recipes through the
+recipe import parser and print only suspicious rows. It fetches real pages automatically, which
+site terms usually forbid: run it rarely, keep -n small (it waits between pages), prefer --cached.
 
 Run in the test container (has Home Assistant installed), see skill `import-check`:
     docker compose -f dev/docker-compose.yml run --rm --entrypoint python test scripts/import_check.py -n 10

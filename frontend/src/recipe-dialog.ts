@@ -23,6 +23,7 @@ import { stepRowError } from "./recipe-steps-editor";
 import type { StepRow } from "./recipe-steps";
 import { fromRecipe, toPayload, type Draft } from "./recipe-draft";
 import { aiBanner, aiDraft, applyAi, type AiState } from "./recipe-ai";
+import { hasExternal } from "./modules";
 
 /** Add or edit a recipe. Call `open(md, recipe?, imported?)` (an import is a new recipe); fires `home-inventory-saved` after saving. */
 export class HomeInventoryRecipeDialog extends LitElement {
@@ -71,7 +72,7 @@ export class HomeInventoryRecipeDialog extends LitElement {
     await this.updateComplete;
     this.renderRoot.querySelector("dialog")!.showModal();
     this.renderRoot.querySelector<HTMLElement>("dialog input")?.focus();
-    if (imported) void this.check();
+    if (imported && hasExternal("ai_recipe_check")) void this.check();
   }
 
   /** Every import is checked once by the AI set up in the options (none: nothing happens). */

@@ -94,6 +94,10 @@ async def test_websocket(hass: HomeAssistant, hass_ws_client) -> None:
     assert "Receipt:\nREWE" in gen.await_args.kwargs["instructions"]
     item = res["items"][0]
     assert (item["name"], item["packages"], item["product_id"]) == ("Bananen", 2, None)
+    options = {CONF_AI_TASK: "ai_task.test", "receipt_import": False}
+    hass.config_entries.async_update_entry(entry, options=options)
+    await client.send_json_auto_id({"type": "home_inventory/receipt_read", "text": RECEIPT})
+    assert (await client.receive_json())["error"]["translation_key"] == "external_off"
 
     book = {
         "type": "home_inventory/receipt_book",

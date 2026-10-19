@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory import recipe_media
-from custom_components.home_inventory.const import CONF_AI_TASK, CONF_AI_VIDEO, DOMAIN
+from custom_components.home_inventory.const import CONF_AI_TASK, DOMAIN
 
 from .test_websocket import ws  # noqa: F401  (fixture)
 
@@ -67,7 +67,7 @@ def test_prompt_and_answer(conn):
 
 def enable_ai(hass: HomeAssistant, media: Path, files: bool = True, video: bool = True) -> None:
     entry = hass.config_entries.async_entries(DOMAIN)[0]
-    options = {CONF_AI_TASK: "ai_task.test", CONF_AI_VIDEO: video}
+    options = {CONF_AI_TASK: "ai_task.test", "ai_video": video}
     hass.config_entries.async_update_entry(entry, options=options)
     hass.config.components.add("ai_task")
     hass.config.media_dirs = {"local": str(media)}
@@ -177,6 +177,14 @@ async def test_ws_text_and_photo(hass, ws, tmp_path):  # noqa: F811
     bad = {"type": "home_inventory/recipe_import", "image": "data:image/png;base64,!!"}
     assert (await ws.call(bad))["error"]["translation_key"] == "invalid_value"
     assert not (await ws.call({**img, "image": "data:text/html;base64,AA=="}))["success"]
+
+    # external services off: nothing is sent, the reason is named
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    options = {**entry.options, "ai_import": False, "recipe_url": False}
+    hass.config_entries.async_update_entry(entry, options=options)
+    assert (await ws.call(text))["error"]["translation_key"] == "external_off"
+    url = {"type": "home_inventory/recipe_import", "url": "https://x.test/r"}
+    assert (await ws.call(url))["error"]["translation_key"] == "external_off"
 
 
 async def test_image_download_limits(hass, aioclient_mock, tmp_path):

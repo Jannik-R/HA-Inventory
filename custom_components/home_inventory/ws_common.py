@@ -9,7 +9,7 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN
+from .const import DOMAIN, external
 from .db import Database
 from .inventory import InventoryError
 
@@ -25,6 +25,11 @@ def options_of(hass: HomeAssistant) -> Mapping[str, Any]:
     """Options of the loaded entry (empty when not loaded)."""
     entries = hass.config_entries.async_loaded_entries(DOMAIN)
     return entries[0].options if entries else {}
+
+
+def external_on(hass: HomeAssistant, key: str) -> bool:
+    """The options allow this external service (see const.EXTERNAL)."""
+    return external(options_of(hass), key)
 
 
 @contextmanager

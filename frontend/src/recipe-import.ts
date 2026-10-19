@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import { URL_RE, editDialog, fieldMsg, icon } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, importRecipe, type Hass, type ImportSource } from "./api";
-import { hasAi } from "./modules";
+import { hasExternal } from "./modules";
 import { scaledPhoto } from "./photo";
 import { mdiCameraOutline } from "@mdi/js";
 import "./camera-dialog";
@@ -12,6 +12,10 @@ import type { HomeInventoryCamera } from "./camera-dialog";
 /** Where the recipe comes from; text and photo only with an AI set up (they always need it). */
 type Source = "url" | "text" | "photo";
 const SOURCES: Source[] = ["url", "text", "photo"];
+
+/** Sources the options allow: a link needs `recipe_url`, text and photo the AI import. */
+export const importSources = () =>
+  SOURCES.filter((s) => hasExternal(s === "url" ? "recipe_url" : "ai_import"));
 const MAX_TEXT = 20000; // backend: inventory.MAX_PASTE
 
 /** Ask for a recipe URL, text or photo. `open()`; fires `home-inventory-imported` (detail: RecipeDraft) on success. */
@@ -48,7 +52,7 @@ export class HomeInventoryRecipeImport extends LitElement {
   }
 
   async open() {
-    this.source = "url";
+    this.source = importSources()[0] ?? "url";
     this.url = this.text = this.photo = "";
     this.error = "";
     this.busy = false;
@@ -112,7 +116,7 @@ export class HomeInventoryRecipeImport extends LitElement {
 
   private switcher() {
     return html`<div class="sources" role="group" aria-label=${t("recipes.import.source")}>
-      ${SOURCES.map(
+      ${importSources().map(
         (s) =>
           html`<button
             type="button"
@@ -183,7 +187,9 @@ export class HomeInventoryRecipeImport extends LitElement {
         @input=${(e: Event) => (this.url = (e.target as HTMLInputElement).value)}
       />
       ${fieldMsg(err, "recipe-import-url")}
-      <span class="note">${t(hasAi() ? "recipes.import.hint_ai" : "recipes.import.hint")}</span>
+      <span class="note"
+        >${t(hasExternal("ai_import") ? "recipes.import.hint_ai" : "recipes.import.hint")}</span
+      >
     </label>`;
   }
 
@@ -193,12 +199,14 @@ export class HomeInventoryRecipeImport extends LitElement {
     // the camera dialog sits beside this one, so its clicks are no backdrop clicks here
     return html`${editDialog({
         title: t("recipes.import.title"),
-        body: html`${hasAi() ? this.switcher() : nothing} ${this.field(err)}
+        body: html`${importSources().length > 1 ? this.switcher() : nothing} ${this.field(err)}
         ${
           this.busy
             ? html`<div class="busy" role="status" data-testid="recipe-import-busy">
                 <progress aria-label=${t("recipes.import.busy")}></progress>
-                <span>${t(hasAi() ? "recipes.import.busy_ai" : "recipes.import.busy")}</span>
+                <span
+                  >${t(hasExternal("ai_import") ? "recipes.import.busy_ai" : "recipes.import.busy")}</span
+                >
               </div>`
             : nothing
         }`,

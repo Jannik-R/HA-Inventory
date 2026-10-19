@@ -49,7 +49,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
     ],
   });
   await openPage(page, "/home_inventory/stock", "Bestand");
-  await panelConfig(page, { ai: true }); // the dev HA may have no AI entity; the AI is stubbed
+  await panelConfig(page, { external: { receipt_import: true, ai_import: true } }); // AI stubbed
   await page.getByTestId("mode-in").click();
   await page.getByTestId("receipt-import").click();
   await page.getByTestId("receipt-photo").evaluate(async (input: HTMLInputElement) => {
@@ -109,7 +109,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
 test("the live camera takes a receipt and a recipe photo", async ({ page }) => {
   test.setTimeout(120_000);
   await openPage(page, "/home_inventory/stock", "Bestand");
-  await panelConfig(page, { ai: true }); // the dev HA may have no AI entity; the AI is stubbed
+  await panelConfig(page, { external: { receipt_import: true, ai_import: true } }); // AI stubbed
   await page.getByTestId("mode-in").click();
   await page.getByTestId("receipt-import").click();
   await page.getByTestId("receipt-scan").click();
@@ -119,7 +119,7 @@ test("the live camera takes a receipt and a recipe photo", async ({ page }) => {
   await expect(page.getByTestId("receipt-read")).toBeEnabled();
 
   await openPage(page, "/home_inventory/recipes", "Rezepte");
-  await panelConfig(page, { ai: true }); // the dev HA may have no AI entity; the AI is stubbed
+  await panelConfig(page, { external: { receipt_import: true, ai_import: true } }); // AI stubbed
   await page.getByTestId("recipe-import").click();
   await page.getByTestId("recipe-import-source-photo").click();
   await page.getByTestId("recipe-import-camera").click();

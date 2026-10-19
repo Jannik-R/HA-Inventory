@@ -40,7 +40,7 @@ Answer with JSON only.
   "ingredients": [{"index": <index from the draft>, "category_id": <id from the tree, 0 = none;
   only when it changes>, "new_type": <only when proposing one>, "unit_id": <id from the unit
   list; only when it changes>, "new_unit": <only when proposing one>, "reason": <a few words,
-  German>}] for ingredients whose category or unit is wrong or missing;
+  in the language named at the end>}] for ingredients whose category or unit is wrong or missing;
   "steps": the complete new step list [{"text": ..., "section": ...}] only if the steps need
   splitting or fixing.
 Ingredients with "learned": true were confirmed by the user before: change them only when

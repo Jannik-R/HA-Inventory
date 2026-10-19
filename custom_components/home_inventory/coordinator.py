@@ -64,7 +64,6 @@ async def async_coordinator(
 def device_info(entry: HomeInventoryConfigEntry) -> DeviceInfo:
     return DeviceInfo(
         identifiers={(DOMAIN, entry.entry_id)},
-        # shortcut: German like the sidebar title; translate when needed.
-        name="Vorrat",
+        translation_key="inventory",  # name in the system language (strings: device.inventory)
         entry_type=DeviceEntryType.SERVICE,
     )

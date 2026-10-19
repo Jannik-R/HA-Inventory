@@ -27,7 +27,7 @@ Check:
 
 Answer with JSON only.
 - Everything fine: {"ok": true}
-- Otherwise {"ok": false} with only the fields that change and "reason" (a few words, German).
+- Otherwise {"ok": false} with only the fields that change and "reason" (a few words, in the language named at the end).
 
 Categories (id name; indentation = level below the parent):
 """

@@ -11,6 +11,7 @@
 
 ### Added
 
+- Panel in English (PLAN 37): it follows each user's Home Assistant language (German or English, others get English); sidebar title and device name follow the system language; the AI's reasons come in the panel language. The English guide uses the English labels and its own screenshots.
 - Opened packages: *Anbrechen* on a batch row, in the booking switch (label scan, barcode, name) and as action `home_inventory.open_package` marks one package as opened; it becomes its own stock row and expires after the new inherited field *Haltbar nach Anbruch* (never later than its date). Undo, and a new label is offered. Migration 20 rebuilds `batch` and `booking` (ids kept, no data removed).
 - Meal plan on the receipt printer: *Drucken* in the day and week view, action `home_inventory.print_plan` (day or week). Action `home_inventory.print_planned` prints the recipes planned for a meal (default: today, the current meal by the new start times under *Einstellungen > Mahlzeiten*; database migration 19, runs automatically)
 - Recipes on the receipt printer: *Drucken* in an open recipe and action `home_inventory.print_recipe` print name, servings, the ingredients to tick off (scaled) and the numbered steps

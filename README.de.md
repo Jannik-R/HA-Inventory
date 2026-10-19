@@ -46,14 +46,15 @@ Von Hand: das Release herunterladen (oder das Repository klonen), `custom_compon
 
 Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten). `yt-dlp` (Video eines Beitrags für den KI-Rezeptimport) wird erst beim ersten Gebrauch installiert, wenn *Externe Dienste > Videos für den Rezeptimport laden* an ist; das Home-Assistant-Image enthält es schon, eine normale Installation lädt also nichts herunter.
 
-Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
+Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel erscheint als *Vorrat* (bei Home Assistant auf Englisch: *Home Inventory*) in der Seitenleiste.
 
 **Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen* (Tab *Einkochen*), *Anbrechen* (Knopf *Anbrechen* an der Charge, Buchungsmodus *Anbrechen* und das Feld *Haltbar nach Anbruch*). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
 
 ## Bedienung
 
 **Anleitung** (Schritt für Schritt, mit Screenshots): [Deutsch](docs/guide.de.md) · [English](docs/guide.en.md).
-Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant.
+Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant. Das Panel folgt der
+Home-Assistant-Sprache jedes Benutzers (Deutsch oder Englisch; jede andere Sprache bekommt Englisch).
 
 ## Einrichtung
 
@@ -199,7 +200,7 @@ Diese Integration und jeder Export ihrer Daten sind für den privaten Gebrauch i
 
 ## Sensoren
 
-Die Integration legt ein Gerät *Vorrat* mit zwei Sensoren an (Packungen, ohne Abfrageintervall,
+Die Integration legt ein Gerät *Vorrat* (englisch: *Home Inventory*) mit zwei Sensoren an (Packungen, ohne Abfrageintervall,
 aktualisiert nach jeder Buchung und um Mitternacht):
 
 | Sensor | Wert | Attribut `items` |

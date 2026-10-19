@@ -99,23 +99,32 @@ async def _check(hass: HomeAssistant, task: str, instructions: str, structure) -
     return result.data
 
 
-async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
+def _reasons_in(language: str | None) -> str:
+    """Last prompt line (after the cached fixed part): the panel language for the "reason" texts.
+    The data itself stays German like the category tree and units."""
+    name = "German" if (language or "").startswith("de") else "English"
+    return f'\nWrite every "reason" in {name}.\n'
+
+
+async def async_check_recipe(hass: HomeAssistant, draft: dict, language: str | None = None) -> dict:
     """{status: off} without an AI Task entity, else {status: ok} or {status: changes, ...}."""
     db = db_of(hass)
     if not entity_of(hass) or not external_on(hass, "ai_recipe_check"):
         return {"status": "off"}
-    instructions = await db.run(inventory.ai_prompt, draft)
+    instructions = await db.run(inventory.ai_prompt, draft) + _reasons_in(language)
     data = await _check(hass, "Vorrat: Rezeptimport prüfen", instructions, RECIPE_CHECK_SCHEMA)
     found = await db.run(inventory.ai_changes, draft, data)
     return {"status": "ok"} if found["ok"] else {"status": "changes", **found}
 
 
-async def async_check_product(hass: HomeAssistant, draft: dict) -> dict:
+async def async_check_product(
+    hass: HomeAssistant, draft: dict, language: str | None = None
+) -> dict:
     """Like async_check_recipe, for a new product from Open Food Facts."""
     db = db_of(hass)
     if not entity_of(hass) or not external_on(hass, "ai_product_check"):
         return {"status": "off"}
-    instructions = await db.run(inventory.ai_product_prompt, draft)
+    instructions = await db.run(inventory.ai_product_prompt, draft) + _reasons_in(language)
     data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_CHECK_SCHEMA)
     found = await db.run(inventory.ai_product_changes, draft, data)
     return {"status": "ok"} if found.pop("ok") else {"status": "changes", **found}

@@ -7,7 +7,7 @@ export const STATE = "e2e/.auth/state.json";
 // without the authorize redirect and reload that otherwise race with the first interactions.
 setup("login", async ({ page, request }) => {
   setup.setTimeout(240_000);
-  // After an HA restart: wait for the API, then for the home_inventory panel and its websocket API.
+  // After an HA restart: wait for the API, then for the Home Inventory panel and its websocket API.
   await expect
     .poll(async () => (await request.get("/api/").catch(() => undefined))?.status() ?? 0, {
       timeout: 180_000,

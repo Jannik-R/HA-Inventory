@@ -158,6 +158,7 @@ def test_migration_12_upgrade(monkeypatch):
         m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:11])
         m.setattr(db, "mark_recipe_only", lambda c: None)  # seeds before the column exists
         m.setattr(db, "add_general", lambda c: None)  # same
+        m.setattr(db, "fill_days", lambda c: None)  # same
         db.migrate(c)
     assert c.execute("PRAGMA user_version").fetchone()[0] == 11
     db.migrate(c)
@@ -190,6 +191,7 @@ def test_migration_13_keeps_used_units():
         m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:12])
         m.setattr(db, "mark_recipe_only", lambda c: None)
         m.setattr(db, "add_general", lambda c: None)
+        m.setattr(db, "fill_days", lambda c: None)
         db.migrate(c)
     zehe, tl = (
         c.execute("SELECT id FROM unit WHERE name = ?", (n,)).fetchone()[0]

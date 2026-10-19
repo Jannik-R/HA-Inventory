@@ -142,6 +142,7 @@ def test_defaults_take_opened_days(conn) -> None:
 def test_migration_20_keeps_batches_and_bookings(tmp_path, monkeypatch) -> None:
     full = db.MIGRATIONS
     monkeypatch.setattr(db, "MIGRATIONS", full[:19])
+    monkeypatch.setattr(db, "fill_days", lambda conn: None)  # no opened_days column yet
     c = db.connect(str(tmp_path / "old.db"))
     db.migrate(c)
     c.executescript(
@@ -160,7 +161,7 @@ def test_migration_20_keeps_batches_and_bookings(tmp_path, monkeypatch) -> None:
     c.commit()
     monkeypatch.setattr(db, "MIGRATIONS", full)
     db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(full) == 20
+    assert c.execute("PRAGMA user_version").fetchone()[0] == len(full)
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
     batches = [tuple(r) for r in c.execute("SELECT id, canning_id, opened_on FROM batch")]
     assert batches == [(7, 1, None), (8, None, None)]

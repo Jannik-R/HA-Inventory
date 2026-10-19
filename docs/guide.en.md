@@ -97,9 +97,9 @@ flowchart LR
 2. **Known product**: only the fields for this booking appear.
    **Unknown barcode**: Home Inventory asks Open Food Facts (for non-food its sister databases Open Beauty
    Facts, Open Pet Food Facts and Open Products Facts) and prefills name, brand, content and a matching
-   category. With an AI set up, it checks them right after ("KI prüft das neue Produkt …") and fixes
-   name, category and content; the top line then says "Von der KI geändert: … (vorher: …)" (changed
-   by the AI, before) with **Undo**. When no product type fits, the AI proposes a new
+   category. With an AI set up, it checks them right after ("The AI checks the new product …") and fixes
+   name, category and content; the top line then says "Changed by the AI: … (before: …)" with
+   **Undo**. When no product type fits, the AI proposes a new
    one ("Neue Produktart … wird beim Einbuchen angelegt", added when you book in). Check them. If nothing is found, create the product with **New product** (new
    product); **Search online** searches Open Food Facts and its sister databases by name.
 3. **Category**: every new product needs a category, ideally a product type (e.g. "Tomatenmark").
@@ -111,12 +111,12 @@ flowchart LR
 6. **Expiry date**: the date on the package. The label names the date type (best before or
    use by). If the category or product has a *Shelf life*, you may leave the field empty:
    Home Inventory then guesses today + shelf life (the hint below the field names the days). In the stock
-   such a date shows "(geschätzt)" (guessed) until you change or confirm it in the stock row. Without a
+   such a date shows "(guessed)" until you change or confirm it in the stock row. Without a
    shelf life an empty field means no date (see [Categories](#9-categories-product-types-and-inheritance)).
    To have the guessed date already in the field, turn on **Fill in the guessed expiry date**
    (see [Household size](#household-settings)).
 7. **Packages** and **Location**: the location is prefilled (grey:
-   "Geerbt: Kühlschrank (von Milchprodukte & Eier)" = inherited). Another choice applies to this booking
+   "Inherited: Kühlschrank (from Milchprodukte & Eier)"). Another choice applies to this booking
    only; **Reset** returns to the default. For a new product **Becomes default location** keeps the
    chosen location as its default.
 8. **Print labels** (if set up) and **Book in**.
@@ -140,8 +140,8 @@ set up (README, *AI*).
    40 %"), then the AI reads the items ("KI liest den Bon …"). Only the text goes to the AI, not the
    photo.
 3. Check the list. At the top is the **Store** (editable). Each row shows the receipt text and:
-   - **Product**: the recognized product. When several fit it says "Bitte wählen …" (please
-     choose) and you pick one. **Create new product** shows name and category for a
+   - **Product**: the recognized product. When several fit it says "Please choose …" and you
+     pick one. **Create new product** shows name and category for a
      new product; **Do not book in** leaves the row out.
    - **Packages**: taken from the receipt ("2 x 1,19" = 2).
    - **Expiry date**: enter the date from the package. You may leave it empty: then
@@ -222,8 +222,7 @@ temporarily sets one value for all, e.g. 14 days for meal planning; nothing is s
 Below, **Recipes for what expires** suggests recipes that use up expiring or
 expired food (same threshold as the list, including the temporary one). Recipes using the most expiring
 ingredients come first, then the one with more ingredients in stock. Tap one to open the recipe. In the
-**Recipes** tab such a recipe is marked "Ablaufendes: n"; *Only with expiring items* (only with expiring
-items) filters on it.
+**Recipes** tab such a recipe is marked "Expiring: n"; *Only with expiring items* filters on it.
 
 > [!TIP]
 > For automations there are the sensors *Expired* and *Expiring soon* (expiring
@@ -338,7 +337,7 @@ Units marked *Recipes only* (e.g. EL, TL, Tasse, Prise) are offered only here. I
 
 A unit created by a recipe import starts as recipe-only.
 
-**Import**: paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor). Home Inventory
+**Import**: paste the address of a recipe (e.g. Chefkoch, Mealie, Tandoor; links into the local network, such as a Mealie on your NAS, admins only). Home Inventory
 reads the page's recipe data and opens the recipe dialog prefilled, with the page's steps (a single
 text block is split at its line breaks or its own numbering); nothing is saved until you
 save. Each ingredient shows its original line; check the suggested product types. An unknown unit
@@ -353,19 +352,19 @@ import dialog you pick the source.
 - **Text**: paste a recipe text, e.g. from a message; the AI sorts it into ingredients and steps.
 - **Photo**: a photo of a cookbook page or a screenshot; **Take photo** opens the camera.
 
-**Import** shows "Rezept wird gelesen …" (reading); with the AI it takes up to a minute. Then
+**Import** shows "Reading recipe …"; with the AI it takes up to a minute. Then
 the recipe dialog opens as for any import (with the AI check). When the AI finds no recipe or fails,
 the import dialog stays open with your input. Instagram often refuses videos without login; then the
 AI only reads the caption and the image. When the recipe is only in the video, use the TikTok or
 YouTube link if the post is there too.
 
 **AI check** (if set up, see below): right after the dialog opens the AI checks the import. The top
-line says "KI prüft das Rezept …" (checking); saving waits, **Don't wait** skips
-the check. Afterwards it says "keine Änderungen" (no changes) or what the AI changed: ingredients
-with a better category or unit are marked ("Von der KI geändert: … (vorher: …)", with
-**Undo** / undo); a new unit the AI proposes is added with **Create**. A long text block is split into steps (**Reset steps** restores it). When the
+line says "The AI checks the recipe …"; saving waits, **Don't wait** skips
+the check. Afterwards it says "AI check: no changes." or what the AI changed: ingredients
+with a better category or unit are marked ("Changed by the AI: … (before: …)", with
+**Undo**); a new unit the AI proposes is added with **Create**. A long text block is split into steps (**Reset steps** restores it). When the
 category tree has no fitting product type (e.g. a rare spice), the AI proposes a new one below the
-right category ("KI schlägt neue Produktart … vor"); it is only added when you save, **Undo**
+right category ("The AI proposes the new product type …"); it is only added when you save, **Undo**
 drops the proposal. Check the
 changes before saving. If the AI fails, the draft stays as imported.
 
@@ -544,7 +543,7 @@ one applies again. Minimum stock is not inherited.
 **Expiry date and shelf life**: bought goods carry their date on the package, and that date counts.
 Without a printed date, or when you do not want to type it, the *Shelf life* (shelf life in days, the
 usual shelf life from purchase, seeded for the food categories) counts: an empty date at book-in becomes
-today + shelf life ("geschätzt", guessed), a canning protocol proposes made-on date + shelf life. Without
+today + shelf life ("guessed"), a canning protocol proposes made-on date + shelf life. Without
 a shelf life nothing is guessed. The date stays editable everywhere.
 
 **Keeps after opening**: days an opened package still keeps (see 3a),

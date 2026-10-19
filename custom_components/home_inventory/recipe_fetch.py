@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import ipaddress
+from urllib.parse import urlsplit
+
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -29,3 +32,19 @@ async def async_fetch(hass: HomeAssistant, url: str) -> str:
             return body.decode(resp.charset or "utf-8", errors="replace")
     except (aiohttp.ClientError, TimeoutError, LookupError) as err:
         raise InventoryError("recipe_unreachable") from err
+
+
+async def async_private(hass: HomeAssistant, url: str) -> bool:
+    """The link points into the local network: a private, loopback or link-local address, also
+    by name (e.g. nas.lan). Such links are for admins only (the AI would read the page back).
+    shortcut: redirects and DNS answers that change after this check are not covered."""
+    host = (urlsplit(url).hostname or "").split("%")[0]
+    try:
+        addresses = [ipaddress.ip_address(host)]
+    except ValueError:
+        try:
+            infos = await hass.loop.getaddrinfo(host, None)
+        except OSError:
+            return False  # not resolvable: the fetch fails anyway
+        addresses = [ipaddress.ip_address(i[4][0].split("%")[0]) for i in infos]
+    return any(not a.is_global for a in addresses)

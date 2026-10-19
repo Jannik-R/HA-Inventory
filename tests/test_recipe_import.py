@@ -1,7 +1,7 @@
 """Recipe import: ingredient line parser, unit dedupe, JSON-LD extraction, fetch via websocket."""
 
 import json
-from unittest.mock import patch
+from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
@@ -268,3 +268,30 @@ async def test_ws_import(ws, aioclient_mock):  # noqa: F811
     first = (await ws.call({"type": "home_inventory/unit_add", "name": "Tasse"}))["result"]["id"]
     again = (await ws.call({"type": "home_inventory/unit_add", "name": "Tassen"}))["result"]["id"]
     assert first == again
+
+
+async def test_private_links_admin_only(hass, ws, aioclient_mock, hass_admin_user):  # noqa: F811
+    """Links into the local network: admins only (the page, or the AI's reading of it, comes back)."""
+    html = {"Content-Type": "text/html; charset=utf-8"}
+    aioclient_mock.get("http://192.168.1.10/r", text=page(json.dumps(RECIPE)), headers=html)
+    aioclient_mock.get("https://x.test/ok", text=page(json.dumps(RECIPE)), headers=html)
+    msg = {"type": "home_inventory/recipe_import", "url": "http://192.168.1.10/r"}
+    assert (await ws.call(msg))["success"]  # admin
+    lan = [(2, 1, 6, "", ("10.0.0.5", 0))]
+    with (
+        patch.object(
+            type(hass_admin_user), "is_admin", new_callable=PropertyMock, return_value=False
+        ),
+        patch.object(hass.loop, "getaddrinfo", AsyncMock(return_value=lan)),
+    ):
+        assert (await ws.call(msg))["error"]["translation_key"] == "url_private"
+        nas = {**msg, "url": "http://nas.lan/r"}  # by name, resolved into the LAN
+        assert (await ws.call(nas))["error"]["translation_key"] == "url_private"
+    with patch.object(
+        type(hass_admin_user), "is_admin", new_callable=PropertyMock, return_value=False
+    ):
+        for url in ("http://127.0.0.1/r", "http://[::1]/r", "http://169.254.1.1/r"):
+            assert await recipe_fetch.async_private(hass, url)
+        assert not await recipe_fetch.async_private(hass, "http://93.184.215.14/r")
+        with patch.object(hass.loop, "getaddrinfo", AsyncMock(side_effect=OSError)):
+            assert (await ws.call({**msg, "url": "https://x.test/ok"}))["success"]  # no DNS answer

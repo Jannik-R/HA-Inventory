@@ -119,8 +119,8 @@ Kontingent hat, oder *Anthropic*), dann unter *Konfigurieren > KI (Rezeptimport,
 KI-Aufgabe* wählen; leer = keine KI.
 
 **Rezeptimport.** Eine Seite mit schema.org-Rezeptdaten braucht keine KI: Home Assistant lädt die
-Seite nur beim Klick auf *Importieren* (15 s Zeitlimit, HTML bis 5 MB, http oder https, auch Adressen
-im Heimnetz). Mit eingerichteter KI:
+Seite nur beim Klick auf *Importieren* (15 s Zeitlimit, HTML bis 5 MB, http oder https; Links ins Heimnetz,
+z. B. ein Mealie auf dem NAS, nur für Admins, weil die Seite bzw. ihre Auswertung durch die KI zurückkommt). Mit eingerichteter KI:
 
 - Jeder Import wird einmal geprüft: Das Rezept, der Baum der Lebensmittel-Kategorien und die Einheiten
   gehen an die KI (etwa 10.000 Tokens; der feste Teil steht vorn, damit Anbieter mit Prompt-Cache ihn

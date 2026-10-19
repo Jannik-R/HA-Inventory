@@ -116,8 +116,8 @@ Gemini* with an API key from Google AI Studio, which has a free tier, or *Anthro
 under *Configure > AI (recipe import, assistants) > AI Task entity*; empty = no AI.
 
 **Recipe import.** Importing a page with schema.org recipe data needs no AI: Home Assistant loads the
-page only when you click *Import* (15 s timeout, HTML up to 5 MB, http or https, LAN addresses
-too). With an AI set up:
+page only when you click *Import* (15 s timeout, HTML up to 5 MB, http or https; links into the local
+network, e.g. a Mealie on your NAS, only for admins, as the page or the AI's reading of it comes back). With an AI set up:
 
 - Every import is checked once: the recipe, the food category tree and the units go to the AI (about
   10,000 tokens; the fixed part comes first, so providers that cache prompts bill it less often). It

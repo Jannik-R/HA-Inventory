@@ -201,6 +201,31 @@ def test_product_changes(conn):
     assert inv.ai_product_changes(conn, d, "nonsense") == {"ok": True}
 
 
+def test_product_changes_propose_new_product_types(conn):
+    d = product(conn)
+    batteries = cat(conn, "Batterien")
+
+    def new(name, parent):
+        answer = {"ok": False, "new_type": {"name": name, "parent_id": parent}, "reason": "r"}
+        return inv.ai_product_changes(conn, d, answer)
+
+    # non-food parents too: products can be anything
+    assert new(" Knopfzelle Test ", batteries) == {
+        "ok": False,
+        "category_id": None,
+        "new_type": {"name": "Knopfzelle Test", "parent_id": batteries},
+        "reason": "r",
+    }
+    # a category the tree has already is linked instead
+    assert new("spaghetti", cat(conn, "Nudeln")) == {
+        "ok": False,
+        "category_id": cat(conn, "Spaghetti"),
+        "reason": "r",
+    }
+    for name, parent in [("X", 999999), (" ", batteries), ("x" * 61, batteries), ("X", "1")]:
+        assert new(name, parent) == {"ok": True}
+
+
 def test_save_adds_the_proposed_product_type(conn):
     spices = cat(conn, "Gewürze")
     ing = {"category_id": None, "new_type": {"name": "Testgewürz", "parent_id": spices}}

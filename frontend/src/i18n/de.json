@@ -378,6 +378,7 @@
   "book.ai.ok": "KI-Prüfung: keine Änderungen.",
   "book.ai.changed": "Von der KI geändert: {reason} (vorher: {before})",
   "book.ai.undo": "Rückgängig",
+  "book.ai.new_type": "Neue Produktart „{name}“ unter „{parent}“, wird beim Einbuchen angelegt.",
   "recipes.ai.running": "KI prüft das Rezept …",
   "recipes.ai.skip": "Nicht abwarten",
   "recipes.ai.ok": "KI-Prüfung: keine Änderungen.",

@@ -132,6 +132,8 @@ export interface Product {
   packages?: number;
   image_url?: string | null;
   off_json?: string | null;
+  /** Proposed by the AI check (book-in form only, category_id stays null): added before booking. */
+  new_type?: NewType;
 }
 export interface SearchHit {
   id?: number;
@@ -353,7 +355,7 @@ export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>
 /** AI check of a new product from Open Food Facts: only the fields that change. */
 export type ProductAiCheck =
   | { status: "off" | "ok" }
-  | ({ status: "changes"; reason: string } & Partial<
+  | ({ status: "changes"; reason: string; new_type?: NewType } & Partial<
       Pick<Product, "name" | "category_id" | "content_amount" | "content_unit_id">
     >);
 export const checkProduct = (hass: Hass, draft: Record<string, unknown>) =>

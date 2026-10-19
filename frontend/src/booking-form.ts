@@ -25,7 +25,7 @@ import {
   type Errors,
 } from "./product-fields";
 import { AUTO, maxPackages, pickedRow, pickStyles, renderPick } from "./booking-pick";
-import { productAiBanner, runProductAi, type ProductAi } from "./product-ai";
+import { productAiBanner, runProductAi, withNewType, type ProductAi } from "./product-ai";
 
 /** `booked` event: the done message, and for a book-out what it took (for undo). */
 export interface Booked {
@@ -43,6 +43,8 @@ const blankForm = () => ({
   print: null as boolean | null,
 });
 type Inherit = "default_location_id" | "expiry_type" | "shelf_days";
+/** The category whose defaults apply: the chosen one, or the parent of a proposed product type. */
+const catOf = (p?: Product) => p?.category_id ?? p?.new_type?.parent_id ?? null;
 // shortcut: last used location lives until the page reloads; persist it if users ask for it.
 let lastLocation: number | null = null;
 
@@ -138,7 +140,7 @@ export class PantryBookingForm extends LitElement {
   private dflt(field: Inherit): Dflt | undefined {
     const own = this.draft?.[field];
     if (own != null) return { value: own, source: t("book.from_product") };
-    const d = categoryDefault(this.md, this.draft?.category_id, field);
+    const d = categoryDefault(this.md, catOf(this.draft), field);
     if (d) return d;
     if (field === "default_location_id" && lastLocation != null)
       return { value: lastLocation, source: t("book.last_used") };
@@ -152,17 +154,23 @@ export class PantryBookingForm extends LitElement {
   }
 
   // a new product's category brings its shelf life, unless the date was typed
-  private setProduct = (field: keyof Product, value: unknown) => this.setFields({ [field]: value });
+  private setProduct = (field: keyof Product, value: unknown) =>
+    this.setFields({ [field]: value, ...(field === "category_id" ? { new_type: undefined } : {}) });
 
   private async submit(e: Event) {
     e.preventDefault();
-    const p = this.draft!;
+    let p = this.draft!;
     const hass = this.hass!;
     const { packages } = this.f;
     let where = "";
     let printed = 0;
     let taken: Taken[] | undefined;
     if (Object.keys(this.errors(p)).length) return;
+    if (!p.id && p.new_type && p.category_id == null) {
+      const typed = await this.run(() => withNewType(hass, p, this));
+      if (!typed) return;
+      p = this.draft = typed;
+    }
     if (this.mode === "in") {
       const location_id =
         this.f.location_id ??
@@ -173,7 +181,7 @@ export class PantryBookingForm extends LitElement {
       if (
         product &&
         this.f.makeDefault &&
-        location_id !== categoryDefault(this.md, p.category_id, "default_location_id")?.value
+        location_id !== categoryDefault(this.md, catOf(p), "default_location_id")?.value
       )
         product.default_location_id = location_id;
       const res = await this.run(() =>

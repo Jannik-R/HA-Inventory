@@ -219,3 +219,37 @@ test("a new product from Open Food Facts is checked by the AI", async ({ page, w
   await expect(page.getByTestId("content-amount")).toHaveValue("");
   await expect(status).toHaveCount(0);
 });
+
+test("the AI proposes a product type for a new product", async ({ page, wsStub }) => {
+  const api = await apiPage(page.context().browser()!);
+  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  await api.close();
+  const batteries = md.categories.find((c) => c.name === "Batterien")!.id;
+  wsStub("pantry/lookup", {
+    product: {
+      ean: "4000000000024",
+      name: `E2E Knopfzelle ${Date.now()}`,
+      brand: null,
+      category_id: null,
+      content_amount: null,
+      content_unit_id: null,
+      image_url: null,
+      off_json: "{}",
+    },
+  });
+  wsStub("pantry/product_ai_check", {
+    status: "changes",
+    category_id: null,
+    new_type: { name: "E2E Knopfzellen", parent_id: batteries },
+    reason: "neue Sorte",
+  });
+  await openPage(page, "/pantry/in", "Bestand");
+  await page.getByTestId("code-input").fill("4000000000024");
+  await page.getByTestId("code-input").press("Enter");
+
+  await expect(page.getByTestId("product-ai-new-type")).toContainText(
+    "„E2E Knopfzellen“ unter „Batterien“",
+  );
+  await page.getByTestId("product-ai-undo").click();
+  await expect(page.getByTestId("product-ai-new-type")).toHaveCount(0);
+});

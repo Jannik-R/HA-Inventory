@@ -144,6 +144,8 @@ Einen Beitrag auszulesen dauert 15 bis 60 Sekunden und kostet einen KI-Aufruf, d
 Vorrat), wird ebenfalls einmal geprüft: Name, Marke, Mengenangabe und Kategorien von Open Food Facts,
 der ganze Kategoriebaum (Lebensmittel und Non-Food) und die Einheiten gehen an die KI. Sie korrigiert
 den Namen (ohne Marke und Größe), die Kategorie und den Packungsinhalt (z. B. „4 x 125 g“ = 500 g).
+Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor; die wird beim
+Einbuchen angelegt.
 Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
 
 **Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in

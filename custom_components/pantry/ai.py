@@ -44,6 +44,10 @@ PRODUCT_ANSWER = probatio.Schema(
         probatio.Required("ok"): bool,
         probatio.Optional("name"): str,
         probatio.Optional("category_id"): int,
+        probatio.Optional("new_type"): {
+            probatio.Required("name"): str,
+            probatio.Required("parent_id"): int,
+        },
         probatio.Optional("content_amount"): float,
         probatio.Optional("content_unit_id"): int,
         probatio.Optional("reason"): str,

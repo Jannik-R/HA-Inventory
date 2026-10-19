@@ -94,7 +94,8 @@ flowchart LR
    **Unbekannter Barcode**: Vorrat fragt Open Food Facts und füllt Name, Marke, Inhalt und eine
    passende Kategorie vor. Ist eine KI eingerichtet, prüft sie diese Angaben gleich danach („KI prüft
    das neue Produkt …“) und korrigiert Name, Kategorie und Inhalt; oben steht dann „Von der KI
-   geändert: … (vorher: …)“ mit **Rückgängig**. Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
+   geändert: … (vorher: …)“ mit **Rückgängig**. Fehlt eine passende Produktart, schlägt die KI eine
+   neue vor („Neue Produktart … wird beim Einbuchen angelegt“). Prüfe die Angaben. Findet sich nichts, legst du das Produkt mit
    **Neues Produkt** selbst an; über **Online suchen** suchst du bei Open Food Facts nach Namen.
 3. **Kategorie**: Jedes neue Produkt braucht eine Kategorie, am besten eine Produktart
    (z. B. „Tomatenmark“). Tippe in das Filterfeld der Kategorieauswahl. Fehlt die passende,

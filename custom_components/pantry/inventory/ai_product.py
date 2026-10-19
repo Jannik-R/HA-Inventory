@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from .ai_check import category_tree, unit_list
+from .ai_check import MAX_TYPE_NAME, category_tree, unit_list
 
 MAX_NAME = 200
 MAX_AMOUNT = 1_000_000
@@ -18,7 +18,10 @@ Check:
 - "name": the short German product name as on the package, without brand and package size
   (e.g. "Spaghetti n.5", not "Barilla Spaghetti n.5 500g"). Keep a name that is fine.
 - "category_id": the most specific category from the tree that fits (food or non-food; a
-  product type on the lowest level when one fits).
+  product type on the lowest level when one fits). When no product type fits but the product is a
+  distinct kind people keep (e.g. "Sumach" with no such type below "Gewürze"), propose one:
+  "new_type" {"name": <singular German name>, "parent_id": <the most specific category it
+  belongs below>} instead of "category_id". Never one the tree already has.
 - "content_amount" with "content_unit_id": the content of one package in a unit from the unit
   list (e.g. "4 x 125 g" = 500 g; canned or jarred food: the drained weight when stated).
 
@@ -62,19 +65,42 @@ def prompt(conn: sqlite3.Connection, draft: dict) -> str:
     return f"{_TASK}{tree}\n\nUnits (id symbol (name)):\n{units}\n\nProduct draft:\n{body}\n"
 
 
+def _named(conn: sqlite3.Connection, name: str) -> int | None:
+    """A category with this name (any level, case ignored), else None."""
+    rows = conn.execute("SELECT id, name FROM category WHERE name LIKE ?", (name,))
+    return next((r["id"] for r in rows if r["name"].casefold() == name.casefold()), None)
+
+
+def _new_type(conn: sqlite3.Connection, new: object) -> dict | None:
+    """A proposed product type {name, parent_id} below an existing category, else None."""
+    if not isinstance(new, dict):
+        return None
+    name, parent = str(new.get("name") or "").strip(), new.get("parent_id")
+    known = conn.execute("SELECT 1 FROM category WHERE id = ?", (parent,)).fetchone()
+    if not name or len(name) > MAX_TYPE_NAME or type(parent) is not int or not known:
+        return None
+    return {"name": name, "parent_id": parent}
+
+
 def changes(conn: sqlite3.Connection, draft: dict, answer: object) -> dict:
-    """The AI answer, checked: {ok: true} or {ok: false, name?, category_id?, content_amount?,
-    content_unit_id?, reason}; a field is there only when it changes to a valid value."""
+    """The AI answer, checked: {ok: true} or {ok: false, name?, category_id?, new_type?,
+    content_amount?, content_unit_id?, reason}; a field is there only when it changes to a valid
+    value. new_type {name, parent_id} (category_id None) is a product type the panel adds on book
+    in."""
     if not isinstance(answer, dict):
         return {"ok": True}
     out: dict = {}
     name = str(answer.get("name") or "").strip()
     if name and len(name) <= MAX_NAME and name != (draft.get("name") or "").strip():
         out["name"] = name
-    cid = answer.get("category_id")
+    cid, new = answer.get("category_id"), _new_type(conn, answer.get("new_type"))
+    if new and not (cid := _named(conn, new["name"])):
+        out |= {"category_id": None, "new_type": new}
     known = conn.execute("SELECT 1 FROM category WHERE id = ?", (cid,)).fetchone()
-    if type(cid) is int and known and cid != draft.get("category_id"):
+    if not new and type(cid) is int and known and cid != draft.get("category_id"):
         out["category_id"] = cid
+    elif new and cid and cid != draft.get("category_id"):
+        out["category_id"] = cid  # the tree has it after all
     amount = answer.get("content_amount", draft.get("content_amount"))
     unit = answer.get("content_unit_id", draft.get("content_unit_id"))
     valid = type(amount) in (int, float) and 0 < amount <= MAX_AMOUNT

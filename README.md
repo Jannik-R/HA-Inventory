@@ -138,7 +138,8 @@ Reading a post takes 15 to 60 seconds and costs one AI call, plus the check.
 **New products.** A product that booking in finds on Open Food Facts (not yet in Vorrat) is checked
 once as well: its name, brand, the Open Food Facts quantity and categories, the whole category tree
 (food and non-food) and the units go to the AI. It fixes the name (without brand and size), the
-category and the package content (e.g. "4 x 125 g" = 500 g). The book-in form stays usable meanwhile;
+category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
+new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
 fields you edited are kept.
 
 **Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an

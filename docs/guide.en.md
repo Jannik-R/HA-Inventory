@@ -97,7 +97,8 @@ flowchart LR
    **Unknown barcode**: Home Inventory asks Open Food Facts and prefills name, brand, content and a matching
    category. With an AI set up, it checks them right after ("KI prüft das neue Produkt …") and fixes
    name, category and content; the top line then says "Von der KI geändert: … (vorher: …)" (changed
-   by the AI, before) with **Rückgängig** (undo). Check them. If nothing is found, create the product with **Neues Produkt** (new
+   by the AI, before) with **Rückgängig** (undo). When no product type fits, the AI proposes a new
+   one ("Neue Produktart … wird beim Einbuchen angelegt", added when you book in). Check them. If nothing is found, create the product with **Neues Produkt** (new
    product); **Online suchen** searches Open Food Facts by name.
 3. **Kategorie**: every new product needs a category, ideally a product type (e.g. "Tomatenmark").
    Type into the filter of the category picker. If it is missing, choose **„…“ neu anlegen**

@@ -40,7 +40,7 @@ export const newProductData = (p: Product): Record<string, unknown> =>
 export function productErrors(p: Product): Errors {
   const e: Errors = {};
   if (!p.name.trim()) e.name = t("valid.required");
-  if (p.category_id == null) e.category = t("book.category_required");
+  if (p.category_id == null && !p.new_type) e.category = t("book.category_required");
   if (p.content_amount != null && !(p.content_amount > 0)) e.content = t("valid.positive");
   else if ((p.content_amount == null) !== (p.content_unit_id == null))
     e.content = t("valid.content_pair");

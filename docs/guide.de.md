@@ -24,6 +24,7 @@ Anleitung. Oben gibt es diese Tabs:
 
 1. [Erste Schritte](#1-erste-schritte)
 2. [Einkäufe einbuchen](#2-einkäufe-einbuchen)
+2a. [Kassenbon importieren](#2a-kassenbon-importieren)
 3. [Verbrauchen und auslagern](#3-verbrauchen-und-auslagern)
 3a. [Packung anbrechen](#3a-packung-anbrechen)
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
@@ -120,6 +121,28 @@ flowchart LR
 > [!NOTE]
 > Dasselbe Produkt mit demselben Datum landet in derselben Charge. Ein anderes Datum ergibt eine neue
 > Charge, so siehst du später, welche Packung zuerst weg muss.
+
+## 2a. Kassenbon importieren
+
+Statt jedes Produkt einzeln zu scannen, buchst du einen ganzen Einkauf vom Kassenbon ein. Das geht
+nur, wenn eine KI eingerichtet ist (README, *KI*).
+
+1. Wähle beim Einbuchen (**+** vor dem Eingabefeld) **Kassenbon importieren**.
+2. **Foto des Kassenbons**: Fotografiere den Bon gerade und hell oder wähle ein Bild. Tippe auf
+   **Bon lesen**. Der Text wird auf deinem Gerät erkannt („Text wird erkannt … 40 %“), danach liest
+   die KI die Artikel („KI liest den Bon …“). An die KI geht nur der Text, nicht das Foto.
+3. Prüfe die Liste. Oben steht der **Händler** (änderbar). Jede Zeile zeigt den Bontext und darunter:
+   - **Produkt**: das erkannte Produkt. Kommen mehrere in Frage, steht dort „Bitte wählen …“ und du
+     wählst eines aus. **Neues Produkt anlegen** zeigt Name und Kategorie für ein neues Produkt;
+     **Nicht einbuchen** lässt die Zeile weg.
+   - **Packungen**: vom Bon übernommen („2 x 1,19“ = 2).
+   - **Ablaufdatum**: trage das MHD von der Packung ein. Leer lassen geht auch: dann schätzt Vorrat
+     heute + Haltbarkeit der Kategorie (siehe [Einbuchen](#2-einkäufe-einbuchen), Schritt 6).
+4. Tippe auf **… einbuchen**. Alle Zeilen landen am Standardlagerort ihres Produkts; oben steht
+   „… Pkg. vom Kassenbon eingebucht.“
+
+Vorrat merkt sich je Händler, welches Produkt du für eine Bonzeile gewählt hast. Beim nächsten Bon
+desselben Händlers ist es schon ausgewählt.
 
 ## 3. Verbrauchen und auslagern
 

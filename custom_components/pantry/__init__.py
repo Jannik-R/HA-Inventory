@@ -18,6 +18,7 @@ from . import (
     websocket_label,
     websocket_open,
     websocket_plan,
+    websocket_purchase,
     websocket_recipe,
     websocket_stock,
 )
@@ -42,6 +43,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_plan.async_register(hass)
     websocket_canning.async_register(hass)
     websocket_open.async_register(hass)
+    websocket_purchase.async_register(hass)
     services.async_register(hass)
     return True
 

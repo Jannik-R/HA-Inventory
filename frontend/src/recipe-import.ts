@@ -4,24 +4,12 @@ import { URL_RE, editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, importRecipe, type Hass, type ImportSource } from "./api";
 import { hasAi } from "./modules";
+import { scaledPhoto } from "./photo";
 
 /** Where the recipe comes from; text and photo only with an AI set up (they always need it). */
 type Source = "url" | "text" | "photo";
 const SOURCES: Source[] = ["url", "text", "photo"];
 const MAX_TEXT = 20000; // backend: inventory.MAX_PASTE
-const MAX_PX = 2000; // longest side of a photo sent to the AI
-
-/** A photo as JPEG data URL, scaled down (phone photos are 3–10 MB; the websocket takes 4 MB). */
-const scaledPhoto = async (file: File) => {
-  const bmp = await createImageBitmap(file);
-  const f = Math.min(1, MAX_PX / Math.max(bmp.width, bmp.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bmp.width * f);
-  canvas.height = Math.round(bmp.height * f);
-  canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-  bmp.close();
-  return canvas.toDataURL("image/jpeg", 0.85);
-};
 
 /** Ask for a recipe URL, text or photo. `open()`; fires `pantry-imported` (detail: RecipeDraft) on success. */
 export class PantryRecipeImport extends LitElement {

@@ -508,6 +508,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 33 | CSV import / export | open | stock and master data as CSV; import from Grocy as a migration aid |
 | 34 | Product images | open | small product image from OFF (URL only, no download) in stock and booking |
 | 35 | Booking history | open | history view of `booking` (already stores `user_id`): who booked what and when, filter by product / user |
+| 36 | Receipt import | done | *Kassenbon importieren* in booking in (only with an AI): photo -> OCR in the browser (tesseract.js, lazy chunk, engine + `deu` data from jsDelivr, cached) -> `pantry/receipt_read` sends the text + the product list (id, name, brand) to `ai_task` (`ai.RECEIPT_SCHEMA`; prompt and answer check in `inventory/purchase.py`) -> review dialog (`receipt-import.ts`: per line product from up to 5 candidates / new product with category / skip, packages, date; empty date = guessed from the shelf life) -> `pantry/receipt_book` books all in one transaction (source `receipt`) and learns line -> product per store (migration 23, `receipt_line`, key = lower case + single spaces; same store first, then any). Text instead of image to save tokens. No service (always needs a human check). No prices |
 
 Order decided 2026-10-16. Data model details are designed (agent `architect`) at the start of each phase.
 

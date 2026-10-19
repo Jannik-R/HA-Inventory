@@ -14,6 +14,7 @@ minimum stock levels.
 Available:
 
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts, for non-food from Open Beauty Facts, Open Pet Food Facts and Open Products Facts
+- Receipt import (*Kassenbon importieren*, needs an AI): photo of a shopping receipt, text recognition in the browser, the AI reads the items, you check product, packages and date per line in one dialog and book all in; remembers per store which product a receipt line is
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
@@ -27,7 +28,7 @@ Available:
 - Shopping list from the meal plan: the recipes planned in a date range (button *Einkaufsliste* in the meal plan, action `pantry.plan_to_shopping_list`) go on the list minus stock; no consumption forecast yet
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
 - Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
-- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, `pantry.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Geschätztes Ablaufdatum vorausfüllen* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
+- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `pantry.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Geschätztes Ablaufdatum vorausfüllen* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
 - Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `pantry.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; seeded for the food categories, e.g. milk 3; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
@@ -141,6 +142,13 @@ once as well: its name, brand, the Open Food Facts quantity and categories, the 
 category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
 new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
 fields you edited are kept.
+
+**Receipt import.** *Kassenbon importieren* (booking in, only with an AI) recognizes the text of a
+receipt photo in the browser (tesseract.js; engine and German data, a few MB, come once from the
+jsDelivr CDN and stay in the browser cache). Only that text goes to the AI, together with the list of
+your products (id, name, brand), not the photo: a few thousand tokens. The AI returns the store and
+the items with up to five matching products each; deposit, bags and discounts are left out. A receipt
+line booked once is remembered per store and preselected next time without asking the AI to decide.
 
 **Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an
 Assist agent (e.g. *Google Gemini > Configure > Control Home Assistant*) or in the *Model Context

@@ -1,7 +1,11 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { formStyles } from "./styles";
-import { backdropClick, escGuard } from "./ui";
+import { mdiReceiptTextOutline } from "@mdi/js";
+import { backdropClick, escGuard, icon } from "./ui";
+import { hasAi } from "./modules";
+import "./receipt-import";
+import type { PantryReceiptImport } from "./receipt-import";
 import {
   errorMessage,
   getMasterData,
@@ -237,6 +241,23 @@ export class PantryBooking extends LitElement {
         ${modeSwitch(this.mode, (m) => this.setMode(m))}
       </pantry-booking-scan>
       ${afterLine(this)} ${open ? nothing : error}
+      ${
+        this.mode === "in" && hasAi()
+          ? html`<button
+              type="button"
+              class="receipt"
+              data-testid="receipt-import"
+              @click=${() => this.renderRoot.querySelector<PantryReceiptImport>("pantry-receipt-import")!.open()}
+            >
+              ${icon(mdiReceiptTextOutline)} ${t("receipt.open")}
+            </button>`
+          : nothing
+      }
+      <pantry-receipt-import
+        .hass=${this.hass}
+        .md=${this.md}
+        @booked=${this.receiptBooked}
+      ></pantry-receipt-import>
       <dialog
         data-testid="booking-dialog"
         @close=${this.closed}
@@ -279,6 +300,13 @@ export class PantryBooking extends LitElement {
     ></pantry-booking-form>`;
   }
 
+  private receiptBooked = (e: CustomEvent<number>) => {
+    this.reset();
+    this.message = t("receipt.done", { count: String(e.detail) });
+    this.undo = undefined;
+    this.dispatchEvent(new CustomEvent("booked"));
+  };
+
   private booked(e: CustomEvent<Booked>) {
     const error = this.error; // a failed label print stays visible
     this.reset();
@@ -296,6 +324,12 @@ export class PantryBooking extends LitElement {
     css`
       .after {
         margin-top: 12px;
+      }
+      .receipt {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 8px;
       }
     `,
   ];

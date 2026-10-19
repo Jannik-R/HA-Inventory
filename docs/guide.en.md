@@ -28,6 +28,7 @@ opens this guide. These are the tabs:
 
 1. [Getting started](#1-getting-started)
 2. [Booking in your shopping](#2-booking-in-your-shopping)
+2a. [Importing a receipt](#2a-importing-a-receipt)
 3. [Using up and booking out](#3-using-up-and-booking-out)
 3a. [Opening a package](#3a-opening-a-package)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
@@ -123,6 +124,29 @@ flowchart LR
 > [!NOTE]
 > The same product with the same date goes into the same batch. A different date makes a new batch,
 > so later you see which package has to go first.
+
+## 2a. Importing a receipt
+
+Instead of scanning every product, book in a whole shopping trip from its receipt. This needs an AI
+set up (README, *AI*).
+
+1. In booking in (**+** in front of the input field) choose **Kassenbon importieren** (import receipt).
+2. **Foto des Kassenbons** (receipt photo): take a straight, well-lit photo of the receipt or pick an
+   image. Tap **Bon lesen** (read receipt). The text is recognized on your device ("Text wird erkannt …
+   40 %"), then the AI reads the items ("KI liest den Bon …"). Only the text goes to the AI, not the
+   photo.
+3. Check the list. At the top is the **Händler** (store, editable). Each row shows the receipt text and:
+   - **Produkt** (product): the recognized product. When several fit it says "Bitte wählen …" (please
+     choose) and you pick one. **Neues Produkt anlegen** (new product) shows name and category for a
+     new product; **Nicht einbuchen** (do not book) leaves the row out.
+   - **Packungen** (packages): taken from the receipt ("2 x 1,19" = 2).
+   - **Ablaufdatum** (expiry date): enter the date from the package. You may leave it empty: then
+     Home Inventory guesses today + the category's shelf life (see [Booking in](#2-booking-in-your-shopping), step 6).
+4. Tap **… einbuchen** (book in). All rows go to their product's default location; the top line says
+   "… Pkg. vom Kassenbon eingebucht."
+
+Home Inventory remembers per store which product you chose for a receipt line. On the next receipt of
+the same store it is already selected.
 
 ## 3. Using up and booking out
 

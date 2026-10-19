@@ -35,6 +35,7 @@ _HIDDEN = {
     "category_off_tag",
     "learned_category",
     "off_tag",
+    "receipt_line",
     "recipe_step",
     "shopping_done",
     "shopping_done_product",

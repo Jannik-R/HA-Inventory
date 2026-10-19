@@ -15,6 +15,12 @@ Client: `custom_components/pantry/off.py` (HTTP + parsing). Category logic: `inv
 | Name search | `GET /cgi/search.pl?search_terms=..&json=1&page_size=20&fields=..` | `products` list. `/api/v2/search` has no full-text search |
 | Taxonomy check | `GET /api/v2/taxonomy?tagtype=categories&tags=en:a,en:b&fields=name,parents&lc=de` | unknown tag returns `{}` (empty object), not an error |
 
+Sister databases with the same API and fields (`off.SITES`): Open Beauty Facts, Open Pet Food Facts,
+Open Products Facts. A non-food EAN on OFF answers HTTP 404 with `status_verbose` "product found with a
+different product type: beauty|petfood|product"; `async_lookup` then asks that one database. The name
+search asks all four at once (one rate-limit slot; food first, duplicates dropped, a failing sister is
+left out). Their search sometimes answers 500.
+
 ## Rules
 
 - Always send `User-Agent: HA-Pantry/<ver> (<repo url>)` (`off.HEADERS`). Read-only, no auth.

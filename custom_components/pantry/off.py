@@ -1,4 +1,6 @@
-"""Open Food Facts client: fetch by EAN or name and normalize the fields we use."""
+"""Open Food Facts client: fetch by EAN or name and normalize the fields we use.
+
+Non-food lives in sister databases with the same API (beauty, pet food, other products)."""
 
 from __future__ import annotations
 
@@ -6,6 +8,7 @@ import asyncio
 import json
 import re
 import time
+from asyncio import gather
 
 import aiohttp
 from homeassistant.core import HomeAssistant
@@ -16,6 +19,14 @@ from .db import Database
 from .inventory import InventoryError
 
 BASE = "https://world.openfoodfacts.org"
+# OFF's product_type -> database; for a non-food EAN OFF answers "found with a different product type: x".
+SITES = {
+    "food": BASE,
+    "beauty": "https://world.openbeautyfacts.org",
+    "petfood": "https://world.openpetfoodfacts.org",
+    "product": "https://world.openproductsfacts.org",
+}
+_OTHER_TYPE = re.compile(r"different product type: (\w+)")
 FIELDS = (
     "code,product_name,product_name_{lang},generic_name_{lang},brands,categories_tags,"
     "product_quantity,product_quantity_unit,quantity,image_front_small_url"
@@ -111,14 +122,18 @@ def normalize(p: dict, lang: str) -> dict:
     }
 
 
-async def _get(hass: HomeAssistant, path: str, params: dict) -> dict:
+async def _get(hass: HomeAssistant, path: str, params: dict, base: str = BASE) -> dict:
     session = async_get_clientsession(hass)
     try:
         async with session.get(
-            BASE + path, params=params, headers=HEADERS, timeout=TIMEOUT
+            base + path, params=params, headers=HEADERS, timeout=TIMEOUT
         ) as resp:
-            if resp.status == 404:  # unknown EAN (body may be JSON with status 0)
-                return {}
+            if resp.status == 404:  # unknown EAN; the JSON body may name another product type
+                try:
+                    data = await resp.json(content_type=None)
+                except ValueError:
+                    return {}
+                return data if isinstance(data, dict) else {}
             resp.raise_for_status()
             data = await resp.json(content_type=None)
     except (aiohttp.ClientError, TimeoutError, ValueError) as err:
@@ -135,9 +150,11 @@ async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | No
     if local := await db.run(inventory.find_ean, ean):
         return local
     lang = hass.config.language.split("-")[0]
-    data = await _get(
-        hass, f"/api/v2/product/{ean}", {"fields": FIELDS.format(lang=lang), "lc": lang}
-    )
+    path, params = f"/api/v2/product/{ean}", {"fields": FIELDS.format(lang=lang), "lc": lang}
+    data = await _get(hass, path, params)
+    other = _OTHER_TYPE.search(str(data.get("status_verbose", "")))
+    if data.get("status") != 1 and other and (base := SITES.get(other[1])) and base != BASE:
+        data = await _get(hass, path, params, base)
     if data.get("status") != 1 or not data.get("product"):
         return None
     return await db.run(inventory.product_draft, normalize(data["product"], lang))
@@ -149,7 +166,8 @@ _last_search = -SEARCH_INTERVAL  # monotonic time of the latest search slot hand
 
 
 async def async_search(hass: HomeAssistant, query: str) -> list[dict]:
-    """OFF full-text search by name (call on explicit user action only; spaced, see above)."""
+    """Full-text search by name in OFF and its sister databases, food first (call on explicit user
+    action only; spaced, see above). A failing sister database is left out, a failing OFF raises."""
     global _last_search
     if not query.strip():
         return []
@@ -159,20 +177,28 @@ async def async_search(hass: HomeAssistant, query: str) -> list[dict]:
     _last_search = now + wait
     await asyncio.sleep(wait)
     lang = hass.config.language.split("-")[0]
-    data = await _get(
-        hass,
-        "/cgi/search.pl",
-        {
-            "search_terms": query,
-            "json": 1,
-            "page_size": 20,
-            "lc": lang,
-            "fields": SEARCH_FIELDS.format(lang=lang),
-        },
+    params = {
+        "search_terms": query,
+        "json": 1,
+        "page_size": 20,
+        "lc": lang,
+        "fields": SEARCH_FIELDS.format(lang=lang),
+    }
+    results = await gather(
+        *(_get(hass, "/cgi/search.pl", params, base) for base in SITES.values()),
+        return_exceptions=True,
     )
-    hits = (normalize(p, lang) for p in data.get("products", []))
+    if isinstance(results[0], BaseException):  # SITES starts with OFF
+        raise results[0]
+    hits = (
+        normalize(p, lang)
+        for data in results
+        if isinstance(data, dict)
+        for p in data.get("products", [])
+    )
+    seen: set[str] = set()
     return [
         {k: h[k] for k in ("ean", "name", "brand", "quantity")}
         for h in hits
-        if h["ean"] and h["name"]
+        if h["ean"] and h["name"] and not (h["ean"] in seen or seen.add(h["ean"]))
     ]

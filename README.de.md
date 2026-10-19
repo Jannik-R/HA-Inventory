@@ -34,11 +34,7 @@ Vorhanden:
 - Einkochen (Tab *Einkochen*): Protokolle mit einer Charge je Gläser-Partie (JJJJMMTT-n); die Etiketten tragen die Charge, ein Scan bucht ein Glas dieser Charge aus; Einkochrezepte (jedes ergibt ein Produkt, optional Temperatur und Dauer) in der eigenen Ansicht *Rezepte* des Tabs
 - KI-Assistenten: die LLM-API *Home Inventory* für Assist-Agenten und den MCP-Server von Home Assistant (Bestand, Ablauf, Rezepte, Einkaufsliste, Speiseplan; was sie ändern dürfen, steht in den Optionen)
 
-Geplant:
-
-- Rückmeldungen der Nutzer mit KI-Auswertung
-
-Reihenfolge und Details: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
+Planung: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
 
 ## Installation
 

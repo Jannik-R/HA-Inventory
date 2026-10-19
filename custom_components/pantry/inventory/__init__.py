@@ -2,11 +2,20 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, recipe_print, opened).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, recipe_print, opened, assist, ai_import).
 """
 
 from .ai_check import changes as ai_changes
 from .ai_check import prompt as ai_prompt
+from .ai_import import MAX_PASTE
+from .ai_import import page_sources as ai_page_sources
+from .ai_import import prompt as ai_import_prompt
+from .ai_import import to_recipe as ai_recipe
+from .assist import expiring_stock as assist_expiring
+from .assist import meal_plan as assist_meal_plan
+from .assist import recipe as assist_recipe
+from .assist import recipe_list as assist_recipes
+from .assist import stock as assist_stock
 from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
 from .canning import cannings, charge, save_canning
 from .codes import (
@@ -25,6 +34,7 @@ from .inherit import defaults, effective
 from .labels import book_out_code, label_info, open_code
 from .master import delete, list_rows, master_data, save, save_defaults
 from .meal_plan import (
+    MEALS,
     delete_meal,
     meal_at,
     meal_times,
@@ -38,7 +48,7 @@ from .opened import open_package, undo_open
 from .plan_shopping import plan_to_shopping_list
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .queries import expiring, stock_list
-from .recipe_import import recipe_import
+from .recipe_import import recipe_draft, recipe_import
 from .recipe_print import recipe_sheet
 from .recipes import recipe_availability, recipes, save_recipe
 from .removal import delete_impact, force_delete, move_location
@@ -60,12 +70,22 @@ from .shopping_recipes import (
 from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_category
 
 __all__ = [
+    "MAX_PASTE",
+    "MEALS",
     "InventoryError",
     "add_product",
     "add_shopping_by_name",
     "add_shopping_item",
     "ai_changes",
+    "ai_import_prompt",
+    "ai_page_sources",
     "ai_prompt",
+    "ai_recipe",
+    "assist_expiring",
+    "assist_meal_plan",
+    "assist_recipe",
+    "assist_recipes",
+    "assist_stock",
     "book_in",
     "book_in_by_code",
     "book_in_new",
@@ -109,6 +129,7 @@ __all__ = [
     "put_back",
     "recipe_availability",
     "recipe_by_name",
+    "recipe_draft",
     "recipe_import",
     "recipe_items",
     "recipe_sheet",

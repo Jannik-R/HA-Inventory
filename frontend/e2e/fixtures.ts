@@ -32,6 +32,16 @@ export async function blockPrinting(context: BrowserContext) {
           JSON.stringify({ id: msg.id, type: "result", success: true, result: { printed: 0 } }),
         );
       }
+      // The import may hand a page, text or photo to the real AI: only stubbed imports run.
+      if (msg?.type === "pantry/recipe_import" && !stubs.has(msg.type))
+        return ws.send(
+          JSON.stringify({
+            id: msg.id,
+            type: "result",
+            success: false,
+            error: { code: "e2e_blocked", message: "Stub pantry/recipe_import (wsStub)" },
+          }),
+        );
       if (msg && stubs.has(msg.type))
         return ws.send(
           JSON.stringify({

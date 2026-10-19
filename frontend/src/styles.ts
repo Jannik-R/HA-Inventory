@@ -17,7 +17,8 @@ export const formStyles = css`
   }
   button:focus-visible,
   input:focus-visible,
-  select:focus-visible {
+  select:focus-visible,
+  textarea:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 1px;
   }
@@ -80,7 +81,8 @@ export const formStyles = css`
     color: var(--secondary-text-color);
   }
   input:not([type="checkbox"], [type="radio"]),
-  select {
+  select,
+  textarea {
     font: inherit;
     width: 100%;
     box-sizing: border-box;

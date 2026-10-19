@@ -20,8 +20,8 @@ Vorhanden:
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)
 - Ablaufübersicht mit vorübergehender Warnschwelle und Rezeptvorschlägen, die Ablaufendes aufbrauchen (Rezepte nach ablaufenden Zutaten, dann nach Vorrat sortiert; in der Rezeptliste markiert); Sensoren für abgelaufene und bald ablaufende Packungen
 - Etiketten (QR-Code von Produkt und Ablaufdatum) auf einem Etikettendrucker (Dymo LabelWriter 450 hinter einem USB-Druckserver oder per USB am HA-Rechner) oder über den Browser; Etikett scannen bucht aus
-- Aktionen für Automationen (Hardware-Scanner, NFC-Tags, ESPHome, Sprache): per Barcode oder Etikett ein- und ausbuchen, Etiketten, Einkaufszettel und Rezepte drucken, ein Rezept auf die Einkaufsliste setzen, ein Gericht planen, ein Einkochprotokoll anlegen
-- Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten)
+- Aktionen für Automationen (Hardware-Scanner, NFC-Tags, ESPHome, Sprache): per Barcode, Etikett oder Produktname ein- und ausbuchen, Etiketten, Einkaufszettel und Rezepte drucken, ein Rezept auf die Einkaufsliste setzen, ein Gericht planen, ein Einkochprotokoll anlegen
+- Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten); mit eingerichteter KI auch Beiträge ohne Rezeptdaten (Instagram, TikTok, YouTube: Beschreibung, Video, Bild), eingefügter Text und Fotos (z. B. eine Kochbuchseite)
 - Mindestmenge je Kategorie als Menge in beliebiger Einheit (z. B. „2 kg Nudeln“, egal welche Marke) und/oder Packungszahl; Einkaufsliste im Panel und als To-do-Liste in HA; Produkte oder Kategorien von Hand hinzufügen (neue werden gleich angelegt)
 - Einkaufen nach Rezepten: Rezepte für eine Portionszahl auf die Einkaufsliste setzen; die fehlenden Mengen aller Rezepte werden je Kategorie zusammengezählt, Rezept-Einheiten (EL, Tasse, Prise) in ml oder g umgerechnet
 - Einkaufszettel, Rezepte und Speiseplan auf einem ESC/POS-Bondrucker (58 / 80 mm, USB am HA-Rechner oder Netzwerk), mit Abschneider
@@ -31,10 +31,11 @@ Vorhanden:
 - Haltbarkeit (Tage, vererbt wie die Warnung): Einbuchen schlägt heute + Haltbarkeit als Ablaufdatum vor; vorbelegt *Eingekochtes* (365 Tage)
 - Angebrochene Packungen (*Anbrechen*): eine Packung als angebrochen markieren (Knopf an der Chargenzeile, Scan-Modus *Anbrechen*, Aktion `pantry.open_package`); sie wird eine eigene Bestandszeile und läuft früher ab, um die vererbte *Haltbar nach Anbruch* (Tage; leer = das Datum bleibt, z. B. Nudeln); Ablaufübersicht, Sensoren, Etiketten und Rezeptvorschläge nutzen dieses Datum; ein neues Etikett wird angeboten (gedruckt erst nach dem Etikettendialog)
 - Einkochen (Tab *Einkochen*): Protokolle mit einer Charge je Gläser-Partie (JJJJMMTT-n); die Etiketten tragen die Charge, ein Scan bucht ein Glas dieser Charge aus; Einkochrezepte (jedes ergibt ein Produkt, optional Temperatur und Dauer) in der eigenen Ansicht *Rezepte* des Tabs
+- KI-Assistenten: die LLM-API *Home Inventory* für Assist-Agenten und den MCP-Server von Home Assistant (Bestand, Ablauf, Rezepte, Einkaufsliste, Speiseplan; was sie ändern dürfen, steht in den Optionen)
 
 Geplant:
 
-- KI-Schnittstelle (Assist / MCP)
+- Rückmeldungen der Nutzer mit KI-Auswertung
 
 Reihenfolge und Details: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
 
@@ -45,6 +46,8 @@ Benötigt Home Assistant 2026.10.1 oder neuer.
 HACS (erst wenn das Repository öffentlich ist; HACS kann nicht aus privaten Repositories installieren): dieses Repository als benutzerdefiniertes Repository hinzufügen (Kategorie *Integration*), *Home Inventory (Vorrat)* installieren, Home Assistant neu starten. Versionen sind die GitHub-Releases.
 
 Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/pantry` nach `config/custom_components/` kopieren und Home Assistant neu starten.
+
+Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und `yt-dlp` (liest Video und Beschreibung eines Beitrags für den KI-Rezeptimport; ist schon Teil des Home-Assistant-Images, eine normale Installation lädt also nichts herunter).
 
 Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory* (früher *Pantry*; die interne Domain bleibt `pantry`, Entitäten, Aktionen und Automationen ändern sich nicht), Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
 
@@ -58,7 +61,7 @@ Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant.
 ## Einrichtung
 
 Alle Optionen stehen unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*:
-Module, Etikettendrucker, Bondrucker, KI-Prüfung von Rezeptimporten und Haushaltsgröße.
+Module, Etikettendrucker, Bondrucker, KI und Haushaltsgröße.
 
 ### Etikettendrucker
 
@@ -109,19 +112,45 @@ läuft (z. B. ein Raspberry Pi):
    anderer Dienst wie CUPS hält den Drucker; offline: Papier leer oder Deckel offen). Wirre Zeichen bei
    einem seriellen Drucker: falsche Baudrate, die anderen probieren.
 
-### KI-Prüfung von Rezeptimporten
+### KI
 
 Optional. Zuerst in Home Assistant eine KI einrichten (eine *KI-Aufgabe*-Entität, z. B. *Integration
 hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio, das ein kostenloses
-Kontingent hat, oder *Anthropic*), dann unter *Konfigurieren > KI-Prüfung von Rezeptimporten*
-wählen; leer = keine KI. Jeder Import schickt dann das Rezept und den Baum der
-Lebensmittel-Kategorien an diese KI (etwa 10.000 Tokens; der feste Teil steht vorn, damit Anbieter mit
-Prompt-Cache ihn seltener berechnen). Die KI schlägt nur Änderungen vor; gespeichert wird nichts ohne
-dich.
+Kontingent hat, oder *Anthropic*), dann unter *Konfigurieren > KI (Rezeptimport, Assistenten) >
+KI-Aufgabe* wählen; leer = keine KI.
 
-Der Import selbst braucht keine KI: Home Assistant lädt die Rezeptseite nur beim Klick auf
-*Importieren* (15 s Zeitlimit, HTML bis 5 MB, http oder https, auch Adressen im Heimnetz) und liest
-ihre schema.org-Rezeptdaten.
+**Rezeptimport.** Eine Seite mit schema.org-Rezeptdaten braucht keine KI: Home Assistant lädt die
+Seite nur beim Klick auf *Importieren* (15 s Zeitlimit, HTML bis 5 MB, http oder https, auch Adressen
+im Heimnetz). Mit eingerichteter KI:
+
+- Jeder Import wird einmal geprüft: Das Rezept und der Baum der Lebensmittel-Kategorien gehen an die
+  KI (etwa 10.000 Tokens; der feste Teil steht vorn, damit Anbieter mit Prompt-Cache ihn seltener
+  berechnen). Die KI schlägt nur Änderungen vor; gespeichert wird nichts ohne dich.
+- Einen Link ohne Rezeptdaten (Instagram, TikTok, YouTube, ein Blog) liest die KI aus: Home Assistant
+  holt den Beitrag mit `yt-dlp` (Beschreibung und das Video bis 15 Minuten und 50 MB, höchstens 720p),
+  sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
+  die KI (Anhänge laufen über einen versteckten Ordner `.pantry_import` im ersten Medienverzeichnis und
+  werden gleich danach gelöscht). Gesprochenes und eingeblendeten Text eines Videos liest die KI, wenn
+  sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert
+  Videos ohne Anmeldung oft; dann zählen nur Beschreibung und Bild.
+- *Text* und *Foto* im Importdialog schicken eingefügten Text (bis 20.000 Zeichen) oder ein Foto (im
+  Browser auf 2000 px verkleinert) an die KI.
+
+Einen Beitrag auszulesen dauert 15 bis 60 Sekunden und kostet einen KI-Aufruf, dazu die Prüfung.
+
+**Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in
+einem Assist-Agenten (z. B. *Google Gemini > Konfigurieren > Home Assistant steuern*) oder in der
+Integration *Model Context Protocol Server* (für Claude Desktop und andere MCP-Clients). *Zugriff für
+Assistenten* legt fest, was sie dürfen:
+
+| Stufe | Werkzeuge |
+|---|---|
+| *Nur lesen* | `get_stock`, `get_expiring`, `get_recipes`, `get_recipe` (mit Vorratsstatus), `get_shopping_list`, `get_meal_plan` |
+| *Lesen, Einkaufsliste und Speiseplan* (Standard) | dazu `add_to_shopping_list` (Produkt oder Kategorie per Name), `add_recipe_to_shopping_list`, `plan_meal` |
+| *Alles, auch Ein- und Ausbuchen und Anbrechen* | dazu `book_in`, `book_out`, `open_package` (Produkt per Name oder EAN) |
+
+Die Werkzeuge nehmen Namen, wie die Aktionen; die schreibenden rufen die Aktionen unten auf, eine
+Buchung vermerkt also den Nutzer des Gesprächs.
 
 ## Sensoren
 
@@ -157,9 +186,9 @@ Aktion mit einer Meldung fehlschlagen.
 
 | Aktion | Felder | Antwort |
 |---|---|---|
-| `pantry.book_in` | `code` (EAN eines vorhandenen Produkts; neue Produkte werden einmal im Panel angelegt, wo die Kategorie gewählt wird), `packages` (Standard 1), `expires_on` (Datum, optional), `location` (Name, optional; Standard: Standardlager des Produkts) | `product_id`, `batch_id`, `name` |
-| `pantry.book_out` | `code` (EAN oder Etikettencode `PTRY:…`), `packages` (Standard 1), `location` (Name, optional) | `taken` (Charge, Lagerort, Packungen, Buchungs-ID je Zeile), `name` (Etikettencode: auch `location`) |
-| `pantry.open_package` | `code` (EAN: früheste Ablaufzeit zuerst; Etikettencode `PTRY:…`: eine Packung dieser Charge), `location` (Name, optional, nicht mit Etikettencode) | `batch_id` (Charge der angebrochenen Packung), `location_id`, `booking_id`, `expires_on` (neues Ablaufdatum), `name`, `location` |
+| `pantry.book_in` | `code` (EAN oder Name eines vorhandenen Produkts; neue Produkte werden einmal im Panel angelegt, wo die Kategorie gewählt wird), `packages` (Standard 1), `expires_on` (Datum, optional), `location` (Name, optional; Standard: Standardlager des Produkts) | `product_id`, `batch_id`, `name` |
+| `pantry.book_out` | `code` (EAN, Etikettencode `PTRY:…` oder Produktname), `packages` (Standard 1), `location` (Name, optional) | `taken` (Charge, Lagerort, Packungen, Buchungs-ID je Zeile), `name` (Etikettencode: auch `location`) |
+| `pantry.open_package` | `code` (EAN oder Produktname: früheste Ablaufzeit zuerst; Etikettencode `PTRY:…`: eine Packung dieser Charge), `location` (Name, optional, nicht mit Etikettencode) | `batch_id` (Charge der angebrochenen Packung), `location_id`, `booking_id`, `expires_on` (neues Ablaufdatum), `name`, `location` |
 | `pantry.print_labels` | `batch_id` (aus `book_in`), `count` (1 bis 20, Standard 1) | `printed` |
 | `pantry.print_shopping_list` | keine | `printed` (Anzahl Einträge) |
 | `pantry.print_plan` | `day` (Datum, Standard heute), `period` (`day` oder `week`, Standard `day`; eine Woche läuft Montag bis Sonntag um `day`) | `printed` (Anzahl Gerichte) |

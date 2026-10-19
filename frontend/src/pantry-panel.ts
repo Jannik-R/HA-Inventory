@@ -3,7 +3,7 @@ import { mdiHelpCircleOutline, mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
-import { hasModule, setModules, type Module } from "./modules";
+import { hasModule, setAi, setModules, type Module } from "./modules";
 import "./settings-view";
 import "./stock-view";
 import "./expiry-view";
@@ -31,7 +31,7 @@ export class PantryPanel extends LitElement {
   declare hass?: Hass;
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
-  declare panel?: { config?: { modules?: string[] } };
+  declare panel?: { config?: { modules?: string[]; ai?: boolean } };
 
   constructor() {
     super();
@@ -45,7 +45,10 @@ export class PantryPanel extends LitElement {
 
   willUpdate(changed: PropertyValues) {
     if (changed.has("hass") && this.hass) setLanguage(this.hass.language);
-    if (changed.has("panel")) setModules(this.panel?.config?.modules);
+    if (changed.has("panel")) {
+      setModules(this.panel?.config?.modules);
+      setAi(this.panel?.config?.ai);
+    }
   }
 
   private get tabs(): Tab[] {

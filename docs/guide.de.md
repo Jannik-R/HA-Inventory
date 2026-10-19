@@ -306,6 +306,21 @@ die Rezeptdaten der Seite und öffnet den Rezeptdialog vorausgefüllt, mit den S
 speicherst. Jede Zutat zeigt ihre Originalzeile; prüfe die vorgeschlagenen Produktarten. Eine
 unbekannte Einheit (z. B. „Tasse“) legst du mit **Anlegen** an oder wählst eine vorhandene.
 
+**Rezept aus Instagram, TikTok, YouTube, Text oder Foto** (wenn eine KI eingerichtet ist): Oben im
+Importdialog wählst du die Quelle.
+
+- **Link**: Hat die Seite keine Rezeptdaten (Instagram-Reel, TikTok, YouTube-Short, Blog), liest die
+  KI den Beitrag aus: Beschreibung, Video (auch Gesprochenes und eingeblendeten Text) oder Bild. Den
+  Link holst du in der App über *Teilen > Link kopieren*.
+- **Text**: Rezepttext einfügen, z. B. aus einer Nachricht; die KI ordnet ihn in Zutaten und Schritte.
+- **Foto**: ein Foto einer Kochbuchseite oder ein Screenshot.
+
+**Importieren** zeigt „Rezept wird gelesen …“; mit KI dauert das bis zu einer Minute. Danach öffnet
+sich der Rezeptdialog wie bei jedem Import (mit KI-Prüfung). Findet die KI kein Rezept oder schlägt
+sie fehl, bleibt der Importdialog mit deiner Eingabe offen. Instagram gibt Videos ohne Anmeldung oft
+nicht heraus; dann liest die KI nur Beschreibung und Bild. Steht das Rezept nur im Video, nimm den
+Link von TikTok oder YouTube, falls es den Beitrag dort auch gibt.
+
 **KI-Prüfung** (wenn eingerichtet, siehe unten): Direkt nach dem Öffnen prüft die KI den Import.
 Oben steht „KI prüft das Rezept …“; Speichern wartet so lange, **Nicht abwarten** überspringt die
 Prüfung. Danach steht dort „keine Änderungen“ oder was die KI geändert hat: Zutaten mit besserer
@@ -325,12 +340,23 @@ Open Food Facts vorgeschlagene Kategorie änderst.
 1. In Home Assistant eine KI mit *KI-Aufgabe* einrichten, z. B. *Einstellungen > Geräte & Dienste >
    Integration hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio (es gibt ein
    kostenloses Kontingent).
-2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI-Prüfung von Rezeptimporten*:
+2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI (Rezeptimport, Assistenten)*:
    die KI-Aufgabe wählen. Leer = keine KI.
 
 > [!IMPORTANT]
 > Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die gewählte KI
-> (etwa 10.000 Tokens).
+> (etwa 10.000 Tokens); das Auslesen eines Beitrags schickt auch sein Video oder Bild.
+
+**Mit einem KI-Assistenten** (Assist, Claude Desktop über MCP): Frag z. B. „Was läuft diese Woche
+ab?“, „Was kann ich mit dem Vorrat kochen?“ oder „Setz Milch auf die Einkaufsliste“. Einrichten (Admin):
+
+1. Im Assist-Agenten (z. B. *Google Gemini > Konfigurieren*) unter *Home Assistant steuern* die
+   LLM-API **Home Inventory** anhaken, oder in der Integration *Model Context Protocol Server*.
+2. Unter *Konfigurieren > KI (Rezeptimport, Assistenten) > Zugriff für Assistenten* festlegen, was
+   er darf: *Nur lesen*, *Lesen, Einkaufsliste und Speiseplan* (Standard) oder *Alles, auch Ein- und
+   Ausbuchen und Anbrechen*.
+
+Produkte, Rezepte und Lagerorte nennst du beim Namen, wie sie im Vorrat heißen.
 
 Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produkte ohne Inhaltsangabe),
 *keine Zutat zugeordnet*, *nicht geprüft*.

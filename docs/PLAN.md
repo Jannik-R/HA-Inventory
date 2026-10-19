@@ -9,7 +9,7 @@ Everything runs inside the HA process; UI is a sidebar panel.
 HA sidebar panel (Lit web component, one bundled JS file)
         │  hass.callWS(...)
         ▼
-websocket.py ── services.py ── LLM API tools (later)
+websocket.py ── services.py ── llm_api.py (LLM API tools)
         │                │                        │
         └────────────────┴──── inventory/ ────────┘   ← all business logic, one place
                                    │
@@ -22,7 +22,7 @@ websocket.py ── services.py ── LLM API tools (later)
 Entities: sensor (expired / expiring soon), todo (shopping list; its state = open items, so no extra below-min sensor)
 ```
 
-Rule: **every** entry point (panel, services, automations, future AI tools) calls
+Rule: **every** entry point (panel, services, automations, AI tools) calls
 the `inventory` package (public API in its `__init__`, one submodule per concern). No logic in websocket handlers or entities.
 
 ### Key decisions
@@ -352,6 +352,82 @@ possible; the printer ordered for testing (58/80 mm thermal receipt printer from
   only if real printers need its quirks database.
 - Entry points: panel button "Einkaufszettel drucken" in the *Einkauf* tab, service `pantry.print_shopping_list`.
 
+## 4b. AI interface (phase 19)
+
+Two parts, both through what Home Assistant already offers; no own MCP server, no AI SDK.
+
+### LLM API (Assist agents, HA MCP Server)
+
+- `llm_api.py` registers one `llm.API` (id `pantry`, name "Home Inventory") in
+  `async_setup_entry` (`entry.async_on_unload(llm.async_register_api(...))`). Assist agents (Gemini,
+  OpenAI, Claude, Ollama) list it under *Control Home Assistant*; HA's built-in **MCP Server**
+  integration exposes it to external clients (Claude Desktop etc.) when the user picks it there.
+- **Access level** (options step *KI*, `llm_access`, the entry reloads on save, so the tools are
+  built once per level): `read` = stock, expiring, recipes (list + one recipe with availability),
+  shopping list, meal plan; `plan` (default) = read + put an item or a recipe on the shopping
+  list + plan a dish; `all` = plan + book in, book out, open a package.
+- Tools take names, never ids (like the services). Write tools **call the HA services**
+  (`pantry.shop_recipe`, `plan_meal`, `book_in`, …) with the conversation's context, so validation,
+  defaults (today, household servings), the user id in `booking.user_id` and the response are the
+  services' own; an item by name is `add_shopping_by_name` (same as the todo entity). Read tools call
+  `inventory` directly and return trimmed rows (no ids, no OFF data) to keep tokens low.
+  `book_in` / `book_out` / `open_package` accept an EAN, a label code **or a product name**
+  (`codes._product`: exact name, ignoring case; the services gain the same fallback).
+- Annotations per tool (`read_only` / `destructive` / `idempotent`, `open_world=False`), forwarded
+  by the MCP Server as tool hints.
+
+### AI recipe import (no JSON-LD, social media, text, photo)
+
+Research (2026-10, how other apps do it):
+
+| App | Social media import | How |
+|---|---|---|
+| ReciMe | TikTok, Instagram via the share sheet | caption first, then the video's **audio**, then the linked website |
+| Deglaze, FoodiePrep, Pestle, Honeydew | share sheet | caption + AI; Deglaze also on-screen text / scene analysis (videos up to 10 min) |
+| Mealie | URL scraper (recipe-scrapers, JSON-LD); OpenAI for images and pages without schema; video import only via external tools (SousVid, social-to-mealie, discussion #5448) | **yt-dlp** download + Whisper transcription + ffmpeg frames → LLM |
+| Tandoor | photo / PDF import via an AI (Gemini Flash free tier works) | screenshots of social posts, no video |
+| Paprika | built-in browser, websites | only when the post links a recipe page |
+| Samsung Food | own importer, websites and social links | not documented |
+
+Findings: (1) the caption often has no recipe (5 to 20 words, hashtags); the recipe is spoken or on
+screen, so the **video itself** is the source; (2) everybody downloads with **yt-dlp**; (3) the
+others need Whisper + ffmpeg because their LLM only reads text and images, while HA's `ai_task`
+takes **attachments** and Gemini reads a video file with its audio track directly, so no
+transcription stack is needed; (4) Instagram blocks unauthenticated video downloads more and more
+(SousVid needs browser cookies); its page still carries the caption and a cover image in the
+Open Graph tags; TikTok and YouTube Shorts download without login.
+
+Design:
+
+- `pantry/recipe_import` takes exactly one of `url`, `text` (pasted, max 20,000 characters) or
+  `image` (data URL; the panel scales a photo to max 2000 px JPEG before sending, the backend
+  allows 3 MB). URL first runs the schema.org import as before (no AI). Only when that finds no
+  recipe (no JSON-LD, page not HTML or not loadable) and an AI Task entity is set up, the AI reads it.
+- `recipe_media.py` collects the sources for a URL (executor, temp dir, all deleted after the call):
+  yt-dlp (`yt_dlp.YoutubeDL`, no playlist, max 15 min, smallest MP4 up to 480p, max 50 MB) for
+  caption/title/thumbnail + the video file; when yt-dlp fails or the post has no video: Open Graph
+  title/description/image of the page plus its visible text (max 15,000 characters) and the
+  `og:image` file (max 5 MB). Attachments are files in a hidden folder `.pantry_import/` of the
+  first HA media directory, passed as `media-source://media_source/<dir>/.pantry_import/…` (the
+  only way `ai_task` takes files; hidden from media search). Without attachment support on the
+  AI Task entity only the text goes.
+- `inventory/ai_import.py` (pure): the extraction prompt (German output: ingredient lines as
+  "200 g Mehl, gesiebt" so the existing German parser reads them; steps with optional sections;
+  `found: false` when it is no recipe), Open Graph / text extraction from HTML, and the answer →
+  a schema.org-like `Recipe` dict. `recipe_import.recipe_draft` (split out of `recipe_import`)
+  turns that dict into the usual draft (line parser, units, category suggestion, learned
+  mappings), so the dialog and the AI check of phase 13c run unchanged on the result (a second,
+  short AI call that maps the categories).
+- `recipe_ai.py` calls `ai._generate` (`task_name` "Vorrat: Rezept auslesen", 180 s timeout,
+  `probatio` answer schema). Errors: `ai_failed` / `recipe_not_found` keep the import dialog open.
+- New requirement **`yt-dlp`**: the only maintained way to read Instagram/TikTok/YouTube videos; it
+  is already in the Home Assistant image (core `media_extractor` pins it), so a standard install
+  downloads nothing.
+- Panel: the import dialog gets *Link* / *Text* / *Foto* (the last two only with an AI set up,
+  `panel.config.ai`), a progress line while the AI reads, and keeps the input on errors.
+- No service: an import is a draft that a person confirms in the recipe dialog (CLAUDE.md: recipes
+  are panel only). Phone share target: later (see section 7).
+
 ## 5. Development environment
 
 `dev/docker-compose.yml` runs HA stable with `custom_components/pantry` mounted read-only.
@@ -411,7 +487,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 16 | Move a whole location | done | *Umlagern* action on a location row: move all its stock to another location (logic exists in `force_delete` for a location; shared `_relocate` in `inventory/removal.py` serves `force_delete` and `move_location`; websocket `pantry/move_location`, panel only, no HA service because it is a stock correction; dialog shows batches/packages from the delete dry run) |
 | 17 | Category mapping feedback | merged into 13c (learned mappings) | `mapping_log` table: each product whose OFF tags matched no category or whose suggested category was changed (EAN, OFF `categories_tags`, suggested and chosen category); view/export to improve the seed `off_tags` (`add_product` already knows both cases) |
 | 18 | Opened packages | done | migration 20 (`migration_20.py`): inheritable `opened_days` (*Haltbar nach Anbruch*, > 0, on defaults / category / product, NULL = inherit, unset = no change, e.g. Nudeln); an opened package is its own **batch** (`batch.opened_on`; batch key gets opened_on, `canning_id` loses UNIQUE so a charge can have an opened batch), so book-out, move, stock edit and labels work unchanged by batch id; booking kind `open` (booking rebuilt for the CHECK; one row on the opened batch, the unopened one is implied by the key; undo = `open` −1 with `reverts_id`). Effective expiry = min(batch date, opened_on + days), computed on read. Panel: *Anbrechen* button on batch rows, booking mode *Anbrechen* (route `/pantry/open`), undo and *Etikett drucken* offer in the done line; websocket `pantry/open_package` / `open_label` / `open_undo` (`websocket_open.py`); service `pantry.open_package` (EAN or label code, location by name). No remaining amount (see section 7) |
-| 19 | AI interface | open | HA **LLM API** (`homeassistant.helpers.llm`) with tools calling `inventory` → Assist agents and HA's built-in **MCP Server**; no own MCP server. AI recipe import (Instagram caption, free text) via HA `ai_task`, reusing `ai.py` / `ai_check.py` from phase 13c |
+| 19 | AI interface | done | design, research and decisions: section 4b. `llm_api.py`: LLM API `pantry` for Assist agents and HA's MCP Server, three access levels in the options (read / + shopping list and plan (default) / + booking), tools by name; write tools call the services. AI recipe import via `ai_task` when a URL has no JSON-LD (yt-dlp video + caption, else Open Graph + page text + image as attachments), from pasted text or a photo (`recipe_media.py`, `recipe_ai.py`, `inventory/ai_import.py`); the result goes through the normal draft + AI check. New requirement `yt-dlp` (already in the HA image). No schema change. Real test (Gemini, dev HA, a TikTok clip, 2026-10-19): 15.6 s, complete German draft (English caption translated, US units converted; the prompt now asks for g or pieces instead of ml for solids). Instagram not tested live (no public reel at hand; yt-dlp usually needs a login there, the Open Graph caption + image path covers it). Phone share target: see section 7 |
 | 20 | User feedback with AI evaluation | open | users send feedback from the panel (text, view it came from, optional screenshot); `feedback` table; the AI interface (phase 19) groups and summarizes it into issues / plan items; admin view to review and close entries |
 | 21 | Modules | done | options `modules` (`const.MODULES`: shopping, recipes, plan, canning; unset = all), chosen in the config flow user step and the options step *Module*; `OptionsFlowWithReload` reloads the entry on save. Panel gets the list as `panel.config.modules` (`frontend/src/modules.ts` `hasModule`) and hides tabs, recipe buttons (to shopping list / to plan) and the settings section *Mahlzeiten*. `coordinator.module_off`: todo (shopping) / calendar (plan) add no entity and drop it from the registry. Core (stock, booking, expiry, settings, sensors) always on. Data, websocket commands and services are not gated |
 | 22 | Stocktaking | open | *Inventur* mode per location: scan everything there, then the differences (missing / too many per batch) become correction bookings after one confirm |
@@ -446,6 +522,7 @@ Order decided 2026-10-16. Data model details are designed (agent `architect`) at
 | Best-before date from the camera (read the printed date when booking in) | `expires_on` field and the camera scanner of the booking form; on-device OCR or the AI interface (phase 19) |
 | Manual order within a slot | `meal_plan` rows in id order within a slot; add `sort` when needed |
 | Editing the plan from the HA calendar | read-only `calendar.py`; add `CREATE_EVENT` etc. with free-text entries |
+| Import from the phone's share sheet (Instagram/TikTok *Teilen* → Vorrat) | phase 19 pantry/recipe_import {url}; needs a pending-import inbox in the panel (the draft must be confirmed by a person) filled by an automation on the companion app's share event, or a deep link /pantry/recipes?import=<url> that opens the import dialog. For now: *Link kopieren* and paste |
 | Remaining amount of opened packages | phase 18 (done) marks opened packages as their own batch (`opened_on`); a remaining amount would be a column on that batch; book out by cooking is phase 28 |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

@@ -30,14 +30,17 @@ from .const import (
     CONF_LABEL_PRINTER,
     CONF_LABEL_PRINTER_HOST,
     CONF_LABEL_WIDTH,
+    CONF_LLM_ACCESS,
     CONF_MODULES,
     CONF_PRINT_ON_BOOK_IN,
     CONF_RECEIPT_BAUD,
     CONF_RECEIPT_CUT,
     CONF_RECEIPT_PRINTER,
     CONF_RECEIPT_WIDTH,
+    DEFAULT_LLM_ACCESS,
     DEFAULT_SERVINGS,
     DOMAIN,
+    LLM_ACCESS,
     MODULES,
     modules_of,
 )
@@ -110,15 +113,26 @@ class PantryOptionsFlow(OptionsFlowWithReload):
         )
 
     async def async_step_ai(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
-        """AI Task entity that checks recipe imports; left empty = no AI."""
+        """AI Task entity that reads and checks recipe imports (left empty = none) and what
+        Assist agents / the MCP Server may do through the LLM API."""
         if user_input is not None:
-            return self._save({CONF_AI_TASK: user_input.get(CONF_AI_TASK)})
-        current = self.config_entry.options.get(CONF_AI_TASK)
+            return self._save(
+                {
+                    CONF_AI_TASK: user_input.get(CONF_AI_TASK),
+                    CONF_LLM_ACCESS: user_input[CONF_LLM_ACCESS],
+                }
+            )
+        o = self.config_entry.options
         schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_AI_TASK, description={"suggested_value": current}
-                ): EntitySelector(EntitySelectorConfig(domain="ai_task"))
+                    CONF_AI_TASK, description={"suggested_value": o.get(CONF_AI_TASK)}
+                ): EntitySelector(EntitySelectorConfig(domain="ai_task")),
+                vol.Required(
+                    CONF_LLM_ACCESS, default=o.get(CONF_LLM_ACCESS, DEFAULT_LLM_ACCESS)
+                ): SelectSelector(
+                    SelectSelectorConfig(options=LLM_ACCESS, translation_key=CONF_LLM_ACCESS)
+                ),
             }
         )
         return self.async_show_form(step_id="ai", data_schema=schema)

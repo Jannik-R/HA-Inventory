@@ -11,6 +11,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from . import (
+    llm_api,
     services,
     websocket,
     websocket_canning,
@@ -20,7 +21,7 @@ from . import (
     websocket_recipe,
     websocket_stock,
 )
-from .const import DOMAIN, PANEL_URL, modules_of
+from .const import CONF_AI_TASK, DOMAIN, PANEL_URL, modules_of
 from .db import Database
 
 type PantryConfigEntry = ConfigEntry[Database]
@@ -64,9 +65,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
             sidebar_icon="mdi:fridge-outline",
             module_url=f"{PANEL_URL}/pantry-panel.js?v={version}",
             require_admin=False,
-            config={"modules": modules_of(entry.options)},
+            config={
+                "modules": modules_of(entry.options),
+                "ai": bool(entry.options.get(CONF_AI_TASK)),
+            },
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        entry.async_on_unload(llm_api.async_register(hass, entry.options))
     except BaseException:  # a later step failed: do not leave the DB connection open
         frontend.async_remove_panel(hass, DOMAIN, warn_if_unknown=False)
         await db.async_close()

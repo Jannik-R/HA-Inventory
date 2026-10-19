@@ -307,6 +307,21 @@ text block is split at its line breaks or its own numbering); nothing is saved u
 save. Each ingredient shows its original line; check the suggested product types. An unknown unit
 (e.g. "Tasse", cup) is created with **Anlegen** or replaced by an existing one.
 
+**Recipe from Instagram, TikTok, YouTube, text or a photo** (if an AI is set up): at the top of the
+import dialog you pick the source.
+
+- **Link**: when the page has no recipe data (Instagram reel, TikTok, YouTube short, a blog), the AI
+  reads the post: caption, video (also spoken words and on-screen text) or image. Get the link in the
+  app with *Share > Copy link*.
+- **Text**: paste a recipe text, e.g. from a message; the AI sorts it into ingredients and steps.
+- **Foto** (photo): a photo of a cookbook page or a screenshot.
+
+**Importieren** shows "Rezept wird gelesen …" (reading); with the AI it takes up to a minute. Then
+the recipe dialog opens as for any import (with the AI check). When the AI finds no recipe or fails,
+the import dialog stays open with your input. Instagram often refuses videos without login; then the
+AI only reads the caption and the image. When the recipe is only in the video, use the TikTok or
+YouTube link if the post is there too.
+
 **AI check** (if set up, see below): right after the dialog opens the AI checks the import. The top
 line says "KI prüft das Rezept …" (checking); saving waits, **Nicht abwarten** (do not wait) skips
 the check. Afterwards it says "keine Änderungen" (no changes) or what the AI changed: ingredients
@@ -325,11 +340,24 @@ suggested while booking in.
 
 1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
    integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
-2. *Settings > Devices & services > Home Inventory > Configure > KI-Prüfung von Rezeptimporten*: pick the
+2. *Settings > Devices & services > Home Inventory > Configure > KI (Rezeptimport, Assistenten)*: pick the
    AI Task. Empty = no AI.
 
 > [!IMPORTANT]
-> Each import sends the recipe and the food category tree to the chosen AI (about 10,000 tokens).
+> Each import sends the recipe and the food category tree to the chosen AI (about 10,000 tokens);
+> reading a post also sends its video or image.
+
+**With an AI assistant** (Assist, Claude Desktop through MCP): ask e.g. "What expires this week?",
+"What can I cook from my stock?" or "Put milk on the shopping list". Set up (admin):
+
+1. In the Assist agent (e.g. *Google Gemini > Configure*) tick the LLM API **Home Inventory** under
+   *Control Home Assistant*, or in the *Model Context Protocol Server* integration.
+2. Under *Configure > KI (Rezeptimport, Assistenten) > Zugriff für Assistenten* choose what it may do:
+   *Nur lesen* (read only), *Lesen, Einkaufsliste und Speiseplan* (read, shopping list and meal plan;
+   default) or *Alles, auch Ein- und Ausbuchen und Anbrechen* (everything, including booking and
+   opening packages).
+
+Name products, recipes and locations as they are called in Home Inventory.
 
 Ingredient status: *vorhanden* (in stock), *teilweise* (partly), *fehlt* (missing), *Menge
 unbekannt* (products without content), *keine Zutat zugeordnet* (not matched), *nicht geprüft* (not

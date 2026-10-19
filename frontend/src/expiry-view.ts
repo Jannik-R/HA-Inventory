@@ -119,7 +119,9 @@ export class PantryExpiry extends LitElement {
                   html`<li data-testid="expiry-row">
                     <span class="when">
                       <span class=${status}>${fmtDate(this.hass, r.expires_on!)}</span>
-                      <span class="detail">${this.relative(r.expires_on!)}</span>
+                      <span class="detail"
+                        >${this.relative(r.expires_on!)}${r.expiry_guessed ? ` · ${t("stock.guessed")}` : ""}</span
+                      >
                     </span>
                     <span class="what">
                       <span>${r.name}</span>

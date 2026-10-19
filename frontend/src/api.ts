@@ -156,6 +156,8 @@ export interface StockRow {
   batch_expires_on: string | null;
   /** Set on an opened package (its own batch). */
   opened_on: string | null;
+  /** 1: the date was guessed at book-in (today + shelf life), nobody entered it. */
+  expiry_guessed: number;
   /** The product's date type (own or inherited); batches have none of their own. */
   expiry_type: "best_before" | "use_by";
   product_id: number;
@@ -215,6 +217,8 @@ export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>
 export interface LabelConfig {
   printer: boolean;
   print_on_book_in: boolean;
+  /** Booking in: the date field starts with the guess (otherwise empty, guessed on save). */
+  prefill_expiry: boolean;
   width_mm: number;
   height_mm: number;
   /** A receipt printer is set up (shopping list, recipes). */

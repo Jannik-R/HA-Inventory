@@ -673,6 +673,8 @@ var Ge = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"stock.all_locations": "Alle Lagerorte",
 	"stock.empty": "Noch nichts eingelagert.",
 	"stock.no_date": "ohne Datum",
+	"stock.guessed": "geschätzt",
+	"stock.guessed_date": "{date} (geschätzt)",
 	"stock.take_one": "1 Pkg. „{name}“ auslagern",
 	"stock.taken_one": "1 Pkg. „{name}“ ausgelagert.",
 	"stock.undo": "Rückgängig",
@@ -842,11 +844,12 @@ var Ge = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"plan.dish": "Gericht",
 	"tab.canning": "Einkochen",
 	"book.shelf_hint": "Vorschlag aus der Haltbarkeit: {days} Tage ({source}).",
+	"book.guess_hint": "Leer lassen: wird auf heute + {days} Tage geschätzt ({source}).",
 	"valid.category": "Bitte eine Kategorie wählen.",
 	"valid.canning_temp": "Bitte eine ganze Zahl von 1 bis 200 eingeben.",
 	"valid.canning_minutes": "Bitte eine ganze Zahl von 1 bis 1440 eingeben.",
 	"valid.shelf_days": "Bitte eine ganze Zahl ab 1 eingeben oder leer lassen.",
-	"tip.shelf_days": "Für Dinge ohne aufgedrucktes Datum (Eingekochtes, Eingefrorenes): Einbuchen und Einkoch-Protokoll schlagen heute bzw. das Herstellungsdatum plus diese Tage vor.",
+	"tip.shelf_days": "Übliche Haltbarkeit ab Einkauf. Bleibt das Datum beim Einbuchen leer, wird heute plus diese Tage geschätzt (Einkoch-Protokoll: Herstellungsdatum plus diese Tage). Leer: keine Schätzung.",
 	"tip.food": "Kein Lebensmittel (z. B. Batterien, Haushalt): diese Kategorie und alles darunter wird nie als Rezeptzutat angeboten.",
 	"settings.category.shelf_days": "Haltbarkeit",
 	"settings.category.shelf_short": "haltbar {days}",
@@ -3534,7 +3537,7 @@ function jr(e, t, n, r, i) {
 	}}
     />
     ${n.expires || a ? v`${j(n.expires, "expires")}${a ? j(w("valid.past"), "expires", !0) : ""}` : v`<span class="detail" data-testid="shelf-hint"
-            >${i ? w("book.shelf_hint", {
+            >${i ? w(e.expires_on ? "book.shelf_hint" : "book.guess_hint", {
 		days: String(i.value),
 		source: i.source
 	}) : w("book.no_date_hint")}</span
@@ -3729,10 +3732,16 @@ var Rr = o`
 		if (e.has("product")) {
 			this.draft = this.product, this.f = {
 				...Wr(),
-				expires_on: this.proposal()
+				expires_on: this.prefill() ? this.proposal() : ""
 			}, this.initial = JSON.stringify(this.f), this.ai = { kind: "none" };
 			let e = this.product;
-			this.hass && this.mode === "in" && e && !e.id && e.off_json && this.check(e), this.hass && this.mode === "in" && qt(this.hass).then((e) => this.labels = e, () => void 0);
+			this.hass && this.mode === "in" && e && !e.id && e.off_json && this.check(e), this.hass && this.mode === "in" && qt(this.hass).then((e) => {
+				let t = !this.dirty();
+				this.labels = e, t && e.prefill_expiry && (this.f = {
+					...this.f,
+					expires_on: this.proposal()
+				}, this.initial = JSON.stringify(this.f));
+			}, () => void 0);
 		}
 	}
 	async check(e) {
@@ -3745,7 +3754,7 @@ var Rr = o`
 		this.draft = {
 			...this.draft,
 			...e
-		}, this.f.expires_on === t && (this.f = {
+		}, this.prefill() && this.f.expires_on === t && (this.f = {
 			...this.f,
 			expires_on: this.proposal()
 		});
@@ -3769,6 +3778,9 @@ var Rr = o`
 			value: Kr,
 			source: w("book.last_used")
 		};
+	}
+	prefill() {
+		return !!this.labels?.prefill_expiry;
 	}
 	proposal() {
 		let e = this.mode === "in" ? this.dflt("shelf_days") : void 0;
@@ -3841,7 +3853,7 @@ var Rr = o`
 			...this.f,
 			pick: e,
 			packages: 1
-		}) : v`${e.id ? b : fr(this.md, e, (e, t) => this.setProduct(e, t), r, this.hass)}${jr(this.f, this.set, r, this.dflt("expiry_type")?.value, this.f.expires_on && this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : void 0)}`}
+		}) : v`${e.id ? b : fr(this.md, e, (e, t) => this.setProduct(e, t), r, this.hass)}${jr(this.f, this.set, r, this.dflt("expiry_type")?.value, !this.f.expires_on || this.f.expires_on === this.proposal() ? this.dflt("shelf_days") : void 0)}`}
       <label>
         <span class="lbl">${w("book.packages")}</span>
         <input
@@ -4252,7 +4264,7 @@ var oi = class extends C {
 	}
 	date(e) {
 		let t = e.expires_on ? W(this.hass, e.expires_on) : w("stock.no_date");
-		return e.opened_on && (t = w("stock.opened_on", {
+		return e.expiry_guessed && (t = w("stock.guessed_date", { date: t })), e.opened_on && (t = w("stock.opened_on", {
 			date: t,
 			opened: W(this.hass, e.opened_on)
 		})), e.charge ? w("stock.charge", {
@@ -4523,7 +4535,9 @@ var ci = class extends C {
               ${r.map(({ r: e, status: t }) => v`<li data-testid="expiry-row">
                     <span class="when">
                       <span class=${t}>${W(this.hass, e.expires_on)}</span>
-                      <span class="detail">${this.relative(e.expires_on)}</span>
+                      <span class="detail"
+                        >${this.relative(e.expires_on)}${e.expiry_guessed ? ` · ${w("stock.guessed")}` : ""}</span
+                      >
                     </span>
                     <span class="what">
                       <span>${e.name}</span>

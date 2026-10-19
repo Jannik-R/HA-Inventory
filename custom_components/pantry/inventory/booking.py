@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 
 from .common import InventoryError, _exists, _now, _packages, opened_until
 from .inherit import effective
@@ -62,9 +62,17 @@ def _iso(expires_on: date | str | None) -> str | None:
 
 
 def _batch(
-    conn, product_id: int, expires_on: date | str | None, opened_on=None, canning_id=None
+    conn,
+    product_id: int,
+    expires_on: date | str | None,
+    opened_on=None,
+    canning_id=None,
+    guessed: bool = False,
 ) -> int:
-    """Id of the batch with this key (default: unopened, no canning charge); created if missing."""
+    """Id of the batch with this key (default: unopened, no canning charge); created if missing.
+
+    `guessed`: the date is an estimate (book-in without a date); a real date for a guessed
+    batch confirms it."""
     key = (product_id, _iso(expires_on), canning_id, opened_on)
     row = conn.execute(
         "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS ?"
@@ -72,11 +80,13 @@ def _batch(
         key,
     ).fetchone()
     if row:
+        if not guessed:
+            conn.execute("UPDATE batch SET expiry_guessed = 0 WHERE id = ?", (row["id"],))
         return row["id"]
     return conn.execute(
-        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, created_at)"
-        " VALUES (?, ?, ?, ?, ?)",
-        (*key, _now()),
+        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, created_at,"
+        " expiry_guessed) VALUES (?, ?, ?, ?, ?, ?)",
+        (*key, _now(), int(bool(guessed) and key[1] is not None)),
     ).lastrowid
 
 
@@ -89,14 +99,20 @@ def book_in(
     source: str = "manual",
     user_id: str | None = None,
 ) -> int:
-    """Book packages in; the same product+date merges into one batch. Returns batch id."""
+    """Book packages in; the same product+date merges into one batch. Returns batch id.
+
+    No date: today + the inherited shelf life, marked as guessed (no shelf life: no date)."""
     _packages(packages)
     eff = effective(conn, product_id)  # raises not_found
     location_id = location_id or eff["default_location_id"]["value"]
     if location_id is None:
         raise InventoryError("location_required")
     _exists(conn, "location", location_id)
-    batch_id = _batch(conn, product_id, expires_on)
+    days = eff["shelf_days"]["value"]
+    guessed = not expires_on and days is not None
+    if guessed:
+        expires_on = date.today() + timedelta(days=days)
+    batch_id = _batch(conn, product_id, expires_on, guessed=guessed)
     _add(conn, batch_id, location_id, packages)
     _booking(conn, "in", batch_id, location_id, packages, source, user_id)
     return batch_id

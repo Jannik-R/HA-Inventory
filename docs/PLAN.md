@@ -248,8 +248,11 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
   household goods).
 - The *date* comes from the package when it is printed (bought goods: typed or, later, read by the camera).
 - For things without a printed date (home-canned, home-frozen, bulk goods) the inheritable
-  `shelf_days` gives it: booking in proposes today + shelf life, a canning protocol made-on date + shelf
-  life. Always a proposal, the field stays editable. No shelf life = no proposal (default).
+  `shelf_days` gives it: an empty date at book-in becomes today + shelf life (`book_in`, so panel and
+  services alike), stored with `batch.expiry_guessed = 1` (migration 22; shown as
+  *geschätzt*; any booking or stock edit with a real date for that batch clears it, an opened package
+  keeps it). Option `prefill_expiry` (household step) only decides whether the panel puts the guess into
+  the date field. A canning protocol proposes made-on date + shelf life. No shelf life = no guess.
 - Opened packages (phase 18) shorten it again: see **Opened packages**.
 
 **Opened packages** (phase 18, `inventory/opened.py`):

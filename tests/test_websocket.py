@@ -318,7 +318,7 @@ async def test_delete_impact_and_force(ws, hass_admin_user) -> None:
 async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     """Without a printer the images come back; with one the raw stream is sent. Scanning books out."""
     data = await master(ws)
-    cat_id = by_name(data["categories"], "Nudeln")["id"]
+    cat_id = by_name(data["categories"], "Papier")["id"]  # no shelf life: no guessed date
     loc_id = data["locations"][0]["id"]
     res = await ws.call(
         {
@@ -332,7 +332,7 @@ async def test_print_labels_and_book_out(hass: HomeAssistant, ws) -> None:
     msg = {"type": "pantry/print_labels", "batch_id": batch_id, "count": 2}
 
     cfg = (await ws.call({"type": "pantry/label_config"}))["result"]
-    assert cfg == {"printer": False, "print_on_book_in": True, "width_mm": 57, "height_mm": 32,
+    assert cfg == {"printer": False, "print_on_book_in": True, "prefill_expiry": False, "width_mm": 57, "height_mm": 32,
                    "receipt": False}  # fmt: skip
     out = (await ws.call(msg))["result"]
     assert (

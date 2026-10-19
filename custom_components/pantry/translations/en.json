@@ -170,10 +170,12 @@
       "household": {
         "title": "Household",
         "data": {
-          "household_servings": "Household servings"
+          "household_servings": "Household servings",
+          "prefill_expiry": "Fill in the guessed expiry date"
         },
         "data_description": {
-          "household_servings": "Servings the household cooks by default."
+          "household_servings": "Servings the household cooks by default.",
+          "prefill_expiry": "When booking in, the date field already shows today + the shelf life of the category. Off: the field stays empty; an empty date is still guessed when saving."
         }
       },
       "receipt": {
@@ -225,7 +227,7 @@
         },
         "expires_on": {
           "name": "Expiry date",
-          "description": "Best-before / use-by date; empty for products without one."
+          "description": "Best-before / use-by date; empty: today + shelf life (marked as guessed), no date without a shelf life."
         },
         "location": {
           "name": "Storage location",

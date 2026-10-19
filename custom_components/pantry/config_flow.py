@@ -32,6 +32,7 @@ from .const import (
     CONF_LABEL_WIDTH,
     CONF_LLM_ACCESS,
     CONF_MODULES,
+    CONF_PREFILL_EXPIRY,
     CONF_PRINT_ON_BOOK_IN,
     CONF_RECEIPT_BAUD,
     CONF_RECEIPT_CUT,
@@ -141,13 +142,20 @@ class PantryOptionsFlow(OptionsFlowWithReload):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
-            return self._save({CONF_HOUSEHOLD_SERVINGS: int(user_input[CONF_HOUSEHOLD_SERVINGS])})
-        current = self.config_entry.options.get(CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS)
+            return self._save(
+                {
+                    CONF_HOUSEHOLD_SERVINGS: int(user_input[CONF_HOUSEHOLD_SERVINGS]),
+                    CONF_PREFILL_EXPIRY: user_input[CONF_PREFILL_EXPIRY],
+                }
+            )
+        o = self.config_entry.options
+        current = o.get(CONF_HOUSEHOLD_SERVINGS, DEFAULT_SERVINGS)
         schema = vol.Schema(
             {
                 vol.Required(CONF_HOUSEHOLD_SERVINGS, default=current): NumberSelector(
                     NumberSelectorConfig(min=1, max=99, step=1, mode=NumberSelectorMode.BOX)
-                )
+                ),
+                vol.Required(CONF_PREFILL_EXPIRY, default=o.get(CONF_PREFILL_EXPIRY, False)): bool,
             }
         )
         return self.async_show_form(step_id="household", data_schema=schema)

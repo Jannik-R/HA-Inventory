@@ -49,7 +49,7 @@ const catOf = (p?: Product) => p?.category_id ?? p?.new_type?.parent_id ?? null;
 let lastLocation: number | null = null;
 
 /** Book in / book out form for one chosen product. Fires `booked` (detail: done message) and `cancel`. */
-export class PantryBookingForm extends LitElement {
+export class HomeInventoryBookingForm extends LitElement {
   static properties = {
     hass: { attribute: false },
     mode: { attribute: false },
@@ -346,4 +346,4 @@ export class PantryBookingForm extends LitElement {
   ];
 }
 
-customElements.define("pantry-booking-form", PantryBookingForm);
+customElements.define("home-inventory-booking-form", HomeInventoryBookingForm);

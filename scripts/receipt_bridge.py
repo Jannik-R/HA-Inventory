@@ -46,7 +46,7 @@ def print_raw(printer: str, data: bytes) -> None:
     handle = wintypes.HANDLE()
     check(ws.OpenPrinterW(printer, ctypes.byref(handle), None))
     try:
-        check(ws.StartDocPrinterW(handle, 1, ctypes.byref(DocInfo1("Pantry", None, "RAW"))))
+        check(ws.StartDocPrinterW(handle, 1, ctypes.byref(DocInfo1("Home Inventory", None, "RAW"))))
         try:
             check(ws.StartPagePrinter(handle))
             written = wintypes.DWORD()
@@ -74,7 +74,9 @@ def main() -> None:
 
     class Job(socketserver.StreamRequestHandler):
         def handle(self) -> None:
-            data = self.rfile.read()  # one connection = one job (Pantry closes after sending)
+            data = (
+                self.rfile.read()
+            )  # one connection = one job (Home Inventory closes after sending)
             if not data:
                 return
             try:

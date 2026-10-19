@@ -4,7 +4,7 @@ import { formStyles } from "./styles";
 import { getExpiringRecipes, type ExpiringRecipe, type Hass } from "./api";
 
 /** Recipes that use up what expires soon (same threshold as the list above), best first. */
-export class PantryExpiryRecipes extends LitElement {
+export class HomeInventoryExpiryRecipes extends LitElement {
   static properties = {
     hass: { attribute: false },
     days: { attribute: false },
@@ -47,7 +47,7 @@ export class PantryExpiryRecipes extends LitElement {
 
   private open(id: number) {
     this.dispatchEvent(
-      new CustomEvent("pantry-navigate", {
+      new CustomEvent("home-inventory-navigate", {
         detail: `recipes/${id}`,
         bubbles: true,
         composed: true,
@@ -89,4 +89,4 @@ export class PantryExpiryRecipes extends LitElement {
   ];
 }
 
-customElements.define("pantry-expiry-recipes", PantryExpiryRecipes);
+customElements.define("home-inventory-expiry-recipes", HomeInventoryExpiryRecipes);

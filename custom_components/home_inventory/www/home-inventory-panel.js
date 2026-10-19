@@ -1136,7 +1136,7 @@ var D = s`
   .field-hint {
     color: var(--warning-color);
   }
-  /* Errors only after the field was edited or left (data-touched, set in pantry-panel.ts):
+  /* Errors only after the field was edited or left (data-touched, set in home-inventory-panel.ts):
      an empty form does not open in red; the primary button is disabled anyway. */
   .field-error {
     display: none;
@@ -1273,10 +1273,10 @@ var D = s`
     `];
 	}
 };
-customElements.define("pantry-confirm", Tt);
+customElements.define("home-inventory-confirm", Tt);
 function O(e) {
 	return new Promise((t) => {
-		let n = document.createElement("pantry-confirm");
+		let n = document.createElement("home-inventory-confirm");
 		n.o = e, n.resolve = t, document.body.append(n);
 	});
 }
@@ -1409,90 +1409,90 @@ async function R(e, t) {
 	}
 	return n.message ?? String(t);
 }
-var z = (e, t) => e.filter((e) => !e.recipe_only || e.id === t), B = (e) => e.callWS({ type: "pantry/master_data" }), Ft = (e, t, n) => e.callWS({
-	type: "pantry/save",
+var z = (e, t) => e.filter((e) => !e.recipe_only || e.id === t), B = (e) => e.callWS({ type: "home_inventory/master_data" }), Ft = (e, t, n) => e.callWS({
+	type: "home_inventory/save",
 	table: t,
 	data: n
 }), It = (e, t) => e.callWS({
-	type: "pantry/defaults_save",
+	type: "home_inventory/defaults_save",
 	data: t
 }), Lt = (e, t, n, r = {}) => e.callWS({
-	type: "pantry/delete",
+	type: "home_inventory/delete",
 	table: t,
 	row_id: n,
 	...r
 }), Rt = (e, t, n) => e.callWS({
-	type: "pantry/move_location",
+	type: "home_inventory/move_location",
 	location_id: t,
 	move_to: n
 }), zt = (e, t, n) => e.callWS({
-	type: "pantry/delete_impact",
+	type: "home_inventory/delete_impact",
 	table: t,
 	row_id: n
 }), Bt = (e, t, n) => e.callWS({
-	type: "pantry/product_type_add",
+	type: "home_inventory/product_type_add",
 	name: t,
 	parent_id: n
 }), Vt = (e, t) => e.callWS({
-	type: "pantry/lookup",
+	type: "home_inventory/lookup",
 	code: t
 }), Ht = (e, t, n = !1) => e.callWS({
-	type: "pantry/search",
+	type: "home_inventory/search",
 	query: t,
 	online: n
 }), Ut = (e, t) => e.callWS({
-	type: "pantry/book_in",
+	type: "home_inventory/book_in",
 	...t
 }), Wt = (e, t) => e.callWS({
-	type: "pantry/book_out",
+	type: "home_inventory/book_out",
 	...t
 }), Gt = (e, t) => e.callWS({
-	type: "pantry/put_back",
+	type: "home_inventory/put_back",
 	booking_ids: t.map((e) => e.booking_id)
 }), Kt = (e, t) => e.callWS({
-	type: "pantry/stock_edit",
+	type: "home_inventory/stock_edit",
 	...t
 }), qt = (e, t) => e.callWS({
-	type: "pantry/stock",
+	type: "home_inventory/stock",
 	product_id: t
-}), Jt = (e) => e.callWS({ type: "pantry/products" }), Yt = (e, t) => e.callWS({
-	type: "pantry/product_save",
+}), Jt = (e) => e.callWS({ type: "home_inventory/products" }), Yt = (e, t) => e.callWS({
+	type: "home_inventory/product_save",
 	data: t
-}), Xt = (e) => e.callWS({ type: "pantry/label_config" }), Zt = (e, t) => e.callWS({
-	type: "pantry/print_labels",
+}), Xt = (e) => e.callWS({ type: "home_inventory/label_config" }), Zt = (e, t) => e.callWS({
+	type: "home_inventory/print_labels",
 	...t
-}), Qt = (e) => e.callWS({ type: "pantry/print_shopping_list" }), $t = (e, t, n) => e.callWS({
-	type: "pantry/print_recipe",
+}), Qt = (e) => e.callWS({ type: "home_inventory/print_shopping_list" }), $t = (e, t, n) => e.callWS({
+	type: "home_inventory/print_recipe",
 	recipe_id: t,
 	servings: n
 }), en = (e, t, n) => e.callWS({
-	type: "pantry/print_plan",
+	type: "home_inventory/print_plan",
 	start: t,
 	days: n
 }), tn = (e, t) => e.callWS({
-	type: "pantry/book_out_label",
+	type: "home_inventory/book_out_label",
 	code: t
-}), nn = (e) => e.callWS({ type: "pantry/recipes" }), rn = (e, t) => e.callWS({
-	type: "pantry/expiring_recipes",
+}), nn = (e) => e.callWS({ type: "home_inventory/recipes" }), rn = (e, t) => e.callWS({
+	type: "home_inventory/expiring_recipes",
 	...t == null ? {} : { days: t }
 }), an = (e, t, n) => e.callWS({
-	type: "pantry/recipe_availability",
+	type: "home_inventory/recipe_availability",
 	recipe_id: t,
 	servings: n
 }), on = (e, t) => e.callWS({
-	type: "pantry/recipe_save",
+	type: "home_inventory/recipe_save",
 	data: t
 }), V = (e) => e.canning_product_id != null, sn = (e, t) => e.callWS({
-	type: "pantry/recipe_import",
+	type: "home_inventory/recipe_import",
 	...t
 }), cn = (e, t) => e.callWS({
-	type: "pantry/recipe_ai_check",
+	type: "home_inventory/recipe_ai_check",
 	draft: t
 }), ln = (e, t) => e.callWS({
-	type: "pantry/product_ai_check",
+	type: "home_inventory/product_ai_check",
 	draft: t
 }), un = (e, t, n) => e.callWS({
-	type: "pantry/unit_add",
+	type: "home_inventory/unit_add",
 	name: t,
 	symbol: n
 }), dn, fn = (e) => dn = e, H = (e) => !dn || dn.includes(e), pn = !1, mn = (e) => pn = !!e, hn = () => pn, gn = !0, _n = (e) => gn = e ?? !0, vn = () => gn, yn = (e) => e?.locale?.language ?? e?.language, U = (e, t) => new Intl.DateTimeFormat(yn(e), { dateStyle: "medium" }).format(/* @__PURE__ */ new Date(`${t}T00:00`)), W = (e, t) => new Intl.NumberFormat(yn(e)).format(t), bn = (e, t, n, r, i = t) => E(new Intl.PluralRules(yn(e)).select(t) === "one" ? n : r, { n: i }), xn = (e, t) => bn(e, Number(t), "settings.day", "settings.days", t), G = (e, t) => e.toLocaleLowerCase().includes(t.toLocaleLowerCase()), K = (e, t, n = "") => `${W(e, t)} ${n ?? ""}`.trim(), Sn = (e, t) => bn(e, t, "recipes.portion", "recipes.portions");
@@ -1771,7 +1771,7 @@ var En = class extends T {
     `];
 	}
 };
-customElements.define("pantry-category-picker", En);
+customElements.define("home-inventory-category-picker", En);
 //#endregion
 //#region src/settings-format.ts
 function Dn(e, t) {
@@ -1944,7 +1944,7 @@ var Mn = {
 			this.error = await R(this.hass, e);
 			return;
 		}
-		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -2045,13 +2045,13 @@ var Mn = {
 			s = y`${this.field(E("common.name"), this.text("name"))}
         <div class="field">
           <span class="lbl">${E("settings.category.parent")}</span>
-          <pantry-category-picker
+          <home-inventory-category-picker
             .categories=${i.categories}
             .value=${n.parent_id ?? null}
             .noneLabel=${E("settings.category.no_parent")}
             .exclude=${n.id}
             @change=${(e) => this.set("parent_id", e.detail)}
-          ></pantry-category-picker>
+          ></home-inventory-category-picker>
         </div>
         ${this.inh("unit_id", E("settings.category.unit"), z(a, n.unit_id).map((e) => [e.id, e.symbol ? `${e.name} (${e.symbol})` : e.name]))}
         ${this.inh("default_location_id", E("settings.category.location"), o.map((e) => [e.id, e.name]))}
@@ -2084,7 +2084,7 @@ var Mn = {
 		this.styles = [D];
 	}
 };
-customElements.define("pantry-settings-dialog", In);
+customElements.define("home-inventory-settings-dialog", In);
 //#endregion
 //#region src/defaults-view.ts
 var Ln = [
@@ -2127,7 +2127,7 @@ var Ln = [
 		e.preventDefault();
 		let t = this.d;
 		if (!(this.warnError(t) || this.shelfError(t) || this.shelfError(t, "opened_days"))) try {
-			await It(this.hass, this.d), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			await It(this.hass, this.d), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -2239,7 +2239,7 @@ var Ln = [
 		this.styles = D;
 	}
 };
-customElements.define("pantry-defaults", Rn);
+customElements.define("home-inventory-defaults", Rn);
 //#endregion
 //#region src/meal-times-view.ts
 var zn = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, Bn = class extends T {
@@ -2259,7 +2259,7 @@ var zn = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, Bn = class extends T {
 	}
 	async load() {
 		try {
-			let e = await this.hass.callWS({ type: "pantry/meal_times" });
+			let e = await this.hass.callWS({ type: "home_inventory/meal_times" });
 			this.starts = e.map((e) => e.start);
 		} catch (e) {
 			this.error = await R(this.hass, e);
@@ -2271,7 +2271,7 @@ var zn = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, Bn = class extends T {
 	async save(e) {
 		if (e.preventDefault(), !this.d.some((e) => !zn.test(e))) try {
 			await this.hass.callWS({
-				type: "pantry/meal_times_save",
+				type: "home_inventory/meal_times_save",
 				starts: this.d
 			}), this.starts = [...this.d], this.renderRoot.querySelector("dialog")?.close();
 		} catch (e) {
@@ -2319,7 +2319,7 @@ var zn = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, Bn = class extends T {
 		this.styles = [D];
 	}
 };
-customElements.define("pantry-meal-times", Bn);
+customElements.define("home-inventory-meal-times", Bn);
 //#endregion
 //#region src/move-location.ts
 var Vn = class extends T {
@@ -2398,7 +2398,7 @@ var Vn = class extends T {
     `];
 	}
 };
-customElements.define("pantry-move-location", Vn);
+customElements.define("home-inventory-move-location", Vn);
 //#endregion
 //#region src/delete-flow.ts
 var Hn = 5, Un = (e, t) => {
@@ -2414,7 +2414,7 @@ var Hn = 5, Un = (e, t) => {
 async function Gn(e, t, n, r) {
 	let i = n === "location" || n === "unit" ? E(`settings.${n}.delete_hint`) : void 0, a = await zt(e, n, r.id);
 	if (a.blocked) throw {
-		translation_domain: "pantry",
+		translation_domain: "home_inventory",
 		translation_key: a.blocked,
 		message: a.blocked
 	};
@@ -2482,14 +2482,14 @@ var Kn = class extends T {
 		}
 	}
 	nav(e) {
-		this.dispatchEvent(new CustomEvent("pantry-navigate", {
+		this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 			detail: `settings/${e}`,
 			bubbles: !0,
 			composed: !0
 		}));
 	}
 	open(e, t, n = {}) {
-		this.renderRoot.querySelector("pantry-settings-dialog")?.open(e, t, n);
+		this.renderRoot.querySelector("home-inventory-settings-dialog")?.open(e, t, n);
 	}
 	tree() {
 		let e = this.data.categories, t = [], n = (r, i) => {
@@ -2549,16 +2549,16 @@ var Kn = class extends T {
                     ${E(Pn[t])}
                   </button>
                 </div>
-                ${e === "categories" ? this.renderCategories() : e === "locations" ? this.renderLocations() : this.renderUnits()}` : e === "meals" ? y`<pantry-meal-times .hass=${this.hass}></pantry-meal-times>` : y`<pantry-defaults
+                ${e === "categories" ? this.renderCategories() : e === "locations" ? this.renderLocations() : this.renderUnits()}` : e === "meals" ? y`<home-inventory-meal-times .hass=${this.hass}></home-inventory-meal-times>` : y`<home-inventory-defaults
                   .hass=${this.hass}
                   .data=${this.data}
-                  @pantry-saved=${this.load}
-                ></pantry-defaults>` : x}
-      <pantry-settings-dialog
+                  @home-inventory-saved=${this.load}
+                ></home-inventory-defaults>` : x}
+      <home-inventory-settings-dialog
         .hass=${this.hass}
         .data=${this.data}
-        @pantry-saved=${this.load}
-      ></pantry-settings-dialog>
+        @home-inventory-saved=${this.load}
+      ></home-inventory-settings-dialog>
     `;
 	}
 	empty(e) {
@@ -2580,7 +2580,7 @@ var Kn = class extends T {
 			onEdit: () => this.open(e, t),
 			onDelete: () => this.delRow(e, t),
 			...e === "location" ? {
-				onMove: () => this.renderRoot.querySelector("pantry-move-location").open(t),
+				onMove: () => this.renderRoot.querySelector("home-inventory-move-location").open(t),
 				moveLabel: E("settings.location.move_name", { name: t.name })
 			} : {},
 			...e === "category" ? {
@@ -2605,11 +2605,11 @@ var Kn = class extends T {
         ${e.map((e) => this.row(e.name, "", () => this.open("location", e), 0, x, this.actions("location", e)))}
       </ul>
       ${this.empty(e)}
-      <pantry-move-location
+      <home-inventory-move-location
         .hass=${this.hass}
         .locations=${e}
         @moved=${() => this.load()}
-      ></pantry-move-location>`;
+      ></home-inventory-move-location>`;
 	}
 	renderUnits() {
 		let { units: e } = this.data, t = (t) => {
@@ -2651,7 +2651,7 @@ var Kn = class extends T {
     `];
 	}
 };
-customElements.define("pantry-settings", Kn);
+customElements.define("home-inventory-settings", Kn);
 //#endregion
 //#region src/stock-data.ts
 function qn(e, t, n, r = [], i) {
@@ -2798,15 +2798,15 @@ var er = (e, t, n) => $n(e, async () => {
     ${k(st)}
   </button>`;
 }, rr = (e, t) => Zn(e.undo ? E("stock.taken_one", { name: e.undo.name }) : "", e.undo && (() => tr(e)), t), ir = (e, t) => e.callWS({
-	type: "pantry/open_package",
+	type: "home_inventory/open_package",
 	...t
 }), ar = (e, t) => e.callWS({
-	type: "pantry/open_label",
+	type: "home_inventory/open_label",
 	code: t
 }), or = (e, t) => e.callWS({
-	type: "pantry/open_undo",
+	type: "home_inventory/open_undo",
 	booking_id: t
-}), sr = (e, t) => e.dispatchEvent(new CustomEvent("pantry-print-label", {
+}), sr = (e, t) => e.dispatchEvent(new CustomEvent("home-inventory-print-label", {
 	detail: {
 		id: t.batch_id,
 		name: t.name,
@@ -2954,12 +2954,12 @@ function vr(e, t, n, r = {}, i) {
     </label>
     <div class="field">
       <span class="lbl">${E("book.category")}</span>
-      <pantry-category-picker
+      <home-inventory-category-picker
         .categories=${e?.categories ?? []}
         .value=${t.category_id}
         .hass=${i}
         @change=${(e) => n("category_id", e.detail)}
-      ></pantry-category-picker>
+      ></home-inventory-category-picker>
       ${N(r.category, "category")}
     </div>
     <div class="pair">
@@ -3066,7 +3066,7 @@ var br = [
 		let n = { id: t.id };
 		for (let e of br) n[e] = t[e] === "" ? null : t[e] ?? null;
 		try {
-			await Yt(this.hass, n), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			await Yt(this.hass, n), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -3171,7 +3171,7 @@ var br = [
 		this.styles = D;
 	}
 };
-customElements.define("pantry-product-dialog", xr);
+customElements.define("home-inventory-product-dialog", xr);
 //#endregion
 //#region src/batch-dialog.ts
 var Sr = class extends T {
@@ -3211,7 +3211,7 @@ var Sr = class extends T {
 				location_id: this.row.location_id,
 				expires_on: t.expires_on || null,
 				packages: Number(t.packages)
-			}), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			}), this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -3274,7 +3274,7 @@ var Sr = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-batch-dialog", Sr);
+customElements.define("home-inventory-batch-dialog", Sr);
 //#endregion
 //#region src/label-print.ts
 function Cr(e, t, n, r) {
@@ -3323,7 +3323,7 @@ var Tr = class extends T {
 		if (e.preventDefault(), !this.invalid()) try {
 			let e = await wr(this.hass, this.batch.id, Number(this.count));
 			if (e === null) return;
-			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-printed", {
+			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-printed", {
 				detail: e,
 				bubbles: !0,
 				composed: !0
@@ -3368,14 +3368,14 @@ var Tr = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-label-dialog", Tr);
+customElements.define("home-inventory-label-dialog", Tr);
 //#endregion
 //#region src/api-purchase.ts
 var Er = (e, t) => e.callWS({
-	type: "pantry/receipt_read",
+	type: "home_inventory/receipt_read",
 	text: t
 }), Dr = (e, t, n) => e.callWS({
-	type: "pantry/receipt_book",
+	type: "home_inventory/receipt_book",
 	store: t,
 	items: n
 }), Or = [
@@ -3442,12 +3442,12 @@ function Lr(e) {
             </label>
             <div>
               <span class="lbl">${E("book.category")}</span>
-              <pantry-category-picker
+              <home-inventory-category-picker
                 .categories=${e.md?.categories ?? []}
                 .value=${t.category_id}
                 .hass=${e.hass}
                 @change=${(t) => e.set({ category_id: t.detail })}
-              ></pantry-category-picker>
+              ></home-inventory-category-picker>
               ${N(r.category, `${i}-category`)}
             </div>` : x}
     ${t.choice === "skip" ? x : y`<div class="pair">
@@ -3740,7 +3740,7 @@ var Xr = .01, Zr = class extends T {
   `;
 	}
 };
-customElements.define("pantry-scan-corners", Zr);
+customElements.define("home-inventory-scan-corners", Zr);
 //#endregion
 //#region src/camera-dialog.ts
 var Qr = 480, $r = 1e3, ei = 200;
@@ -3852,11 +3852,11 @@ var ni = (e, t) => e?.map((e) => ({
       ${this.scan ? y`<p class="detail">${E("camera.live_hint")}</p>` : x}`;
 	}
 	cornerView() {
-		return y`<pantry-scan-corners
+		return y`<home-inventory-scan-corners
         .image=${this.still}
         .quad=${this.quad}
         @change=${(e) => this.quad = e.detail}
-      ></pantry-scan-corners>
+      ></home-inventory-scan-corners>
       <p class="detail">${E("camera.corners_hint")}</p>`;
 	}
 	actions() {
@@ -3931,7 +3931,7 @@ var ni = (e, t) => e?.map((e) => ({
     `];
 	}
 };
-customElements.define("pantry-camera", ri);
+customElements.define("home-inventory-camera", ri);
 //#endregion
 //#region src/receipt-import.ts
 var ii = 3e3, ai = class extends T {
@@ -4021,7 +4021,7 @@ var ii = 3e3, ai = class extends T {
 		if (e.preventDefault(), this.error = "", !this.invalid()) return this.rows ? this.book() : this.read();
 	}
 	camera() {
-		return this.renderRoot.querySelector("pantry-camera");
+		return this.renderRoot.querySelector("home-inventory-camera");
 	}
 	async scanReceipt() {
 		let e = await this.camera().take(!0);
@@ -4110,7 +4110,7 @@ var ii = 3e3, ai = class extends T {
 			dirty: () => !!(this.image || this.rows),
 			onSubmit: (e) => this.submit(e),
 			onClosed: () => this.active = !1
-		})}<pantry-camera></pantry-camera>`;
+		})}<home-inventory-camera></home-inventory-camera>`;
 	}
 	static {
 		this.styles = [
@@ -4141,7 +4141,7 @@ var ii = 3e3, ai = class extends T {
 		];
 	}
 };
-customElements.define("pantry-receipt-import", ai);
+customElements.define("home-inventory-receipt-import", ai);
 //#endregion
 //#region src/scanner.ts
 var oi = [
@@ -4229,7 +4229,7 @@ var ci = class extends T {
     `];
 	}
 };
-customElements.define("pantry-scanner", ci);
+customElements.define("home-inventory-scanner", ci);
 //#endregion
 //#region src/booking-scan.ts
 var li = class extends T {
@@ -4267,12 +4267,12 @@ var li = class extends T {
           type="button"
           data-testid="camera"
           aria-label=${E("book.camera")}
-          @click=${() => this.renderRoot.querySelector("pantry-scanner")?.open()}
+          @click=${() => this.renderRoot.querySelector("home-inventory-scanner")?.open()}
         >
           ${k(Ke)}<span>${E("book.camera")}</span>
         </button>
       </form>
-      <pantry-scanner @scan=${this.scanned}></pantry-scanner>
+      <home-inventory-scanner @scan=${this.scanned}></home-inventory-scanner>
     `;
 	}
 	static {
@@ -4301,7 +4301,7 @@ var li = class extends T {
     `];
 	}
 };
-customElements.define("pantry-booking-scan", li);
+customElements.define("home-inventory-booking-scan", li);
 //#endregion
 //#region src/booking-in-fields.ts
 function ui(e, t, n, r, i) {
@@ -4720,7 +4720,7 @@ var _i = s`
 		];
 	}
 };
-customElements.define("pantry-booking-form", Ei);
+customElements.define("home-inventory-booking-form", Ei);
 //#endregion
 //#region src/booking-hits.ts
 function Di(e, t) {
@@ -4841,7 +4841,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
 		};
 	}
 	constructor() {
-		super(), this.seq = 0, this.started = !1, this.dirty = () => !!this.renderRoot.querySelector("pantry-booking-form")?.dirty(), this.run = async (e) => {
+		super(), this.seq = 0, this.started = !1, this.dirty = () => !!this.renderRoot.querySelector("home-inventory-booking-form")?.dirty(), this.run = async (e) => {
 			this.busy = !0, this.error = "";
 			try {
 				return await e();
@@ -4870,7 +4870,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
 		n && !t?.open ? t?.showModal() : !n && t?.open && t.close();
 	}
 	setMode(e) {
-		this.dispatchEvent(new CustomEvent("pantry-navigate", {
+		this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 			detail: e === "search" ? "stock" : e,
 			bubbles: !0,
 			composed: !0
@@ -4880,7 +4880,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
 		(this.hits || this.product) && this.reset(), this.focusInput();
 	}
 	focusInput() {
-		this.renderRoot.querySelector("pantry-booking-scan")?.focusInput();
+		this.renderRoot.querySelector("home-inventory-booking-scan")?.focusInput();
 	}
 	async fail(e) {
 		this.error = this.hass ? await R(this.hass, e) : String(e);
@@ -4919,33 +4919,33 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
 			this.stock = n;
 		}
 		await this.updateComplete;
-		let n = this.renderRoot.querySelector("pantry-booking-form");
+		let n = this.renderRoot.querySelector("home-inventory-booking-form");
 		await n?.updateComplete, n?.focusFirst();
 	}
 	render() {
 		let e = !!(this.hits || this.product), t = this.error ? y`<p class="error" role="alert" data-testid="error">${this.error}</p>` : x;
 		return y`
-      <pantry-booking-scan
+      <home-inventory-booking-scan
         .value=${this.query}
         @query=${(e) => this.query = e.detail}
         @find=${() => this.find()}
       >
         ${ki(this.mode, (e) => this.setMode(e))}
-      </pantry-booking-scan>
+      </home-inventory-booking-scan>
       ${Fi(this)} ${e ? x : t}
       ${this.mode === "in" && hn() ? y`<button
               type="button"
               class="receipt"
               data-testid="receipt-import"
-              @click=${() => this.renderRoot.querySelector("pantry-receipt-import").open()}
+              @click=${() => this.renderRoot.querySelector("home-inventory-receipt-import").open()}
             >
               ${k(dt)} ${E("receipt.open")}
             </button>` : x}
-      <pantry-receipt-import
+      <home-inventory-receipt-import
         .hass=${this.hass}
         .md=${this.md}
         @booked=${this.receiptBooked}
-      ></pantry-receipt-import>
+      ></home-inventory-receipt-import>
       <dialog
         data-testid="booking-dialog"
         @close=${this.closed}
@@ -4968,7 +4968,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
     `;
 	}
 	renderForm() {
-		return this.product ? y`<pantry-booking-form
+		return this.product ? y`<home-inventory-booking-form
       .hass=${this.hass}
       .mode=${this.mode}
       .product=${this.product}
@@ -4979,7 +4979,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
       @booked=${this.booked}
       @master=${(e) => (this.md = e.detail, this.requestUpdate())}
       @cancel=${() => this.closed()}
-    ></pantry-booking-form>` : x;
+    ></home-inventory-booking-form>` : x;
 	}
 	booked(e) {
 		let t = this.error;
@@ -5004,7 +5004,7 @@ var Fi = (e) => e.opened ? cr(e.hass, e.opened, () => Pi(e), () => sr(e, e.opene
 		];
 	}
 };
-customElements.define("pantry-booking", Ri);
+customElements.define("home-inventory-booking", Ri);
 //#endregion
 //#region src/stock-view.ts
 var zi = class extends T {
@@ -5088,13 +5088,13 @@ var zi = class extends T {
 	}
 	render() {
 		let e = this.error ? y`<p class="error" role="alert">${this.error}</p>` : x;
-		return y`${y`<pantry-booking
+		return y`${y`<home-inventory-booking
       .hass=${this.hass}
       .mode=${this.mode}
       @query=${(e) => this.filter = e.detail}
       @booked=${this.saved}
-      @pantry-print-label=${(e) => this.label(e.detail)}
-    ></pantry-booking>`} ${e} ${this.stock ? this.list(this.stock) : x}`;
+      @home-inventory-print-label=${(e) => this.label(e.detail)}
+    ></home-inventory-booking>`} ${e} ${this.stock ? this.list(this.stock) : x}`;
 	}
 	list(e) {
 		let t = this.tree(this.filter.trim() !== "");
@@ -5111,21 +5111,24 @@ var zi = class extends T {
             </ul>` : y`<p class="empty">
               ${E(e.length || this.filter.trim() ? "book.no_hits" : "stock.empty")}
             </p>`}
-      <pantry-product-dialog
+      <home-inventory-product-dialog
         .hass=${this.hass}
         .md=${this.md}
-        @pantry-saved=${this.saved}
+        @home-inventory-saved=${this.saved}
         @master=${(e) => this.md = e.detail}
-      ></pantry-product-dialog>
-      <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-batch-dialog>
-      <pantry-label-dialog
+      ></home-inventory-product-dialog>
+      <home-inventory-batch-dialog
         .hass=${this.hass}
-        @pantry-printed=${(e) => this.message = e.detail ? E("label.printed", { n: e.detail }) : ""}
-      ></pantry-label-dialog>
+        @home-inventory-saved=${this.saved}
+      ></home-inventory-batch-dialog>
+      <home-inventory-label-dialog
+        .hass=${this.hass}
+        @home-inventory-printed=${(e) => this.message = e.detail ? E("label.printed", { n: e.detail }) : ""}
+      ></home-inventory-label-dialog>
     `;
 	}
 	editProduct(e) {
-		this.renderRoot.querySelector("pantry-product-dialog").open(this.products.get(e), [...this.products.values()]);
+		this.renderRoot.querySelector("home-inventory-product-dialog").open(this.products.get(e), [...this.products.values()]);
 	}
 	async deleteProduct(e) {
 		this.error = "";
@@ -5145,10 +5148,10 @@ var zi = class extends T {
 		});
 	}
 	label(e) {
-		this.renderRoot.querySelector("pantry-label-dialog")?.open(e);
+		this.renderRoot.querySelector("home-inventory-label-dialog")?.open(e);
 	}
 	editBatch(e) {
-		this.renderRoot.querySelector("pantry-batch-dialog").open(e);
+		this.renderRoot.querySelector("home-inventory-batch-dialog").open(e);
 	}
 	renderItem(e, t, n) {
 		let r = e.batches[0], i = r ? () => this.toggle(`p${e.id}`) : () => this.editProduct(e.id);
@@ -5210,7 +5213,7 @@ var zi = class extends T {
 		];
 	}
 };
-customElements.define("pantry-stock", zi);
+customElements.define("home-inventory-stock", zi);
 //#endregion
 //#region src/expiry-recipes.ts
 var Bi = class extends T {
@@ -5238,7 +5241,7 @@ var Bi = class extends T {
 		}
 	}
 	open(e) {
-		this.dispatchEvent(new CustomEvent("pantry-navigate", {
+		this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 			detail: `recipes/${e}`,
 			bubbles: !0,
 			composed: !0
@@ -5274,7 +5277,7 @@ var Bi = class extends T {
     `];
 	}
 };
-customElements.define("pantry-expiry-recipes", Bi);
+customElements.define("home-inventory-expiry-recipes", Bi);
 //#endregion
 //#region src/expiry-view.ts
 var Vi = class extends T {
@@ -5364,11 +5367,11 @@ var Vi = class extends T {
                     ${nr(this, e.name, e, "expiry-out")}
                   </li>`)}
             </ul>` : y`<p class="empty">${E("expiry.empty")}</p>`}
-      ${H("recipes") ? y`<pantry-expiry-recipes
+      ${H("recipes") ? y`<home-inventory-expiry-recipes
               .hass=${this.hass}
               .days=${n}
               .stock=${this.stock}
-            ></pantry-expiry-recipes>` : x}
+            ></home-inventory-expiry-recipes>` : x}
     `;
 	}
 	static {
@@ -5407,7 +5410,7 @@ var Vi = class extends T {
 		];
 	}
 };
-customElements.define("pantry-expiry", Vi);
+customElements.define("home-inventory-expiry", Vi);
 //#endregion
 //#region node_modules/lit-html/directive.js
 var $ = {
@@ -5452,30 +5455,30 @@ var $ = {
 		} else if (e.type === $.ATTRIBUTE && n.getAttribute(r) === t + "") return b;
 		return qi(e), t;
 	}
-}), Yi = (e) => e.callWS({ type: "pantry/shopping" }), Xi = (e, t, n) => e.callWS({
-	type: "pantry/shopping_done",
+}), Yi = (e) => e.callWS({ type: "home_inventory/shopping" }), Xi = (e, t, n) => e.callWS({
+	type: "home_inventory/shopping_done",
 	...t.product_id ? { product_id: t.product_id } : { category_id: t.category_id },
 	done: n
 }), Zi = (e, t) => e.callWS({
-	type: "pantry/shopping_add",
+	type: "home_inventory/shopping_add",
 	...t
 }), Qi = (e, t, n) => e.callWS({
-	type: "pantry/shopping_item",
+	type: "home_inventory/shopping_item",
 	item_id: t,
 	...n
 }), $i = (e, t) => e.callWS({
-	type: "pantry/shopping_item_delete",
+	type: "home_inventory/shopping_item_delete",
 	item_id: t
-}), ea = (e) => e.callWS({ type: "pantry/shopping_recipes" }), ta = (e, t, n, r) => e.callWS({
-	type: "pantry/shopping_recipe_set",
+}), ea = (e) => e.callWS({ type: "home_inventory/shopping_recipes" }), ta = (e, t, n, r) => e.callWS({
+	type: "home_inventory/shopping_recipe_set",
 	recipe_id: t,
 	servings: n,
 	optional: r
 }), na = (e, t) => e.callWS({
-	type: "pantry/shopping_recipe_remove",
+	type: "home_inventory/shopping_recipe_remove",
 	recipe_id: t
 }), ra = (e, t, n) => e.callWS({
-	type: "pantry/shopping_recipe_done",
+	type: "home_inventory/shopping_recipe_done",
 	key: t,
 	done: n
 });
@@ -5606,7 +5609,7 @@ var oa = s`
 			this.error = await R(this.hass, e);
 			return;
 		}
-		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -5697,7 +5700,7 @@ var oa = s`
       </label>
       <div class="field">
         <span class="lbl">${E("settings.category.parent")}</span>
-        <pantry-category-picker
+        <home-inventory-category-picker
           .categories=${this.md?.categories ?? []}
           .value=${t.parent_id}
           .noneLabel=${E("settings.category.no_parent")}
@@ -5705,7 +5708,7 @@ var oa = s`
 			...t,
 			parent_id: e.detail
 		}}
-        ></pantry-category-picker>
+        ></home-inventory-category-picker>
       </div>`;
 	}
 	render() {
@@ -5745,7 +5748,7 @@ var oa = s`
 		this.styles = D;
 	}
 };
-customElements.define("pantry-shopping-add", ca);
+customElements.define("home-inventory-shopping-add", ca);
 //#endregion
 //#region src/shopping-recipe-dialog.ts
 var la = class extends T {
@@ -5774,7 +5777,7 @@ var la = class extends T {
 	async request(e, t) {
 		let n = (await ea(this.hass)).find((t) => t.recipe_id === e.id), r = t ?? n?.servings ?? e.servings;
 		if (e.ingredients.some((e) => e.optional)) return this.open(e, r, n?.optional);
-		await ta(this.hass, e.id, r, []), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		await ta(this.hass, e.id, r, []), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -5791,7 +5794,7 @@ var la = class extends T {
 				this.error = await R(this.hass, e);
 				return;
 			}
-			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -5848,7 +5851,7 @@ var la = class extends T {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-shopping-recipe-dialog", la);
+customElements.define("home-inventory-shopping-recipe-dialog", la);
 //#endregion
 //#region src/shopping-recipes.ts
 var ua = class extends T {
@@ -5874,7 +5877,7 @@ var ua = class extends T {
 	}
 	edit(e) {
 		let t = this.recipes.find((t) => t.id === e.recipe_id);
-		t && this.renderRoot.querySelector("pantry-shopping-recipe-dialog").open(t, e.servings, e.optional);
+		t && this.renderRoot.querySelector("home-inventory-shopping-recipe-dialog").open(t, e.servings, e.optional);
 	}
 	async removeEntry(e) {
 		if (await Et(e.name)) {
@@ -5884,7 +5887,7 @@ var ua = class extends T {
 				this.error = await R(this.hass, e);
 				return;
 			}
-			await this.load(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			await this.load(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				bubbles: !0,
 				composed: !0
 			}));
@@ -5892,10 +5895,10 @@ var ua = class extends T {
 	}
 	render() {
 		return y`${this.error ? y`<p class="error" role="alert">${this.error}</p>` : x}
-      <pantry-shopping-recipe-dialog
+      <home-inventory-shopping-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-recipe-dialog>
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-recipe-dialog>
       ${this.list.length ? y`<h3>${E("shopping.recipes.title")}</h3>
               <ul>
                 ${this.list.map((e) => y`<li data-testid="shopping-recipe">
@@ -5938,7 +5941,7 @@ var ua = class extends T {
     `];
 	}
 };
-customElements.define("pantry-shopping-recipes", ua);
+customElements.define("home-inventory-shopping-recipes", ua);
 //#endregion
 //#region src/shopping-view.ts
 var da = class extends T {
@@ -6000,7 +6003,7 @@ var da = class extends T {
 		}
 	}
 	openAdd(e) {
-		this.renderRoot.querySelector("pantry-shopping-add").open(e);
+		this.renderRoot.querySelector("home-inventory-shopping-add").open(e);
 	}
 	row(e, t, n = !1) {
 		let r = ia(this.hass, e), i = aa(this.hass, e), a = r ? `${e.name} – ${r}` : e.name;
@@ -6074,14 +6077,14 @@ var da = class extends T {
               </button>` : x}
       </div>
       ${this.note ? y`<p class="detail" role="status" data-testid="shopping-printed">${this.note}</p>` : x}
-      <pantry-shopping-recipes
+      <home-inventory-shopping-recipes
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-recipes>
-      <pantry-shopping-add
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-recipes>
+      <home-inventory-shopping-add
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-add>`}
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-add>`}
     ${this.items.length ? y`<ul>
             ${this.tree(this.items, this.cats)}
           </ul>` : y`<p class="empty">${E("shopping.empty")}</p>`}`;
@@ -6117,7 +6120,7 @@ var da = class extends T {
 		];
 	}
 };
-customElements.define("pantry-shopping", da);
+customElements.define("home-inventory-shopping", da);
 //#endregion
 //#region src/recipes-styles.ts
 var fa = s`
@@ -6284,7 +6287,7 @@ var fa = s`
             >` : x}` : x;
 	}
 };
-customElements.define("pantry-receipt-button", ya);
+customElements.define("home-inventory-receipt-button", ya);
 //#endregion
 //#region src/recipe-detail.ts
 var ba = (e, t, n, r) => {
@@ -6343,12 +6346,12 @@ var ba = (e, t, n, r) => {
             </button>` : H("plan") ? y`<button type="button" data-testid="recipe-to-plan" @click=${e.onPlan}>
                 ${E("recipes.to_plan")}
               </button>` : x}
-      <pantry-receipt-button
+      <home-inventory-receipt-button
         .hass=${e.hass}
         .print=${() => $t(e.hass, t.id, e.servings)}
         .done=${E("recipes.printed")}
         .testid=${"recipe-print"}
-      ></pantry-receipt-button>
+      ></home-inventory-receipt-button>
       ${t.shopping_servings != null && H("shopping") ? y`<span class="detail" data-testid="recipe-on-shopping"
               >${E("recipes.on_shopping", { what: Sn(e.hass, t.shopping_servings) })}</span
             >` : x}
@@ -6595,11 +6598,11 @@ var ba = (e, t, n, r) => {
           </button>
         </p>` : this.creating ? y`<div class="field">
         <span class="lbl">${E("recipes.ingredient.parent", { name: this.creating })}</span>
-        <pantry-category-picker
+        <home-inventory-category-picker
           .categories=${this.foods()}
           .value=${null}
           @change=${(e) => this.create(e.detail)}
-        ></pantry-category-picker>
+        ></home-inventory-category-picker>
         ${this.failure ? y`<p class="error" role="alert">${this.failure}</p>` : x}
         <button type="button" class="reset" @click=${() => this.creating = void 0}>
           ${E("common.cancel")}
@@ -6622,7 +6625,7 @@ var ba = (e, t, n, r) => {
 		this.styles = D;
 	}
 };
-customElements.define("pantry-ingredient-pick", ja);
+customElements.define("home-inventory-ingredient-pick", ja);
 //#endregion
 //#region src/unit-add-dialog.ts
 var Ma = class extends T {
@@ -6696,7 +6699,7 @@ var Ma = class extends T {
 		this.styles = [D];
 	}
 };
-customElements.define("pantry-unit-add-dialog", Ma);
+customElements.define("home-inventory-unit-add-dialog", Ma);
 //#endregion
 //#region src/recipe-ingredients.ts
 var Na = class extends T {
@@ -6712,7 +6715,7 @@ var Na = class extends T {
 		super(), this.unitFor = 0, this.value = [], this.categories = [], this.units = [];
 	}
 	newUnit(e, t = "") {
-		this.unitFor = e, this.renderRoot.querySelector("pantry-unit-add-dialog").open(t);
+		this.unitFor = e, this.renderRoot.querySelector("home-inventory-unit-add-dialog").open(t);
 	}
 	unitAdded(e) {
 		let { id: t, md: n } = e.detail;
@@ -6749,7 +6752,7 @@ var Na = class extends T {
 	row(e, t, n) {
 		let r = !!e.unit_hint && e.unit_id == null;
 		return y`<li data-testid="ingredient-row" class="ing">
-      <pantry-ingredient-pick
+      <home-inventory-ingredient-pick
         .hass=${this.hass}
         .categories=${this.categories}
         .value=${e.category_id}
@@ -6759,7 +6762,7 @@ var Na = class extends T {
         @master=${(e) => {
 			this.categories = e.detail.categories, this.dispatchEvent(new CustomEvent("master", { detail: e.detail }));
 		}}
-      ></pantry-ingredient-pick>
+      ></home-inventory-ingredient-pick>
       <div class="line">
         <label>
           <span class="lbl">${E("recipes.ingredient.amount")}</span>
@@ -6855,10 +6858,10 @@ var Na = class extends T {
 	}
 	render() {
 		let e = wa(this.value);
-		return y`<pantry-unit-add-dialog
+		return y`<home-inventory-unit-add-dialog
         .hass=${this.hass}
         @unit-added=${(e) => this.unitAdded(e)}
-      ></pantry-unit-add-dialog>
+      ></home-inventory-unit-add-dialog>
       <div class="lbl">${E("recipes.ingredients")}</div>
       <ul>
         ${this.value.map((t, n) => this.row(t, n, e[n]))}
@@ -6924,7 +6927,7 @@ var Na = class extends T {
     `];
 	}
 };
-customElements.define("pantry-recipe-ingredients", Na);
+customElements.define("home-inventory-recipe-ingredients", Na);
 //#endregion
 //#region src/form-fields.ts
 var Pa = (e) => y`<label>
@@ -6980,12 +6983,12 @@ function Ia(e) {
     </label>
     ${r ? y`<div class="field">
             <span class="lbl">${E("book.category")}</span>
-            <pantry-category-picker
+            <home-inventory-category-picker
               .categories=${e.md?.categories ?? []}
               .value=${e.categoryId}
               .hass=${e.hass}
               @change=${(t) => e.onCategory(t.detail)}
-            ></pantry-category-picker>
+            ></home-inventory-category-picker>
             ${N(e.err.category, `${t}-category`)}
           </div>` : x}`;
 }
@@ -7111,7 +7114,7 @@ var La = (e) => e.text.length > (e.kind === "head" ? 100 : 2e3) ? E("valid.too_l
     `];
 	}
 };
-customElements.define("pantry-recipe-steps", Ra);
+customElements.define("home-inventory-recipe-steps", Ra);
 //#endregion
 //#region src/recipe-draft.ts
 var za = (e) => ({
@@ -7227,7 +7230,7 @@ var za = (e) => ({
 			this.error = await R(this.hass, e);
 			return;
 		}
-		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -7331,7 +7334,7 @@ var za = (e) => ({
               </div>` : x}
         ${this.text("source_url", E("recipes.field.source_url"), e.source_url, "url")}
         ${this.text("image_url", E("recipes.field.image_url"), e.image_url, "url")}
-        <pantry-recipe-ingredients
+        <home-inventory-recipe-ingredients
           .hass=${this.hass}
           .value=${n.ingredients}
           @master=${(e) => {
@@ -7343,14 +7346,14 @@ var za = (e) => ({
 				...n,
 				ingredients: e.detail
 			}}
-        ></pantry-recipe-ingredients>
-        <pantry-recipe-steps
+        ></home-inventory-recipe-ingredients>
+        <home-inventory-recipe-steps
           .value=${n.steps}
           @change=${(e) => this.draft = {
 				...n,
 				steps: e.detail
 			}}
-        ></pantry-recipe-steps>`,
+        ></home-inventory-recipe-steps>`,
 			error: this.error,
 			invalid: Object.keys(e).length > 0 || t || this.ai.kind === "running",
 			submit: {
@@ -7368,7 +7371,7 @@ var za = (e) => ({
 		this.styles = [D, Ct];
 	}
 };
-customElements.define("pantry-recipe-dialog", Va);
+customElements.define("home-inventory-recipe-dialog", Va);
 //#endregion
 //#region src/recipe-import.ts
 var Ha = [
@@ -7407,7 +7410,7 @@ var Ha = [
 		return this.source === "text" ? { text: this.text.trim() } : this.source === "photo" ? { image: this.photo } : { url: this.url.trim() };
 	}
 	async takePhoto() {
-		let e = await this.renderRoot.querySelector("pantry-camera").take(!1);
+		let e = await this.renderRoot.querySelector("home-inventory-camera").take(!1);
 		e && (this.photo = e);
 	}
 	async pickPhoto(e) {
@@ -7423,7 +7426,7 @@ var Ha = [
 			this.busy = !0, this.error = "";
 			try {
 				let e = await sn(this.hass, this.request());
-				this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-imported", { detail: e }));
+				this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-imported", { detail: e }));
 			} catch (e) {
 				this.error = await R(this.hass, e);
 			}
@@ -7511,7 +7514,7 @@ var Ha = [
 			dirty: () => !!(this.url.trim() || this.text.trim() || this.photo),
 			onSubmit: (e) => this.submit(e),
 			onClosed: () => this.active = !1
-		})}<pantry-camera></pantry-camera>`;
+		})}<home-inventory-camera></home-inventory-camera>`;
 	}
 	static {
 		this.styles = [D, s`
@@ -7577,26 +7580,26 @@ var Ha = [
     `];
 	}
 };
-customElements.define("pantry-recipe-import", Wa);
+customElements.define("home-inventory-recipe-import", Wa);
 //#endregion
 //#region src/api-plan.ts
 var Ga = (e, t, n) => e.callWS({
-	type: "pantry/meal_plan",
+	type: "home_inventory/meal_plan",
 	start: t,
 	end: n
 }), Ka = (e, t) => e.callWS({
-	type: "pantry/meal_save",
+	type: "home_inventory/meal_save",
 	data: t
 }), qa = (e, t) => e.callWS({
-	type: "pantry/meal_delete",
+	type: "home_inventory/meal_delete",
 	meal_id: t
 }), Ja = (e, t, n, r) => e.callWS({
-	type: "pantry/meal_shift",
+	type: "home_inventory/meal_shift",
 	day: t,
 	slot: n,
 	apply: r
 }), Ya = (e, t, n) => e.callWS({
-	type: "pantry/plan_to_shopping_list",
+	type: "home_inventory/plan_to_shopping_list",
 	start: t,
 	end: n
 }), Xa = class extends T {
@@ -7646,7 +7649,7 @@ var Ga = (e, t, n) => e.callWS({
 			this.error = await R(this.hass, e);
 			return;
 		}
-		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+		this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 			bubbles: !0,
 			composed: !0
 		}));
@@ -7740,7 +7743,7 @@ var Ga = (e, t, n) => e.callWS({
 		this.styles = D;
 	}
 };
-customElements.define("pantry-meal-dialog", Xa);
+customElements.define("home-inventory-meal-dialog", Xa);
 //#endregion
 //#region src/cook-mode.ts
 var Za = (e) => {
@@ -7988,7 +7991,7 @@ var Za = (e) => {
     `];
 	}
 };
-customElements.define("pantry-cook-mode", $a);
+customElements.define("home-inventory-cook-mode", $a);
 //#endregion
 //#region src/recipes-view.ts
 var eo = class extends T {
@@ -8054,7 +8057,7 @@ var eo = class extends T {
 	async toShopping(e) {
 		this.error = "";
 		try {
-			await this.renderRoot.querySelector("pantry-shopping-recipe-dialog").request(e, this.servings.get(e.id));
+			await this.renderRoot.querySelector("home-inventory-shopping-recipe-dialog").request(e, this.servings.get(e.id));
 		} catch (e) {
 			this.error = await R(this.hass, e);
 		}
@@ -8071,10 +8074,10 @@ var eo = class extends T {
 		}
 	}
 	edit(e) {
-		this.renderRoot.querySelector("pantry-recipe-dialog").open(this.md, e, void 0, !!this.canning);
+		this.renderRoot.querySelector("home-inventory-recipe-dialog").open(this.md, e, void 0, !!this.canning);
 	}
 	importer() {
-		return this.renderRoot.querySelector("pantry-recipe-import");
+		return this.renderRoot.querySelector("home-inventory-recipe-import");
 	}
 	shown() {
 		let e = this.query.trim();
@@ -8113,12 +8116,12 @@ var eo = class extends T {
 			servings: r,
 			onServings: (t) => this.setServings(e, t),
 			onShopping: () => this.toShopping(e),
-			onPlan: () => V(e) ? this.dispatchEvent(new CustomEvent("pantry-canning-start", {
+			onPlan: () => V(e) ? this.dispatchEvent(new CustomEvent("home-inventory-canning-start", {
 				detail: e.id,
 				bubbles: !0,
 				composed: !0
-			})) : this.renderRoot.querySelector("pantry-meal-dialog").open(P(), 3, this.recipes, r, void 0, e.name),
-			onCook: () => this.renderRoot.querySelector("pantry-cook-mode").open(this.hass, this.md, e, this.scaled.get(e.id) ?? e.ingredients, r)
+			})) : this.renderRoot.querySelector("home-inventory-meal-dialog").open(P(), 3, this.recipes, r, void 0, e.name),
+			onCook: () => this.renderRoot.querySelector("home-inventory-cook-mode").open(this.hass, this.md, e, this.scaled.get(e.id) ?? e.ingredients, r)
 		}) : x}
     </li>`;
 	}
@@ -8152,22 +8155,22 @@ var eo = class extends T {
               />
               ${E("recipes.expiring_only")}
             </label>` : x}
-      <pantry-recipe-import
+      <home-inventory-recipe-import
         .hass=${this.hass}
-        @pantry-imported=${(e) => this.renderRoot.querySelector("pantry-recipe-dialog").open(this.md, void 0, e.detail, !!this.canning)}
-      ></pantry-recipe-import>
-      <pantry-shopping-recipe-dialog
+        @home-inventory-imported=${(e) => this.renderRoot.querySelector("home-inventory-recipe-dialog").open(this.md, void 0, e.detail, !!this.canning)}
+      ></home-inventory-recipe-import>
+      <home-inventory-shopping-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.refreshShopping()}
-      ></pantry-shopping-recipe-dialog>
-      <pantry-meal-dialog .hass=${this.hass}></pantry-meal-dialog>
-      <pantry-cook-mode></pantry-cook-mode>
-      <pantry-recipe-dialog
+        @home-inventory-saved=${() => this.refreshShopping()}
+      ></home-inventory-shopping-recipe-dialog>
+      <home-inventory-meal-dialog .hass=${this.hass}></home-inventory-meal-dialog>
+      <home-inventory-cook-mode></home-inventory-cook-mode>
+      <home-inventory-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
+        @home-inventory-saved=${() => this.load()}
         @master=${(e) => this.md = e.detail}
       >
-      </pantry-recipe-dialog>
+      </home-inventory-recipe-dialog>
       ${t.length ? y`<ul>
               ${t.map((e) => this.row(e))}
             </ul>` : y`<p class="empty">
@@ -8178,7 +8181,7 @@ var eo = class extends T {
 		this.styles = [D, fa];
 	}
 };
-customElements.define("pantry-recipes", eo);
+customElements.define("home-inventory-recipes", eo);
 //#endregion
 //#region src/plan-shift.ts
 var to = (e, t) => y`<button
@@ -8565,7 +8568,7 @@ var go = s`
 			let e = await Ya(this.hass, this.from, this.to);
 			this.renderRoot.querySelector("dialog")?.close();
 			let t = e.recipes.length ? E("plan.shop.done", { recipes: e.recipes.map((e) => `${e.name} (${e.servings})`).join(", ") }) : E("plan.shop.none");
-			this.dispatchEvent(new CustomEvent("pantry-shopped", {
+			this.dispatchEvent(new CustomEvent("home-inventory-shopped", {
 				detail: t,
 				bubbles: !0,
 				composed: !0
@@ -8618,7 +8621,7 @@ var go = s`
 		this.styles = D;
 	}
 };
-customElements.define("pantry-plan-shopping-dialog", yo);
+customElements.define("home-inventory-plan-shopping-dialog", yo);
 //#endregion
 //#region src/plan-view.ts
 var bo = class extends T {
@@ -8662,14 +8665,14 @@ var bo = class extends T {
 		this.date = e, this.load();
 	}
 	nav(e) {
-		this.dispatchEvent(new CustomEvent("pantry-navigate", {
+		this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 			detail: `plan/${e}`,
 			bubbles: !0,
 			composed: !0
 		}));
 	}
 	dialog() {
-		return this.renderRoot.querySelector("pantry-meal-dialog");
+		return this.renderRoot.querySelector("home-inventory-meal-dialog");
 	}
 	async act(e) {
 		try {
@@ -8689,7 +8692,7 @@ var bo = class extends T {
 			remove: async (e) => {
 				await Et(e.name) && await this.act(() => qa(this.hass, e.id));
 			},
-			open: (e) => e.recipe_id == null ? this.dialog().open(e.day, e.slot, this.recipes, this.household, e) : this.dispatchEvent(new CustomEvent("pantry-navigate", {
+			open: (e) => e.recipe_id == null ? this.dialog().open(e.day, e.slot, this.recipes, this.household, e) : this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 				detail: `recipes/${e.recipe_id}`,
 				bubbles: !0,
 				composed: !0
@@ -8752,26 +8755,26 @@ var bo = class extends T {
         <span class="range" data-testid="plan-range">${this.label()}</span>
         <button
           data-testid="plan-shop"
-          @click=${() => this.renderRoot.querySelector("pantry-plan-shopping-dialog").open()}
+          @click=${() => this.renderRoot.querySelector("home-inventory-plan-shopping-dialog").open()}
         >
           ${E("plan.shop")}
         </button>
-        ${e === "month" ? x : y`<pantry-receipt-button
+        ${e === "month" ? x : y`<home-inventory-receipt-button
                 .hass=${this.hass}
                 .print=${() => en(this.hass, X(Mr(e, this.date)[0]), e === "day" ? 1 : 7)}
                 .done=${E("plan.printed")}
                 .testid=${"plan-print"}
-              ></pantry-receipt-button>`}
+              ></home-inventory-receipt-button>`}
       </div>
       ${this.body()}
-      <pantry-plan-shopping-dialog
+      <home-inventory-plan-shopping-dialog
         .hass=${this.hass}
-        @pantry-shopped=${(e) => this.note = e.detail}
-      ></pantry-plan-shopping-dialog>
-      <pantry-meal-dialog
+        @home-inventory-shopped=${(e) => this.note = e.detail}
+      ></home-inventory-plan-shopping-dialog>
+      <home-inventory-meal-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-meal-dialog>`;
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-meal-dialog>`;
 	}
 	static {
 		this.styles = [
@@ -8806,11 +8809,11 @@ var bo = class extends T {
 		];
 	}
 };
-customElements.define("pantry-plan", bo);
+customElements.define("home-inventory-plan", bo);
 //#endregion
 //#region src/api-canning.ts
-var xo = (e) => e.callWS({ type: "pantry/cannings" }), So = (e, t) => e.callWS({
-	type: "pantry/canning_save",
+var xo = (e) => e.callWS({ type: "home_inventory/cannings" }), So = (e, t) => e.callWS({
+	type: "home_inventory/canning_save",
 	data: t
 }), Co = class extends T {
 	static {
@@ -8910,7 +8913,7 @@ var xo = (e) => e.callWS({ type: "pantry/cannings" }), So = (e, t) => e.callWS({
 					category_id: t.category_id
 				} }
 			});
-			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("pantry-saved", {
+			this.renderRoot.querySelector("dialog")?.close(), this.dispatchEvent(new CustomEvent("home-inventory-saved", {
 				detail: this.canning ? void 0 : {
 					...e,
 					name: t.name.trim(),
@@ -9036,7 +9039,7 @@ var xo = (e) => e.callWS({ type: "pantry/cannings" }), So = (e, t) => e.callWS({
 		this.styles = D;
 	}
 };
-customElements.define("pantry-canning-dialog", Co);
+customElements.define("home-inventory-canning-dialog", Co);
 //#endregion
 //#region src/canning-view.ts
 var wo = class extends T {
@@ -9056,7 +9059,7 @@ var wo = class extends T {
 		e.has("hass") && this.hass && !this.started ? (this.started = !0, this.load()) : e.has("section") && this.started && this.load();
 	}
 	nav(e) {
-		this.dispatchEvent(new CustomEvent("pantry-navigate", {
+		this.dispatchEvent(new CustomEvent("home-inventory-navigate", {
 			detail: e,
 			bubbles: !0,
 			composed: !0
@@ -9078,7 +9081,7 @@ var wo = class extends T {
 		}
 	}
 	edit(e, t) {
-		this.message = "", this.renderRoot.querySelector("pantry-canning-dialog").open(this.md, this.products, this.recipes, e, t);
+		this.message = "", this.renderRoot.querySelector("home-inventory-canning-dialog").open(this.md, this.products, this.recipes, e, t);
 	}
 	async removeCanning(e) {
 		this.error = "";
@@ -9096,7 +9099,7 @@ var wo = class extends T {
 	async saved(e) {
 		await this.load();
 		let t = e.detail;
-		t && (this.message = E("canning.saved", { charge: t.charge }), this.renderRoot.querySelector("pantry-label-dialog").open({
+		t && (this.message = E("canning.saved", { charge: t.charge }), this.renderRoot.querySelector("home-inventory-label-dialog").open({
 			id: t.batch_id,
 			name: t.name,
 			packages: t.jars
@@ -9149,14 +9152,17 @@ var wo = class extends T {
               ${E(`canning.view.${t}`)}
             </button>`)}
       </nav>
-      <div @pantry-canning-start=${this.start}>
-        ${e ? y`<pantry-recipes .hass=${this.hass} .canning=${!0}></pantry-recipes>` : this.protocols()}
+      <div @home-inventory-canning-start=${this.start}>
+        ${e ? y`<home-inventory-recipes .hass=${this.hass} .canning=${!0}></home-inventory-recipes>` : this.protocols()}
       </div>
-      <pantry-canning-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-canning-dialog>
-      <pantry-label-dialog
+      <home-inventory-canning-dialog
         .hass=${this.hass}
-        @pantry-printed=${(e) => e.detail && (this.message = E("label.printed", { n: e.detail }))}
-      ></pantry-label-dialog>`;
+        @home-inventory-saved=${this.saved}
+      ></home-inventory-canning-dialog>
+      <home-inventory-label-dialog
+        .hass=${this.hass}
+        @home-inventory-printed=${(e) => e.detail && (this.message = E("label.printed", { n: e.detail }))}
+      ></home-inventory-label-dialog>`;
 	}
 	static {
 		this.styles = [D, s`
@@ -9194,9 +9200,9 @@ var wo = class extends T {
     `];
 	}
 };
-customElements.define("pantry-canning", wo);
+customElements.define("home-inventory-canning", wo);
 //#endregion
-//#region src/pantry-panel.ts
+//#region src/home-inventory-panel.ts
 var To = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Eo = [
 	"stock",
 	"expiry",
@@ -9280,14 +9286,26 @@ var To = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Eo = [
               ${E(`tab.${t}`)}
             </button>`)}
       </div>
-      <main role="tabpanel" @pantry-navigate=${(e) => this.select(e.detail)}>
-        ${e === "settings" ? y`<pantry-settings .hass=${this.hass} .section=${this.sub}></pantry-settings>` : e === "stock" ? y`<pantry-stock
+      <main
+        role="tabpanel"
+        @home-inventory-navigate=${(e) => this.select(e.detail)}
+      >
+        ${e === "settings" ? y`<home-inventory-settings
+                .hass=${this.hass}
+                .section=${this.sub}
+              ></home-inventory-settings>` : e === "stock" ? y`<home-inventory-stock
                   .hass=${this.hass}
                   .mode=${this.seg === "in" || this.seg === "out" || this.seg === "open" && H("opened") ? this.seg : "search"}
-                ></pantry-stock>` : e === "expiry" ? y`<pantry-expiry .hass=${this.hass}></pantry-expiry>` : e === "recipes" ? y`<pantry-recipes .hass=${this.hass} .section=${this.sub}></pantry-recipes>` : e === "plan" ? y`<pantry-plan .hass=${this.hass} .section=${this.sub}></pantry-plan>` : e === "canning" ? y`<pantry-canning
+                ></home-inventory-stock>` : e === "expiry" ? y`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>` : e === "recipes" ? y`<home-inventory-recipes
+                      .hass=${this.hass}
+                      .section=${this.sub}
+                    ></home-inventory-recipes>` : e === "plan" ? y`<home-inventory-plan
+                        .hass=${this.hass}
+                        .section=${this.sub}
+                      ></home-inventory-plan>` : e === "canning" ? y`<home-inventory-canning
                           .hass=${this.hass}
                           .section=${this.sub}
-                        ></pantry-canning>` : y`<pantry-shopping .hass=${this.hass}></pantry-shopping>`}
+                        ></home-inventory-canning>` : y`<home-inventory-shopping .hass=${this.hass}></home-inventory-shopping>`}
       </main>
     `;
 	}
@@ -9366,6 +9384,6 @@ var To = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Eo = [
   `;
 	}
 };
-customElements.define("pantry-panel", Oo);
+customElements.define("home-inventory-panel", Oo);
 //#endregion
-export { Oo as PantryPanel };
+export { Oo as HomeInventoryPanel };

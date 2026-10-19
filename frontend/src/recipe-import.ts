@@ -7,15 +7,15 @@ import { hasAi } from "./modules";
 import { scaledPhoto } from "./photo";
 import { mdiCameraOutline } from "@mdi/js";
 import "./camera-dialog";
-import type { PantryCamera } from "./camera-dialog";
+import type { HomeInventoryCamera } from "./camera-dialog";
 
 /** Where the recipe comes from; text and photo only with an AI set up (they always need it). */
 type Source = "url" | "text" | "photo";
 const SOURCES: Source[] = ["url", "text", "photo"];
 const MAX_TEXT = 20000; // backend: inventory.MAX_PASTE
 
-/** Ask for a recipe URL, text or photo. `open()`; fires `pantry-imported` (detail: RecipeDraft) on success. */
-export class PantryRecipeImport extends LitElement {
+/** Ask for a recipe URL, text or photo. `open()`; fires `home-inventory-imported` (detail: RecipeDraft) on success. */
+export class HomeInventoryRecipeImport extends LitElement {
   static properties = {
     hass: { attribute: false },
     active: { state: true },
@@ -78,7 +78,7 @@ export class PantryRecipeImport extends LitElement {
   }
 
   private async takePhoto() {
-    const camera = this.renderRoot.querySelector<PantryCamera>("pantry-camera")!;
+    const camera = this.renderRoot.querySelector<HomeInventoryCamera>("home-inventory-camera")!;
     const url = await camera.take(false);
     if (url) this.photo = url;
   }
@@ -103,7 +103,7 @@ export class PantryRecipeImport extends LitElement {
     try {
       const draft = await importRecipe(this.hass!, this.request());
       this.renderRoot.querySelector("dialog")?.close();
-      this.dispatchEvent(new CustomEvent("pantry-imported", { detail: draft }));
+      this.dispatchEvent(new CustomEvent("home-inventory-imported", { detail: draft }));
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
@@ -208,7 +208,7 @@ export class PantryRecipeImport extends LitElement {
         dirty: () => !!(this.url.trim() || this.text.trim() || this.photo),
         onSubmit: (e) => this.submit(e),
         onClosed: () => (this.active = false),
-      })}<pantry-camera></pantry-camera>`;
+      })}<home-inventory-camera></home-inventory-camera>`;
   }
 
   static styles = [
@@ -277,4 +277,4 @@ export class PantryRecipeImport extends LitElement {
   ];
 }
 
-customElements.define("pantry-recipe-import", PantryRecipeImport);
+customElements.define("home-inventory-recipe-import", HomeInventoryRecipeImport);

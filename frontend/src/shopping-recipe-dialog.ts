@@ -7,9 +7,9 @@ import { getShoppingRecipes, setShoppingRecipe } from "./api-shopping";
 
 /**
  * Put a recipe on the shopping list (or change its entry): servings and which optional
- * ingredients count. Call `open()`; fires `pantry-saved` after saving.
+ * ingredients count. Call `open()`; fires `home-inventory-saved` after saving.
  */
-export class PantryShoppingRecipeDialog extends LitElement {
+export class HomeInventoryShoppingRecipeDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     recipe: { state: true },
@@ -58,7 +58,7 @@ export class PantryShoppingRecipeDialog extends LitElement {
     if (recipe.ingredients.some((i) => i.optional))
       return this.open(recipe, servings, stored?.optional);
     await setShoppingRecipe(this.hass!, recipe.id, servings, []);
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   private errors() {
@@ -78,7 +78,7 @@ export class PantryShoppingRecipeDialog extends LitElement {
       return;
     }
     this.renderRoot.querySelector("dialog")?.close();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   private toggle(i: Ingredient, on: boolean) {
@@ -143,4 +143,4 @@ export class PantryShoppingRecipeDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-shopping-recipe-dialog", PantryShoppingRecipeDialog);
+customElements.define("home-inventory-shopping-recipe-dialog", HomeInventoryShoppingRecipeDialog);

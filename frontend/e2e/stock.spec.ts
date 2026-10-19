@@ -20,7 +20,7 @@ test.beforeAll(async ({ browser }) => {
   locationIds.push(await save(page, "location", { name: LOCATIONS[1] }));
   locations = locationIds.map((id, i) => ({ id, name: LOCATIONS[i] }));
   const res = (await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: NAME, category_id },
     packages: 2,
     expires_on: "2020-01-01",
@@ -28,7 +28,7 @@ test.beforeAll(async ({ browser }) => {
   })) as { product_id: number };
   productId = res.product_id;
   await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product_id: productId,
     packages: 3,
     expires_on: "2099-12-31",
@@ -46,7 +46,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("overview groups by category, searches and filters by location", async ({ page }) => {
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   const filter = page.getByTestId("code-input");
   await expect(filter).toBeFocused();
   await filter.fill(NAME);
@@ -74,7 +74,9 @@ test("overview groups by category, searches and filters by location", async ({ p
   await expect(batches.first()).toContainText(locations[1].name);
 
   // Only batch rows take packages out; undo books it back into the same batch.
-  await expect(page.locator("pantry-stock .head [data-testid=stock-batch-out]")).toHaveCount(0);
+  await expect(
+    page.locator("home-inventory-stock .head [data-testid=stock-batch-out]"),
+  ).toHaveCount(0);
   await batches.first().getByTestId("stock-batch-out").click();
   await expect(page.getByTestId("stock-done")).toContainText(NAME);
   await expect(product).toContainText("2 Pkg.");
@@ -85,7 +87,7 @@ test("overview groups by category, searches and filters by location", async ({ p
 
   // Fix a batch: other date and count.
   await batches.first().getByTestId("batch-edit").click();
-  await expect(page.locator("pantry-batch-dialog dialog > form > h2")).toContainText(NAME);
+  await expect(page.locator("home-inventory-batch-dialog dialog > form > h2")).toContainText(NAME);
   await page.getByTestId("batch-expires").fill("2098-01-01");
   await page.getByTestId("batch-packages").fill("4");
   await page.getByTestId("save").click();
@@ -115,21 +117,23 @@ test("overview groups by category, searches and filters by location", async ({ p
   await page.getByTestId("stock-with-empty").check();
   await expect(product).toContainText("0 Pkg.");
   await product.click();
-  await expect(page.locator("pantry-product-dialog dialog > form > h2")).toContainText(NAME);
+  await expect(page.locator("home-inventory-product-dialog dialog > form > h2")).toContainText(
+    NAME,
+  );
   await page.keyboard.press("Escape");
 });
 
 test("reprint asks for the count and shows the stock", async ({ page, printCalls }) => {
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   // The test above books everything out.
   await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product_id: productId,
     packages: 3,
     expires_on: "2099-12-31",
     location_id: locations[1].id,
   });
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("code-input").fill(NAME);
   const batches = page.getByTestId("stock-batch");
   await expect(batches).toHaveCount(1);
@@ -137,20 +141,20 @@ test("reprint asks for the count and shows the stock", async ({ page, printCalls
   const count = page.getByTestId("label-count");
   await expect(count).toBeFocused();
   await expect(count).toHaveValue("1");
-  await expect(page.locator("pantry-label-dialog")).toContainText("3 Packungen im Lager");
+  await expect(page.locator("home-inventory-label-dialog")).toContainText("3 Packungen im Lager");
   await count.fill("0");
   await expect(page.getByTestId("label-print")).toBeDisabled();
   // Up to 2 labels print without asking (the fixture blocks the request).
   await count.fill("2");
   await page.getByTestId("label-print").click();
   await expect.poll(() => printCalls.length).toBe(1);
-  await expect(page.locator("pantry-confirm")).toHaveCount(0);
+  await expect(page.locator("home-inventory-confirm")).toHaveCount(0);
 });
 
 test("undo works once: the second try is impossible and one package comes back", async ({
   page,
 }) => {
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("code-input").fill(NAME);
   const product = page.getByTestId("stock-product");
   const count = async () => Number(/(\d+) Pkg\./.exec((await product.textContent()) ?? "")?.[1]);

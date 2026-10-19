@@ -7,7 +7,7 @@ export const STATE = "e2e/.auth/state.json";
 // without the authorize redirect and reload that otherwise race with the first interactions.
 setup("login", async ({ page, request }) => {
   setup.setTimeout(240_000);
-  // After an HA restart: wait for the API, then for the pantry panel and its websocket API.
+  // After an HA restart: wait for the API, then for the home_inventory panel and its websocket API.
   await expect
     .poll(async () => (await request.get("/api/").catch(() => undefined))?.status() ?? 0, {
       timeout: 180_000,
@@ -19,8 +19,8 @@ setup("login", async ({ page, request }) => {
       async () => {
         try {
           // Short limits per try: a page loaded while HA was still starting never gets ready.
-          await page.goto("/pantry/stock", { timeout: 15_000 });
-          await page.waitForURL((u) => u.pathname === "/pantry/stock" && !u.search, {
+          await page.goto("/home_inventory/stock", { timeout: 15_000 });
+          await page.waitForURL((u) => u.pathname === "/home_inventory/stock" && !u.search, {
             timeout: 15_000,
           });
           await page.waitForFunction(
@@ -28,7 +28,7 @@ setup("login", async ({ page, request }) => {
             undefined,
             { timeout: 15_000 },
           );
-          await ws(page, { type: "pantry/master_data" });
+          await ws(page, { type: "home_inventory/master_data" });
           return true;
         } catch {
           return false;

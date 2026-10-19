@@ -11,8 +11,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.pantry import inventory
-from custom_components.pantry.const import DOMAIN
+from custom_components.home_inventory import inventory
+from custom_components.home_inventory.const import DOMAIN
 
 
 async def test_expiry_sensors(hass: HomeAssistant) -> None:

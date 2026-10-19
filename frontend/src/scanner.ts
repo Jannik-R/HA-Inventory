@@ -28,7 +28,7 @@ async function createDetector(): Promise<Detector> {
 }
 
 /** Camera barcode scanner in a modal dialog; fires `scan` with the code as detail. */
-export class PantryScanner extends LitElement {
+export class HomeInventoryScanner extends LitElement {
   static properties = { error: { state: true } };
   declare error: string;
 
@@ -123,4 +123,4 @@ export class PantryScanner extends LitElement {
   ];
 }
 
-customElements.define("pantry-scanner", PantryScanner);
+customElements.define("home-inventory-scanner", HomeInventoryScanner);

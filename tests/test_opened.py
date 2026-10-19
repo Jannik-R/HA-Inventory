@@ -6,9 +6,9 @@ from datetime import date
 
 import pytest
 
-from custom_components.pantry import db
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.inventory import InventoryError
+from custom_components.home_inventory import db
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.inventory import InventoryError
 from tests.test_inventory import cat, loc, product, stock
 
 TODAY = date(2026, 10, 18)

@@ -33,7 +33,11 @@ def async_register(hass: HomeAssistant) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/meal_plan", vol.Required("start"): DAY, vol.Required("end"): DAY}
+    {
+        vol.Required("type"): "home_inventory/meal_plan",
+        vol.Required("start"): DAY,
+        vol.Required("end"): DAY,
+    }
 )
 @websocket_api.async_response
 async def ws_meal_plan(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -46,7 +50,7 @@ async def ws_meal_plan(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/meal_save",
+        vol.Required("type"): "home_inventory/meal_save",
         vol.Required("data"): {
             vol.Optional("id"): ID,
             vol.Required("day"): DAY,
@@ -63,7 +67,7 @@ async def ws_meal_save(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/meal_delete", vol.Required("meal_id"): ID}
+    {vol.Required("type"): "home_inventory/meal_delete", vol.Required("meal_id"): ID}
 )
 @websocket_api.async_response
 async def ws_meal_delete(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -73,7 +77,7 @@ async def ws_meal_delete(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/meal_shift",
+        vol.Required("type"): "home_inventory/meal_shift",
         vol.Required("day"): DAY,
         vol.Required("slot"): SLOT,
         vol.Required("apply"): bool,
@@ -86,7 +90,7 @@ async def ws_meal_shift(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], {"meals": meals})
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/meal_times"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/meal_times"})
 @websocket_api.async_response
 async def ws_meal_times(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.meal_times))
@@ -94,7 +98,7 @@ async def ws_meal_times(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/meal_times_save",
+        vol.Required("type"): "home_inventory/meal_times_save",
         vol.Required("starts"): vol.All([CLOCK], vol.Length(min=5, max=5)),
     }
 )
@@ -108,7 +112,7 @@ async def ws_meal_times_save(hass: HomeAssistant, connection, msg: dict) -> None
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/plan_to_shopping_list",
+        vol.Required("type"): "home_inventory/plan_to_shopping_list",
         vol.Required("start"): DAY,
         vol.Required("end"): DAY,
     }

@@ -6,10 +6,10 @@ import socket
 import pytest
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry import label
-from custom_components.pantry.inventory import InventoryError
-from custom_components.pantry.label_printers import MODELS, printer_of
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory import label
+from custom_components.home_inventory.inventory import InventoryError
+from custom_components.home_inventory.label_printers import MODELS, printer_of
 from tests.test_inventory import loc, product, stock
 
 

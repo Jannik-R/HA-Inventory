@@ -14,7 +14,7 @@ test.beforeAll(async ({ browser }) => {
   mainId = await save(page, "category", { name: MAIN, opened_days: 3 });
   locationId = await save(page, "location", { name: LOCATION });
   const res = (await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: NAME, category_id: mainId },
     packages: 2,
     expires_on: "2099-12-31",
@@ -33,7 +33,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("batch row opens a package, offers a label and undoes it", async ({ page }) => {
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("code-input").fill(NAME);
   const batches = page.getByTestId("stock-batch");
   await expect(batches).toHaveCount(1);
@@ -56,7 +56,7 @@ test("batch row opens a package, offers a label and undoes it", async ({ page })
 });
 
 test("mode Anbrechen opens by label scan and by name", async ({ page }) => {
-  await openPage(page, "/pantry/open", "Bestand");
+  await openPage(page, "/home_inventory/open", "Bestand");
   await expect(page.getByTestId("mode-open")).toHaveAttribute("aria-pressed", "true");
   const input = page.getByTestId("code-input");
   await expect(input).toBeFocused();
@@ -70,7 +70,7 @@ test("mode Anbrechen opens by label scan and by name", async ({ page }) => {
   await input.fill(NAME);
   await input.press("Enter");
   await expect(page.getByTestId("open-done")).toContainText(`„${NAME}“ angebrochen`);
-  const rows = (await ws(page, { type: "pantry/stock", product_id: productId })) as {
+  const rows = (await ws(page, { type: "home_inventory/stock", product_id: productId })) as {
     opened_on: string | null;
   }[];
   expect(rows.filter((r) => r.opened_on).length).toBe(1);

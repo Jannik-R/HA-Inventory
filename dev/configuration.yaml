@@ -20,4 +20,4 @@ homeassistant:
 logger:
   default: info
   logs:
-    custom_components.pantry: debug
+    custom_components.home_inventory: debug

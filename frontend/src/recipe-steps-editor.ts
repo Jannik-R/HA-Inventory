@@ -12,7 +12,7 @@ export const stepRowError = (r: StepRow) =>
     : undefined;
 
 /** Steps of a recipe as rows (step / heading): add, move, remove. Fires `change` with the rows. */
-export class PantryRecipeSteps extends LitElement {
+export class HomeInventoryRecipeSteps extends LitElement {
   static properties = { value: { attribute: false } };
   declare value: StepRow[];
 
@@ -155,4 +155,4 @@ export class PantryRecipeSteps extends LitElement {
   ];
 }
 
-customElements.define("pantry-recipe-steps", PantryRecipeSteps);
+customElements.define("home-inventory-recipe-steps", HomeInventoryRecipeSteps);

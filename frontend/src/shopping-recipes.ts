@@ -7,10 +7,10 @@ import { getShoppingRecipes, removeShoppingRecipe, type ShoppingRecipe } from ".
 import { confirmDelete } from "./confirm-dialog";
 import { fmtPortions } from "./format";
 import "./shopping-recipe-dialog";
-import type { PantryShoppingRecipeDialog } from "./shopping-recipe-dialog";
+import type { HomeInventoryShoppingRecipeDialog } from "./shopping-recipe-dialog";
 
-/** "Für Rezepte": the recipes on the shopping list; change or remove an entry. Fires `pantry-saved`. */
-export class PantryShoppingRecipes extends LitElement {
+/** "Für Rezepte": the recipes on the shopping list; change or remove an entry. Fires `home-inventory-saved`. */
+export class HomeInventoryShoppingRecipes extends LitElement {
   static properties = {
     hass: { attribute: false },
     list: { state: true },
@@ -52,7 +52,7 @@ export class PantryShoppingRecipes extends LitElement {
     const recipe = this.recipes.find((r) => r.id === s.recipe_id);
     if (recipe)
       this.renderRoot
-        .querySelector<PantryShoppingRecipeDialog>("pantry-shopping-recipe-dialog")!
+        .querySelector<HomeInventoryShoppingRecipeDialog>("home-inventory-shopping-recipe-dialog")!
         .open(recipe, s.servings, s.optional);
   }
 
@@ -65,15 +65,15 @@ export class PantryShoppingRecipes extends LitElement {
       return;
     }
     await this.load();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   render() {
     return html`${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
-      <pantry-shopping-recipe-dialog
+      <home-inventory-shopping-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-recipe-dialog>
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-recipe-dialog>
       ${
         this.list.length
           ? html`<h3>${t("shopping.recipes.title")}</h3>
@@ -126,4 +126,4 @@ export class PantryShoppingRecipes extends LitElement {
   ];
 }
 
-customElements.define("pantry-shopping-recipes", PantryShoppingRecipes);
+customElements.define("home-inventory-shopping-recipes", HomeInventoryShoppingRecipes);

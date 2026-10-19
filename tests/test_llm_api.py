@@ -10,9 +10,9 @@ from homeassistant.helpers import llm
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.const import CONF_LLM_ACCESS, DOMAIN
-from custom_components.pantry.llm_api import tools_for
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.const import CONF_LLM_ACCESS, DOMAIN
+from custom_components.home_inventory.llm_api import tools_for
 from tests.test_inventory import cat, product, unit
 
 READ = {

@@ -4,9 +4,9 @@ from datetime import date
 
 import pytest
 
-from custom_components.pantry import db
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.seed import seed
+from custom_components.home_inventory import db
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.seed import seed
 
 from .test_inventory import cat, loc, product, unit
 
@@ -195,7 +195,7 @@ def test_default_units(conn):
     conn.execute(
         "UPDATE category SET unit_id = (SELECT id FROM unit WHERE name = 'kg') WHERE name = 'Käse'"
     )
-    from custom_components.pantry.seed_types import add_seed_extras
+    from custom_components.home_inventory.seed_types import add_seed_extras
 
     add_seed_extras(conn)
     assert (unit_of(conn, "Milch"), unit_of(conn, "Käse")) == ("l", "kg")

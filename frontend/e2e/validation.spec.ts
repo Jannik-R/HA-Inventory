@@ -13,7 +13,7 @@ test.beforeAll(async ({ browser }) => {
   categoryId = await save(page, "category", { name: CATEGORY });
   locationId = await save(page, "location", { name: LOCATION });
   await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: PRODUCT, category_id: categoryId },
     packages: 1,
     location_id: locationId,
@@ -30,7 +30,7 @@ test.afterAll(async ({ browser }) => {
 
 // Live validation: errors show once a field is edited or left and block saving; nothing is saved here.
 test("booking form validates while typing", async ({ page }) => {
-  await openPage(page, "/pantry/in", "Bestand");
+  await openPage(page, "/home_inventory/in", "Bestand");
   const code = page.getByTestId("code-input");
   await code.fill("E2E Validierung");
   await code.press("Enter");
@@ -67,13 +67,13 @@ test("booking form validates while typing", async ({ page }) => {
 
   // Esc with unsaved input asks first; discarding closes the booking dialog.
   await page.keyboard.press("Escape");
-  await expect(page.locator("pantry-confirm h2")).toHaveText("Änderungen verwerfen?");
+  await expect(page.locator("home-inventory-confirm h2")).toHaveText("Änderungen verwerfen?");
   await page.getByTestId("confirm-ok").click();
   await expect(page.getByTestId("booking-dialog")).toBeHidden();
 });
 
 test("product dialog validates the EAN", async ({ page }) => {
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("code-input").fill(PRODUCT); // opens the tree down to the product
   await page.getByTestId("product-edit").click();
   await page.getByTestId("ean").fill("123");

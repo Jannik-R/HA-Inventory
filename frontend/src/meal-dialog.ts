@@ -14,8 +14,8 @@ interface Draft {
   dateBad: boolean;
 }
 
-/** Add or edit a meal of the week plan: `open(day, slot, recipes, servings, meal?, text?)`; fires `pantry-saved`. */
-export class PantryMealDialog extends LitElement {
+/** Add or edit a meal of the week plan: `open(day, slot, recipes, servings, meal?, text?)`; fires `home-inventory-saved`. */
+export class HomeInventoryMealDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     draft: { state: true },
@@ -93,7 +93,7 @@ export class PantryMealDialog extends LitElement {
       return;
     }
     this.renderRoot.querySelector("dialog")?.close();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   render() {
@@ -179,4 +179,4 @@ export class PantryMealDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-meal-dialog", PantryMealDialog);
+customElements.define("home-inventory-meal-dialog", HomeInventoryMealDialog);

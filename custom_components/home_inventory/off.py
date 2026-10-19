@@ -36,7 +36,7 @@ FIELDS = (
 SEARCH_FIELDS = "code,product_name,product_name_{lang},brands,quantity"
 TIMEOUT = aiohttp.ClientTimeout(total=10)
 # OFF asks for an identifying User-Agent: app (contact); no version, so it never goes stale.
-HEADERS = {"User-Agent": "HA-Pantry (https://github.com/Jannik-R/HA-Inventory)"}
+HEADERS = {"User-Agent": "HA-Inventory (https://github.com/Jannik-R/HA-Inventory)"}
 
 # Unit symbol -> (target symbol, factor); target symbols match the seeded units.
 _UNITS = {

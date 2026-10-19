@@ -12,8 +12,8 @@ interface Draft {
   dateBad: boolean;
 }
 
-/** Fix one batch row (date, count at its location; the date type belongs to the product). Call `open()`; fires `pantry-saved`. */
-export class PantryBatchDialog extends LitElement {
+/** Fix one batch row (date, count at its location; the date type belongs to the product). Call `open()`; fires `home-inventory-saved`. */
+export class HomeInventoryBatchDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     d: { state: true },
@@ -68,7 +68,9 @@ export class PantryBatchDialog extends LitElement {
         packages: Number(d.packages),
       });
       this.renderRoot.querySelector("dialog")?.close();
-      this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+      this.dispatchEvent(
+        new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }),
+      );
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
@@ -125,4 +127,4 @@ export class PantryBatchDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-batch-dialog", PantryBatchDialog);
+customElements.define("home-inventory-batch-dialog", HomeInventoryBatchDialog);

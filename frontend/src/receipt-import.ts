@@ -9,13 +9,13 @@ import { ocr } from "./ocr";
 import { photoCanvas } from "./photo";
 import { mdiCameraOutline } from "@mdi/js";
 import "./camera-dialog";
-import type { PantryCamera } from "./camera-dialog";
+import type { HomeInventoryCamera } from "./camera-dialog";
 
 const MAX_PX = 3000; // a receipt is long and narrow: keep enough pixels per text line
 
 /** Photo of a shopping receipt -> OCR in the browser -> the AI reads the text -> the user checks
  *  every line (product, packages, date) -> all are booked in. `open()`; fires `booked` (detail: packages). */
-export class PantryReceiptImport extends LitElement {
+export class HomeInventoryReceiptImport extends LitElement {
   static properties = {
     hass: { attribute: false },
     md: { attribute: false },
@@ -140,7 +140,7 @@ export class PantryReceiptImport extends LitElement {
   }
 
   private camera() {
-    return this.renderRoot.querySelector<PantryCamera>("pantry-camera")!;
+    return this.renderRoot.querySelector<HomeInventoryCamera>("home-inventory-camera")!;
   }
 
   private async scanReceipt() {
@@ -234,7 +234,7 @@ export class PantryReceiptImport extends LitElement {
         dirty: () => !!(this.image || this.rows),
         onSubmit: (e) => this.submit(e),
         onClosed: () => (this.active = false),
-      })}<pantry-camera></pantry-camera>`;
+      })}<home-inventory-camera></home-inventory-camera>`;
   }
 
   static styles = [
@@ -265,4 +265,4 @@ export class PantryReceiptImport extends LitElement {
   ];
 }
 
-customElements.define("pantry-receipt-import", PantryReceiptImport);
+customElements.define("home-inventory-receipt-import", HomeInventoryReceiptImport);

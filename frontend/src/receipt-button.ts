@@ -7,7 +7,7 @@ let hasReceipt: Promise<boolean> | undefined;
 
 /** "Drucken" on the receipt printer (recipe, meal plan): runs `print`, then shows `done` or the
  * error next to it. Renders nothing without a receipt printer. Light DOM: the host's styles apply. */
-export class PantryReceiptButton extends LitElement {
+export class HomeInventoryReceiptButton extends LitElement {
   static properties = {
     hass: { attribute: false },
     print: { attribute: false },
@@ -77,4 +77,4 @@ export class PantryReceiptButton extends LitElement {
   }
 }
 
-customElements.define("pantry-receipt-button", PantryReceiptButton);
+customElements.define("home-inventory-receipt-button", HomeInventoryReceiptButton);

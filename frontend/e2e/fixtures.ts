@@ -4,14 +4,15 @@ import { test as base, type BrowserContext } from "@playwright/test";
 export type { Browser, Page } from "@playwright/test";
 
 // Every print command (labels, shopping list, recipe, meal plan, and any added later).
-const isPrint = (type: unknown) => typeof type === "string" && type.startsWith("pantry/print_");
-const AI_ALWAYS = ["pantry/recipe_import", "pantry/receipt_read"];
+const isPrint = (type: unknown) =>
+  typeof type === "string" && type.startsWith("home_inventory/print_");
+const AI_ALWAYS = ["home_inventory/recipe_import", "home_inventory/receipt_read"];
 const callsByContext = new WeakMap<BrowserContext, unknown[]>();
 const stubsByContext = new WeakMap<BrowserContext, Map<string, unknown>>();
 
 /**
  * E2E tests must never print: the dev HA may have the real label or receipt printer configured.
- * Every print call (`isPrint`: any `pantry/print_*` command) is answered here ("0 printed") and never reaches HA, and the
+ * Every print call (`isPrint`: any `home_inventory/print_*` command) is answered here ("0 printed") and never reaches HA, and the
  * options flow (which can print a test label or receipt) is aborted. Installed on every browser context.
  */
 export async function blockPrinting(context: BrowserContext) {
@@ -19,8 +20,8 @@ export async function blockPrinting(context: BrowserContext) {
   callsByContext.set(context, calls);
   // Nor call the real AI (quota, cost): the AI check answers "off" unless a test stubs it.
   const stubs = new Map<string, unknown>([
-    ["pantry/recipe_ai_check", { status: "off" }],
-    ["pantry/product_ai_check", { status: "off" }],
+    ["home_inventory/recipe_ai_check", { status: "off" }],
+    ["home_inventory/product_ai_check", { status: "off" }],
   ]);
   stubsByContext.set(context, stubs);
   await context.route("**/api/config/config_entries/options/flow**", (route) =>

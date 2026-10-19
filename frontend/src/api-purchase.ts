@@ -28,7 +28,11 @@ export type ReceiptBookItem = {
 } & ({ product_id: number } | { product: { name: string; category_id: number } });
 
 export const readReceipt = (hass: Hass, text: string) =>
-  hass.callWS<ReceiptRead>({ type: "pantry/receipt_read", text });
+  hass.callWS<ReceiptRead>({ type: "home_inventory/receipt_read", text });
 
 export const bookReceipt = (hass: Hass, store: string, items: ReceiptBookItem[]) =>
-  hass.callWS<{ booked: number; rows: number }>({ type: "pantry/receipt_book", store, items });
+  hass.callWS<{ booked: number; rows: number }>({
+    type: "home_inventory/receipt_book",
+    store,
+    items,
+  });

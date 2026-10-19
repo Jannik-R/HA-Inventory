@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry import off
-from custom_components.pantry.const import CONF_OFF
-from custom_components.pantry.db import Database
-from custom_components.pantry.inventory.inherit import category_tags
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory import off
+from custom_components.home_inventory.const import CONF_OFF
+from custom_components.home_inventory.db import Database
+from custom_components.home_inventory.inventory.inherit import category_tags
 
 from .test_inventory import cat, product
 
@@ -172,7 +172,7 @@ def test_add_product_without_learnable_data(conn):
 
 async def test_async_lookup(hass: HomeAssistant, aioclient_mock, tmp_path) -> None:
     hass.config.language = "de"
-    database = Database(hass, str(tmp_path / "pantry.db"))
+    database = Database(hass, str(tmp_path / "home_inventory.db"))
     await database.async_open()
     url = f"{off.BASE}/api/v2/product/"
     aioclient_mock.get(url + "8076800195057", json={"status": 1, "product": SPAGHETTI})

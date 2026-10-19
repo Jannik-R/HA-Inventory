@@ -21,12 +21,12 @@ import urllib.request
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from custom_components.pantry import db  # noqa: E402
-from custom_components.pantry import inventory as inv  # noqa: E402
+from custom_components.home_inventory import db  # noqa: E402
+from custom_components.home_inventory import inventory as inv  # noqa: E402
 
 CACHE = ROOT / "dev" / "config" / "import-check"
 RANDOM_URL = "https://www.chefkoch.de/rezepte/zufallsrezept/"
-UA = "Mozilla/5.0 (pantry import check)"
+UA = "Mozilla/5.0 (home_inventory import check)"
 DELAY = 3  # seconds between requests to the site
 
 

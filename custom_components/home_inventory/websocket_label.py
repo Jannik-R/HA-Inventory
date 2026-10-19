@@ -53,7 +53,7 @@ def _config(hass: HomeAssistant) -> dict:
     }
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/label_config"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/label_config"})
 @websocket_api.async_response
 async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
     cfg = _config(hass)
@@ -63,7 +63,7 @@ async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/print_labels",
+        vol.Required("type"): "home_inventory/print_labels",
         vol.Required("batch_id"): ID,
         vol.Required("count"): vol.All(int, vol.Range(min=1, max=MAX_LABELS)),
     }
@@ -97,7 +97,7 @@ async def async_print_labels(
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/book_out_label", vol.Required("code"): CODE}
+    {vol.Required("type"): "home_inventory/book_out_label", vol.Required("code"): CODE}
 )
 @websocket_api.async_response
 async def ws_book_out_label(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -141,7 +141,7 @@ async def async_print_recipe(hass: HomeAssistant, recipe_id: int, servings: int 
     return await receipt.async_print_recipe(hass, opts, sheet)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/print_shopping_list"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/print_shopping_list"})
 @websocket_api.async_response
 async def ws_print_shopping_list(hass: HomeAssistant, connection, msg: dict) -> None:
     """Any user, like the shopping list itself."""
@@ -150,7 +150,7 @@ async def ws_print_shopping_list(hass: HomeAssistant, connection, msg: dict) -> 
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/print_recipe",
+        vol.Required("type"): "home_inventory/print_recipe",
         vol.Required("recipe_id"): ID,
         vol.Optional("servings"): vol.All(int, vol.Range(min=1, max=99)),
     }
@@ -164,7 +164,7 @@ async def ws_print_recipe(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/print_plan",
+        vol.Required("type"): "home_inventory/print_plan",
         vol.Required("start"): vol.Date(),
         vol.Required("days"): vol.In([1, 7]),
     }

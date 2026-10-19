@@ -8,10 +8,10 @@ import type { Category, Hass, Ingredient, MasterData, Unit } from "./api";
 import { aiLine } from "./recipe-ai";
 import "./ingredient-pick";
 import "./unit-add-dialog";
-import type { PantryUnitAddDialog } from "./unit-add-dialog";
+import type { HomeInventoryUnitAddDialog } from "./unit-add-dialog";
 
 /** Ingredient rows of the recipe dialog. Fires `change` with the whole array, `master` after a new Produktart or unit. */
-export class PantryRecipeIngredients extends LitElement {
+export class HomeInventoryRecipeIngredients extends LitElement {
   static properties = {
     hass: { attribute: false },
     value: { attribute: false },
@@ -36,7 +36,9 @@ export class PantryRecipeIngredients extends LitElement {
 
   private newUnit(n: number, name = "") {
     this.unitFor = n;
-    this.renderRoot.querySelector<PantryUnitAddDialog>("pantry-unit-add-dialog")!.open(name);
+    this.renderRoot
+      .querySelector<HomeInventoryUnitAddDialog>("home-inventory-unit-add-dialog")!
+      .open(name);
   }
 
   private unitAdded(e: CustomEvent<{ id: number; md: MasterData }>) {
@@ -81,7 +83,7 @@ export class PantryRecipeIngredients extends LitElement {
   private row(i: Ingredient, n: number, err: RowErrors) {
     const hint = !!i.unit_hint && i.unit_id == null; // its warning line below already says it
     return html`<li data-testid="ingredient-row" class="ing">
-      <pantry-ingredient-pick
+      <home-inventory-ingredient-pick
         .hass=${this.hass}
         .categories=${this.categories}
         .value=${i.category_id}
@@ -92,7 +94,7 @@ export class PantryRecipeIngredients extends LitElement {
           this.categories = e.detail.categories; // known before the `change` that follows
           this.dispatchEvent(new CustomEvent("master", { detail: e.detail }));
         }}
-      ></pantry-ingredient-pick>
+      ></home-inventory-ingredient-pick>
       <div class="line">
         <label>
           <span class="lbl">${t("recipes.ingredient.amount")}</span>
@@ -204,10 +206,10 @@ export class PantryRecipeIngredients extends LitElement {
 
   render() {
     const errs = ingredientErrors(this.value);
-    return html`<pantry-unit-add-dialog
+    return html`<home-inventory-unit-add-dialog
         .hass=${this.hass}
         @unit-added=${(e: CustomEvent<{ id: number; md: MasterData }>) => this.unitAdded(e)}
-      ></pantry-unit-add-dialog>
+      ></home-inventory-unit-add-dialog>
       <div class="lbl">${t("recipes.ingredients")}</div>
       <ul>
         ${this.value.map((i, n) => this.row(i, n, errs[n]))}
@@ -280,4 +282,4 @@ export class PantryRecipeIngredients extends LitElement {
   ];
 }
 
-customElements.define("pantry-recipe-ingredients", PantryRecipeIngredients);
+customElements.define("home-inventory-recipe-ingredients", HomeInventoryRecipeIngredients);

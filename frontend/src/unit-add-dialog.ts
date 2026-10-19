@@ -5,7 +5,7 @@ import { formStyles } from "./styles";
 import { addUnit, errorMessage, getMasterData, type Hass, type MasterData } from "./api";
 
 /** Small dialog for a new count unit. `open(name)`; fires `unit-added` ({id, md}) with fresh master data. */
-export class PantryUnitAddDialog extends LitElement {
+export class HomeInventoryUnitAddDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     active: { state: true },
@@ -94,4 +94,4 @@ export class PantryUnitAddDialog extends LitElement {
   static styles = [formStyles];
 }
 
-customElements.define("pantry-unit-add-dialog", PantryUnitAddDialog);
+customElements.define("home-inventory-unit-add-dialog", HomeInventoryUnitAddDialog);

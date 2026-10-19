@@ -14,18 +14,18 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
 }) => {
   const NAME = `E2E Apfelmus ${Date.now()}`;
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   const category_id = md.categories.find((c) => c.name === "Obst & Kompott")!.id;
   const { product_id } = (await ws(api, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: NAME, category_id },
     packages: 1,
   })) as { product_id: number };
   try {
     // the canning recipe lives in Einkochen › Rezepte and fixes the product
-    await openPage(page, "/pantry/canning/recipes", "Einkochen");
+    await openPage(page, "/home_inventory/canning/recipes", "Einkochen");
     await page.getByTestId("recipe-add").click();
-    const rd = page.locator("pantry-recipe-dialog dialog");
+    const rd = page.locator("home-inventory-recipe-dialog dialog");
     await rd.getByTestId("recipe-name").fill(`${NAME} Rezept`);
     await rd.getByTestId("recipe-product").fill(NAME);
     await rd.getByTestId("recipe-servings-input").fill("3");
@@ -37,8 +37,8 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
     await recipe.getByTestId("recipe-toggle").click();
     await recipe.getByTestId("recipe-to-canning").click();
 
-    const dialog = page.locator("pantry-canning-dialog dialog");
-    await expect(page).toHaveURL(/\/pantry\/canning$/);
+    const dialog = page.locator("home-inventory-canning-dialog dialog");
+    await expect(page).toHaveURL(/\/home_inventory\/canning$/);
     await expect(dialog.getByTestId("canning-recipe-product")).toContainText(NAME);
     await expect(dialog.getByTestId("canning-jars")).toHaveValue("3");
     await expect(dialog.getByTestId("canning-temp")).toHaveValue("85");
@@ -47,7 +47,7 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
     await dialog.getByTestId("canning-save").click();
 
     // the label dialog offers one label per jar; tests never print
-    const labels = page.locator("pantry-label-dialog dialog");
+    const labels = page.locator("home-inventory-label-dialog dialog");
     await expect(labels.getByTestId("label-count")).toHaveValue("3");
     await labels.getByRole("button", { name: "Abbrechen" }).click();
 
@@ -63,7 +63,7 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
     await dialog.getByTestId("canning-save").click();
     await expect(row).toContainText("E2E ein Glas offen");
 
-    await openPage(page, `/pantry/stock`, "Bestand");
+    await openPage(page, `/home_inventory/stock`, "Bestand");
     await page.getByTestId("code-input").fill(NAME);
     // the jars of the charge (3) and the one booked in by hand stay apart
     await expect(page.getByTestId("stock-batch")).toHaveCount(2);
@@ -71,7 +71,7 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
       page.getByTestId("stock-batch").filter({ hasText: `Charge ${charge}` }),
     ).toHaveCount(1);
     // canning recipes are no dishes: not in the Rezepte tab
-    await openPage(page, "/pantry/recipes", "Rezepte");
+    await openPage(page, "/home_inventory/recipes", "Rezepte");
     await page.getByTestId("recipe-search").fill(NAME);
     await expect(page.getByTestId("recipe-row")).toHaveCount(0);
   } finally {
@@ -81,9 +81,9 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
 });
 
 test("non-food categories are no recipe ingredients", async ({ page }) => {
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-add").click();
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await dialog.getByTestId("ingredient-add").click();
   const ing = dialog.getByTestId("ingredient-row");
   await ing.getByTestId("ingredient-search").fill("Mignon");

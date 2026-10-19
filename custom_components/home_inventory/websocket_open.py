@@ -21,7 +21,7 @@ def async_register(hass: HomeAssistant) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/open_package",
+        vol.Required("type"): "home_inventory/open_package",
         vol.Required("product_id"): ID,
         vol.Optional("batch_id"): ID,
         vol.Optional("location_id"): ID,
@@ -42,7 +42,7 @@ async def ws_open_package(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/open_label", vol.Required("code"): CODE}
+    {vol.Required("type"): "home_inventory/open_label", vol.Required("code"): CODE}
 )
 @websocket_api.async_response
 async def ws_open_label(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -52,7 +52,7 @@ async def ws_open_label(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/open_undo", vol.Required("booking_id"): ID}
+    {vol.Required("type"): "home_inventory/open_undo", vol.Required("booking_id"): ID}
 )
 @websocket_api.async_response
 async def ws_open_undo(hass: HomeAssistant, connection, msg: dict) -> None:

@@ -13,7 +13,7 @@ test.beforeAll(async ({ browser }) => {
   const category_id = (categoryId = await save(page, "category", { name: SCOPE }));
   const location_id = (locationId = await save(page, "location", { name: SCOPE }));
   const res = (await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: NAME, category_id },
     packages: 2,
     expires_on: "2020-01-01",
@@ -21,7 +21,7 @@ test.beforeAll(async ({ browser }) => {
   })) as { product_id: number };
   productId = res.product_id;
   await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product_id: productId,
     packages: 1,
     expires_on: "2099-12-31",
@@ -39,7 +39,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("expired first; a temporary threshold widens the list", async ({ page }) => {
-  await openPage(page, "/pantry/expiry", "Ablauf");
+  await openPage(page, "/home_inventory/expiry", "Ablauf");
   const mine = page.getByTestId("expiry-row").filter({ hasText: NAME });
   await expect(mine).toHaveCount(1);
   await expect(mine.locator(".expired")).toHaveCount(1);
@@ -68,10 +68,10 @@ test("recipes using expired stock are suggested and marked in the recipe list", 
   page,
 }) => {
   const api = page;
-  await openPage(api, "/pantry/expiry", "Ablauf");
+  await openPage(api, "/home_inventory/expiry", "Ablauf");
   const recipeName = `E2E Ablaufrezept ${Date.now()}`;
   const { id } = (await ws(api, {
-    type: "pantry/recipe_save",
+    type: "home_inventory/recipe_save",
     data: { name: recipeName, servings: 2, ingredients: [{ category_id: categoryId, text: "" }] },
   })) as { id: number };
   try {

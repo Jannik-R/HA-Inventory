@@ -16,7 +16,7 @@ test.beforeAll(async ({ browser }) => {
     cat: await save(page, "category", { name: CAT }),
   };
   const res = (await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: `E2E Ware ${STAMP}`, category_id: ids.cat },
     packages: 3,
     location_id: ids.from,
@@ -37,15 +37,15 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("moving a location books its stock to the target and keeps the location", async ({ page }) => {
-  await openPage(page, "/pantry/settings/locations", "Einstellungen");
-  const row = page.locator("pantry-settings li").filter({ hasText: FROM });
+  await openPage(page, "/home_inventory/settings/locations", "Einstellungen");
+  const row = page.locator("home-inventory-settings li").filter({ hasText: FROM });
   await row.getByTestId("location-move").click();
   await expect(page.getByTestId("move-summary")).toContainText("1 Charge(n), 3 Pkg.");
   await expect(page.getByTestId("move-save")).toBeDisabled();
   await page.getByTestId("move-target").selectOption({ label: TO });
   await page.getByTestId("move-save").click();
   await expect(row).toHaveCount(1); // the location stays
-  const stock = (await ws(page, { type: "pantry/stock", product_id: productId })) as {
+  const stock = (await ws(page, { type: "home_inventory/stock", product_id: productId })) as {
     location: string;
     packages: number;
   }[];

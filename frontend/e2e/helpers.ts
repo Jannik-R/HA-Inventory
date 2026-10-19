@@ -28,7 +28,7 @@ export const ws = (page: Page, msg: Record<string, unknown>) =>
 /** A fresh page with HA's connection ready, for `ws` calls in beforeAll/afterAll. */
 export async function apiPage(browser: Browser) {
   const page = await browser.newPage();
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.waitForFunction(
     () => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass,
   );
@@ -37,25 +37,28 @@ export async function apiPage(browser: Browser) {
 
 /** Create a master data row (category, location); returns its id. */
 export async function save(page: Page, table: string, data: object) {
-  return ((await ws(page, { type: "pantry/save", table, data })) as { id: number }).id;
+  return ((await ws(page, { type: "home_inventory/save", table, data })) as { id: number }).id;
 }
 
 /** Delete a master data row with everything that uses it (cleanup; ignores rows already gone). */
 export const remove = (page: Page, table: string, row_id: number) =>
-  ws(page, { type: "pantry/delete", table, row_id, force: true }).catch(() => undefined);
+  ws(page, { type: "home_inventory/delete", table, row_id, force: true }).catch(() => undefined);
 
 /** Delete everything the specs create ("E2E " prefix), e.g. left over after a failed run. */
 export async function cleanupE2E(page: Page) {
   const del = (table: string, row_id: number) =>
-    ws(page, { type: "pantry/delete", table, row_id, force: true }).catch(() => undefined);
-  const products = (await ws(page, { type: "pantry/search", query: "E2E " })) as {
+    ws(page, { type: "home_inventory/delete", table, row_id, force: true }).catch(() => undefined);
+  const products = (await ws(page, { type: "home_inventory/search", query: "E2E " })) as {
     id: number;
     name: string;
   }[];
   for (const p of products) if (p.name.startsWith("E2E ")) await del("product", p.id);
-  const recipes = (await ws(page, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  const recipes = (await ws(page, { type: "home_inventory/recipes" })) as {
+    id: number;
+    name: string;
+  }[];
   for (const r of recipes) if (r.name.startsWith("E2E ")) await del("recipe", r.id);
-  const md = (await ws(page, { type: "pantry/master_data" })) as Record<
+  const md = (await ws(page, { type: "home_inventory/master_data" })) as Record<
     string,
     { id: number; name: string }[]
   >;

@@ -23,11 +23,11 @@ test("an import is checked by the AI: changes are marked and can be undone", asy
   wsStub,
 }) => {
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   await api.close();
   const id = (name: string) => md.categories.find((c) => c.name === name)!.id;
   const block = "Saft kochen, Zucker einrühren und abfüllen.";
-  wsStub("pantry/recipe_import", {
+  wsStub("home_inventory/recipe_import", {
     name: `E2E KI ${Date.now()}`,
     servings: 4,
     steps: [{ section: null, text: block }],
@@ -47,7 +47,7 @@ test("an import is checked by the AI: changes are marked and can be undone", asy
       },
     ],
   });
-  wsStub("pantry/recipe_ai_check", {
+  wsStub("home_inventory/recipe_ai_check", {
     status: "changes",
     ok: false,
     ingredients: [{ index: 0, category_id: id("Haushaltszucker"), reason: "genauer" }],
@@ -56,13 +56,13 @@ test("an import is checked by the AI: changes are marked and can be undone", asy
       { section: null, text: "Zucker einrühren und abfüllen." },
     ],
   });
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
-  const imp = page.locator("pantry-recipe-import dialog");
+  const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/gelee");
   await imp.getByTestId("recipe-import-submit").click();
 
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await expect(dialog.getByTestId("ai-status")).toContainText("1 Zutat geändert");
   const row = dialog.getByTestId("ingredient-row");
   await expect(row.getByTestId("ingredient-choice")).toContainText("Haushaltszucker");
@@ -82,11 +82,11 @@ test("a product type proposed by the AI is added when the recipe is saved", asyn
   wsStub,
 }) => {
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   const spices = md.categories.find((c) => c.name === "Gewürze")!.id;
   const stamp = Date.now();
   const type = `E2E Gewürz ${stamp}`;
-  wsStub("pantry/recipe_import", {
+  wsStub("home_inventory/recipe_import", {
     name: `E2E KI Typ ${stamp}`,
     servings: 2,
     steps: [{ section: null, text: "Würzen." }],
@@ -106,32 +106,37 @@ test("a product type proposed by the AI is added when the recipe is saved", asyn
       },
     ],
   });
-  wsStub("pantry/recipe_ai_check", {
+  wsStub("home_inventory/recipe_ai_check", {
     status: "changes",
     ok: false,
     ingredients: [
       { index: 0, category_id: null, new_type: { name: type, parent_id: spices }, reason: "neu" },
     ],
   });
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
-  const imp = page.locator("pantry-recipe-import dialog");
+  const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/typ");
   await imp.getByTestId("recipe-import-submit").click();
 
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   const row = dialog.getByTestId("ingredient-row");
   await expect(row.getByTestId("ingredient-ai")).toContainText(`„${type}“ unter „Gewürze“`);
   await dialog.getByTestId("recipe-save").click();
   const added = async () =>
-    ((await ws(api, { type: "pantry/master_data" })) as Md).categories.find((c) => c.name === type);
+    ((await ws(api, { type: "home_inventory/master_data" })) as Md).categories.find(
+      (c) => c.name === type,
+    );
   await expect.poll(async () => (await added())?.parent_id).toBe(spices);
   // cleanup: the recipe, then the type
-  const recipes = (await ws(api, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  const recipes = (await ws(api, { type: "home_inventory/recipes" })) as {
+    id: number;
+    name: string;
+  }[];
   const recipe = recipes.find((r) => r.name === `E2E KI Typ ${stamp}`)!;
-  await ws(api, { type: "pantry/delete", table: "recipe", row_id: recipe.id, force: true });
+  await ws(api, { type: "home_inventory/delete", table: "recipe", row_id: recipe.id, force: true });
   await ws(api, {
-    type: "pantry/delete",
+    type: "home_inventory/delete",
     table: "category",
     row_id: (await added())!.id,
     force: true,
@@ -141,10 +146,10 @@ test("a product type proposed by the AI is added when the recipe is saved", asyn
 
 test("the AI picks an existing unit or proposes a new one", async ({ page, wsStub }) => {
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   await api.close();
   const msp = md.units.find((u) => u.name === "Messerspitze")!.id;
-  wsStub("pantry/recipe_import", {
+  wsStub("home_inventory/recipe_import", {
     name: `E2E KI Einheit ${Date.now()}`,
     servings: 2,
     steps: [{ section: null, text: "Würzen." }],
@@ -155,7 +160,7 @@ test("the AI picks an existing unit or proposes a new one", async ({ page, wsStu
       ingredient("Sellerie", "1 Knolle Sellerie", null),
     ],
   });
-  wsStub("pantry/recipe_ai_check", {
+  wsStub("home_inventory/recipe_ai_check", {
     status: "changes",
     ok: false,
     ingredients: [
@@ -163,13 +168,13 @@ test("the AI picks an existing unit or proposes a new one", async ({ page, wsStu
       { index: 1, new_unit: { name: "Knolle" }, reason: "neue Einheit" },
     ],
   });
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
-  const imp = page.locator("pantry-recipe-import dialog");
+  const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("https://example.com/einheit");
   await imp.getByTestId("recipe-import-submit").click();
 
-  const rows = page.locator("pantry-recipe-dialog dialog").getByTestId("ingredient-row");
+  const rows = page.locator("home-inventory-recipe-dialog dialog").getByTestId("ingredient-row");
   await expect(rows.nth(0).getByTestId("ingredient-unit")).toHaveValue(String(msp));
   await expect(rows.nth(0).getByTestId("ingredient-ai")).toContainText(
     "Messerspitze (vorher: Msp)",
@@ -183,11 +188,11 @@ test("the AI picks an existing unit or proposes a new one", async ({ page, wsStu
 
 test("a new product from Open Food Facts is checked by the AI", async ({ page, wsStub }) => {
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   await api.close();
   const g = md.units.find((u) => u.symbol === "g")!.id;
   const name = `Marke E2E Nudeln ${Date.now()} 500g`;
-  wsStub("pantry/lookup", {
+  wsStub("home_inventory/lookup", {
     product: {
       ean: "4000000000017",
       name,
@@ -199,14 +204,14 @@ test("a new product from Open Food Facts is checked by the AI", async ({ page, w
       off_json: "{}",
     },
   });
-  wsStub("pantry/product_ai_check", {
+  wsStub("home_inventory/product_ai_check", {
     status: "changes",
     name: "E2E Nudeln",
     content_amount: 500,
     content_unit_id: g,
     reason: "ohne Marke",
   });
-  await openPage(page, "/pantry/in", "Bestand");
+  await openPage(page, "/home_inventory/in", "Bestand");
   await page.getByTestId("code-input").fill("4000000000017");
   await page.getByTestId("code-input").press("Enter");
 
@@ -222,10 +227,10 @@ test("a new product from Open Food Facts is checked by the AI", async ({ page, w
 
 test("the AI proposes a product type for a new product", async ({ page, wsStub }) => {
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   await api.close();
   const batteries = md.categories.find((c) => c.name === "Batterien")!.id;
-  wsStub("pantry/lookup", {
+  wsStub("home_inventory/lookup", {
     product: {
       ean: "4000000000024",
       name: `E2E Knopfzelle ${Date.now()}`,
@@ -237,13 +242,13 @@ test("the AI proposes a product type for a new product", async ({ page, wsStub }
       off_json: "{}",
     },
   });
-  wsStub("pantry/product_ai_check", {
+  wsStub("home_inventory/product_ai_check", {
     status: "changes",
     category_id: null,
     new_type: { name: "E2E Knopfzellen", parent_id: batteries },
     reason: "neue Sorte",
   });
-  await openPage(page, "/pantry/in", "Bestand");
+  await openPage(page, "/home_inventory/in", "Bestand");
   await page.getByTestId("code-input").fill("4000000000024");
   await page.getByTestId("code-input").press("Enter");
 

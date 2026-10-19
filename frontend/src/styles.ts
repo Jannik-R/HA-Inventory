@@ -151,7 +151,7 @@ export const formStyles = css`
   .field-hint {
     color: var(--warning-color);
   }
-  /* Errors only after the field was edited or left (data-touched, set in pantry-panel.ts):
+  /* Errors only after the field was edited or left (data-touched, set in home-inventory-panel.ts):
      an empty form does not open in red; the primary button is disabled anyway. */
   .field-error {
     display: none;

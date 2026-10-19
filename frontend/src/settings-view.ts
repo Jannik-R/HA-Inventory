@@ -7,8 +7,8 @@ import "./defaults-view";
 import "./meal-times-view";
 import "./move-location";
 import { SECTIONS, type Section } from "./settings-model";
-import type { PantryMoveLocation } from "./move-location";
-import type { PantrySettingsDialog } from "./settings-dialog";
+import type { HomeInventoryMoveLocation } from "./move-location";
+import type { HomeInventorySettingsDialog } from "./settings-dialog";
 import type { Draft } from "./settings-model";
 import { ADD } from "./settings-model";
 import { fmt } from "./settings-format";
@@ -24,7 +24,7 @@ import {
   type Table,
 } from "./api";
 
-export class PantrySettings extends LitElement {
+export class HomeInventorySettings extends LitElement {
   static properties = {
     hass: { attribute: false },
     section: { attribute: false },
@@ -77,7 +77,7 @@ export class PantrySettings extends LitElement {
 
   private nav(s: Section) {
     this.dispatchEvent(
-      new CustomEvent("pantry-navigate", {
+      new CustomEvent("home-inventory-navigate", {
         detail: `settings/${s}`,
         bubbles: true,
         composed: true,
@@ -87,7 +87,7 @@ export class PantrySettings extends LitElement {
 
   private open(table: Table, row?: Draft, preset: Draft = {}) {
     this.renderRoot
-      .querySelector<PantrySettingsDialog>("pantry-settings-dialog")
+      .querySelector<HomeInventorySettingsDialog>("home-inventory-settings-dialog")
       ?.open(table, row, preset);
   }
 
@@ -180,19 +180,19 @@ export class PantrySettings extends LitElement {
                 </div>
                 ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
             : sec === "meals"
-              ? html`<pantry-meal-times .hass=${this.hass}></pantry-meal-times>`
-              : html`<pantry-defaults
+              ? html`<home-inventory-meal-times .hass=${this.hass}></home-inventory-meal-times>`
+              : html`<home-inventory-defaults
                   .hass=${this.hass}
                   .data=${this.data}
-                  @pantry-saved=${this.load}
-                ></pantry-defaults>`
+                  @home-inventory-saved=${this.load}
+                ></home-inventory-defaults>`
           : nothing
       }
-      <pantry-settings-dialog
+      <home-inventory-settings-dialog
         .hass=${this.hass}
         .data=${this.data}
-        @pantry-saved=${this.load}
-      ></pantry-settings-dialog>
+        @home-inventory-saved=${this.load}
+      ></home-inventory-settings-dialog>
     `;
   }
 
@@ -226,7 +226,9 @@ export class PantrySettings extends LitElement {
       ...(table === "location"
         ? {
             onMove: () =>
-              this.renderRoot.querySelector<PantryMoveLocation>("pantry-move-location")!.open(row),
+              this.renderRoot
+                .querySelector<HomeInventoryMoveLocation>("home-inventory-move-location")!
+                .open(row),
             moveLabel: t("settings.location.move_name", { name: row.name }),
           }
         : {}),
@@ -257,11 +259,11 @@ export class PantrySettings extends LitElement {
         ${rows.map((l) => this.row(l.name, "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
       </ul>
       ${this.empty(rows)}
-      <pantry-move-location
+      <home-inventory-move-location
         .hass=${this.hass}
         .locations=${rows}
         @moved=${() => this.load()}
-      ></pantry-move-location>`;
+      ></home-inventory-move-location>`;
   }
 
   private renderUnits() {
@@ -323,4 +325,4 @@ export class PantrySettings extends LitElement {
   ];
 }
 
-customElements.define("pantry-settings", PantrySettings);
+customElements.define("home-inventory-settings", HomeInventorySettings);

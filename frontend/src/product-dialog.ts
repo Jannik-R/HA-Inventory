@@ -24,8 +24,8 @@ const COLUMNS = [
   "min_packages",
 ] as const;
 
-/** Edit dialog for a saved product. Call `open()`; fires `pantry-saved` after a successful save. */
-export class PantryProductDialog extends LitElement {
+/** Edit dialog for a saved product. Call `open()`; fires `home-inventory-saved` after a successful save. */
+export class HomeInventoryProductDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     md: { attribute: false },
@@ -84,7 +84,9 @@ export class PantryProductDialog extends LitElement {
     try {
       await saveProduct(this.hass!, data);
       this.renderRoot.querySelector("dialog")?.close();
-      this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+      this.dispatchEvent(
+        new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }),
+      );
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
@@ -195,4 +197,4 @@ export class PantryProductDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-product-dialog", PantryProductDialog);
+customElements.define("home-inventory-product-dialog", HomeInventoryProductDialog);

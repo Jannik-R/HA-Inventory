@@ -24,13 +24,13 @@ import { rowActions } from "./ui";
 import { confirmDelete } from "./confirm-dialog";
 import "./shopping-add";
 import "./shopping-recipes";
-import type { PantryShoppingAdd } from "./shopping-add";
+import type { HomeInventoryShoppingAdd } from "./shopping-add";
 
 /**
  * Shopping list (min stock shortages and items added by hand) as the category tree. Only rows with
  * something to buy get a checkbox; the other categories are just the way there. Checked = struck.
  */
-export class PantryShopping extends LitElement {
+export class HomeInventoryShopping extends LitElement {
   static properties = {
     hass: { attribute: false },
     items: { state: true },
@@ -123,7 +123,9 @@ export class PantryShopping extends LitElement {
   }
 
   private openAdd(item?: ShoppingItem) {
-    this.renderRoot.querySelector<PantryShoppingAdd>("pantry-shopping-add")!.open(item);
+    this.renderRoot
+      .querySelector<HomeInventoryShoppingAdd>("home-inventory-shopping-add")!
+      .open(item);
   }
 
   /** A row with something to buy; `name` shows a category item under its category's name. */
@@ -234,14 +236,14 @@ export class PantryShopping extends LitElement {
         }
       </div>
       ${this.note ? html`<p class="detail" role="status" data-testid="shopping-printed">${this.note}</p>` : nothing}
-      <pantry-shopping-recipes
+      <home-inventory-shopping-recipes
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-recipes>
-      <pantry-shopping-add
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-recipes>
+      <home-inventory-shopping-add
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-shopping-add>`;
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-shopping-add>`;
     return html`${bar}
     ${
       this.items.length
@@ -282,4 +284,4 @@ export class PantryShopping extends LitElement {
   ];
 }
 
-customElements.define("pantry-shopping", PantryShopping);
+customElements.define("home-inventory-shopping", HomeInventoryShopping);

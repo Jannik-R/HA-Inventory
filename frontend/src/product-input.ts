@@ -40,12 +40,12 @@ export function productInput(o: {
       isNew
         ? html`<div class="field">
             <span class="lbl">${t("book.category")}</span>
-            <pantry-category-picker
+            <home-inventory-category-picker
               .categories=${o.md?.categories ?? []}
               .value=${o.categoryId}
               .hass=${o.hass}
               @change=${(ev: CustomEvent<number>) => o.onCategory(ev.detail)}
-            ></pantry-category-picker>
+            ></home-inventory-category-picker>
             ${fieldMsg(o.err.category, `${id}-category`)}
           </div>`
         : nothing

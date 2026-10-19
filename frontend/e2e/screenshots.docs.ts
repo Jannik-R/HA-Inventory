@@ -21,7 +21,7 @@ let canningId: number | undefined;
 
 test.beforeAll(async ({ browser }) => {
   const api = await apiPage(browser);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Record<string, Row[]>;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Record<string, Row[]>;
   const id = (table: string, name: string) => {
     const row = md[table].find((r) => r.name === name);
     if (!row) throw new Error(`${table} "${name}" missing in the dev DB`);
@@ -30,7 +30,7 @@ test.beforeAll(async ({ browser }) => {
   const cat = (name: string) => id("categories", name);
   const unit = (name: string) => id("units", name);
   const fridge = id("locations", "Kühlschrank");
-  const pantry = id("locations", "Vorratsschrank");
+  const home_inventory = id("locations", "Vorratsschrank");
 
   const bookIn = async (
     name: string,
@@ -42,7 +42,7 @@ test.beforeAll(async ({ browser }) => {
     ean?: string,
   ) => {
     const r = (await ws(api, {
-      type: "pantry/book_in",
+      type: "home_inventory/book_in",
       product: {
         name,
         category_id: cat(category),
@@ -59,16 +59,16 @@ test.beforeAll(async ({ browser }) => {
   await bookIn("Vollmilch 1,5 %", "Milch", [1, "l"], 2, 3, fridge, "4000000000006");
   await bookIn("Naturjoghurt 3,5 %", "Naturjoghurt", [500, "g"], 1, -2, fridge);
   await bookIn("Parmesan am Stück", "Parmesan", [200, "g"], 1, 20, fridge);
-  await bookIn("Tomatenmark", "Tomatenmark", [200, "g"], 3, 400, pantry);
-  await bookIn("Passierte Tomaten", "Passierte Tomaten", [500, "g"], 2, 300, pantry);
-  await bookIn("Basmatireis", "Basmatireis", [1, "kg"], 1, 500, pantry);
+  await bookIn("Tomatenmark", "Tomatenmark", [200, "g"], 3, 400, home_inventory);
+  await bookIn("Passierte Tomaten", "Passierte Tomaten", [500, "g"], 2, 300, home_inventory);
+  await bookIn("Basmatireis", "Basmatireis", [1, "kg"], 1, 500, home_inventory);
 
   const canning = (await ws(api, {
-    type: "pantry/canning_save",
+    type: "home_inventory/canning_save",
     data: {
       made_on: day(-30),
       jars: 6,
-      location_id: pantry,
+      location_id: home_inventory,
       product: { name: "Erdbeermarmelade", category_id: cat("Marmelade & Gelee") },
       temp: 85,
       minutes: 10,
@@ -78,7 +78,7 @@ test.beforeAll(async ({ browser }) => {
 
   recipeId = (
     (await ws(api, {
-      type: "pantry/recipe_save",
+      type: "home_inventory/recipe_save",
       data: {
         name: "Pasta al pomodoro",
         servings: 2,
@@ -106,7 +106,7 @@ test.beforeAll(async ({ browser }) => {
       },
     })) as { id: number }
   ).id;
-  await ws(api, { type: "pantry/shopping_recipe_set", recipe_id: recipeId, servings: 6 });
+  await ws(api, { type: "home_inventory/shopping_recipe_set", recipe_id: recipeId, servings: 6 });
 
   // slots: 0 breakfast, 1 lunch, 3 dinner
   for (const [offset, slot, text, recipe_id] of [
@@ -116,7 +116,7 @@ test.beforeAll(async ({ browser }) => {
     [monday + 1, 3, "Pizza vom Lieferdienst", null],
   ] as const) {
     const r = (await ws(api, {
-      type: "pantry/meal_save",
+      type: "home_inventory/meal_save",
       data: { day: day(offset), slot, text, recipe_id, servings: 2 },
     })) as { id: number };
     meals.push(r.id);
@@ -126,14 +126,17 @@ test.beforeAll(async ({ browser }) => {
 
 test.afterAll(async ({ browser }) => {
   const api = await apiPage(browser);
-  for (const meal_id of meals) await ws(api, { type: "pantry/meal_delete", meal_id });
+  for (const meal_id of meals) await ws(api, { type: "home_inventory/meal_delete", meal_id });
   if (recipeId != null) {
-    await ws(api, { type: "pantry/shopping_recipe_remove", recipe_id: recipeId });
+    await ws(api, { type: "home_inventory/shopping_recipe_remove", recipe_id: recipeId });
     await remove(api, "recipe", recipeId);
   }
   if (canningId != null) await remove(api, "canning", canningId);
   for (const id of products) await remove(api, "product", id);
-  const hits = (await ws(api, { type: "pantry/search", query: "Erdbeermarmelade" })) as Row[];
+  const hits = (await ws(api, {
+    type: "home_inventory/search",
+    query: "Erdbeermarmelade",
+  })) as Row[];
   for (const p of hits) if (p.name === "Erdbeermarmelade") await remove(api, "product", p.id);
   await api.close();
 });
@@ -147,39 +150,39 @@ for (const theme of ["light", "dark"] as const) {
     // German dates and numbers like the UI (HA keeps the language per browser)
     await page.addInitScript(() => localStorage.setItem("selectedLanguage", '"de"'));
 
-    await openPage(page, "/pantry/stock", "Bestand");
+    await openPage(page, "/home_inventory/stock", "Bestand");
     const closed = page.locator('[data-testid="stock-category"][aria-expanded="false"]');
     await expect(closed.first()).toBeVisible();
     while (await closed.count()) await closed.first().click();
     await page.getByTestId("code-input").scrollIntoViewIfNeeded();
     await shot(page, "stock", theme);
 
-    await openPage(page, "/pantry/in", "Bestand");
+    await openPage(page, "/home_inventory/in", "Bestand");
     await page.getByTestId("code-input").fill("4000000000006");
     await page.getByTestId("code-input").press("Enter");
     await expect(page.locator("dialog[open]")).toBeVisible();
     await shot(page, "book-in", theme);
     await page.keyboard.press("Escape");
 
-    await openPage(page, "/pantry/expiry", "Ablauf");
+    await openPage(page, "/home_inventory/expiry", "Ablauf");
     await expect(page.getByText("Naturjoghurt 3,5 %")).toBeVisible();
     await shot(page, "expiry", theme);
 
-    await openPage(page, "/pantry/shopping", "Einkauf");
+    await openPage(page, "/home_inventory/shopping", "Einkauf");
     await expect(page.getByText("Zwiebeln").first()).toBeVisible();
     await shot(page, "shopping", theme);
 
-    await openPage(page, "/pantry/recipes", "Rezepte");
+    await openPage(page, "/home_inventory/recipes", "Rezepte");
     const recipe = page.getByTestId("recipe-row").filter({ hasText: "Pasta al pomodoro" });
     await recipe.getByTestId("recipe-toggle").click();
     await expect(recipe.getByText("Mit Parmesan und Basilikum servieren.")).toBeVisible();
     await shot(page, "recipe", theme);
 
-    await openPage(page, "/pantry/plan/week", "Speiseplan");
+    await openPage(page, "/home_inventory/plan/week", "Speiseplan");
     await expect(page.getByText("Linsensuppe")).toBeVisible();
     await shot(page, "plan", theme);
 
-    await openPage(page, "/pantry/canning", "Einkochen");
+    await openPage(page, "/home_inventory/canning", "Einkochen");
     await expect(page.getByText("Erdbeermarmelade").first()).toBeVisible();
     await shot(page, "canning", theme);
   });

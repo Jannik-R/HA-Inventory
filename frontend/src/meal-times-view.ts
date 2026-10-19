@@ -7,8 +7,8 @@ import { errorMessage, type Hass } from "./api";
 const CLOCK = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
 
 /** Start time per meal (settings): decides "the current meal", e.g. for the action
- * `pantry.print_planned` without a meal. List of the five meals, one edit dialog. */
-export class PantryMealTimes extends LitElement {
+ * `home_inventory.print_planned` without a meal. List of the five meals, one edit dialog. */
+export class HomeInventoryMealTimes extends LitElement {
   static properties = {
     hass: { attribute: false },
     starts: { state: true },
@@ -34,7 +34,7 @@ export class PantryMealTimes extends LitElement {
   private async load() {
     try {
       const rows = await this.hass!.callWS<{ slot: number; start: string }[]>({
-        type: "pantry/meal_times",
+        type: "home_inventory/meal_times",
       });
       this.starts = rows.map((r) => r.start);
     } catch (err) {
@@ -54,7 +54,7 @@ export class PantryMealTimes extends LitElement {
     e.preventDefault();
     if (this.d!.some((v) => !CLOCK.test(v))) return;
     try {
-      await this.hass!.callWS({ type: "pantry/meal_times_save", starts: this.d });
+      await this.hass!.callWS({ type: "home_inventory/meal_times_save", starts: this.d });
       this.starts = [...this.d!];
       this.renderRoot.querySelector("dialog")?.close();
     } catch (err) {
@@ -112,4 +112,4 @@ export class PantryMealTimes extends LitElement {
   static styles = [formStyles];
 }
 
-customElements.define("pantry-meal-times", PantryMealTimes);
+customElements.define("home-inventory-meal-times", HomeInventoryMealTimes);

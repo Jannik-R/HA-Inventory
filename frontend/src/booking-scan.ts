@@ -3,11 +3,11 @@ import { mdiBarcodeScan } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
 import { formStyles } from "./styles";
-import type { PantryScanner } from "./scanner";
+import type { HomeInventoryScanner } from "./scanner";
 import "./scanner";
 
 /** The booking input (hardware scanner, camera, name). Fires `query` on typing and `find` on submit or scan. */
-export class PantryBookingScan extends LitElement {
+export class HomeInventoryBookingScan extends LitElement {
   static properties = { value: { attribute: false } };
   declare value: string;
 
@@ -50,12 +50,12 @@ export class PantryBookingScan extends LitElement {
           type="button"
           data-testid="camera"
           aria-label=${t("book.camera")}
-          @click=${() => this.renderRoot.querySelector<PantryScanner>("pantry-scanner")?.open()}
+          @click=${() => this.renderRoot.querySelector<HomeInventoryScanner>("home-inventory-scanner")?.open()}
         >
           ${icon(mdiBarcodeScan)}<span>${t("book.camera")}</span>
         </button>
       </form>
-      <pantry-scanner @scan=${this.scanned}></pantry-scanner>
+      <home-inventory-scanner @scan=${this.scanned}></home-inventory-scanner>
     `;
   }
 
@@ -87,4 +87,4 @@ export class PantryBookingScan extends LitElement {
   ];
 }
 
-customElements.define("pantry-booking-scan", PantryBookingScan);
+customElements.define("home-inventory-booking-scan", HomeInventoryBookingScan);

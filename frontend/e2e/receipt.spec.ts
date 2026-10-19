@@ -12,11 +12,11 @@ test.afterAll(async ({ browser }) => {
 test("a receipt photo is read in the browser, checked and booked in", async ({ page, wsStub }) => {
   test.setTimeout(120_000); // the first OCR run loads engine and German data from the CDN
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as Md;
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
   const milk = md.categories.find((c) => c.name === "H-Milch")!.id;
   const name = `E2E Bon-Milch ${Date.now()}`;
   const { product_id } = (await ws(api, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     packages: 1,
     expires_on: "2099-01-01",
     product: { name, category_id: milk },
@@ -24,7 +24,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
   await api.close();
 
   // The AI answer is stubbed; the OCR is real (a receipt drawn on a canvas).
-  wsStub("pantry/receipt_read", {
+  wsStub("home_inventory/receipt_read", {
     store: "E2E Markt",
     items: [
       {
@@ -48,7 +48,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
       },
     ],
   });
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("mode-in").click();
   await page.getByTestId("receipt-import").click();
   await page.getByTestId("receipt-photo").evaluate(async (input: HTMLInputElement) => {
@@ -92,7 +92,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
   await expect(page.getByText("2 Pkg. vom Kassenbon eingebucht.")).toBeVisible();
 
   const api2 = await apiPage(page.context().browser()!);
-  const stock = (await ws(api2, { type: "pantry/stock" })) as {
+  const stock = (await ws(api2, { type: "home_inventory/stock" })) as {
     product_id: number;
     packages: number;
     expiry_guessed: number;
@@ -107,7 +107,7 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
 
 test("the live camera takes a receipt and a recipe photo", async ({ page }) => {
   test.setTimeout(120_000);
-  await openPage(page, "/pantry/stock", "Bestand");
+  await openPage(page, "/home_inventory/stock", "Bestand");
   await page.getByTestId("mode-in").click();
   await page.getByTestId("receipt-import").click();
   await page.getByTestId("receipt-scan").click();
@@ -116,7 +116,7 @@ test("the live camera takes a receipt and a recipe photo", async ({ page }) => {
   await expect(page.getByTestId("receipt-preview")).toBeVisible();
   await expect(page.getByTestId("receipt-read")).toBeEnabled();
 
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
   await page.getByTestId("recipe-import-source-photo").click();
   await page.getByTestId("recipe-import-camera").click();

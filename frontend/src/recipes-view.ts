@@ -26,14 +26,14 @@ import "./shopping-recipe-dialog";
 import { DINNER } from "./plan-dates";
 import "./meal-dialog";
 import "./cook-mode";
-import type { PantryCookMode } from "./cook-mode";
-import type { PantryMealDialog } from "./meal-dialog";
-import type { PantryShoppingRecipeDialog } from "./shopping-recipe-dialog";
-import type { PantryRecipeImport } from "./recipe-import";
-import type { PantryRecipeDialog } from "./recipe-dialog";
+import type { HomeInventoryCookMode } from "./cook-mode";
+import type { HomeInventoryMealDialog } from "./meal-dialog";
+import type { HomeInventoryShoppingRecipeDialog } from "./shopping-recipe-dialog";
+import type { HomeInventoryRecipeImport } from "./recipe-import";
+import type { HomeInventoryRecipeDialog } from "./recipe-dialog";
 
 /** Recipe list: search (name and ingredients), open a row for ingredients with availability. */
-export class PantryRecipes extends LitElement {
+export class HomeInventoryRecipes extends LitElement {
   static properties = {
     hass: { attribute: false },
     section: { attribute: false },
@@ -143,7 +143,7 @@ export class PantryRecipes extends LitElement {
     this.error = "";
     try {
       await this.renderRoot
-        .querySelector<PantryShoppingRecipeDialog>("pantry-shopping-recipe-dialog")!
+        .querySelector<HomeInventoryShoppingRecipeDialog>("home-inventory-shopping-recipe-dialog")!
         .request(r, this.servings.get(r.id));
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -165,12 +165,14 @@ export class PantryRecipes extends LitElement {
 
   private edit(r?: Recipe) {
     this.renderRoot
-      .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
+      .querySelector<HomeInventoryRecipeDialog>("home-inventory-recipe-dialog")!
       .open(this.md!, r, undefined, !!this.canning);
   }
 
   private importer() {
-    return this.renderRoot.querySelector<PantryRecipeImport>("pantry-recipe-import")!;
+    return this.renderRoot.querySelector<HomeInventoryRecipeImport>(
+      "home-inventory-recipe-import",
+    )!;
   }
 
   private shown() {
@@ -225,18 +227,18 @@ export class PantryRecipes extends LitElement {
               onPlan: () =>
                 isCanning(r)
                   ? this.dispatchEvent(
-                      new CustomEvent("pantry-canning-start", {
+                      new CustomEvent("home-inventory-canning-start", {
                         detail: r.id,
                         bubbles: true,
                         composed: true,
                       }),
                     )
                   : this.renderRoot
-                      .querySelector<PantryMealDialog>("pantry-meal-dialog")!
+                      .querySelector<HomeInventoryMealDialog>("home-inventory-meal-dialog")!
                       .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
               onCook: () =>
                 this.renderRoot
-                  .querySelector<PantryCookMode>("pantry-cook-mode")!
+                  .querySelector<HomeInventoryCookMode>("home-inventory-cook-mode")!
                   .open(this.hass!, this.md!, r, this.scaled.get(r.id) ?? r.ingredients, n),
             })
           : nothing
@@ -278,25 +280,25 @@ export class PantryRecipes extends LitElement {
             </label>`
           : nothing
       }
-      <pantry-recipe-import
+      <home-inventory-recipe-import
         .hass=${this.hass}
-        @pantry-imported=${(e: CustomEvent<RecipeDraft>) =>
+        @home-inventory-imported=${(e: CustomEvent<RecipeDraft>) =>
           this.renderRoot
-            .querySelector<PantryRecipeDialog>("pantry-recipe-dialog")!
+            .querySelector<HomeInventoryRecipeDialog>("home-inventory-recipe-dialog")!
             .open(this.md!, undefined, e.detail, !!this.canning)}
-      ></pantry-recipe-import>
-      <pantry-shopping-recipe-dialog
+      ></home-inventory-recipe-import>
+      <home-inventory-shopping-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.refreshShopping()}
-      ></pantry-shopping-recipe-dialog>
-      <pantry-meal-dialog .hass=${this.hass}></pantry-meal-dialog>
-      <pantry-cook-mode></pantry-cook-mode>
-      <pantry-recipe-dialog
+        @home-inventory-saved=${() => this.refreshShopping()}
+      ></home-inventory-shopping-recipe-dialog>
+      <home-inventory-meal-dialog .hass=${this.hass}></home-inventory-meal-dialog>
+      <home-inventory-cook-mode></home-inventory-cook-mode>
+      <home-inventory-recipe-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
+        @home-inventory-saved=${() => this.load()}
         @master=${(e: CustomEvent<MasterData>) => (this.md = e.detail)}
       >
-      </pantry-recipe-dialog>
+      </home-inventory-recipe-dialog>
       ${
         list.length
           ? html`<ul>
@@ -311,4 +313,4 @@ export class PantryRecipes extends LitElement {
   static styles = [formStyles, recipesStyles];
 }
 
-customElements.define("pantry-recipes", PantryRecipes);
+customElements.define("home-inventory-recipes", HomeInventoryRecipes);

@@ -26,11 +26,12 @@ export interface ShoppingItem {
   /** Items from recipes only: the todo uid (`r<category>-<unit>`) used for checking. */
   key?: string;
 }
-export const getShopping = (hass: Hass) => hass.callWS<ShoppingItem[]>({ type: "pantry/shopping" });
+export const getShopping = (hass: Hass) =>
+  hass.callWS<ShoppingItem[]>({ type: "home_inventory/shopping" });
 /** Check a min stock item: a product's (`product_id`) or else a category's. */
 export const setShoppingDone = (hass: Hass, item: ShoppingItem, done: boolean) =>
   hass.callWS<unknown>({
-    type: "pantry/shopping_done",
+    type: "home_inventory/shopping_done",
     ...(item.product_id ? { product_id: item.product_id } : { category_id: item.category_id }),
     done,
   });
@@ -43,14 +44,14 @@ export const addShopping = (
     product?: Product;
     category?: { name: string; parent_id: number | null };
   },
-) => hass.callWS<{ id: number }>({ type: "pantry/shopping_add", ...data });
+) => hass.callWS<{ id: number }>({ type: "home_inventory/shopping_add", ...data });
 export const updateShoppingItem = (
   hass: Hass,
   item_id: number,
   data: { packages?: number; done?: boolean },
-) => hass.callWS<unknown>({ type: "pantry/shopping_item", item_id, ...data });
+) => hass.callWS<unknown>({ type: "home_inventory/shopping_item", item_id, ...data });
 export const deleteShoppingItem = (hass: Hass, item_id: number) =>
-  hass.callWS<unknown>({ type: "pantry/shopping_item_delete", item_id });
+  hass.callWS<unknown>({ type: "home_inventory/shopping_item_delete", item_id });
 export interface ShoppingRecipe {
   recipe_id: number;
   /** 1, 2, …: short reference on the list items. */
@@ -61,14 +62,20 @@ export interface ShoppingRecipe {
   optional: number[];
 }
 export const getShoppingRecipes = (hass: Hass) =>
-  hass.callWS<ShoppingRecipe[]>({ type: "pantry/shopping_recipes" });
+  hass.callWS<ShoppingRecipe[]>({ type: "home_inventory/shopping_recipes" });
 export const setShoppingRecipe = (
   hass: Hass,
   recipe_id: number,
   servings: number,
   optional: number[],
-) => hass.callWS<unknown>({ type: "pantry/shopping_recipe_set", recipe_id, servings, optional });
+) =>
+  hass.callWS<unknown>({
+    type: "home_inventory/shopping_recipe_set",
+    recipe_id,
+    servings,
+    optional,
+  });
 export const removeShoppingRecipe = (hass: Hass, recipe_id: number) =>
-  hass.callWS<unknown>({ type: "pantry/shopping_recipe_remove", recipe_id });
+  hass.callWS<unknown>({ type: "home_inventory/shopping_recipe_remove", recipe_id });
 export const setShoppingRecipeDone = (hass: Hass, key: string, done: boolean) =>
-  hass.callWS<unknown>({ type: "pantry/shopping_recipe_done", key, done });
+  hass.callWS<unknown>({ type: "home_inventory/shopping_recipe_done", key, done });

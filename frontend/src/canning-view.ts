@@ -19,11 +19,11 @@ import { fmtDate } from "./format";
 import "./canning-dialog";
 import "./label-dialog";
 import "./recipes-view";
-import type { PantryCanningDialog } from "./canning-dialog";
-import type { PantryLabelDialog } from "./label-dialog";
+import type { HomeInventoryCanningDialog } from "./canning-dialog";
+import type { HomeInventoryLabelDialog } from "./label-dialog";
 
 /** Canning protocols, newest first: one row per charge; a new protocol books its jars in. */
-export class PantryCanning extends LitElement {
+export class HomeInventoryCanning extends LitElement {
   static properties = {
     hass: { attribute: false },
     section: { attribute: false },
@@ -58,7 +58,7 @@ export class PantryCanning extends LitElement {
 
   private nav(path: string) {
     this.dispatchEvent(
-      new CustomEvent("pantry-navigate", { detail: path, bubbles: true, composed: true }),
+      new CustomEvent("home-inventory-navigate", { detail: path, bubbles: true, composed: true }),
     );
   }
 
@@ -86,7 +86,7 @@ export class PantryCanning extends LitElement {
   private edit(c?: Canning, recipeId?: number) {
     this.message = "";
     this.renderRoot
-      .querySelector<PantryCanningDialog>("pantry-canning-dialog")!
+      .querySelector<HomeInventoryCanningDialog>("home-inventory-canning-dialog")!
       .open(this.md!, this.products, this.recipes, c, recipeId);
   }
 
@@ -111,7 +111,7 @@ export class PantryCanning extends LitElement {
     if (!made) return;
     this.message = t("canning.saved", { charge: made.charge });
     this.renderRoot
-      .querySelector<PantryLabelDialog>("pantry-label-dialog")!
+      .querySelector<HomeInventoryLabelDialog>("home-inventory-label-dialog")!
       .open({ id: made.batch_id, name: made.name, packages: made.jars }, made.jars);
   }
 
@@ -174,15 +174,18 @@ export class PantryCanning extends LitElement {
             </button>`,
         )}
       </nav>
-      <div @pantry-canning-start=${this.start}>
-        ${recipes ? html`<pantry-recipes .hass=${this.hass} .canning=${true}></pantry-recipes>` : this.protocols()}
+      <div @home-inventory-canning-start=${this.start}>
+        ${recipes ? html`<home-inventory-recipes .hass=${this.hass} .canning=${true}></home-inventory-recipes>` : this.protocols()}
       </div>
-      <pantry-canning-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-canning-dialog>
-      <pantry-label-dialog
+      <home-inventory-canning-dialog
         .hass=${this.hass}
-        @pantry-printed=${(e: CustomEvent<number>) =>
+        @home-inventory-saved=${this.saved}
+      ></home-inventory-canning-dialog>
+      <home-inventory-label-dialog
+        .hass=${this.hass}
+        @home-inventory-printed=${(e: CustomEvent<number>) =>
           e.detail && (this.message = t("label.printed", { n: e.detail }))}
-      ></pantry-label-dialog>`;
+      ></home-inventory-label-dialog>`;
   }
 
   static styles = [
@@ -223,4 +226,4 @@ export class PantryCanning extends LitElement {
   ];
 }
 
-customElements.define("pantry-canning", PantryCanning);
+customElements.define("home-inventory-canning", HomeInventoryCanning);

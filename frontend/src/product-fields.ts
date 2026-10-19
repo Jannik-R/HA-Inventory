@@ -79,12 +79,12 @@ export function productFields(
     </label>
     <div class="field">
       <span class="lbl">${t("book.category")}</span>
-      <pantry-category-picker
+      <home-inventory-category-picker
         .categories=${md?.categories ?? []}
         .value=${p.category_id}
         .hass=${hass}
         @change=${(e: CustomEvent<number>) => set("category_id", e.detail)}
-      ></pantry-category-picker>
+      ></home-inventory-category-picker>
       ${fieldMsg(errors.category, "category")}
     </div>
     <div class="pair">

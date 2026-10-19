@@ -26,7 +26,7 @@ interface Hit {
  * Ingredient field: search a Produktart (or higher category), also found via product names, or
  * create a new Produktart. Fires `change` (category id) and, after creating, `master` (MasterData).
  */
-export class PantryIngredientPick extends LitElement {
+export class HomeInventoryIngredientPick extends LitElement {
   static properties = {
     hass: { attribute: false },
     categories: { attribute: false },
@@ -177,11 +177,11 @@ export class PantryIngredientPick extends LitElement {
     if (this.creating)
       return html`<div class="field">
         <span class="lbl">${t("recipes.ingredient.parent", { name: this.creating })}</span>
-        <pantry-category-picker
+        <home-inventory-category-picker
           .categories=${this.foods()}
           .value=${null}
           @change=${(e: CustomEvent<number | null>) => this.create(e.detail)}
-        ></pantry-category-picker>
+        ></home-inventory-category-picker>
         ${this.failure ? html`<p class="error" role="alert">${this.failure}</p>` : nothing}
         <button type="button" class="reset" @click=${() => (this.creating = undefined)}>
           ${t("common.cancel")}
@@ -205,4 +205,4 @@ export class PantryIngredientPick extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-ingredient-pick", PantryIngredientPick);
+customElements.define("home-inventory-ingredient-pick", HomeInventoryIngredientPick);

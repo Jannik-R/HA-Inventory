@@ -28,9 +28,9 @@ const MAX_HITS = 8;
 
 /**
  * Add a product or category to the shopping list by hand (search, or create it), or change the
- * packages of an item added by hand. Call `open()`; fires `pantry-saved` after saving.
+ * packages of an item added by hand. Call `open()`; fires `home-inventory-saved` after saving.
  */
-export class PantryShoppingAdd extends LitElement {
+export class HomeInventoryShoppingAdd extends LitElement {
   static properties = {
     hass: { attribute: false },
     query: { state: true },
@@ -117,7 +117,7 @@ export class PantryShoppingAdd extends LitElement {
       return;
     }
     this.renderRoot.querySelector("dialog")?.close();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   private hit(testid: string, label: string, detail: string, choice: Choice) {
@@ -223,12 +223,12 @@ export class PantryShoppingAdd extends LitElement {
       </label>
       <div class="field">
         <span class="lbl">${t("settings.category.parent")}</span>
-        <pantry-category-picker
+        <home-inventory-category-picker
           .categories=${this.md?.categories ?? []}
           .value=${c.parent_id}
           .noneLabel=${t("settings.category.no_parent")}
           @change=${(e: CustomEvent<number | null>) => (this.choice = { ...c, parent_id: e.detail })}
-        ></pantry-category-picker>
+        ></home-inventory-category-picker>
       </div>`;
   }
 
@@ -270,4 +270,4 @@ export class PantryShoppingAdd extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-shopping-add", PantryShoppingAdd);
+customElements.define("home-inventory-shopping-add", HomeInventoryShoppingAdd);

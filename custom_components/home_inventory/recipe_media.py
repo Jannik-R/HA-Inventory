@@ -25,7 +25,7 @@ MAX_SECONDS = 900  # longer videos are no recipe clip; only their caption is use
 MAX_IMAGE = 5_000_000
 VIDEO_TIMEOUT = 120  # s, metadata + download
 IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp")
-FOLDER = ".pantry_import"  # dot: hidden from the media browser search
+FOLDER = ".home_inventory_import"  # dot: hidden from the media browser search
 
 
 class _YtLog:
@@ -110,7 +110,7 @@ async def async_folder(
 
     def make() -> Path:
         if key is None:
-            return Path(tempfile.mkdtemp(prefix="pantry_import_"))
+            return Path(tempfile.mkdtemp(prefix="home_inventory_import_"))
         path = Path(dirs[key], FOLDER, uuid.uuid4().hex)
         path.mkdir(parents=True)
         return path

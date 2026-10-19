@@ -20,10 +20,11 @@ export interface Canning {
   notes: string;
 }
 
-export const getCannings = (hass: Hass) => hass.callWS<Canning[]>({ type: "pantry/cannings" });
+export const getCannings = (hass: Hass) =>
+  hass.callWS<Canning[]>({ type: "home_inventory/cannings" });
 /** New (made_on, jars, product_id or product) or edit (id + process data). */
 export const saveCanning = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number; batch_id: number; charge: string }>({
-    type: "pantry/canning_save",
+    type: "home_inventory/canning_save",
     data,
   });

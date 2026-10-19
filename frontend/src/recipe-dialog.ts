@@ -24,8 +24,8 @@ import type { StepRow } from "./recipe-steps";
 import { fromRecipe, toPayload, type Draft } from "./recipe-draft";
 import { aiBanner, aiDraft, applyAi, type AiState } from "./recipe-ai";
 
-/** Add or edit a recipe. Call `open(md, recipe?, imported?)` (an import is a new recipe); fires `pantry-saved` after saving. */
-export class PantryRecipeDialog extends LitElement {
+/** Add or edit a recipe. Call `open(md, recipe?, imported?)` (an import is a new recipe); fires `home-inventory-saved` after saving. */
+export class HomeInventoryRecipeDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     draft: { state: true },
@@ -141,7 +141,7 @@ export class PantryRecipeDialog extends LitElement {
       return;
     }
     this.renderRoot.querySelector("dialog")?.close();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   private text(
@@ -242,7 +242,7 @@ export class PantryRecipeDialog extends LitElement {
         }
         ${this.text("source_url", t("recipes.field.source_url"), e.source_url, "url")}
         ${this.text("image_url", t("recipes.field.image_url"), e.image_url, "url")}
-        <pantry-recipe-ingredients
+        <home-inventory-recipe-ingredients
           .hass=${this.hass}
           .value=${d.ingredients}
           @master=${(ev: CustomEvent<MasterData>) => {
@@ -255,11 +255,11 @@ export class PantryRecipeDialog extends LitElement {
           .units=${this.md?.units ?? []}
           @change=${(ev: CustomEvent<Ingredient[]>) =>
             (this.draft = { ...d, ingredients: ev.detail })}
-        ></pantry-recipe-ingredients>
-        <pantry-recipe-steps
+        ></home-inventory-recipe-ingredients>
+        <home-inventory-recipe-steps
           .value=${d.steps}
           @change=${(ev: CustomEvent<StepRow[]>) => (this.draft = { ...d, steps: ev.detail })}
-        ></pantry-recipe-steps>`,
+        ></home-inventory-recipe-steps>`,
       error: this.error,
       // saving waits for the AI (or "Nicht abwarten")
       invalid: Object.keys(e).length > 0 || bad || this.ai.kind === "running",
@@ -276,4 +276,4 @@ export class PantryRecipeDialog extends LitElement {
   static styles = [formStyles, aiStyles];
 }
 
-customElements.define("pantry-recipe-dialog", PantryRecipeDialog);
+customElements.define("home-inventory-recipe-dialog", HomeInventoryRecipeDialog);

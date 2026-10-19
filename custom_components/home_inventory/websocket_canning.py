@@ -1,4 +1,4 @@
-"""Websocket commands for canning protocols (any user; deleting goes through pantry/delete, admin)."""
+"""Websocket commands for canning protocols (any user; deleting goes through home_inventory/delete, admin)."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def async_register(hass: HomeAssistant) -> None:
         websocket_api.async_register_command(hass, command)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/cannings"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/cannings"})
 @websocket_api.async_response
 async def ws_cannings(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.cannings))
@@ -34,7 +34,7 @@ async def ws_cannings(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/canning_save",
+        vol.Required("type"): "home_inventory/canning_save",
         # new: made_on, jars, location and a canning recipe or a product (existing or new); edit: id + process data
         vol.Required("data"): vol.Any(
             {vol.Required("id"): ID, **_PROCESS},

@@ -14,9 +14,9 @@ const draft = (name: string) => ({
 });
 
 test("a recipe is imported from pasted text or a photo (AI stubbed)", async ({ page, wsStub }) => {
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
-  const imp = page.locator("pantry-recipe-import dialog");
+  const imp = page.locator("home-inventory-recipe-import dialog");
   test.skip(
     !(await imp.getByTestId("recipe-import-source-text").isVisible()),
     "no AI in the dev HA",
@@ -26,9 +26,9 @@ test("a recipe is imported from pasted text or a photo (AI stubbed)", async ({ p
   await imp.getByTestId("recipe-import-source-text").click();
   await expect(imp.getByTestId("recipe-import-submit")).toBeDisabled();
   await imp.getByTestId("recipe-import-text").fill("Nudeln kochen, 200 g Spaghetti");
-  wsStub("pantry/recipe_import", draft("E2E Text-Import"));
+  wsStub("home_inventory/recipe_import", draft("E2E Text-Import"));
   await imp.getByTestId("recipe-import-submit").click();
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await expect(dialog.getByTestId("recipe-name")).toHaveValue("E2E Text-Import");
   await dialog.getByRole("button", { name: "Abbrechen" }).click();
 
@@ -38,7 +38,7 @@ test("a recipe is imported from pasted text or a photo (AI stubbed)", async ({ p
   await expect(imp.getByTestId("recipe-import-submit")).toBeDisabled();
   await file.setInputFiles(PHOTO);
   await expect(imp.getByTestId("recipe-import-submit")).toBeEnabled();
-  wsStub("pantry/recipe_import", draft("E2E Foto-Import"));
+  wsStub("home_inventory/recipe_import", draft("E2E Foto-Import"));
   await imp.getByTestId("recipe-import-submit").click();
   await expect(dialog.getByTestId("recipe-name")).toHaveValue("E2E Foto-Import");
 });

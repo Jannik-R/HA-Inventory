@@ -1,6 +1,6 @@
 ---
 name: feature-checklist
-description: Checklist to take a pantry feature from idea to merged PR - which layers to touch (inventory, db, websocket, panel, i18n, sensors), tests, docs, checks and the PR. Use when starting or finishing any feature, fix or phase in this repo, so nothing is forgotten.
+description: Checklist to take a home_inventory feature from idea to merged PR - which layers to touch (inventory, db, websocket, panel, i18n, sensors), tests, docs, checks and the PR. Use when starting or finishing any feature, fix or phase in this repo, so nothing is forgotten.
 ---
 
 Follow CLAUDE.md; this is the order that works in this repo. Skip lines that do not apply.
@@ -11,7 +11,7 @@ Follow CLAUDE.md; this is the order that works in this repo. Skip lines that do 
 - [ ] Schema change? → skill `db-migration` first. Architecture change? → `architect` agent.
 - [ ] Read the files the change touches (Grep first). Note every caller of a function you change.
 
-## Backend (`custom_components/pantry/`, read skill `ha-integration-rules`)
+## Backend (`custom_components/home_inventory/`, read skill `ha-integration-rules`)
 
 - [ ] Logic only in `inventory/<module>.py`; export it in `inventory/__init__.py` (`__all__`, sorted).
 - [ ] User-facing errors: `InventoryError("<key>")` + `exceptions.<key>` in `strings.json`, `translations/en.json`, `translations/de.json`.

@@ -6,7 +6,7 @@ const KEY_STEP = 0.01; // arrow keys move a corner by 1 % of the image
 
 /** A still image with the found outline; its four corners can be dragged (or moved with the arrow
  *  keys). Fires `change` (detail: the new corners). */
-export class PantryScanCorners extends LitElement {
+export class HomeInventoryScanCorners extends LitElement {
   static properties = {
     image: { attribute: false },
     quad: { attribute: false },
@@ -114,4 +114,4 @@ export class PantryScanCorners extends LitElement {
   `;
 }
 
-customElements.define("pantry-scan-corners", PantryScanCorners);
+customElements.define("home-inventory-scan-corners", HomeInventoryScanCorners);

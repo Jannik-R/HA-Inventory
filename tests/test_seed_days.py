@@ -1,7 +1,7 @@
 """Seeded shelf life / days after opening (seed_days): every name exists, migration 21 keeps own values."""
 
-from custom_components.pantry import db
-from custom_components.pantry.seed_days import _DE_DAYS
+from custom_components.home_inventory import db
+from custom_components.home_inventory.seed_days import _DE_DAYS
 
 
 def days(c, name: str) -> tuple:
@@ -41,7 +41,7 @@ def test_migration_21_fills_only_empty_values(monkeypatch) -> None:
 def test_book_in_without_date_guesses_from_shelf_life(conn) -> None:
     from datetime import date, timedelta
 
-    from custom_components.pantry import inventory as inv
+    from custom_components.home_inventory import inventory as inv
     from tests.test_inventory import loc, product
 
     milk = product(conn, "H-Milch Test", "H-Milch")

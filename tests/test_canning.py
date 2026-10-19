@@ -3,8 +3,8 @@ categories in recipes; migration 15 keeps batches."""
 
 import pytest
 
-from custom_components.pantry import db
-from custom_components.pantry import inventory as inv
+from custom_components.home_inventory import db
+from custom_components.home_inventory import inventory as inv
 
 
 def cat(conn, name: str) -> int:

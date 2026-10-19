@@ -13,7 +13,7 @@ services:
     volumes:
       - ./config:/config
       - ./configuration.yaml:/config/configuration.yaml:ro
-      - ../custom_components/pantry:/config/custom_components/pantry:ro
+      - ../custom_components/home_inventory:/config/custom_components/home_inventory:ro
     # A USB receipt printer on this PC is reached through scripts/receipt_bridge.py (Docker Desktop's
     # WSL kernel has no USB printer driver): receipt printer = host.docker.internal:9100.
     extra_hosts:

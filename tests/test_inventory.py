@@ -5,9 +5,9 @@ from datetime import date
 
 import pytest
 
-from custom_components.pantry import db
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.inventory.inherit import category_tags, set_tags
+from custom_components.home_inventory import db
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.inventory.inherit import category_tags, set_tags
 
 
 def cat(conn, name):

@@ -72,7 +72,7 @@ buttons are the **magnifier** (search), **+** (book in) and **−** (book out); 
 filled. The input field is ready right away. The switch stays until you change it or leave the tab.
 
 > [!TIP]
-> A bookmark to `/pantry/in` opens the stock with **Einbuchen** (book in) already set, `/pantry/out`
+> A bookmark to `/home_inventory/in` opens the stock with **Einbuchen** (book in) already set, `/home_inventory/out`
 > with **Auslagern** (book out). Handy for a kitchen tablet.
 
 ```mermaid
@@ -154,7 +154,7 @@ the same store it is already selected.
 
 ## 3. Using up and booking out
 
-Set the switch in **Bestand** to **−** (book out; as a bookmark: `/pantry/out`). Then it works
+Set the switch in **Bestand** to **−** (book out; as a bookmark: `/home_inventory/out`). Then it works
 like booking in: scanner, camera or name, then the dialog.
 
 - By default the package with the earliest date is taken. You can also pick a batch and location.
@@ -174,10 +174,10 @@ you open it, and Home Inventory uses the shorter date.
 
 - **In Bestand**: tap the open box icon (**Anbrechen**, open) on the batch. It opens exactly one
   package of that batch at that location.
-- **By scan**: set the switch to the open box (Anbrechen; as a bookmark: `/pantry/open`). A scanned
+- **By scan**: set the switch to the open box (Anbrechen; as a bookmark: `/home_inventory/open`). A scanned
   Home Inventory label opens a package of that batch; a barcode or name opens the package with the
   earliest date.
-- **By automation**: action `pantry.open_package` (see [README](../README.md#services-automations)).
+- **By automation**: action `home_inventory.open_package` (see [README](../README.md#services-automations)).
 
 The opened package gets its own row "… · angebrochen am …" (opened on) and expires after the
 *Haltbar nach Anbruch* (shelf life after opening) of its category or product (e.g. milk 3 days), never
@@ -591,6 +591,6 @@ Right after the booking use **Rückgängig**, otherwise fix the batch with the p
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`pantry.book_in`, `pantry.book_out`), printing (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), the shopping list (`pantry.shop_recipe`), the meal plan (`pantry.plan_meal`, `pantry.plan_to_shopping_list`) and canning (`pantry.canning`) (see [README](../README.md#services-automations)).
+For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`home_inventory.book_in`, `home_inventory.book_out`), printing (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), the shopping list (`home_inventory.shop_recipe`), the meal plan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) and canning (`home_inventory.canning`) (see [README](../README.md#services-automations)).
 
 </details>

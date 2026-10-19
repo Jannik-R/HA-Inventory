@@ -21,18 +21,18 @@ export interface MealDraft {
 /** Meals from `start` up to (excluding) `end`, both local ISO dates. */
 export const getMealPlan = (hass: Hass, start: string, end: string) =>
   hass.callWS<{ household_servings: number; meals: Meal[] }>({
-    type: "pantry/meal_plan",
+    type: "home_inventory/meal_plan",
     start,
     end,
   });
 export const saveMeal = (hass: Hass, data: MealDraft) =>
-  hass.callWS<{ id: number }>({ type: "pantry/meal_save", data });
+  hass.callWS<{ id: number }>({ type: "home_inventory/meal_save", data });
 export const deleteMeal = (hass: Hass, meal_id: number) =>
-  hass.callWS<void>({ type: "pantry/meal_delete", meal_id });
+  hass.callWS<void>({ type: "home_inventory/meal_delete", meal_id });
 /** Dishes of a slot from `day` up to the first free day; `apply` moves them one day later (false = preview). */
 export const shiftMeals = (hass: Hass, day: string, slot: number, apply: boolean) =>
   hass.callWS<{ meals: { id: number; day: string; slot: number; name: string }[] }>({
-    type: "pantry/meal_shift",
+    type: "home_inventory/meal_shift",
     day,
     slot,
     apply,
@@ -43,7 +43,7 @@ export const planToShoppingList = (hass: Hass, start: string, end: string) =>
     recipes: { recipe_id: number; name: string; servings: number }[];
     skipped: number;
   }>({
-    type: "pantry/plan_to_shopping_list",
+    type: "home_inventory/plan_to_shopping_list",
     start,
     end,
   });

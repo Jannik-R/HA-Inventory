@@ -5,7 +5,10 @@ const NAME = `E2E Schritte ${Date.now()}`;
 
 test.afterAll(async ({ browser }) => {
   const api = await apiPage(browser);
-  const list = (await ws(api, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  const list = (await ws(api, { type: "home_inventory/recipes" })) as {
+    id: number;
+    name: string;
+  }[];
   for (const r of list) if (r.name === NAME) await remove(api, "recipe", r.id);
   await api.close();
 });
@@ -16,16 +19,16 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer, 
   printCalls,
 }) => {
   // a receipt printer is set up (the print itself is blocked by the fixture)
-  wsStub("pantry/label_config", {
+  wsStub("home_inventory/label_config", {
     printer: false,
     print_on_book_in: false,
     width_mm: 0,
     height_mm: 0,
     receipt: true,
   });
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-add").click();
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await dialog.getByTestId("recipe-name").fill(NAME);
   await dialog.getByTestId("step-add").click();
   await dialog.getByTestId("step-text").last().fill("Nudeln 10 Minuten kochen.");
@@ -49,7 +52,7 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer, 
   await expect(row.locator("ol.steps").nth(1)).toHaveAttribute("start", "2");
 
   await row.getByTestId("recipe-cook").click();
-  const cook = page.locator("pantry-cook-mode dialog");
+  const cook = page.locator("home-inventory-cook-mode dialog");
   await cook.getByTestId("cook-step").first().click();
   await expect(cook.getByTestId("cook-step").first()).toHaveAttribute("aria-pressed", "true");
   await cook.getByTestId("cook-timer-start").click();
@@ -64,6 +67,6 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer, 
   await row.getByTestId("recipe-print").click();
   await expect(row.getByTestId("recipe-printed")).toHaveText("Rezept gedruckt.");
   expect(printCalls).toContainEqual(
-    expect.objectContaining({ type: "pantry/print_recipe", servings: 3 }),
+    expect.objectContaining({ type: "home_inventory/print_recipe", servings: 3 }),
   );
 });

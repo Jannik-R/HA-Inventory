@@ -1,4 +1,5 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
+import { hasModule } from "./modules";
 import { mdiTagOutline } from "@mdi/js";
 import { t } from "./i18n";
 import { chevron, icon, rowActions, toggled } from "./ui";
@@ -283,7 +284,7 @@ export class PantryStock extends LitElement {
                     <span class="count">${t("book.count", { n: b.packages })}</span>
                     <span class="acts">
                       ${outButton(this, p.name, b, "stock-batch-out")}
-                      ${openButton(this, p.name, b)}
+                      ${hasModule("opened") ? openButton(this, p.name, b) : ""}
                       <button
                         class="icon-btn"
                         data-testid="stock-batch-label"

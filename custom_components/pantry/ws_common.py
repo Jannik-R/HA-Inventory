@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from typing import Any
 
@@ -19,6 +19,12 @@ def db_of(hass: HomeAssistant) -> Database:
     if not entries:
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="not_loaded")
     return entries[0].runtime_data
+
+
+def options_of(hass: HomeAssistant) -> Mapping[str, Any]:
+    """Options of the loaded entry (empty when not loaded)."""
+    entries = hass.config_entries.async_loaded_entries(DOMAIN)
+    return entries[0].options if entries else {}
 
 
 @contextmanager

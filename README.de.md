@@ -48,7 +48,7 @@ Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und
 
 Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory* (früher *Pantry*; die interne Domain bleibt `pantry`, Entitäten, Aktionen und Automationen ändern sich nicht), Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
 
-**Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen* (Tab *Einkochen*). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
+**Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen* (Tab *Einkochen*), *Anbrechen* (Knopf *Anbrechen* an der Charge, Buchungsmodus *Anbrechen* und das Feld *Haltbar nach Anbruch*). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
 
 ## Bedienung
 
@@ -59,6 +59,11 @@ Das Fragezeichen oben im Panel öffnet sie in der Sprache von Home Assistant.
 
 Alle Optionen stehen unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*:
 Module, Etikettendrucker, Bondrucker, KI und Haushaltsgröße.
+
+**Open Food Facts.** Ein unbekannter Barcode und *Online suchen* fragen Open Food Facts und seine
+Schwester-Datenbanken (Barcode bzw. Suchtext gehen an openfoodfacts.org). Abschalten unter
+*Konfigurieren > Haushalt > Produkte in Open Food Facts nachschlagen* (Standard an); dann wird nichts
+geschickt und neue Produkte werden von Hand angelegt.
 
 ### Etikettendrucker
 
@@ -127,7 +132,8 @@ im Heimnetz). Mit eingerichteter KI:
   vor; gespeichert wird nichts ohne dich.
 - Einen Link ohne Rezeptdaten (Instagram, TikTok, YouTube, ein Blog) liest die KI aus: Home Assistant
   holt den Beitrag mit `yt-dlp` (Beschreibung und das Video bis 15 Minuten und 50 MB, höchstens 720p),
-  sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
+  wenn *Videos für den Rezeptimport laden* an ist (Standard aus: viele Plattformen verbieten Downloads
+  in ihren Nutzungsbedingungen), sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
   die KI (Anhänge laufen über einen versteckten Ordner `.pantry_import` im ersten Medienverzeichnis und
   werden gleich danach gelöscht). Gesprochenes und eingeblendeten Text eines Videos liest die KI, wenn
   sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert
@@ -144,6 +150,7 @@ den Namen (ohne Marke und Größe), die Kategorie und den Packungsinhalt (z. B. 
 Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor; die wird beim
 Einbuchen angelegt.
 Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
+Abschalten mit *Neue Produkte prüfen*.
 
 **Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) scannt den Bon wie der
 Dokumentenscanner eines Handys: die Live-Kamera markiert den Rand des Bons, die Ecken lassen sich

@@ -60,7 +60,7 @@ Admins should take a quick look at **Einstellungen** first:
 3. **Einheiten** (units): the checkbox **Nur für Rezepte** (recipe only) hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Kategorien**: give categories a default location (e.g. Milchprodukte & Eier → fridge), so booking in rarely
    needs a location choice.
-5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Module* you turn shopping list, recipes, meal plan and canning off one by one (also offered during setup). The tab disappears, the data is kept.
+5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Module* you turn shopping list, recipes, meal plan, canning and opening packages (*Anbrechen*) off one by one (also offered during setup). The tab or button disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
@@ -427,7 +427,7 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
-<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving.
+<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving. **Produkte in Open Food Facts nachschlagen** (default on): off, an unknown barcode is not looked up and *Online suchen* is gone; you create new products by hand.
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 

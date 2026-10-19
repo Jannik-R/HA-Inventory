@@ -1,4 +1,5 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
+import { hasModule } from "./modules";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
 import { editDialog, fieldMsg, icon, numOrNull } from "./ui";
@@ -268,7 +269,7 @@ export class PantrySettingsDialog extends LitElement {
         )}
         ${this.inh("warn_days", t("settings.category.warn_days"), [])}
         ${this.inh("shelf_days", t("settings.category.shelf_days"), [])}
-        ${this.inh("opened_days", t("settings.category.opened_days"), [])}
+        ${hasModule("opened") ? this.inh("opened_days", t("settings.category.opened_days"), []) : ""}
         ${this.inh("food", t("settings.food.label"), [
           [1, t("settings.food.yes")],
           [0, t("settings.food.no")],

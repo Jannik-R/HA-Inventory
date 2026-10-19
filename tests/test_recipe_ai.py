@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.pantry import inventory as inv
 from custom_components.pantry import recipe_media
-from custom_components.pantry.const import CONF_AI_TASK, DOMAIN
+from custom_components.pantry.const import CONF_AI_TASK, CONF_AI_VIDEO, DOMAIN
 
 from .test_websocket import ws  # noqa: F401  (fixture)
 
@@ -65,9 +65,10 @@ def test_prompt_and_answer(conn):
     ]
 
 
-def enable_ai(hass: HomeAssistant, media: Path, files: bool = True) -> None:
+def enable_ai(hass: HomeAssistant, media: Path, files: bool = True, video: bool = True) -> None:
     entry = hass.config_entries.async_entries(DOMAIN)[0]
-    hass.config_entries.async_update_entry(entry, options={CONF_AI_TASK: "ai_task.test"})
+    options = {CONF_AI_TASK: "ai_task.test", CONF_AI_VIDEO: video}
+    hass.config_entries.async_update_entry(entry, options=options)
     hass.config.components.add("ai_task")
     hass.config.media_dirs = {"local": str(media)}
     features = AITaskEntityFeature.GENERATE_DATA | (
@@ -138,6 +139,13 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
         patch("custom_components.pantry.ai._generate", new=failing),
     ):
         assert (await ws.call(msg))["error"]["translation_key"] == "ai_import_failed"
+
+    # video download off (the default): yt-dlp is not asked, the page is still read
+    enable_ai(hass, tmp_path, video=False)
+    seen.clear()
+    with patch.object(recipe_media, "video", video), generate():
+        assert (await ws.call(msg))["success"]
+    assert seen == []
 
 
 async def test_ws_text_and_photo(hass, ws, tmp_path):  # noqa: F811

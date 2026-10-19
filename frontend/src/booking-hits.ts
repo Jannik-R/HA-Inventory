@@ -1,6 +1,7 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n";
 import type { Product, SearchHit } from "./api";
+import { hasOff } from "./modules";
 
 /** Search hits to pick from (in the booking dialog); `more`: book-in also offers online search and a new product. */
 export function hitList(
@@ -33,7 +34,7 @@ export function hitList(
       ${
         o.more
           ? html`${
-                o.online
+                o.online || !hasOff()
                   ? nothing
                   : html`<button
                       data-testid="search-online"

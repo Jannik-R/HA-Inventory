@@ -30,7 +30,7 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
     assert DOMAIN in hass.data["frontend_panels"]
     panel = hass.data["frontend_panels"][DOMAIN]
-    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning"]
+    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning", "opened"]
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await async_pre_backup(hass)
@@ -177,7 +177,7 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()  # saving reloads the entry
-    assert entry.options == {"household_servings": 4, "prefill_expiry": False}
+    assert entry.options == {"household_servings": 4, "prefill_expiry": False, "off_lookup": True}
 
 
 async def test_options_flow_ai(hass: HomeAssistant) -> None:
@@ -194,4 +194,9 @@ async def test_options_flow_ai(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.options == {"ai_task_entity": None, "llm_access": "all"}
+    assert entry.options == {
+        "ai_task_entity": None,
+        "llm_access": "all",
+        "ai_product_check": True,
+        "ai_video": False,
+    }

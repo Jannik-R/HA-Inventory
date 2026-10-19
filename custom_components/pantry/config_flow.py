@@ -24,7 +24,9 @@ from homeassistant.helpers.selector import (
 
 from . import label, receipt
 from .const import (
+    CONF_AI_PRODUCT,
     CONF_AI_TASK,
+    CONF_AI_VIDEO,
     CONF_HOUSEHOLD_SERVINGS,
     CONF_LABEL_HEIGHT,
     CONF_LABEL_PRINTER,
@@ -32,6 +34,7 @@ from .const import (
     CONF_LABEL_WIDTH,
     CONF_LLM_ACCESS,
     CONF_MODULES,
+    CONF_OFF,
     CONF_PREFILL_EXPIRY,
     CONF_PRINT_ON_BOOK_IN,
     CONF_RECEIPT_BAUD,
@@ -121,6 +124,8 @@ class PantryOptionsFlow(OptionsFlowWithReload):
                 {
                     CONF_AI_TASK: user_input.get(CONF_AI_TASK),
                     CONF_LLM_ACCESS: user_input[CONF_LLM_ACCESS],
+                    CONF_AI_PRODUCT: user_input[CONF_AI_PRODUCT],
+                    CONF_AI_VIDEO: user_input[CONF_AI_VIDEO],
                 }
             )
         o = self.config_entry.options
@@ -134,6 +139,8 @@ class PantryOptionsFlow(OptionsFlowWithReload):
                 ): SelectSelector(
                     SelectSelectorConfig(options=LLM_ACCESS, translation_key=CONF_LLM_ACCESS)
                 ),
+                vol.Required(CONF_AI_PRODUCT, default=o.get(CONF_AI_PRODUCT, True)): bool,
+                vol.Required(CONF_AI_VIDEO, default=o.get(CONF_AI_VIDEO, False)): bool,
             }
         )
         return self.async_show_form(step_id="ai", data_schema=schema)
@@ -146,6 +153,7 @@ class PantryOptionsFlow(OptionsFlowWithReload):
                 {
                     CONF_HOUSEHOLD_SERVINGS: int(user_input[CONF_HOUSEHOLD_SERVINGS]),
                     CONF_PREFILL_EXPIRY: user_input[CONF_PREFILL_EXPIRY],
+                    CONF_OFF: user_input[CONF_OFF],
                 }
             )
         o = self.config_entry.options
@@ -156,6 +164,7 @@ class PantryOptionsFlow(OptionsFlowWithReload):
                     NumberSelectorConfig(min=1, max=99, step=1, mode=NumberSelectorMode.BOX)
                 ),
                 vol.Required(CONF_PREFILL_EXPIRY, default=o.get(CONF_PREFILL_EXPIRY, False)): bool,
+                vol.Required(CONF_OFF, default=o.get(CONF_OFF, True)): bool,
             }
         )
         return self.async_show_form(step_id="household", data_schema=schema)

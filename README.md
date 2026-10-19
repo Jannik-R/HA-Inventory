@@ -47,7 +47,7 @@ Python packages (installed by Home Assistant): `segno` (QR codes on labels) and 
 
 Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
-**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
+**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*), *Anbrechen* (button *Anbrechen* on batch rows, booking mode *Anbrechen* and the field *Haltbar nach Anbruch*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
 ## Usage
 
@@ -59,6 +59,11 @@ German; the English guide names buttons by their German labels.
 
 All options are under *Settings > Devices & services > Home Inventory > Configure*: modules, label
 printer, receipt printer, AI and household size.
+
+**Open Food Facts.** An unknown barcode and *Online suchen* ask Open Food Facts and its sister
+databases (the barcode or the search text is sent to openfoodfacts.org). Turn it off under
+*Configure > Haushalt > Produkte in Open Food Facts nachschlagen* (default on); then nothing is sent and
+new products are entered by hand.
 
 ### Label printer (Etikettendrucker)
 
@@ -121,8 +126,9 @@ too). With an AI set up:
   fixes categories and units (an existing unit, or a new one that you add in the dialog). The AI only
   answers "ok" or the changes, and only proposes them; nothing is saved without you.
 - A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
-  fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p),
-  otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
+  fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p)
+  when *Videos für den Rezeptimport laden* is on (default off: many platforms forbid downloads in
+  their terms of use), otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
   to the AI (attachments go through a hidden folder `.pantry_import` in the first media directory and
   are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
   video (Google Gemini does); otherwise it gets the text only. Instagram often refuses videos without
@@ -138,7 +144,7 @@ once as well: its name, brand, the Open Food Facts quantity and categories, the 
 (food and non-food) and the units go to the AI. It fixes the name (without brand and size), the
 category and the package content (e.g. "4 x 125 g" = 500 g). When no product type fits, it proposes a
 new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
-fields you edited are kept.
+fields you edited are kept. Turn this check off with *Neue Produkte prüfen*.
 
 **Receipt import.** *Kassenbon importieren* (booking in, only with an AI) scans the receipt like a
 phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and

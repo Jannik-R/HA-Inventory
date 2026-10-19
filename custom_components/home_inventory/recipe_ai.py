@@ -14,11 +14,12 @@ from pathlib import Path
 import probatio
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.requirements import async_process_requirements
 
 from . import ai, inventory, recipe_fetch, recipe_media
-from .const import CONF_AI_VIDEO
+from .const import DOMAIN
 from .inventory import InventoryError
-from .ws_common import db_of, options_of
+from .ws_common import db_of, external_on
 
 _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 180  # s; the AI provider processes an uploaded video first
@@ -79,23 +80,28 @@ async def _extract(
 
 async def async_import_url(hass: HomeAssistant, url: str) -> dict:
     """Draft from a URL: schema.org data, else (with an AI set up) what the AI reads there."""
+    if not external_on(hass, "recipe_url"):
+        raise InventoryError("external_off")
     db, page, error = db_of(hass), None, None
     try:
         page = await recipe_fetch.async_fetch(hass, url)
         return await db.run(inventory.recipe_import, page, url, write=False)
     except InventoryError as err:  # no recipe data, no HTML or not loadable (Instagram: often)
         error = err
-    if not (entity_id := ai.entity_of(hass)):
+    if not external_on(hass, "ai_import") or not (entity_id := ai.entity_of(hass)):
         raise error
     sources = await hass.async_add_executor_job(inventory.ai_page_sources, page) if page else {}
     async with recipe_media.async_folder(hass) as (folder, media_id):
         post = None
-        if options_of(hass).get(CONF_AI_VIDEO, False):
+        if external_on(hass, "ai_video"):
             try:
+                await async_process_requirements(hass, DOMAIN, [recipe_media.YT_DLP])
                 async with asyncio.timeout(recipe_media.VIDEO_TIMEOUT):
                     post = await hass.async_add_executor_job(recipe_media.video, url, folder)
             except TimeoutError:
                 pass
+            except HomeAssistantError as err:  # yt-dlp not installable: caption and page only
+                _LOGGER.warning("yt-dlp not available: %s", err)
         files = []
         if post:
             sources = {
@@ -118,6 +124,8 @@ async def async_import_input(
     """Draft from pasted text or a photo (data URL); needs an AI."""
     if not (entity_id := ai.entity_of(hass)):
         raise InventoryError("ai_off")
+    if not external_on(hass, "ai_import"):
+        raise InventoryError("external_off")
     if image and not _attachments_ok(hass, entity_id):
         raise InventoryError("ai_no_files")
     async with recipe_media.async_folder(hass) as (folder, media_id):

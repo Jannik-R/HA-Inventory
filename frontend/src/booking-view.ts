@@ -3,7 +3,7 @@ import { t } from "./i18n";
 import { formStyles } from "./styles";
 import { mdiReceiptTextOutline } from "@mdi/js";
 import { backdropClick, escGuard, icon } from "./ui";
-import { hasAi } from "./modules";
+import { hasExternal } from "./modules";
 import "./receipt-import";
 import type { HomeInventoryReceiptImport } from "./receipt-import";
 import {
@@ -248,7 +248,7 @@ export class HomeInventoryBooking extends LitElement {
       </home-inventory-booking-scan>
       ${afterLine(this)} ${open ? nothing : error}
       ${
-        this.mode === "in" && hasAi()
+        this.mode === "in" && hasExternal("receipt_import")
           ? html`<button
               type="button"
               class="receipt"

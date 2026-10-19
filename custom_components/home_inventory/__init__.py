@@ -22,7 +22,7 @@ from . import (
     websocket_recipe,
     websocket_stock,
 )
-from .const import CONF_AI_PRODUCT, CONF_AI_TASK, CONF_OFF, DOMAIN, PANEL_URL, modules_of
+from .const import DOMAIN, EXTERNAL, PANEL_URL, external, modules_of
 from .db import Database
 
 type HomeInventoryConfigEntry = ConfigEntry[Database]
@@ -67,10 +67,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry
             require_admin=False,
             config={
                 "modules": modules_of(entry.options),
-                "ai": bool(entry.options.get(CONF_AI_TASK)),
-                "off_lookup": entry.options.get(CONF_OFF, True),
-                "ai_product": bool(entry.options.get(CONF_AI_TASK))
-                and entry.options.get(CONF_AI_PRODUCT, True),
+                "external": {key: external(entry.options, key) for key in EXTERNAL},
             },
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

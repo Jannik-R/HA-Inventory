@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory import off
-from custom_components.home_inventory.const import CONF_OFF
 from custom_components.home_inventory.db import Database
 from custom_components.home_inventory.inventory.inherit import category_tags
 
@@ -202,7 +201,7 @@ async def test_async_lookup(hass: HomeAssistant, aioclient_mock, tmp_path) -> No
     calls = aioclient_mock.call_count
     assert (await off.async_lookup(hass, database, "8076800195057"))["id"]
     assert aioclient_mock.call_count == calls  # local hit, no request
-    with patch.object(off, "options_of", return_value={CONF_OFF: False}):
+    with patch.object(off, "external_on", return_value=False):
         assert await off.async_lookup(hass, database, "40400000") is None
         assert await off.async_search(hass, "Spaghetti") == []
     assert aioclient_mock.call_count == calls  # lookup off: nothing sent

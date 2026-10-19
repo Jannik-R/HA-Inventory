@@ -24,9 +24,7 @@ from homeassistant.helpers.selector import (
 
 from . import label, receipt
 from .const import (
-    CONF_AI_PRODUCT,
     CONF_AI_TASK,
-    CONF_AI_VIDEO,
     CONF_HOUSEHOLD_SERVINGS,
     CONF_LABEL_HEIGHT,
     CONF_LABEL_PRINTER,
@@ -34,7 +32,6 @@ from .const import (
     CONF_LABEL_WIDTH,
     CONF_LLM_ACCESS,
     CONF_MODULES,
-    CONF_OFF,
     CONF_PREFILL_EXPIRY,
     CONF_PRINT_ON_BOOK_IN,
     CONF_RECEIPT_BAUD,
@@ -44,6 +41,7 @@ from .const import (
     DEFAULT_LLM_ACCESS,
     DEFAULT_SERVINGS,
     DOMAIN,
+    EXTERNAL,
     LLM_ACCESS,
     MODULES,
     modules_of,
@@ -94,14 +92,15 @@ class HomeInventoryConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class HomeInventoryOptionsFlow(OptionsFlowWithReload):
-    """Menu: modules, label printer (model, then host and size), receipt printer, household, AI; each
+    """Menu: modules, label printer (model, then host and size), receipt printer, household, AI, external services; each
     part keeps the options of the others. Saving reloads the entry (modules change panel and entities)."""
 
     _model = "browser"
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         return self.async_show_menu(
-            step_id="init", menu_options=["modules", "label_model", "receipt", "household", "ai"]
+            step_id="init",
+            menu_options=["modules", "label_model", "receipt", "household", "ai", "external"],
         )
 
     def _save(self, data: dict[str, Any]) -> ConfigFlowResult:
@@ -124,8 +123,6 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
                 {
                     CONF_AI_TASK: user_input.get(CONF_AI_TASK),
                     CONF_LLM_ACCESS: user_input[CONF_LLM_ACCESS],
-                    CONF_AI_PRODUCT: user_input[CONF_AI_PRODUCT],
-                    CONF_AI_VIDEO: user_input[CONF_AI_VIDEO],
                 }
             )
         o = self.config_entry.options
@@ -139,11 +136,21 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
                 ): SelectSelector(
                     SelectSelectorConfig(options=LLM_ACCESS, translation_key=CONF_LLM_ACCESS)
                 ),
-                vol.Required(CONF_AI_PRODUCT, default=o.get(CONF_AI_PRODUCT, True)): bool,
-                vol.Required(CONF_AI_VIDEO, default=o.get(CONF_AI_VIDEO, False)): bool,
             }
         )
         return self.async_show_form(step_id="ai", data_schema=schema)
+
+    async def async_step_external(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """One switch per external service (const.EXTERNAL): what may leave Home Assistant."""
+        if user_input is not None:
+            return self._save({key: user_input[key] for key in EXTERNAL})
+        o = self.config_entry.options
+        schema = vol.Schema(
+            {vol.Required(key, default=o.get(key, on)): bool for key, on in EXTERNAL.items()}
+        )
+        return self.async_show_form(step_id="external", data_schema=schema)
 
     async def async_step_household(
         self, user_input: dict[str, Any] | None = None
@@ -153,7 +160,6 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
                 {
                     CONF_HOUSEHOLD_SERVINGS: int(user_input[CONF_HOUSEHOLD_SERVINGS]),
                     CONF_PREFILL_EXPIRY: user_input[CONF_PREFILL_EXPIRY],
-                    CONF_OFF: user_input[CONF_OFF],
                 }
             )
         o = self.config_entry.options
@@ -164,7 +170,6 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
                     NumberSelectorConfig(min=1, max=99, step=1, mode=NumberSelectorMode.BOX)
                 ),
                 vol.Required(CONF_PREFILL_EXPIRY, default=o.get(CONF_PREFILL_EXPIRY, False)): bool,
-                vol.Required(CONF_OFF, default=o.get(CONF_OFF, True)): bool,
             }
         )
         return self.async_show_form(step_id="household", data_schema=schema)

@@ -64,14 +64,14 @@ custom_components/home_inventory/   integration (Python)
   receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
   fonts/                    DejaVu Sans Condensed for labels (Pillow's default font has no umlauts), with its LICENSE
-frontend/                   panel source (Lit + TypeScript, Vite)
+frontend/                   panel source (Lit + TypeScript, Vite); licenses.ts: build plugin writing www/THIRD_PARTY_LICENSES.txt
   src/i18n/de.json          UI strings
   e2e/                      Playwright specs (local only)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
 tests/                      pytest (pytest-homeassistant-custom-component)
 scripts/receipt_bridge.py   dev only (Windows): raw TCP 9100 -> Windows printer queue, so the dev HA reaches a USB receipt printer
-scripts/import_check.py     recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/)
+scripts/import_check.py     dev tool only: recipe import check against random Chefkoch pages (skill `import-check`; pages cached in dev/config/; site terms usually forbid automated fetching, so run it rarely)
 docs/PLAN.md                architecture and roadmap
 docs/guide.de.md, guide.en.md  user guide (German, English), opened from the panel header
 README.md, README.de.md      setup and reference (English, German; same sections, development only in README.md)
@@ -82,7 +82,8 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - Read skill `ha-integration-rules` before changing the integration.
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
-- No new Python requirements in `manifest.json` without a strong reason.
+- No new Python requirements in `manifest.json` without a strong reason. A package only an optional feature needs is not in the manifest: install it on first use with `homeassistant.requirements.async_process_requirements` (see `recipe_media.YT_DLP`).
+- **External services (privacy)**: everything that sends data out of Home Assistant (a request to a third party, the AI, a library the panel loads from a CDN) is one entry in `const.EXTERNAL` (key -> default) with its own switch in the options step *Externe Dienste* (strings in `strings.json` + translations), gated where the data would go out with `external_on(hass, key)` (panel: `hasExternal(key)` in `frontend/src/modules.ts`), and one row in the *Privacy* / *Datenschutz* table of both READMEs. Never add an outgoing call without that. The default (on/off) of every new external service is the user's decision: ask, do not pick one.
 - Schema change = new migration step in `migrations.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.

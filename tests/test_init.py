@@ -14,7 +14,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.home_inventory import inventory
 from custom_components.home_inventory.backup import async_post_backup, async_pre_backup
-from custom_components.home_inventory.const import DOMAIN
+from custom_components.home_inventory.const import DOMAIN, EXTERNAL, external
 
 
 async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
@@ -31,6 +31,7 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
     assert DOMAIN in hass.data["frontend_panels"]
     panel = hass.data["frontend_panels"][DOMAIN]
     assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning", "opened"]
+    assert panel.config["external"]["off_lookup"] is True
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     await async_pre_backup(hass)
@@ -177,7 +178,7 @@ async def test_options_flow_household(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()  # saving reloads the entry
-    assert entry.options == {"household_servings": 4, "prefill_expiry": False, "off_lookup": True}
+    assert entry.options == {"household_servings": 4, "prefill_expiry": False}
 
 
 async def test_options_flow_ai(hass: HomeAssistant) -> None:
@@ -194,9 +195,23 @@ async def test_options_flow_ai(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.options == {
-        "ai_task_entity": None,
-        "llm_access": "all",
-        "ai_product_check": True,
-        "ai_video": False,
-    }
+    assert entry.options == {"ai_task_entity": None, "llm_access": "all"}
+
+
+async def test_options_flow_external(hass: HomeAssistant) -> None:
+    """One switch per external service; the panel gets them resolved (AI ones need the entity)."""
+    entry = await _options_entry(hass)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "external"}
+    )
+    assert result["data_schema"]({}) == EXTERNAL
+    choice = {**EXTERNAL, "off_lookup": False, "ai_video": True}
+    result = await hass.config_entries.options.async_configure(result["flow_id"], choice)
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert entry.options == choice
+    config = hass.data["frontend_panels"][DOMAIN].config["external"]
+    assert config["off_lookup"] is False and config["recipe_url"] is True
+    assert config["ai_video"] is False  # no AI Task entity
+    assert external({**choice, "ai_task_entity": "ai_task.x"}, "ai_video") is True

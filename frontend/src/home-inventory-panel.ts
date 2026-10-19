@@ -3,7 +3,7 @@ import { mdiHelpCircleOutline, mdiMenu } from "@mdi/js";
 import { setLanguage, t } from "./i18n";
 import { icon } from "./ui";
 import { isAdmin, type Hass } from "./api";
-import { hasModule, setAi, setModules, setOffLookup, setProductAi, type Module } from "./modules";
+import { hasModule, setExternal, setModules, type External, type Module } from "./modules";
 import "./settings-view";
 import "./stock-view";
 import "./expiry-view";
@@ -32,7 +32,7 @@ export class HomeInventoryPanel extends LitElement {
   declare narrow: boolean;
   declare route?: { prefix: string; path: string };
   declare panel?: {
-    config?: { modules?: string[]; ai?: boolean; off_lookup?: boolean; ai_product?: boolean };
+    config?: { modules?: string[]; external?: Partial<Record<External, boolean>> };
   };
 
   constructor() {
@@ -49,9 +49,7 @@ export class HomeInventoryPanel extends LitElement {
     if (changed.has("hass") && this.hass) setLanguage(this.hass.language);
     if (changed.has("panel")) {
       setModules(this.panel?.config?.modules);
-      setAi(this.panel?.config?.ai);
-      setOffLookup(this.panel?.config?.off_lookup);
-      setProductAi(this.panel?.config?.ai_product);
+      setExternal(this.panel?.config?.external);
     }
   }
 

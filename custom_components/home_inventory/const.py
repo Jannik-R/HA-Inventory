@@ -21,9 +21,18 @@ DEFAULT_SERVINGS = 3
 # Booking in: fill the date field with the guess (today + shelf life); off = empty field, guessed on save.
 CONF_PREFILL_EXPIRY = "prefill_expiry"
 CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; unset = no AI
-CONF_AI_PRODUCT = "ai_product_check"  # AI checks new products from Open Food Facts (default on)
-CONF_AI_VIDEO = "ai_video"  # AI recipe import may download a post's video via yt-dlp (default off)
-CONF_OFF = "off_lookup"  # look up unknown EANs and search names in Open Food Facts (default on)
+# External services (options step "Externe Dienste"): option key -> default. Every way data leaves HA
+# is one entry here, gated with `external()`; the user decides the default of a new one (CLAUDE.md).
+EXTERNAL = {
+    "off_lookup": True,  # Open Food Facts: unknown EAN, online search
+    "recipe_url": True,  # recipe import loads the page of a link
+    "ai_recipe_check": True,  # AI checks every recipe import
+    "ai_product_check": True,  # AI checks a new product from Open Food Facts
+    "ai_import": True,  # AI reads a link without recipe data, pasted text, a photo
+    "ai_video": False,  # yt-dlp downloads a post's video for the AI (platform terms forbid it)
+    "receipt_import": True,  # AI reads the receipt text; the browser loads OCR libraries from jsDelivr
+}
+_NEEDS_AI = {"ai_recipe_check", "ai_product_check", "ai_import", "ai_video", "receipt_import"}
 # What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.
 CONF_LLM_ACCESS = "llm_access"
 LLM_ACCESS = ["read", "plan", "all"]
@@ -35,3 +44,9 @@ MODULES = ["shopping", "recipes", "plan", "canning", "opened"]
 
 def modules_of(options) -> list[str]:
     return options.get(CONF_MODULES, MODULES)
+
+
+def external(options, key: str) -> bool:
+    """An external service is allowed by the options (AI ones also need the AI Task entity)."""
+    on = options.get(key, EXTERNAL[key])
+    return bool(on and (key not in _NEEDS_AI or options.get(CONF_AI_TASK)))

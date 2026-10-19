@@ -8,20 +8,19 @@ export const setModules = (list: readonly string[] | undefined) => (active = lis
 /** Unknown (no config yet, e.g. in tests) = all on, like the backend default. */
 export const hasModule = (m: Module) => !active || active.includes(m);
 
-let ai = false;
+/** External services (backend `const.EXTERNAL`): what may send data out of Home Assistant. */
+export type External =
+  | "off_lookup"
+  | "recipe_url"
+  | "ai_recipe_check"
+  | "ai_product_check"
+  | "ai_import"
+  | "ai_video"
+  | "receipt_import";
 
-/** An AI Task entity is set up in the options: the recipe import also reads text and photos. */
-export const setAi = (on: boolean | undefined) => (ai = !!on);
-export const hasAi = () => ai;
+let external: Partial<Record<External, boolean>> = {};
 
-let offLookup = true;
-
-/** Open Food Facts lookup is on in the options (unset = on): book-in offers the online search. */
-export const setOffLookup = (on: boolean | undefined) => (offLookup = on ?? true);
-export const hasOffLookup = () => offLookup;
-
-let productAi = false;
-
-/** An AI is set up and the options let it check new products from Open Food Facts. */
-export const setProductAi = (on: boolean | undefined) => (productAi = !!on);
-export const hasProductAi = () => productAi;
+/** From the options, resolved by the backend (AI ones only with an AI Task entity); unset = all off. */
+export const setExternal = (on: Partial<Record<External, boolean>> | undefined) =>
+  (external = on ?? {});
+export const hasExternal = (key: External) => !!external[key];

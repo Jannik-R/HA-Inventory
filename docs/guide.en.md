@@ -377,9 +377,10 @@ suggested while booking in.
 1. Set up an AI with an *AI Task* in Home Assistant, e.g. *Settings > Devices & services > Add
    integration > Google Gemini* with an API key from Google AI Studio (there is a free tier).
 2. *Settings > Devices & services > Home Inventory > Configure > KI (Rezeptimport, Assistenten)*: pick the
-   AI Task. Empty = no AI. Same step: **Neue Produkte prüfen** (check new products, default on) and
-   **Videos für den Rezeptimport laden** (load videos for the recipe import, default off; many
-   platforms forbid downloads).
+   AI Task. Empty = no AI.
+3. Optional: under *Configure > Externe Dienste* turn single AI services off, e.g. **Neue Produkte
+   prüfen** (check new products); **Videos für den Rezeptimport laden** (load videos) stays off until
+   you turn it on (many platforms forbid downloads). The README section *Privacy* lists what goes where.
 
 > [!IMPORTANT]
 > Each import sends the recipe and the food category tree to the chosen AI (about 10,000 tokens);
@@ -429,7 +430,7 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
-<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving. **Produkte in Open Food Facts nachschlagen** (default on): off, an unknown barcode is not looked up and *Online suchen* is gone; you create new products by hand.
+<a id="household-settings"></a>**Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes. Same step: **Geschätztes Ablaufdatum vorausfüllen** (fill in the guessed expiry date, default off) puts today + shelf life into the date field when booking in; off, the field stays empty and the date is guessed only when saving. Open Food Facts and the other services that send data out are turned off one by one in the step **Externe Dienste**.
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Speiseplan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 

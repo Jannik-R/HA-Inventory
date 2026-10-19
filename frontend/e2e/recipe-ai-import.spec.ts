@@ -1,4 +1,4 @@
-import { openPage } from "./helpers";
+import { openPage, panelConfig } from "./helpers";
 import { expect, test } from "./fixtures";
 
 // Any image will do (the AI is stubbed); the dialog scales it to a JPEG data URL before sending.
@@ -15,6 +15,7 @@ const draft = (name: string) => ({
 
 test("a recipe is imported from pasted text or a photo (AI stubbed)", async ({ page, wsStub }) => {
   await openPage(page, "/home_inventory/recipes", "Rezepte");
+  await panelConfig(page, { external: { ai_import: true, recipe_url: true } }); // AI stubbed
   await page.getByTestId("recipe-import").click();
   const imp = page.locator("home-inventory-recipe-import dialog");
   test.skip(

@@ -377,8 +377,10 @@ Open Food Facts vorgeschlagene Kategorie änderst.
    Integration hinzufügen > Google Gemini* mit einem API-Schlüssel aus Google AI Studio (es gibt ein
    kostenloses Kontingent).
 2. *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren > KI (Rezeptimport, Assistenten)*:
-   die KI-Aufgabe wählen. Leer = keine KI. Im selben Schritt: **Neue Produkte prüfen** (Standard an)
-   und **Videos für den Rezeptimport laden** (Standard aus; viele Plattformen verbieten Downloads).
+   die KI-Aufgabe wählen. Leer = keine KI.
+3. Optional: unter *Konfigurieren > Externe Dienste* einzelne KI-Dienste abschalten, z. B. **Neue
+   Produkte prüfen**; **Videos für den Rezeptimport laden** ist aus, bis du es einschaltest (viele
+   Plattformen verbieten Downloads). Was wohin geht, steht im README unter *Datenschutz*.
 
 > [!IMPORTANT]
 > Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien an die gewählte KI
@@ -426,7 +428,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Mahlzeiten** (nur Admins): Unter *Einstellungen > Mahlzeiten* legst du fest, ab wann eine Mahlzeit gilt (Standard: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). Danach richtet sich die Aktion *Geplantes Rezept drucken* ohne Angabe der Mahlzeit, z. B. ein Knopf in der Küche, der das Rezept für die nächste Mahlzeit druckt.
 
-<a id="haushalt-einstellungen"></a>**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte. Im selben Schritt: **Geschätztes Ablaufdatum vorausfüllen** (Standard aus) schreibt beim Einbuchen heute + Haltbarkeit schon ins Datumsfeld; aus bleibt das Feld leer und das Datum wird erst beim Speichern geschätzt. **Produkte in Open Food Facts nachschlagen** (Standard an): aus wird ein unbekannter Barcode nicht nachgeschlagen und *Online suchen* fehlt; neue Produkte legst du von Hand an.
+<a id="haushalt-einstellungen"></a>**Haushaltsgröße** (nur Admins): unter *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren*, Schritt **Haushalt** (Menü *Einstellungen*), **Portionen im Haushalt** setzen (1 bis 99, Standard 3). Das ist der Portionen-Vorschlag für neue Gerichte. Im selben Schritt: **Geschätztes Ablaufdatum vorausfüllen** (Standard aus) schreibt beim Einbuchen heute + Haltbarkeit schon ins Datumsfeld; aus bleibt das Feld leer und das Datum wird erst beim Speichern geschätzt. Open Food Facts und die übrigen Dienste, die Daten nach außen schicken, schaltest du im Schritt **Externe Dienste** einzeln ab.
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 

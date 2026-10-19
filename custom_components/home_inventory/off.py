@@ -15,11 +15,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from . import inventory
-from .const import CONF_OFF
 from .db import Database
 from .inventory import InventoryError
 from .recipe_fetch import HEADERS
-from .ws_common import options_of
+from .ws_common import external_on
 
 BASE = "https://world.openfoodfacts.org"
 # OFF's product_type -> database; for a non-food EAN OFF answers "found with a different product type: x".
@@ -151,7 +150,7 @@ async def async_lookup(hass: HomeAssistant, db: Database, ean: str) -> dict | No
         raise InventoryError("invalid_ean")
     if local := await db.run(inventory.find_ean, ean):
         return local
-    if not options_of(hass).get(CONF_OFF, True):
+    if not external_on(hass, "off_lookup"):
         return None
     lang = hass.config.language.split("-")[0]
     path, params = f"/api/v2/product/{ean}", {"fields": FIELDS.format(lang=lang), "lc": lang}
@@ -173,7 +172,7 @@ async def async_search(hass: HomeAssistant, query: str) -> list[dict]:
     """Full-text search by name in OFF and its sister databases, food first (call on explicit user
     action only; spaced, see above). A failing sister database is left out, a failing OFF raises."""
     global _last_search
-    if not query.strip() or not options_of(hass).get(CONF_OFF, True):
+    if not query.strip() or not external_on(hass, "off_lookup"):
         return []
     # Reserve the next free slot before waiting, so concurrent calls queue up (one event loop).
     now = time.monotonic()

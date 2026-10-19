@@ -86,7 +86,7 @@ test("module Anbrechen and the Open Food Facts lookup can be turned off", async 
   await openPage(page, "/home_inventory/in", "Bestand");
   await panelConfig(page, {
     modules: ["shopping", "recipes", "plan", "canning"],
-    off_lookup: false,
+    external: { off_lookup: false },
   });
   await page.getByTestId("code-input").fill(NAME);
   await page.keyboard.press("Enter");

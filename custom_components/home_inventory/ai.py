@@ -10,8 +10,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 
 from . import inventory
-from .const import CONF_AI_PRODUCT, CONF_AI_TASK, DOMAIN
-from .ws_common import db_of, options_of, translated
+from .const import CONF_AI_TASK, DOMAIN
+from .ws_common import db_of, external_on, options_of, translated
 
 _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 120  # s; a big prompt on a free tier can take a while
@@ -102,7 +102,7 @@ async def _check(hass: HomeAssistant, task: str, instructions: str, structure) -
 async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
     """{status: off} without an AI Task entity, else {status: ok} or {status: changes, ...}."""
     db = db_of(hass)
-    if not entity_of(hass):
+    if not entity_of(hass) or not external_on(hass, "ai_recipe_check"):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_prompt, draft)
     data = await _check(hass, "Vorrat: Rezeptimport prüfen", instructions, RECIPE_CHECK_SCHEMA)
@@ -113,7 +113,7 @@ async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
 async def async_check_product(hass: HomeAssistant, draft: dict) -> dict:
     """Like async_check_recipe, for a new product from Open Food Facts."""
     db = db_of(hass)
-    if not entity_of(hass) or not options_of(hass).get(CONF_AI_PRODUCT, True):
+    if not entity_of(hass) or not external_on(hass, "ai_product_check"):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_product_prompt, draft)
     data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_CHECK_SCHEMA)
@@ -126,6 +126,8 @@ async def async_read_receipt(hass: HomeAssistant, text: str) -> dict:
     db = db_of(hass)
     if not entity_of(hass):
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="ai_off")
+    if not external_on(hass, "receipt_import"):
+        raise HomeAssistantError(translation_domain=DOMAIN, translation_key="external_off")
     with translated():
         instructions = await db.run(inventory.receipt_prompt, text)
         data = await _check(hass, "Vorrat: Kassenbon lesen", instructions, RECEIPT_SCHEMA)

@@ -3,6 +3,8 @@ name: import-check
 description: Check the recipe import parser against random real Chefkoch recipes - runs scripts/import_check.py (no browser, no screenshots), prints only suspicious ingredient rows and a summary, then rate the result and turn real problems into parser fixes, test cases or new seeded product types. Use after changing inventory/ingredient_line.py, inventory/recipe_import.py, suggest.py or the seeded product types, or when the user asks to test the import.
 ---
 
+Development tool only: it fetches real Chefkoch pages automatically, which site terms usually forbid. Run it rarely with a small `-n`, prefer `--cached` after a fix, and never commit the cache.
+
 All commands from the repo root. The script runs the real `inventory.recipe_import` against an in-memory DB seeded like a new install (default units, categories, product types), so results match a fresh HA, not the dev DB.
 
 | Goal | Command |

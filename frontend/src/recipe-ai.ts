@@ -1,6 +1,6 @@
 import { html, nothing } from "lit";
 import { t } from "./i18n";
-import type { AiCheck, Ingredient, MasterData } from "./api";
+import type { AiCheck, Category, Ingredient, MasterData, Unit } from "./api";
 import { toRows, toSteps, type StepRow } from "./recipe-steps";
 
 /** AI check of an import in the recipe dialog. */
@@ -49,14 +49,30 @@ export const applyAi = (
     const k = ingredients.findIndex(
       (i) => was && i.line === was.line && i.source_text === was.source_text,
     );
-    if (k < 0 || ingredients[k].category_id !== was.category_id) continue; // user changed it
-    const cat = md.categories.find((x) => x.id === c.category_id);
+    const cur = ingredients[k];
+    if (!cur || cur.category_id !== was.category_id || cur.unit_id !== was.unit_id) continue; // user changed it
+    const cat = "category_id" in c;
+    const unit = c.unit_id != null || !!c.new_unit;
+    const found = md.categories.find((x) => x.id === c.category_id);
     ingredients[k] = {
-      ...ingredients[k],
-      category_id: c.category_id,
-      new_type: c.new_type,
-      text: c.new_type?.name ?? cat?.name ?? ingredients[k].source_text ?? ingredients[k].text,
-      ai: { before: was.category_id, beforeText: was.text, reason: c.reason },
+      ...cur,
+      ...(cat
+        ? {
+            category_id: c.category_id ?? null,
+            new_type: c.new_type,
+            text: c.new_type?.name ?? found?.name ?? cur.source_text ?? cur.text,
+          }
+        : {}),
+      ...(unit ? { unit_id: c.unit_id ?? null, unit_hint: c.new_unit?.name ?? null } : {}),
+      ai: {
+        cat,
+        unit,
+        before: was.category_id,
+        beforeText: was.text,
+        beforeUnit: was.unit_id,
+        beforeHint: was.unit_hint ?? null,
+        reason: c.reason,
+      },
     };
     changed++;
   }
@@ -118,4 +134,41 @@ export const aiBanner = (s: AiState, o: { onSkip: () => void; onUndoSteps: () =>
     default:
       return nothing;
   }
+};
+
+/** The fields an ingredient gets back when its AI change is undone. */
+const aiUndo = (i: Ingredient): Partial<Ingredient> => {
+  const a = i.ai!;
+  return {
+    ai: undefined,
+    ...(a.cat ? { category_id: a.before, text: a.beforeText, new_type: undefined } : {}),
+    ...(a.unit ? { unit_id: a.beforeUnit, unit_hint: a.beforeHint } : {}),
+  };
+};
+
+/** The line under an ingredient the AI changed: what and why, with undo. */
+export const aiLine = (
+  i: Ingredient,
+  categories: Category[],
+  units: Unit[],
+  set: (patch: Partial<Ingredient>) => void,
+) => {
+  const a = i.ai;
+  if (!a) return nothing;
+  const unitBefore = units.find((u) => u.id === a.beforeUnit)?.symbol ?? a.beforeHint;
+  const before = [a.cat ? a.beforeText : null, a.unit ? unitBefore : null].filter(Boolean);
+  return html`<div class="orig" data-testid="ingredient-ai">
+    ${
+      i.new_type && a.cat
+        ? t("recipes.ai.new_type", {
+            name: i.new_type.name,
+            parent: categories.find((c) => c.id === i.new_type!.parent_id)?.name ?? "–",
+            reason: a.reason,
+          })
+        : t("recipes.ai.changed", { reason: a.reason, before: before.join(", ") || "–" })
+    }
+    <button type="button" data-testid="ingredient-ai-undo" @click=${() => set(aiUndo(i))}>
+      ${t("recipes.ai.undo")}
+    </button>
+  </div>`;
 };

@@ -1,7 +1,7 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { t } from "./i18n";
 import { URL_RE, editDialog, fieldMsg, numOrNull } from "./ui";
-import { formStyles } from "./styles";
+import { aiStyles, formStyles } from "./styles";
 import {
   checkRecipe,
   errorMessage,
@@ -273,25 +273,7 @@ export class PantryRecipeDialog extends LitElement {
     });
   }
 
-  static styles = [
-    formStyles,
-    css`
-      .ai {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        margin: 0 0 12px;
-        color: var(--secondary-text-color);
-      }
-      .ai.error {
-        color: var(--error-color);
-      }
-      progress {
-        width: 64px;
-      }
-    `,
-  ];
+  static styles = [formStyles, aiStyles];
 }
 
 customElements.define("pantry-recipe-dialog", PantryRecipeDialog);

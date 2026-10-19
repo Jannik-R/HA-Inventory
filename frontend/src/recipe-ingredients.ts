@@ -5,6 +5,7 @@ import { ingredientErrors, type RowErrors } from "./ingredient-errors";
 import { fieldMsg, icon, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import type { Category, Hass, Ingredient, MasterData, Unit } from "./api";
+import { aiLine } from "./recipe-ai";
 import "./ingredient-pick";
 import "./unit-add-dialog";
 import type { PantryUnitAddDialog } from "./unit-add-dialog";
@@ -158,38 +159,7 @@ export class PantryRecipeIngredients extends LitElement {
             </div>`
           : nothing
       }
-      ${
-        i.ai
-          ? html`<div class="orig" data-testid="ingredient-ai">
-              ${
-                i.new_type
-                  ? t("recipes.ai.new_type", {
-                      name: i.new_type.name,
-                      parent:
-                        this.categories.find((c) => c.id === i.new_type!.parent_id)?.name ?? "–",
-                      reason: i.ai.reason,
-                    })
-                  : t("recipes.ai.changed", {
-                      reason: i.ai.reason,
-                      before: i.ai.beforeText || "–",
-                    })
-              }
-              <button
-                type="button"
-                data-testid="ingredient-ai-undo"
-                @click=${() =>
-                  this.set(n, {
-                    category_id: i.ai!.before,
-                    text: i.ai!.beforeText,
-                    ai: undefined,
-                    new_type: undefined,
-                  })}
-              >
-                ${t("recipes.ai.undo")}
-              </button>
-            </div>`
-          : nothing
-      }
+      ${aiLine(i, this.categories, this.units, (patch) => this.set(n, patch))}
       <label>
         <span class="lbl">${t("recipes.ingredient.note")}</span>
         <input

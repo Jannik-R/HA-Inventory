@@ -17,7 +17,10 @@ export async function blockPrinting(context: BrowserContext) {
   const calls: unknown[] = [];
   callsByContext.set(context, calls);
   // Nor call the real AI (quota, cost): the AI check answers "off" unless a test stubs it.
-  const stubs = new Map<string, unknown>([["pantry/recipe_ai_check", { status: "off" }]]);
+  const stubs = new Map<string, unknown>([
+    ["pantry/recipe_ai_check", { status: "off" }],
+    ["pantry/product_ai_check", { status: "off" }],
+  ]);
   stubsByContext.set(context, stubs);
   await context.route("**/api/config/config_entries/options/flow**", (route) =>
     route.request().method() === "POST" ? route.abort() : route.fallback(),

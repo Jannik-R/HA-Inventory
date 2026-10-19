@@ -13,7 +13,7 @@ from custom_components.pantry import inventory as inv
 from custom_components.pantry.const import CONF_AI_TASK, DOMAIN
 from custom_components.pantry.inventory.learned import learned
 
-from .test_inventory import cat
+from .test_inventory import cat, unit
 from .test_off import SPAGHETTI
 
 
@@ -119,6 +119,88 @@ def test_changes_propose_new_product_types(conn):
         assert new(name, parent) == {"ok": True}
 
 
+def test_changes_fix_units(conn):
+    d = draft(conn)
+    d["ingredients"][0]["unit_id"] = unit(conn, "g")
+    head = inv.ai_prompt(conn, d).split("Recipe draft:")[0]
+    assert f"{unit(conn, 'Messerspitze')} Msp. (Messerspitze)" in head
+
+    def fix(**c):
+        answer = {"ok": False, "ingredients": [{"index": 0, "reason": "r", **c}]}
+        return inv.ai_changes(conn, d, answer)["ingredients"][0] if c else None
+
+    prise = unit(conn, "Prise")
+    assert fix(unit_id=prise) == {"index": 0, "unit_id": prise, "reason": "r"}
+    # a proposed unit the units know is linked; an unknown one is proposed as new
+    assert fix(new_unit={"name": "prisen"})["unit_id"] == prise
+    assert fix(new_unit={"name": " Knolle "})["new_unit"] == {"name": "Knolle"}
+    # same unit, unknown id, empty or overlong name: no change
+    for c in [
+        {"unit_id": unit(conn, "g")},
+        {"unit_id": 999999},
+        {"new_unit": {"name": " "}},
+        {"new_unit": {"name": "x" * 51}},
+        {"new_unit": "Knolle"},
+    ]:
+        assert inv.ai_changes(conn, d, {"ok": False, "ingredients": [{"index": 0, **c}]}) == {
+            "ok": True
+        }
+    both = fix(category_id=cat(conn, "Haushaltszucker"), unit_id=prise)
+    assert both["category_id"] == cat(conn, "Haushaltszucker") and both["unit_id"] == prise
+
+
+def product(conn, **kw):
+    return {
+        "name": "Barilla Spaghetti n.5 500g",
+        "brand": "Barilla",
+        "category_id": None,
+        "content_amount": None,
+        "content_unit_id": None,
+        "off_json": json.dumps({**SPAGHETTI, "quantity": "4 x 125 g", "huge": "x" * 9000}),
+        **kw,
+    }
+
+
+def test_product_prompt(conn):
+    text = inv.ai_product_prompt(conn, product(conn))
+    head, body = text.split("Product draft:\n")
+    assert "Batterien" in head  # non-food too: products can be anything
+    off = json.loads(body)["open_food_facts"]
+    assert off["quantity"] == "4 x 125 g" and off["product_name_de"] == "Spaghetti No. 5"
+    assert "huge" not in off  # only the useful fields
+    assert inv.ai_product_prompt(conn, product(conn, name="Anders")).startswith(head)
+
+
+def test_product_changes(conn):
+    d = product(conn)
+    g, spaghetti = unit(conn, "g"), cat(conn, "Spaghetti")
+    assert inv.ai_product_changes(conn, d, {"ok": True}) == {"ok": True}
+    answer = {
+        "ok": False,
+        "name": " Spaghetti n.5 ",
+        "category_id": spaghetti,
+        "content_amount": 500,
+        "content_unit_id": g,
+        "reason": "r",
+    }
+    assert inv.ai_product_changes(conn, d, answer) == {
+        "ok": False,
+        "name": "Spaghetti n.5",
+        "category_id": spaghetti,
+        "content_amount": 500,
+        "content_unit_id": g,
+        "reason": "r",
+    }
+    same = product(conn, name="Spaghetti n.5", category_id=spaghetti, content_amount=500)
+    assert inv.ai_product_changes(conn, {**same, "content_unit_id": g}, answer) == {"ok": True}
+    bad = {"ok": False, "category_id": 999999, "content_amount": -1, "content_unit_id": g}
+    assert inv.ai_product_changes(conn, d, bad) == {"ok": True}
+    assert inv.ai_product_changes(conn, d, {"content_amount": 5, "content_unit_id": 999999}) == {
+        "ok": True
+    }
+    assert inv.ai_product_changes(conn, d, "nonsense") == {"ok": True}
+
+
 def test_save_adds_the_proposed_product_type(conn):
     spices = cat(conn, "Gewürze")
     ing = {"category_id": None, "new_type": {"name": "Testgewürz", "parent_id": spices}}
@@ -182,3 +264,10 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
     assert res["status"] == "changes" and len(res["steps"]) == 2
     assert gen.await_args.kwargs["entity_id"] == "ai_task.test"
     assert "Recipe draft:" in gen.await_args.kwargs["instructions"]
+
+    p = {"name": "Spaghetti", "category_id": None, "off_json": "{}", "ean": "8076800195057"}
+    answer = SimpleNamespace(data={"ok": False, "name": "Spaghetti n.5", "reason": "r"})
+    with patch("custom_components.pantry.ai._generate", new=AsyncMock(return_value=answer)):
+        await client.send_json_auto_id({"type": "pantry/product_ai_check", "draft": p})
+        res = (await client.receive_json())["result"]
+    assert res == {"status": "changes", "name": "Spaghetti n.5", "reason": "r"}

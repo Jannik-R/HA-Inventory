@@ -196,7 +196,7 @@ export class PantryRecipes extends LitElement {
             >${t("recipes.summary", r.summary)} ·
             ${isCanning(r) ? t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings }) : fmtPortions(this.hass, r.servings)}${
               this.expiring.has(r.id)
-                ? html` �
+                ? html` ·
                     <span class="soon" data-testid="recipe-expiring"
                       >${t("recipes.expiring", { n: this.expiring.get(r.id)! })}</span
                     >`

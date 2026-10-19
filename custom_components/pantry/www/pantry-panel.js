@@ -7110,7 +7110,7 @@ var fa = class extends T {
             ${U(e) ? E("canning.recipe_summary", {
 			name: e.canning_product ?? "",
 			jars: e.servings
-		}) : pn(this.hass, e.servings)}${this.expiring.has(e.id) ? b` �
+		}) : pn(this.hass, e.servings)}${this.expiring.has(e.id) ? b` ·
                     <span class="soon" data-testid="recipe-expiring"
                       >${E("recipes.expiring", { n: this.expiring.get(e.id) })}</span
                     >` : S}</span

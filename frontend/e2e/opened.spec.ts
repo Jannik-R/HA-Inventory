@@ -1,4 +1,4 @@
-import { apiPage, openPage, remove, save, ws } from "./helpers";
+import { apiPage, openPage, panelConfig, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
 const STAMP = Date.now();
@@ -74,4 +74,28 @@ test("mode Anbrechen opens by label scan and by name", async ({ page }) => {
     opened_on: string | null;
   }[];
   expect(rows.filter((r) => r.opened_on).length).toBe(1);
+});
+
+test("module Anbrechen and the Open Food Facts lookup can be turned off", async ({ page }) => {
+  await openPage(page, "/home_inventory/in", "Bestand");
+  await page.getByTestId("code-input").fill(NAME);
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("search-online")).toBeVisible();
+  await expect(page.getByTestId("mode-open")).toBeVisible();
+
+  await openPage(page, "/home_inventory/in", "Bestand");
+  await panelConfig(page, {
+    modules: ["shopping", "recipes", "plan", "canning"],
+    off_lookup: false,
+  });
+  await page.getByTestId("code-input").fill(NAME);
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("new-product")).toBeVisible();
+  await expect(page.getByTestId("search-online")).toHaveCount(0);
+  await expect(page.getByTestId("mode-open")).toHaveCount(0);
+  await page.getByTestId("cancel").click();
+  await page.getByTestId("mode-search").click();
+  await page.getByTestId("code-input").fill(NAME);
+  await expect(page.getByTestId("stock-batch").first()).toBeVisible(); // earlier tests may leave an opened one
+  await expect(page.getByTestId("stock-batch-open")).toHaveCount(0);
 });

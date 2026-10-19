@@ -67,3 +67,18 @@ export async function cleanupE2E(page: Page) {
     for (const r of md[`${table === "category" ? "categories" : "locations"}`])
       if (r.name.startsWith("E2E ")) await del(table, r.id);
 }
+
+/** Panel config as the integration options would set it (modules, Open Food Facts lookup). */
+export async function panelConfig(page: Page, config: Record<string, unknown>) {
+  await page.evaluate((cfg) => {
+    const walk = (root: ParentNode): (Element & { panel?: { config?: object } }) | undefined => {
+      for (const el of root.querySelectorAll("*")) {
+        if (el.tagName === "HOME-INVENTORY-PANEL") return el;
+        const found = el.shadowRoot && walk(el.shadowRoot);
+        if (found) return found;
+      }
+    };
+    const el = walk(document)!;
+    el.panel = { ...el.panel, config: { ...el.panel?.config, ...cfg } };
+  }, config);
+}

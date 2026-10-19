@@ -1,4 +1,4 @@
-import { apiPage, openPage, ws } from "./helpers";
+import { apiPage, openPage, ws, panelConfig } from "./helpers";
 import { expect, test } from "./fixtures";
 
 type Md = {
@@ -212,6 +212,7 @@ test("a new product from Open Food Facts is checked by the AI", async ({ page, w
     reason: "ohne Marke",
   });
   await openPage(page, "/home_inventory/in", "Bestand");
+  await panelConfig(page, { ai_product: true }); // the dev HA has no AI entity
   await page.getByTestId("code-input").fill("4000000000017");
   await page.getByTestId("code-input").press("Enter");
 
@@ -249,6 +250,7 @@ test("the AI proposes a product type for a new product", async ({ page, wsStub }
     reason: "neue Sorte",
   });
   await openPage(page, "/home_inventory/in", "Bestand");
+  await panelConfig(page, { ai_product: true }); // the dev HA has no AI entity
   await page.getByTestId("code-input").fill("4000000000024");
   await page.getByTestId("code-input").press("Enter");
 

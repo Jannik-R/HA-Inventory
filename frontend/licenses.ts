@@ -11,7 +11,9 @@ const packageRoot = (id: string): string | undefined => {
 
 const licenseText = (root: string): string => {
   const file = readdirSync(root).find((f) => /^(licen[cs]e|copying)(\.|$)/i.test(f));
-  return file ? readFileSync(join(root, file), "utf8").trim() : "(no license file in the package)";
+  return file ? readFileSync(join(root, file), "utf8").replaceAll("
+", "
+").trim() : "(no license file in the package)";
 };
 
 /**

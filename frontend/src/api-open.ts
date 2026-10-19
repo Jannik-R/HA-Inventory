@@ -15,9 +15,9 @@ export interface Opened {
 export const openPackage = (
   hass: Hass,
   data: { product_id: number; batch_id?: number; location_id?: number },
-) => hass.callWS<Opened>({ type: "pantry/open_package", ...data });
+) => hass.callWS<Opened>({ type: "home_inventory/open_package", ...data });
 /** A scanned label (code without PTRY:): one package of its batch. */
 export const openLabel = (hass: Hass, code: string) =>
-  hass.callWS<Opened>({ type: "pantry/open_label", code });
+  hass.callWS<Opened>({ type: "home_inventory/open_label", code });
 export const undoOpen = (hass: Hass, booking_id: number) =>
-  hass.callWS<null>({ type: "pantry/open_undo", booking_id });
+  hass.callWS<null>({ type: "home_inventory/open_undo", booking_id });

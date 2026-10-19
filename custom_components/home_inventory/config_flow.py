@@ -1,4 +1,4 @@
-"""Config flow for the Pantry integration."""
+"""Config flow for the Home Inventory integration."""
 
 from typing import Any
 
@@ -72,7 +72,7 @@ def _mm(maximum: int) -> NumberSelector:
     )
 
 
-class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
+class HomeInventoryConfigFlow(ConfigFlow, domain=DOMAIN):
     """Single-step setup; label printing is configured in the options."""
 
     VERSION = 1
@@ -80,7 +80,7 @@ class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
-        return PantryOptionsFlow()
+        return HomeInventoryOptionsFlow()
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Choose the modules and create the entry."""
@@ -93,7 +93,7 @@ class PantryConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
 
-class PantryOptionsFlow(OptionsFlowWithReload):
+class HomeInventoryOptionsFlow(OptionsFlowWithReload):
     """Menu: modules, label printer (model, then host and size), receipt printer, household, AI; each
     part keeps the options of the others. Saving reloads the entry (modules change panel and entities)."""
 

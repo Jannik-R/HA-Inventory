@@ -21,8 +21,8 @@ import { ADD, COLUMNS, type Draft, type Opts } from "./settings-model";
 /** Inherited day counts: number inputs with "Tage". */
 const DAYS = ["warn_days", "shelf_days", "opened_days"];
 
-/** Add/edit dialog for one master-data row. Call `open()`; fires `pantry-saved` after a successful save. */
-export class PantrySettingsDialog extends LitElement {
+/** Add/edit dialog for one master-data row. Call `open()`; fires `home-inventory-saved` after a successful save. */
+export class HomeInventorySettingsDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     data: { attribute: false },
@@ -122,7 +122,7 @@ export class PantrySettingsDialog extends LitElement {
       return;
     }
     this.renderRoot.querySelector("dialog")?.close();
-    this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }));
   }
 
   private field(label: string, control: unknown, tip?: string) {
@@ -240,13 +240,13 @@ export class PantrySettingsDialog extends LitElement {
       fields = html`${this.field(t("common.name"), this.text("name"))}
         <div class="field">
           <span class="lbl">${t("settings.category.parent")}</span>
-          <pantry-category-picker
+          <home-inventory-category-picker
             .categories=${md.categories}
             .value=${d.parent_id ?? null}
             .noneLabel=${t("settings.category.no_parent")}
             .exclude=${d.id}
             @change=${(ev: CustomEvent<number | null>) => this.set("parent_id", ev.detail)}
-          ></pantry-category-picker>
+          ></home-inventory-category-picker>
         </div>
         ${this.inh(
           "unit_id",
@@ -299,4 +299,4 @@ export class PantrySettingsDialog extends LitElement {
   static styles = [formStyles];
 }
 
-customElements.define("pantry-settings-dialog", PantrySettingsDialog);
+customElements.define("home-inventory-settings-dialog", HomeInventorySettingsDialog);

@@ -4,7 +4,7 @@ from datetime import date, time
 
 import pytest
 
-from custom_components.pantry import inventory
+from custom_components.home_inventory import inventory
 
 
 def recipe(conn, name="Pasta") -> int:

@@ -31,23 +31,25 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("parent category is picked in a tree without the own subtree", async ({ page }) => {
-  await openPage(page, "/pantry/settings/categories", "Einstellungen");
-  const main = page.locator("pantry-settings li").filter({ hasText: MAIN_NAME });
+  await openPage(page, "/home_inventory/settings/categories", "Einstellungen");
+  const main = page.locator("home-inventory-settings li").filter({ hasText: MAIN_NAME });
   // Clicking a main category opens it; editing has its own button.
   await main.getByTestId("settings-row").click();
   await expect(
     page
-      .locator("pantry-settings li")
+      .locator("home-inventory-settings li")
       .getByTestId("settings-row")
       .filter({ hasText: new RegExp("^\\s*" + SUB_NAME) }),
   ).toBeVisible();
   // Plus icon: new subcategory with this parent; dialogs only have save and cancel.
   await main.getByTestId("category-add").click();
   await expect(
-    page.locator("pantry-settings dialog pantry-category-picker").getByTestId("category"),
+    page
+      .locator("home-inventory-settings dialog home-inventory-category-picker")
+      .getByTestId("category"),
   ).toContainText(MAIN_NAME);
   await expect(
-    page.locator("pantry-settings dialog").getByRole("button", { name: "Löschen" }),
+    page.locator("home-inventory-settings dialog").getByRole("button", { name: "Löschen" }),
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await main.getByTestId("category-edit").click();
@@ -64,11 +66,11 @@ test("parent category is picked in a tree without the own subtree", async ({ pag
 });
 
 test("locations: row actions and live validation", async ({ page }) => {
-  await openPage(page, "/pantry/settings/locations", "Einstellungen");
-  const fridge = page.locator("pantry-settings li").filter({ hasText: FRIDGE });
+  await openPage(page, "/home_inventory/settings/locations", "Einstellungen");
+  const fridge = page.locator("home-inventory-settings li").filter({ hasText: FRIDGE });
   await expect(fridge.getByTestId("location-delete")).toBeVisible();
   await fridge.getByTestId("location-edit").click();
-  const name = page.locator("pantry-settings dialog input").first();
+  const name = page.locator("home-inventory-settings dialog input").first();
   await name.fill("");
   await expect(page.getByTestId("name-error")).toHaveText("Pflichtfeld.");
   await expect(page.getByTestId("save")).toBeDisabled();
@@ -80,7 +82,7 @@ test("locations: row actions and live validation", async ({ page }) => {
   await name.fill(`${FRIDGE} 2`);
   // Esc, Esc (keep editing), Esc: the dialog must still be open behind the second question
   // (browsers ignore preventDefault on a repeated cancel event without a click in between).
-  const question = page.locator("pantry-confirm h2");
+  const question = page.locator("home-inventory-confirm h2");
   await page.keyboard.press("Escape");
   await expect(question).toHaveText("Änderungen verwerfen?");
   await page.keyboard.press("Escape");
@@ -98,7 +100,7 @@ test("locations: row actions and live validation", async ({ page }) => {
 });
 
 test("defaults: edit the warning days and restore them", async ({ page }) => {
-  await openPage(page, "/pantry/settings/defaults", "Einstellungen");
+  await openPage(page, "/home_inventory/settings/defaults", "Einstellungen");
   const warn = page.getByTestId("default-row").filter({ hasText: "Warnung vor Ablauf" });
   const before = (await warn.locator(".detail").textContent())!.trim();
   await page.getByTestId("default-edit").first().click();
@@ -118,12 +120,12 @@ test("defaults: edit the warning days and restore them", async ({ page }) => {
 });
 
 test("meal start times: edit and save", async ({ page }) => {
-  await openPage(page, "/pantry/settings/meals", "Einstellungen");
+  await openPage(page, "/home_inventory/settings/meals", "Einstellungen");
   const rows = page.getByTestId("meal-time-row");
   await expect(rows).toHaveCount(5);
   const before = await rows.nth(3).textContent();
   await rows.nth(3).click();
-  const dialog = page.locator("pantry-meal-times dialog");
+  const dialog = page.locator("home-inventory-meal-times dialog");
   const dinner = dialog.getByTestId("meal-time-3");
   const old = await dinner.inputValue();
   await dinner.fill("17:45");

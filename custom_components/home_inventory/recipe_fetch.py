@@ -12,7 +12,7 @@ from .inventory import InventoryError
 
 MAX_BYTES = 5_000_000
 TIMEOUT = aiohttp.ClientTimeout(total=15)
-HEADERS = {"User-Agent": "HA-Pantry (https://github.com/Jannik-R/HA-Inventory)"}
+HEADERS = {"User-Agent": "HA-Inventory (https://github.com/Jannik-R/HA-Inventory)"}
 
 
 async def async_import(hass: HomeAssistant, db: Database, url: str) -> dict:

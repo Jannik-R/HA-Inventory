@@ -17,14 +17,14 @@ from . import inventory
 from .coordinator import async_coordinator, device_info
 
 if TYPE_CHECKING:
-    from . import PantryConfigEntry
+    from . import HomeInventoryConfigEntry
 
 STATUSES = ("expired", "soon")
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PantryConfigEntry,
+    entry: HomeInventoryConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     db = entry.runtime_data
@@ -43,7 +43,7 @@ class ExpirySensor(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], SensorE
     _attr_state_class = SensorStateClass.MEASUREMENT
     _unrecorded_attributes = frozenset({"items"})
 
-    def __init__(self, coordinator, entry: PantryConfigEntry, status: str) -> None:
+    def __init__(self, coordinator, entry: HomeInventoryConfigEntry, status: str) -> None:
         super().__init__(coordinator)
         self._status = status
         self._attr_translation_key = status

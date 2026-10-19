@@ -45,7 +45,7 @@ export async function deleteMasterRow(
   const impact = await getDeleteImpact(hass, table, row.id);
   if (impact.blocked)
     throw {
-      translation_domain: "pantry",
+      translation_domain: "home_inventory",
       translation_key: impact.blocked,
       message: impact.blocked,
     };

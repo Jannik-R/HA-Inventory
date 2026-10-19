@@ -1,5 +1,5 @@
 """LLM API "Home Inventory" for Assist agents and HA's MCP Server. Read tools call `inventory`
-(trimmed rows, names instead of ids); write tools call the pantry services, so validation,
+(trimmed rows, names instead of ids); write tools call the home_inventory services, so validation,
 defaults and the booking user are the services' own. Which tools exist: options `llm_access`."""
 
 from __future__ import annotations
@@ -139,7 +139,7 @@ SPECS = [
 ]  # fmt: skip
 
 
-class PantryTool(llm.Tool):
+class HomeInventoryTool(llm.Tool):
     def __init__(self, spec: Spec) -> None:
         self.name = spec.name
         self.description = spec.description
@@ -157,7 +157,7 @@ class PantryTool(llm.Tool):
 
 
 @dataclass(slots=True, kw_only=True)
-class PantryAPI(llm.API):
+class HomeInventoryAPI(llm.API):
     tools: list[llm.Tool]
 
     async def async_get_api_instance(self, llm_context: llm.LLMContext) -> llm.APIInstance:
@@ -169,7 +169,7 @@ class PantryAPI(llm.API):
 def tools_for(access: str) -> list[llm.Tool]:
     """The tools of an access level (read < plan < all)."""
     rank = LLM_ACCESS.index(access if access in LLM_ACCESS else DEFAULT_LLM_ACCESS)
-    return [PantryTool(s) for s in SPECS if LLM_ACCESS.index(s.level) <= rank]
+    return [HomeInventoryTool(s) for s in SPECS if LLM_ACCESS.index(s.level) <= rank]
 
 
 @callback
@@ -177,5 +177,5 @@ def async_register(hass: HomeAssistant, options: dict) -> CALLBACK_TYPE:
     """Register the API (the entry reloads on an options change, so the tools are fixed here)."""
     tools = tools_for(options.get(CONF_LLM_ACCESS, DEFAULT_LLM_ACCESS))
     return llm.async_register_api(
-        hass, PantryAPI(hass=hass, id=DOMAIN, name="Home Inventory", tools=tools)
+        hass, HomeInventoryAPI(hass=hass, id=DOMAIN, name="Home Inventory", tools=tools)
     )

@@ -22,12 +22,12 @@ import { outButton, undoLine, type Undo } from "./take-out";
 import { openButton, openedLine, undoOpened, type LabelRequest } from "./open-action";
 import type { Opened } from "./api-open";
 import { doneLine, doneStyles } from "./booking-done";
-import type { PantryProductDialog } from "./product-dialog";
-import type { PantryBatchDialog } from "./batch-dialog";
+import type { HomeInventoryProductDialog } from "./product-dialog";
+import type { HomeInventoryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
 import { stockStyles } from "./stock-styles";
 import { deleteMasterRow } from "./delete-flow";
-import type { PantryLabelDialog } from "./label-dialog";
+import type { HomeInventoryLabelDialog } from "./label-dialog";
 import "./product-dialog";
 import "./batch-dialog";
 import "./label-dialog";
@@ -36,7 +36,7 @@ import type { Mode } from "./booking-view";
 
 /** Stock and products: search / book in / book out switch, category › product › batch/location,
  *  location filter, edit/delete. */
-export class PantryStock extends LitElement {
+export class HomeInventoryStock extends LitElement {
   static properties = {
     hass: { attribute: false },
     mode: { attribute: false },
@@ -157,13 +157,13 @@ export class PantryStock extends LitElement {
 
   render() {
     const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
-    const head = html`<pantry-booking
+    const head = html`<home-inventory-booking
       .hass=${this.hass}
       .mode=${this.mode}
       @query=${(e: CustomEvent<string>) => (this.filter = e.detail)}
       @booked=${this.saved}
-      @pantry-print-label=${(e: CustomEvent<LabelRequest>) => this.label(e.detail)}
-    ></pantry-booking>`;
+      @home-inventory-print-label=${(e: CustomEvent<LabelRequest>) => this.label(e.detail)}
+    ></home-inventory-booking>`;
     // One outer template: the input must survive the stock loading (Lit swaps elements per template).
     return html`${head} ${error} ${this.stock ? this.list(this.stock) : nothing}`;
   }
@@ -189,24 +189,27 @@ export class PantryStock extends LitElement {
               ${t(stock.length || this.filter.trim() ? "book.no_hits" : "stock.empty")}
             </p>`
       }
-      <pantry-product-dialog
+      <home-inventory-product-dialog
         .hass=${this.hass}
         .md=${this.md}
-        @pantry-saved=${this.saved}
+        @home-inventory-saved=${this.saved}
         @master=${(e: CustomEvent<MasterData>) => (this.md = e.detail)}
-      ></pantry-product-dialog>
-      <pantry-batch-dialog .hass=${this.hass} @pantry-saved=${this.saved}></pantry-batch-dialog>
-      <pantry-label-dialog
+      ></home-inventory-product-dialog>
+      <home-inventory-batch-dialog
         .hass=${this.hass}
-        @pantry-printed=${(e: CustomEvent<number>) =>
+        @home-inventory-saved=${this.saved}
+      ></home-inventory-batch-dialog>
+      <home-inventory-label-dialog
+        .hass=${this.hass}
+        @home-inventory-printed=${(e: CustomEvent<number>) =>
           (this.message = e.detail ? t("label.printed", { n: e.detail }) : "")}
-      ></pantry-label-dialog>
+      ></home-inventory-label-dialog>
     `;
   }
 
   private editProduct(id: number) {
     this.renderRoot
-      .querySelector<PantryProductDialog>("pantry-product-dialog")!
+      .querySelector<HomeInventoryProductDialog>("home-inventory-product-dialog")!
       .open(this.products.get(id)!, [...this.products.values()]);
   }
 
@@ -240,11 +243,11 @@ export class PantryStock extends LitElement {
   }
 
   private label(r: LabelRequest) {
-    this.renderRoot.querySelector<PantryLabelDialog>("pantry-label-dialog")?.open(r);
+    this.renderRoot.querySelector<HomeInventoryLabelDialog>("home-inventory-label-dialog")?.open(r);
   }
 
   private editBatch(b: StockRow) {
-    this.renderRoot.querySelector<PantryBatchDialog>("pantry-batch-dialog")!.open(b);
+    this.renderRoot.querySelector<HomeInventoryBatchDialog>("home-inventory-batch-dialog")!.open(b);
   }
 
   private renderItem(p: Item, depth: number, expanded: boolean) {
@@ -311,4 +314,4 @@ export class PantryStock extends LitElement {
   static styles = [formStyles, doneStyles, stockFilterStyles, stockStyles];
 }
 
-customElements.define("pantry-stock", PantryStock);
+customElements.define("home-inventory-stock", HomeInventoryStock);

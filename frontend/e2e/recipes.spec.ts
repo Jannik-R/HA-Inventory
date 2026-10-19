@@ -14,7 +14,7 @@ let unitG: number | undefined;
 
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const md = (await ws(page, { type: "pantry/master_data" })) as {
+  const md = (await ws(page, { type: "home_inventory/master_data" })) as {
     units: { id: number; symbol: string }[];
   };
   const gram = md.units.find((u) => u.symbol === "g")!;
@@ -25,15 +25,20 @@ test.beforeAll(async ({ browser }) => {
 
 test.afterAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const list = (await ws(page, { type: "pantry/recipes" })) as { id: number; name: string }[];
+  const list = (await ws(page, { type: "home_inventory/recipes" })) as {
+    id: number;
+    name: string;
+  }[];
   for (const r of list)
     if (r.name === NAME || r.name === IMPORT_NAME) await remove(page, "recipe", r.id);
   const units = (
-    (await ws(page, { type: "pantry/master_data" })) as { units: { id: number; name: string }[] }
+    (await ws(page, { type: "home_inventory/master_data" })) as {
+      units: { id: number; name: string }[];
+    }
   ).units;
   for (const u of units) if (u.name === CUP) await remove(page, "unit", u.id);
   // The new Produktart is a child of CAT: delete it first.
-  const md = (await ws(page, { type: "pantry/master_data" })) as {
+  const md = (await ws(page, { type: "home_inventory/master_data" })) as {
     categories: { id: number; name: string }[];
   };
   for (const c of md.categories) if (c.name === TYPE) await remove(page, "category", c.id);
@@ -42,9 +47,9 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("create a recipe with a category ingredient, scale servings, delete it", async ({ page }) => {
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-add").click();
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await expect(dialog.getByTestId("recipe-save")).toBeDisabled(); // no name
   await dialog.getByTestId("recipe-name").fill(NAME);
   await dialog.getByTestId("recipe-servings-input").fill("2");
@@ -93,9 +98,9 @@ test("create a recipe with a category ingredient, scale servings, delete it", as
 });
 
 test("find a seeded Produktart and create a new one", async ({ page }) => {
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-add").click();
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await dialog.getByTestId("ingredient-add").click();
   const ing = dialog.getByTestId("ingredient-row");
   await ing.getByTestId("ingredient-search").fill("Tomatenmark");
@@ -115,7 +120,7 @@ test("find a seeded Produktart and create a new one", async ({ page }) => {
 });
 
 test("import a recipe draft, fix the unknown unit, save", async ({ page, wsStub }) => {
-  wsStub("pantry/recipe_import", {
+  wsStub("home_inventory/recipe_import", {
     name: IMPORT_NAME,
     servings: 2,
     steps: [{ section: null, text: "Alles mischen." }],
@@ -154,15 +159,15 @@ test("import a recipe draft, fix the unknown unit, save", async ({ page, wsStub 
       },
     ],
   });
-  await openPage(page, "/pantry/recipes", "Rezepte");
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
   await page.getByTestId("recipe-import").click();
-  const imp = page.locator("pantry-recipe-import dialog");
+  const imp = page.locator("home-inventory-recipe-import dialog");
   await imp.getByTestId("recipe-import-url").fill("ftp://x");
   await expect(imp.getByTestId("recipe-import-submit")).toBeDisabled();
   await imp.getByTestId("recipe-import-url").fill("https://example.com/r");
   await imp.getByTestId("recipe-import-submit").click();
 
-  const dialog = page.locator("pantry-recipe-dialog dialog");
+  const dialog = page.locator("home-inventory-recipe-dialog dialog");
   await expect(dialog.getByTestId("recipe-name")).toHaveValue(IMPORT_NAME);
   const rows = dialog.getByTestId("ingredient-row");
   await expect(rows.nth(1).getByTestId("ingredient-line")).toContainText(
@@ -172,7 +177,7 @@ test("import a recipe draft, fix the unknown unit, save", async ({ page, wsStub 
   await expect(dialog.getByTestId("recipe-save")).toBeDisabled();
   await rows.nth(2).getByTestId("ingredient-unit-create").click();
   const unit = page.locator(
-    "pantry-recipes pantry-recipe-dialog pantry-recipe-ingredients pantry-unit-add-dialog dialog",
+    "home-inventory-recipes home-inventory-recipe-dialog home-inventory-recipe-ingredients home-inventory-unit-add-dialog dialog",
   );
   await expect(unit.getByTestId("unit-add-name")).toHaveValue(CUP);
   await unit.getByTestId("unit-add-save").click();

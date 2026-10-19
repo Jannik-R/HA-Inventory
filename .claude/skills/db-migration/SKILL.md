@@ -1,13 +1,13 @@
 ---
 name: db-migration
-description: Add or change the pantry SQLite schema the way this repo does it - a new step in db.MIGRATIONS, table rebuilds with foreign keys, data fixes, seed, upgrade test from the previous version. Use for any change to tables, columns, constraints or indexes in custom_components/pantry/db.py.
+description: Add or change the home_inventory SQLite schema the way this repo does it - a new step in db.MIGRATIONS, table rebuilds with foreign keys, data fixes, seed, upgrade test from the previous version. Use for any change to tables, columns, constraints or indexes in custom_components/home_inventory/db.py.
 ---
 
-Schema lives only in `custom_components/pantry/db.py` → `MIGRATIONS` (list of SQL scripts; index + 1 = `PRAGMA user_version`).
+Schema lives only in `custom_components/home_inventory/db.py` → `MIGRATIONS` (list of SQL scripts; index + 1 = `PRAGMA user_version`).
 
 ## Rules
 
-- **Never edit a step that is merged to `main`.** Append a new step. An unmerged step may be edited; then delete `dev/config/pantry.db` (it is git-ignored) or restore a copy.
+- **Never edit a step that is merged to `main`.** Append a new step. An unmerged step may be edited; then delete `dev/config/home_inventory.db` (it is git-ignored) or restore a copy.
 - One step = one transaction. `migrate()` turns foreign keys **off** for the step, runs `PRAGMA foreign_key_check` before the commit and rolls back on violations. So rebuilding a referenced table is safe.
 - Fix data **before** adding a constraint (orphans, contradicting pairs), in the same step. Say in a comment what happens to bad rows.
 - Comment at the top of the step: number + why (`# 4: ...`), like steps 2 and 3.
@@ -48,7 +48,7 @@ db.migrate(c)
 # assert new shape, fixed data, and: c.execute("PRAGMA foreign_key_check").fetchall() == []
 ```
 
-Then run all backend tests (skill `ha-dev`), restart the dev HA (it migrates `dev/config/pantry.db`) and check `PRAGMA user_version` and `PRAGMA foreign_key_check` there.
+Then run all backend tests (skill `ha-dev`), restart the dev HA (it migrates `dev/config/home_inventory.db`) and check `PRAGMA user_version` and `PRAGMA foreign_key_check` there.
 
 ## Release note
 

@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import pytest
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry import recipe_fetch
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory import recipe_fetch
 
 from .test_inventory import unit
 from .test_websocket import ws  # noqa: F401  (fixture)
@@ -250,7 +250,7 @@ async def test_ws_import(ws, aioclient_mock):  # noqa: F811
     )
 
     async def call(url):
-        return await ws.call({"type": "pantry/recipe_import", "url": url})
+        return await ws.call({"type": "home_inventory/recipe_import", "url": url})
 
     msg = await call("https://x.test/ok")
     assert msg["result"]["source_url"] == "https://x.test/ok"
@@ -265,6 +265,6 @@ async def test_ws_import(ws, aioclient_mock):  # noqa: F811
     assert "Köchen" in msg["result"]["name"]
     assert not (await call("ftp://x.test/r"))["success"]
 
-    first = (await ws.call({"type": "pantry/unit_add", "name": "Tasse"}))["result"]["id"]
-    again = (await ws.call({"type": "pantry/unit_add", "name": "Tassen"}))["result"]["id"]
+    first = (await ws.call({"type": "home_inventory/unit_add", "name": "Tasse"}))["result"]["id"]
+    again = (await ws.call({"type": "home_inventory/unit_add", "name": "Tassen"}))["result"]["id"]
     assert first == again

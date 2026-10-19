@@ -2,7 +2,7 @@
 
 import pytest
 
-from custom_components.pantry import db
+from custom_components.home_inventory import db
 
 
 @pytest.fixture(autouse=True)
@@ -12,7 +12,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 
 @pytest.fixture
 def hass_config_dir(hass_tmp_config_dir: str) -> str:
-    """Own config dir per test: a fresh pantry.db, and parallel workers (xdist) never share it."""
+    """Own config dir per test: a fresh home_inventory.db, and parallel workers (xdist) never share it."""
     return hass_tmp_config_dir
 
 

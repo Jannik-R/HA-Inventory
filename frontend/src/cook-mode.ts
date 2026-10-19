@@ -42,7 +42,7 @@ const alarm = () => {
 
 /** Full-screen cooking view: ingredients, steps to tick off (not saved), timers from the steps.
  * Keeps the screen on while open. Call `open(...)`. */
-export class PantryCookMode extends LitElement {
+export class HomeInventoryCookMode extends LitElement {
   static properties = {
     active: { state: true },
     done: { state: true },
@@ -327,4 +327,4 @@ export class PantryCookMode extends LitElement {
   ];
 }
 
-customElements.define("pantry-cook-mode", PantryCookMode);
+customElements.define("home-inventory-cook-mode", HomeInventoryCookMode);

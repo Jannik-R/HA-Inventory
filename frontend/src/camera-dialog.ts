@@ -27,7 +27,7 @@ const scale = (quad: Pt[] | null, f: number) =>
  *  mode) the receipt outline is shown live, then its corners can be fixed and the result is
  *  straightened black and white. `edit(image)`: the corner step for a photo picked as a file.
  *  Both resolve with a data URL, or undefined when cancelled. */
-export class PantryCamera extends LitElement {
+export class HomeInventoryCamera extends LitElement {
   static properties = {
     scan: { state: true },
     still: { state: true },
@@ -198,11 +198,11 @@ export class PantryCamera extends LitElement {
   }
 
   private cornerView() {
-    return html`<pantry-scan-corners
+    return html`<home-inventory-scan-corners
         .image=${this.still}
         .quad=${this.quad}
         @change=${(e: CustomEvent<Pt[]>) => (this.quad = e.detail)}
-      ></pantry-scan-corners>
+      ></home-inventory-scan-corners>
       <p class="detail">${t("camera.corners_hint")}</p>`;
   }
 
@@ -284,4 +284,4 @@ export class PantryCamera extends LitElement {
   ];
 }
 
-customElements.define("pantry-camera", PantryCamera);
+customElements.define("home-inventory-camera", HomeInventoryCamera);

@@ -61,14 +61,14 @@ def async_register(hass: HomeAssistant) -> None:
         websocket_api.async_register_command(hass, command)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/recipes"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/recipes"})
 @websocket_api.async_response
 async def ws_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.recipes))
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/expiring_recipes", vol.Optional("days"): DAYS}
+    {vol.Required("type"): "home_inventory/expiring_recipes", vol.Optional("days"): DAYS}
 )
 @websocket_api.async_response
 async def ws_expiring_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -78,7 +78,7 @@ async def ws_expiring_recipes(hass: HomeAssistant, connection, msg: dict) -> Non
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/recipe_availability",
+        vol.Required("type"): "home_inventory/recipe_availability",
         vol.Required("recipe_id"): ID,
         vol.Required("servings"): SERVINGS,
     }
@@ -91,7 +91,7 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/recipe_save",
+        vol.Required("type"): "home_inventory/recipe_save",
         vol.Required("data"): {
             vol.Optional("id"): ID,
             vol.Required("name"): NAME,
@@ -115,7 +115,7 @@ async def ws_recipe_save(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], {"id": await run(hass, inventory.save_recipe, msg["data"])})
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/shopping_recipes"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/shopping_recipes"})
 @websocket_api.async_response
 async def ws_shopping_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.shopping_recipes))
@@ -123,7 +123,7 @@ async def ws_shopping_recipes(hass: HomeAssistant, connection, msg: dict) -> Non
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/shopping_recipe_set",
+        vol.Required("type"): "home_inventory/shopping_recipe_set",
         vol.Required("recipe_id"): ID,
         vol.Required("servings"): SERVINGS,
         vol.Optional("optional", default=[]): [ID],
@@ -138,7 +138,7 @@ async def ws_shopping_recipe_set(hass: HomeAssistant, connection, msg: dict) -> 
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/shopping_recipe_remove", vol.Required("recipe_id"): ID}
+    {vol.Required("type"): "home_inventory/shopping_recipe_remove", vol.Required("recipe_id"): ID}
 )
 @websocket_api.async_response
 async def ws_shopping_recipe_remove(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -148,7 +148,7 @@ async def ws_shopping_recipe_remove(hass: HomeAssistant, connection, msg: dict) 
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/shopping_recipe_done",
+        vol.Required("type"): "home_inventory/shopping_recipe_done",
         vol.Required("key"): vol.Match(r"^r\d+-\d*$"),
         vol.Required("done"): bool,
     }
@@ -161,7 +161,7 @@ async def ws_shopping_recipe_done(hass: HomeAssistant, connection, msg: dict) ->
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/product_type_add",
+        vol.Required("type"): "home_inventory/product_type_add",
         vol.Required("name"): NAME,
         vol.Required("parent_id"): ID,
     }
@@ -175,7 +175,7 @@ async def ws_product_type_add(hass: HomeAssistant, connection, msg: dict) -> Non
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/recipe_import",
+        vol.Required("type"): "home_inventory/recipe_import",
         # exactly one source; text and photo need the AI (see recipe_ai.py)
         vol.Exclusive("url", "source"): HTTP_URL,
         vol.Exclusive("text", "source"): vol.All(str, vol.Length(min=1, max=inventory.MAX_PASTE)),
@@ -212,7 +212,7 @@ _DRAFT_INGREDIENT = vol.Schema(
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/recipe_ai_check",
+        vol.Required("type"): "home_inventory/recipe_ai_check",
         vol.Required("draft"): vol.Schema(
             {
                 vol.Required("name"): NAME,
@@ -232,7 +232,7 @@ async def ws_recipe_ai_check(hass: HomeAssistant, connection, msg: dict) -> None
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/product_ai_check",
+        vol.Required("type"): "home_inventory/product_ai_check",
         vol.Required("draft"): vol.Schema(
             {
                 **{vol.Optional(str(k)): v for k, v in _NEW_PRODUCT.schema.items()},
@@ -250,7 +250,7 @@ async def ws_product_ai_check(hass: HomeAssistant, connection, msg: dict) -> Non
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/unit_add",
+        vol.Required("type"): "home_inventory/unit_add",
         vol.Required("name"): NAME,
         vol.Optional("symbol"): text(50),
     }

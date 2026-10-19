@@ -26,11 +26,11 @@ Vorhanden:
 - Mindestmenge je Kategorie als Menge in beliebiger Einheit (z. B. „2 kg Nudeln“, egal welche Marke) und/oder Packungszahl; Einkaufsliste im Panel und als To-do-Liste in HA; Produkte oder Kategorien von Hand hinzufügen (neue werden gleich angelegt)
 - Einkaufen nach Rezepten: Rezepte für eine Portionszahl auf die Einkaufsliste setzen; die fehlenden Mengen aller Rezepte werden je Kategorie zusammengezählt, Rezept-Einheiten (EL, Tasse, Prise) in ml oder g umgerechnet
 - Einkaufszettel, Rezepte und Speiseplan auf einem ESC/POS-Bondrucker (58 / 80 mm, USB am HA-Rechner oder Netzwerk), mit Abschneider
-- Einkaufsliste aus dem Speiseplan: Die im Zeitraum geplanten Rezepte (Knopf *Einkaufsliste* im Speiseplan, Aktion `pantry.plan_to_shopping_list`) kommen abzüglich Vorrat auf die Liste; noch keine Verbrauchsprognose
+- Einkaufsliste aus dem Speiseplan: Die im Zeitraum geplanten Rezepte (Knopf *Einkaufsliste* im Speiseplan, Aktion `home_inventory.plan_to_shopping_list`) kommen abzüglich Vorrat auf die Liste; noch keine Verbrauchsprognose
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
 - Nicht-Lebensmittel: Kategorien mit *Kein Lebensmittel* (vererbt) sind nie Rezeptzutaten; vorbelegt *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel nach Sockel), *Hausapotheke* (verbrauchen bis, Warnung 30 Tage) und *Tierbedarf*
-- Haltbarkeit (Tage, vererbt wie die Warnung): ein leeres Ablaufdatum beim Einbuchen (Panel, Kassenbon-Import, `pantry.book_in`) wird zu heute + Haltbarkeit und steht als *geschätzt* da, bis die Bestandszeile bearbeitet wird; die Option *Geschätztes Ablaufdatum vorausfüllen* schreibt die Schätzung schon ins Datumsfeld; vorbelegt mit üblichen Werten für die Lebensmittel-Kategorien (z. B. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 Tage)
-- Angebrochene Packungen (*Anbrechen*): eine Packung als angebrochen markieren (Knopf an der Chargenzeile, Scan-Modus *Anbrechen*, Aktion `pantry.open_package`); sie wird eine eigene Bestandszeile und läuft früher ab, um die vererbte *Haltbar nach Anbruch* (Tage; vorbelegt für die Lebensmittel-Kategorien, z. B. Milch 3; leer = das Datum bleibt, z. B. Nudeln); Ablaufübersicht, Sensoren, Etiketten und Rezeptvorschläge nutzen dieses Datum; ein neues Etikett wird angeboten (gedruckt erst nach dem Etikettendialog)
+- Haltbarkeit (Tage, vererbt wie die Warnung): ein leeres Ablaufdatum beim Einbuchen (Panel, Kassenbon-Import, `home_inventory.book_in`) wird zu heute + Haltbarkeit und steht als *geschätzt* da, bis die Bestandszeile bearbeitet wird; die Option *Geschätztes Ablaufdatum vorausfüllen* schreibt die Schätzung schon ins Datumsfeld; vorbelegt mit üblichen Werten für die Lebensmittel-Kategorien (z. B. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 Tage)
+- Angebrochene Packungen (*Anbrechen*): eine Packung als angebrochen markieren (Knopf an der Chargenzeile, Scan-Modus *Anbrechen*, Aktion `home_inventory.open_package`); sie wird eine eigene Bestandszeile und läuft früher ab, um die vererbte *Haltbar nach Anbruch* (Tage; vorbelegt für die Lebensmittel-Kategorien, z. B. Milch 3; leer = das Datum bleibt, z. B. Nudeln); Ablaufübersicht, Sensoren, Etiketten und Rezeptvorschläge nutzen dieses Datum; ein neues Etikett wird angeboten (gedruckt erst nach dem Etikettendialog)
 - Einkochen (Tab *Einkochen*): Protokolle mit einer Charge je Gläser-Partie (JJJJMMTT-n); die Etiketten tragen die Charge, ein Scan bucht ein Glas dieser Charge aus; Einkochrezepte (jedes ergibt ein Produkt, optional Temperatur und Dauer) in der eigenen Ansicht *Rezepte* des Tabs
 - KI-Assistenten: die LLM-API *Home Inventory* für Assist-Agenten und den MCP-Server von Home Assistant (Bestand, Ablauf, Rezepte, Einkaufsliste, Speiseplan; was sie ändern dürfen, steht in den Optionen)
 
@@ -42,11 +42,11 @@ Benötigt Home Assistant 2026.10.1 oder neuer.
 
 HACS (erst wenn das Repository öffentlich ist; HACS kann nicht aus privaten Repositories installieren): dieses Repository als benutzerdefiniertes Repository hinzufügen (Kategorie *Integration*), *Home Inventory (Vorrat)* installieren, Home Assistant neu starten. Versionen sind die GitHub-Releases.
 
-Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/pantry` nach `config/custom_components/` kopieren und Home Assistant neu starten.
+Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/home_inventory` nach `config/custom_components/` kopieren und Home Assistant neu starten.
 
 Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten) und `yt-dlp` (liest Video und Beschreibung eines Beitrags für den KI-Rezeptimport; ist schon Teil des Home-Assistant-Images, eine normale Installation lädt also nichts herunter).
 
-Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory* (früher *Pantry*; die interne Domain bleibt `pantry`, Entitäten, Aktionen und Automationen ändern sich nicht), Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
+Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel *Vorrat* erscheint in der Seitenleiste.
 
 **Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen* (Tab *Einkochen*), *Anbrechen* (Knopf *Anbrechen* an der Charge, Buchungsmodus *Anbrechen* und das Feld *Haltbar nach Anbruch*). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
 
@@ -134,7 +134,7 @@ im Heimnetz). Mit eingerichteter KI:
   holt den Beitrag mit `yt-dlp` (Beschreibung und das Video bis 15 Minuten und 50 MB, höchstens 720p),
   wenn *Videos für den Rezeptimport laden* an ist (Standard aus: viele Plattformen verbieten Downloads
   in ihren Nutzungsbedingungen), sonst Titel, Beschreibung, sichtbaren Text und Vorschaubild (bis 5 MB) der Seite, und schickt sie an
-  die KI (Anhänge laufen über einen versteckten Ordner `.pantry_import` im ersten Medienverzeichnis und
+  die KI (Anhänge laufen über einen versteckten Ordner `.home_inventory_import` im ersten Medienverzeichnis und
   werden gleich danach gelöscht). Gesprochenes und eingeblendeten Text eines Videos liest die KI, wenn
   sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert
   Videos ohne Anmeldung oft; dann zählen nur Beschreibung und Bild.
@@ -210,18 +210,18 @@ Aktion mit einer Meldung fehlschlagen.
 
 | Aktion | Felder | Antwort |
 |---|---|---|
-| `pantry.book_in` | `code` (EAN oder Name eines vorhandenen Produkts; neue Produkte werden einmal im Panel angelegt, wo die Kategorie gewählt wird), `packages` (Standard 1), `expires_on` (Datum, optional; leer: heute + Haltbarkeit, als geschätzt markiert), `location` (Name, optional; Standard: Standardlager des Produkts) | `product_id`, `batch_id`, `name` |
-| `pantry.book_out` | `code` (EAN, Etikettencode `PTRY:…` oder Produktname), `packages` (Standard 1), `location` (Name, optional) | `taken` (Charge, Lagerort, Packungen, Buchungs-ID je Zeile), `name` (Etikettencode: auch `location`) |
-| `pantry.open_package` | `code` (EAN oder Produktname: früheste Ablaufzeit zuerst; Etikettencode `PTRY:…`: eine Packung dieser Charge), `location` (Name, optional, nicht mit Etikettencode) | `batch_id` (Charge der angebrochenen Packung), `location_id`, `booking_id`, `expires_on` (neues Ablaufdatum), `name`, `location` |
-| `pantry.print_labels` | `batch_id` (aus `book_in`), `count` (1 bis 20, Standard 1) | `printed` |
-| `pantry.print_shopping_list` | keine | `printed` (Anzahl Einträge) |
-| `pantry.print_plan` | `day` (Datum, Standard heute), `period` (`day` oder `week`, Standard `day`; eine Woche läuft Montag bis Sonntag um `day`) | `printed` (Anzahl Gerichte) |
-| `pantry.print_planned` | `day` (Datum, Standard heute), `meal` (`breakfast` … `snack`; Standard: die aktuelle Mahlzeit nach den Startzeiten unter *Einstellungen > Mahlzeiten*) | `printed` (Anzahl Rezepte), `day`, `meal` |
-| `pantry.print_recipe` | `recipe` (Name, auch Einkochrezept), `servings` (optional; Standard: die des Rezepts) | `printed` |
-| `pantry.shop_recipe` | `recipe` (Name eines Gericht-Rezepts), `servings` (optional; Standard: *Portionen im Haushalt*) | `recipe_id` |
-| `pantry.plan_to_shopping_list` | `start` (Datum, Standard heute), `days` (Standard 7, max. 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (Gerichte mit freiem Text) |
-| `pantry.plan_meal` | `recipe` (Name) oder `text` (freier Text), `day` (Datum, Standard heute), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; Standard `dinner`), `servings` (optional; Standard: *Portionen im Haushalt*) | `meal_id` |
-| `pantry.canning` | `recipe` (Name eines Einkochrezepts), `jars` (Standard: Ertrag des Rezepts), `made_on` (Datum, Standard heute), `expires_on` (Datum; Standard: Herstellungsdatum + Haltbarkeit), `location` (Name, optional), `notes` | `id`, `batch_id`, `charge` |
+| `home_inventory.book_in` | `code` (EAN oder Name eines vorhandenen Produkts; neue Produkte werden einmal im Panel angelegt, wo die Kategorie gewählt wird), `packages` (Standard 1), `expires_on` (Datum, optional; leer: heute + Haltbarkeit, als geschätzt markiert), `location` (Name, optional; Standard: Standardlager des Produkts) | `product_id`, `batch_id`, `name` |
+| `home_inventory.book_out` | `code` (EAN, Etikettencode `PTRY:…` oder Produktname), `packages` (Standard 1), `location` (Name, optional) | `taken` (Charge, Lagerort, Packungen, Buchungs-ID je Zeile), `name` (Etikettencode: auch `location`) |
+| `home_inventory.open_package` | `code` (EAN oder Produktname: früheste Ablaufzeit zuerst; Etikettencode `PTRY:…`: eine Packung dieser Charge), `location` (Name, optional, nicht mit Etikettencode) | `batch_id` (Charge der angebrochenen Packung), `location_id`, `booking_id`, `expires_on` (neues Ablaufdatum), `name`, `location` |
+| `home_inventory.print_labels` | `batch_id` (aus `book_in`), `count` (1 bis 20, Standard 1) | `printed` |
+| `home_inventory.print_shopping_list` | keine | `printed` (Anzahl Einträge) |
+| `home_inventory.print_plan` | `day` (Datum, Standard heute), `period` (`day` oder `week`, Standard `day`; eine Woche läuft Montag bis Sonntag um `day`) | `printed` (Anzahl Gerichte) |
+| `home_inventory.print_planned` | `day` (Datum, Standard heute), `meal` (`breakfast` … `snack`; Standard: die aktuelle Mahlzeit nach den Startzeiten unter *Einstellungen > Mahlzeiten*) | `printed` (Anzahl Rezepte), `day`, `meal` |
+| `home_inventory.print_recipe` | `recipe` (Name, auch Einkochrezept), `servings` (optional; Standard: die des Rezepts) | `printed` |
+| `home_inventory.shop_recipe` | `recipe` (Name eines Gericht-Rezepts), `servings` (optional; Standard: *Portionen im Haushalt*) | `recipe_id` |
+| `home_inventory.plan_to_shopping_list` | `start` (Datum, Standard heute), `days` (Standard 7, max. 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (Gerichte mit freiem Text) |
+| `home_inventory.plan_meal` | `recipe` (Name) oder `text` (freier Text), `day` (Datum, Standard heute), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; Standard `dinner`), `servings` (optional; Standard: *Portionen im Haushalt*) | `meal_id` |
+| `home_inventory.canning` | `recipe` (Name eines Einkochrezepts), `jars` (Standard: Ertrag des Rezepts), `made_on` (Datum, Standard heute), `expires_on` (Datum; Standard: Herstellungsdatum + Haltbarkeit), `location` (Name, optional), `notes` | `id`, `batch_id`, `charge` |
 
 - **book_out** mit EAN nimmt das früheste Ablaufdatum zuerst (Packungen ohne Datum zuletzt), wie das Panel.
   Ein Etikettencode nimmt eine Packung der genannten Charge, egal wo sie liegt (`packages` muss 1 sein, kein `location`).
@@ -237,14 +237,14 @@ Beispiel: Einbuchen mit einem Scanner, der den Barcode als Ereignis schickt, dan
 
 ```yaml
 actions:
-  - action: pantry.book_in
+  - action: home_inventory.book_in
     data:
       code: "{{ trigger.event.data.code }}"
       packages: 2
       expires_on: "2027-01-31"
       location: Kühlschrank
     response_variable: booked
-  - action: pantry.print_labels
+  - action: home_inventory.print_labels
     data:
       batch_id: "{{ booked.batch_id }}"
       count: 2

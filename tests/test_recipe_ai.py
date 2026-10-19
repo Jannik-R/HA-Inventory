@@ -9,9 +9,9 @@ from unittest.mock import AsyncMock, patch
 from homeassistant.components.ai_task import AITaskEntityFeature
 from homeassistant.core import HomeAssistant
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry import recipe_media
-from custom_components.pantry.const import CONF_AI_TASK, CONF_AI_VIDEO, DOMAIN
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory import recipe_media
+from custom_components.home_inventory.const import CONF_AI_TASK, CONF_AI_VIDEO, DOMAIN
 
 from .test_websocket import ws  # noqa: F401  (fixture)
 
@@ -79,7 +79,7 @@ def enable_ai(hass: HomeAssistant, media: Path, files: bool = True, video: bool 
 
 def generate(answer=ANSWER):
     return patch(
-        "custom_components.pantry.ai._generate",
+        "custom_components.home_inventory.ai._generate",
         new=AsyncMock(return_value=SimpleNamespace(data=answer)),
     )
 
@@ -91,7 +91,7 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
     aioclient_mock.get(
         "https://cdn.test/cover.jpg", content=b"\xff\xd8jpg", headers={"Content-Type": "image/jpeg"}
     )
-    msg = {"type": "pantry/recipe_import", "url": "https://insta.test/p/1"}
+    msg = {"type": "home_inventory/recipe_import", "url": "https://insta.test/p/1"}
     # no AI: the schema.org error as before
     assert (await ws.call(msg))["error"]["translation_key"] == "recipe_not_found"
 
@@ -109,10 +109,12 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
     assert "Pasta & Feta! #food" in kw["instructions"]
     assert kw["task_name"] == "Vorrat: Rezept auslesen"
     [att] = kw["attachments"]  # the og:image, through the hidden media folder
-    assert att["media_content_id"].startswith("media-source://media_source/local/.pantry_import/")
+    assert att["media_content_id"].startswith(
+        "media-source://media_source/local/.home_inventory_import/"
+    )
     assert att["media_content_type"] == "image/jpeg"
     assert seen == ["https://insta.test/p/1"]
-    assert not any((tmp_path / ".pantry_import").iterdir())  # cleaned up
+    assert not any((tmp_path / ".home_inventory_import").iterdir())  # cleaned up
 
     # a video post: caption from yt-dlp, the clip as attachment; also when the page is blocked
     def clip(url, folder):
@@ -121,7 +123,9 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
                 "file": folder / "video.mp4"}  # fmt: skip
 
     with patch.object(recipe_media, "video", clip), generate() as gen:
-        res = await ws.call({"type": "pantry/recipe_import", "url": "https://insta.test/403"})
+        res = await ws.call(
+            {"type": "home_inventory/recipe_import", "url": "https://insta.test/403"}
+        )
     assert res["success"]
     kw = gen.await_args.kwargs
     assert "Spoken recipe" in kw["instructions"]
@@ -129,14 +133,16 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
 
     # nothing to read, no recipe, AI error
     with patch.object(recipe_media, "video", video), generate({"found": False}):
-        res = await ws.call({"type": "pantry/recipe_import", "url": "https://insta.test/403"})
+        res = await ws.call(
+            {"type": "home_inventory/recipe_import", "url": "https://insta.test/403"}
+        )
     assert res["error"]["translation_key"] == "recipe_not_found"
     with patch.object(recipe_media, "video", video), generate({"found": False}):
         assert (await ws.call(msg))["error"]["translation_key"] == "recipe_not_found"
     failing = AsyncMock(side_effect=TimeoutError)
     with (
         patch.object(recipe_media, "video", video),
-        patch("custom_components.pantry.ai._generate", new=failing),
+        patch("custom_components.home_inventory.ai._generate", new=failing),
     ):
         assert (await ws.call(msg))["error"]["translation_key"] == "ai_import_failed"
 
@@ -149,15 +155,15 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
 
 
 async def test_ws_text_and_photo(hass, ws, tmp_path):  # noqa: F811
-    text = {"type": "pantry/recipe_import", "text": "Feta-Pasta: 200 g Spaghetti …"}
+    text = {"type": "home_inventory/recipe_import", "text": "Feta-Pasta: 200 g Spaghetti …"}
     photo = "data:image/png;base64," + base64.b64encode(b"\x89PNG").decode()
     assert (await ws.call(text))["error"]["translation_key"] == "ai_off"
-    assert not (await ws.call({"type": "pantry/recipe_import"}))["success"]
+    assert not (await ws.call({"type": "home_inventory/recipe_import"}))["success"]
     both = {**text, "url": "https://x.test/r"}
     assert not (await ws.call(both))["success"]
 
     enable_ai(hass, tmp_path, files=False)
-    img = {"type": "pantry/recipe_import", "image": photo}
+    img = {"type": "home_inventory/recipe_import", "image": photo}
     assert (await ws.call(img))["error"]["translation_key"] == "ai_no_files"
     with generate() as gen:
         assert (await ws.call(text))["result"]["name"] == "Feta-Pasta"
@@ -168,6 +174,6 @@ async def test_ws_text_and_photo(hass, ws, tmp_path):  # noqa: F811
     with generate() as gen:
         assert (await ws.call(img))["success"]
     assert gen.await_args.kwargs["attachments"][0]["media_content_type"] == "image/png"
-    bad = {"type": "pantry/recipe_import", "image": "data:image/png;base64,!!"}
+    bad = {"type": "home_inventory/recipe_import", "image": "data:image/png;base64,!!"}
     assert (await ws.call(bad))["error"]["translation_key"] == "invalid_value"
     assert not (await ws.call({**img, "image": "data:text/html;base64,AA=="}))["success"]

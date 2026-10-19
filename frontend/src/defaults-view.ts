@@ -24,7 +24,7 @@ const FIELDS: [InheritField, string][] = [
 type Draft = Record<InheritField, number | string | null>;
 
 /** Integration-wide defaults (root of inheritance): list of the values, one edit dialog. */
-export class PantryDefaults extends LitElement {
+export class HomeInventoryDefaults extends LitElement {
   static properties = {
     hass: { attribute: false },
     data: { attribute: false },
@@ -76,7 +76,9 @@ export class PantryDefaults extends LitElement {
     try {
       await saveDefaults(this.hass!, this.d!);
       this.renderRoot.querySelector("dialog")?.close();
-      this.dispatchEvent(new CustomEvent("pantry-saved", { bubbles: true, composed: true }));
+      this.dispatchEvent(
+        new CustomEvent("home-inventory-saved", { bubbles: true, composed: true }),
+      );
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
     }
@@ -202,4 +204,4 @@ export class PantryDefaults extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-defaults", PantryDefaults);
+customElements.define("home-inventory-defaults", HomeInventoryDefaults);

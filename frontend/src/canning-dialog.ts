@@ -31,8 +31,8 @@ interface Draft {
 }
 
 /** New canning protocol (a new charge, jars booked in) or edit of its process data.
- * `open(md, products, recipes, canning?)`; fires `pantry-saved` (detail: the save result + jars). */
-export class PantryCanningDialog extends LitElement {
+ * `open(md, products, recipes, canning?)`; fires `home-inventory-saved` (detail: the save result + jars). */
+export class HomeInventoryCanningDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     draft: { state: true },
@@ -195,7 +195,7 @@ export class PantryCanningDialog extends LitElement {
       );
       this.renderRoot.querySelector("dialog")?.close();
       this.dispatchEvent(
-        new CustomEvent("pantry-saved", {
+        new CustomEvent("home-inventory-saved", {
           detail: this.canning ? undefined : { ...res, name: d.name.trim(), jars: d.jars },
           bubbles: true,
           composed: true,
@@ -321,4 +321,4 @@ export class PantryCanningDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-canning-dialog", PantryCanningDialog);
+customElements.define("home-inventory-canning-dialog", HomeInventoryCanningDialog);

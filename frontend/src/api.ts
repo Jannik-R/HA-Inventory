@@ -79,24 +79,24 @@ export interface MasterData {
   defaults: Record<InheritField, number | string | null>;
 }
 export type Table = "unit" | "location" | "category";
-/** What `pantry/delete` accepts: master data plus products, recipes and canning protocols. */
+/** What `home_inventory/delete` accepts: master data plus products, recipes and canning protocols. */
 export type DeleteTable = Table | "product" | "recipe" | "canning";
 
 export const getMasterData = (hass: Hass) =>
-  hass.callWS<MasterData>({ type: "pantry/master_data" });
+  hass.callWS<MasterData>({ type: "home_inventory/master_data" });
 export const saveRow = (hass: Hass, table: Table, data: Record<string, unknown>) =>
-  hass.callWS<{ id: number }>({ type: "pantry/save", table, data });
+  hass.callWS<{ id: number }>({ type: "home_inventory/save", table, data });
 export const saveDefaults = (hass: Hass, data: MasterData["defaults"]) =>
-  hass.callWS<unknown>({ type: "pantry/defaults_save", data });
+  hass.callWS<unknown>({ type: "home_inventory/defaults_save", data });
 /** `force`: also delete what uses the row (see getDeleteImpact); `move_to`: target for a location's stock. */
 export const deleteRow = (
   hass: Hass,
   table: DeleteTable,
   row_id: number,
   opts: { force?: boolean; move_to?: number | null } = {},
-) => hass.callWS<unknown>({ type: "pantry/delete", table, row_id, ...opts });
+) => hass.callWS<unknown>({ type: "home_inventory/delete", table, row_id, ...opts });
 export const moveLocation = (hass: Hass, location_id: number, move_to: number) =>
-  hass.callWS<unknown>({ type: "pantry/move_location", location_id, move_to });
+  hass.callWS<unknown>({ type: "home_inventory/move_location", location_id, move_to });
 export interface DeleteGroup {
   /** "<delete|change>.<table>" */
   kind: string;
@@ -107,7 +107,7 @@ export interface DeleteGroup {
 }
 export const getDeleteImpact = (hass: Hass, table: DeleteTable, row_id: number) =>
   hass.callWS<{ blocked: string | null; groups: DeleteGroup[] }>({
-    type: "pantry/delete_impact",
+    type: "home_inventory/delete_impact",
     table,
     row_id,
   });
@@ -144,7 +144,7 @@ export interface SearchHit {
 }
 /** A new lowest-level category ("Produktart") under `parent_id`. */
 export const addProductType = (hass: Hass, name: string, parent_id: number) =>
-  hass.callWS<{ id: number }>({ type: "pantry/product_type_add", name, parent_id });
+  hass.callWS<{ id: number }>({ type: "home_inventory/product_type_add", name, parent_id });
 export interface StockRow {
   batch_id: number;
   location_id: number;
@@ -178,15 +178,18 @@ interface BookIn {
 }
 
 export const lookup = (hass: Hass, code: string) =>
-  hass.callWS<{ product: Product | null }>({ type: "pantry/lookup", code });
+  hass.callWS<{ product: Product | null }>({ type: "home_inventory/lookup", code });
 export const search = (hass: Hass, query: string, online = false) =>
-  hass.callWS<SearchHit[]>({ type: "pantry/search", query, online });
+  hass.callWS<SearchHit[]>({ type: "home_inventory/search", query, online });
 export const bookIn = (hass: Hass, data: BookIn) =>
-  hass.callWS<{ product_id: number; batch_id: number }>({ type: "pantry/book_in", ...data });
+  hass.callWS<{ product_id: number; batch_id: number }>({
+    type: "home_inventory/book_in",
+    ...data,
+  });
 export const bookOut = (
   hass: Hass,
   data: { product_id: number; packages: number; batch_id?: number; location_id?: number },
-) => hass.callWS<{ taken: Taken[] }>({ type: "pantry/book_out", ...data });
+) => hass.callWS<{ taken: Taken[] }>({ type: "home_inventory/book_out", ...data });
 /** What a book-out took, per batch and location; `putBack` undoes it. */
 export interface Taken {
   batch_id: number;
@@ -196,7 +199,7 @@ export interface Taken {
 }
 export const putBack = (hass: Hass, taken: Taken[]) =>
   hass.callWS<null>({
-    type: "pantry/put_back",
+    type: "home_inventory/put_back",
     booking_ids: taken.map((x) => x.booking_id),
   });
 export const editStock = (
@@ -207,12 +210,13 @@ export const editStock = (
     expires_on: string | null;
     packages: number;
   },
-) => hass.callWS<{ batch_id: number }>({ type: "pantry/stock_edit", ...data });
+) => hass.callWS<{ batch_id: number }>({ type: "home_inventory/stock_edit", ...data });
 export const getStock = (hass: Hass, product_id?: number) =>
-  hass.callWS<StockRow[]>({ type: "pantry/stock", product_id });
-export const listProducts = (hass: Hass) => hass.callWS<Product[]>({ type: "pantry/products" });
+  hass.callWS<StockRow[]>({ type: "home_inventory/stock", product_id });
+export const listProducts = (hass: Hass) =>
+  hass.callWS<Product[]>({ type: "home_inventory/products" });
 export const saveProduct = (hass: Hass, data: Record<string, unknown>) =>
-  hass.callWS<{ id: number }>({ type: "pantry/product_save", data });
+  hass.callWS<{ id: number }>({ type: "home_inventory/product_save", data });
 
 export interface LabelConfig {
   printer: boolean;
@@ -228,18 +232,18 @@ export interface LabelConfig {
 type PrintResult =
   { printed: number } | { image: string; count: number; width_mm: number; height_mm: number };
 export const getLabelConfig = (hass: Hass) =>
-  hass.callWS<LabelConfig>({ type: "pantry/label_config" });
+  hass.callWS<LabelConfig>({ type: "home_inventory/label_config" });
 export const printLabelsWs = (hass: Hass, data: { batch_id: number; count: number }) =>
-  hass.callWS<PrintResult>({ type: "pantry/print_labels", ...data });
+  hass.callWS<PrintResult>({ type: "home_inventory/print_labels", ...data });
 export const printShoppingList = (hass: Hass) =>
-  hass.callWS<{ printed: number }>({ type: "pantry/print_shopping_list" });
+  hass.callWS<{ printed: number }>({ type: "home_inventory/print_shopping_list" });
 export const printRecipe = (hass: Hass, recipe_id: number, servings: number) =>
-  hass.callWS<{ printed: number }>({ type: "pantry/print_recipe", recipe_id, servings });
+  hass.callWS<{ printed: number }>({ type: "home_inventory/print_recipe", recipe_id, servings });
 export const printPlan = (hass: Hass, start: string, days: 1 | 7) =>
-  hass.callWS<{ printed: number }>({ type: "pantry/print_plan", start, days });
+  hass.callWS<{ printed: number }>({ type: "home_inventory/print_plan", start, days });
 export const bookOutLabel = (hass: Hass, code: string) =>
   hass.callWS<{ name: string; location: string; taken: Taken[] }>({
-    type: "pantry/book_out_label",
+    type: "home_inventory/book_out_label",
     code,
   });
 
@@ -300,7 +304,7 @@ export interface Recipe {
   /** Servings on the shopping list, null when the recipe is not on it. */
   shopping_servings: number | null;
 }
-export const getRecipes = (hass: Hass) => hass.callWS<Recipe[]>({ type: "pantry/recipes" });
+export const getRecipes = (hass: Hass) => hass.callWS<Recipe[]>({ type: "home_inventory/recipes" });
 /** A recipe that uses up expiring stock, best first (`used` ingredients; `products` are the expiring ones). */
 export interface ExpiringRecipe {
   recipe_id: number;
@@ -312,20 +316,20 @@ export interface ExpiringRecipe {
 }
 export const getExpiringRecipes = (hass: Hass, days?: number) =>
   hass.callWS<ExpiringRecipe[]>({
-    type: "pantry/expiring_recipes",
+    type: "home_inventory/expiring_recipes",
     ...(days == null ? {} : { days }),
   });
 export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: number) =>
-  hass.callWS<Ingredient[]>({ type: "pantry/recipe_availability", recipe_id, servings });
+  hass.callWS<Ingredient[]>({ type: "home_inventory/recipe_availability", recipe_id, servings });
 export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
-  hass.callWS<{ id: number }>({ type: "pantry/recipe_save", data });
+  hass.callWS<{ id: number }>({ type: "home_inventory/recipe_save", data });
 export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
 /** Canning recipes live in the Einkochen tab, the others in Rezepte and the meal plan. */
 export const isCanning = (r: Recipe) => r.canning_product_id != null;
 /** One source: a page (schema.org data, else the AI reads it), pasted text or a photo (data URL; both need the AI). */
 export type ImportSource = { url: string } | { text: string } | { image: string };
 export const importRecipe = (hass: Hass, source: ImportSource) =>
-  hass.callWS<RecipeDraft>({ type: "pantry/recipe_import", ...source });
+  hass.callWS<RecipeDraft>({ type: "home_inventory/recipe_import", ...source });
 /** What the AI check changed on an ingredient (`cat` / `unit`), and the values before, for undo. */
 export interface AiChange {
   cat: boolean;
@@ -355,7 +359,7 @@ export type AiCheck =
       steps?: Step[];
     };
 export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>
-  hass.callWS<AiCheck>({ type: "pantry/recipe_ai_check", draft });
+  hass.callWS<AiCheck>({ type: "home_inventory/recipe_ai_check", draft });
 /** AI check of a new product from Open Food Facts: only the fields that change. */
 export type ProductAiCheck =
   | { status: "off" | "ok" }
@@ -363,6 +367,6 @@ export type ProductAiCheck =
       Pick<Product, "name" | "category_id" | "content_amount" | "content_unit_id">
     >);
 export const checkProduct = (hass: Hass, draft: Record<string, unknown>) =>
-  hass.callWS<ProductAiCheck>({ type: "pantry/product_ai_check", draft });
+  hass.callWS<ProductAiCheck>({ type: "home_inventory/product_ai_check", draft });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>
-  hass.callWS<{ id: number }>({ type: "pantry/unit_add", name, symbol });
+  hass.callWS<{ id: number }>({ type: "home_inventory/unit_add", name, symbol });

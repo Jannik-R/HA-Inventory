@@ -5,8 +5,8 @@ import { formStyles } from "./styles";
 import { errorMessage, type Hass } from "./api";
 import { MAX_LABELS, printLabels } from "./label-print";
 
-/** Print labels of one batch: how many (default 1, or `count`). Call `open()`; fires `pantry-printed` (detail: printed count). */
-export class PantryLabelDialog extends LitElement {
+/** Print labels of one batch: how many (default 1, or `count`). Call `open()`; fires `home-inventory-printed` (detail: printed count). */
+export class HomeInventoryLabelDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     batch: { state: true },
@@ -44,7 +44,7 @@ export class PantryLabelDialog extends LitElement {
       if (n === null) return; // cancelled: stay in the dialog
       this.renderRoot.querySelector("dialog")?.close();
       this.dispatchEvent(
-        new CustomEvent("pantry-printed", { detail: n, bubbles: true, composed: true }),
+        new CustomEvent("home-inventory-printed", { detail: n, bubbles: true, composed: true }),
       );
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -88,4 +88,4 @@ export class PantryLabelDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-label-dialog", PantryLabelDialog);
+customElements.define("home-inventory-label-dialog", HomeInventoryLabelDialog);

@@ -11,9 +11,9 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.const import DOMAIN
-from custom_components.pantry.inventory import InventoryError
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.const import DOMAIN
+from custom_components.home_inventory.inventory import InventoryError
 from tests.test_inventory import loc, product, stock
 
 EAN = "4006040053026"
@@ -147,6 +147,6 @@ async def test_services(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     hass.config_entries.async_update_entry(
         entry, options={"label_printer": "dymo_lw4xx", "label_printer_host": "10.0.0.5"}
     )
-    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+    with patch("custom_components.home_inventory.label.send", new=AsyncMock()) as send:
         assert await call(hass, "print_labels", batch_id=res["batch_id"], count=2) == {"printed": 2}
     assert send.await_args.args[0] == "10.0.0.5"

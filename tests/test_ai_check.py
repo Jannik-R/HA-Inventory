@@ -9,9 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.const import CONF_AI_PRODUCT, CONF_AI_TASK, DOMAIN
-from custom_components.pantry.inventory.learned import learned
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.const import CONF_AI_PRODUCT, CONF_AI_TASK, DOMAIN
+from custom_components.home_inventory.inventory.learned import learned
 
 from .test_inventory import cat, unit
 from .test_off import SPAGHETTI
@@ -277,14 +277,16 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
         "steps": [{"text": "Kochen."}],
         "ingredients": [{"text": "Wasser"}],
     }
-    await client.send_json_auto_id({"type": "pantry/recipe_ai_check", "draft": d})
+    await client.send_json_auto_id({"type": "home_inventory/recipe_ai_check", "draft": d})
     assert (await client.receive_json())["result"] == {"status": "off"}
 
     hass.config_entries.async_update_entry(entry, options={CONF_AI_TASK: "ai_task.test"})
     hass.config.components.add("ai_task")
     answer = SimpleNamespace(data={"ok": False, "steps": [{"text": "Kochen."}, {"text": "Essen."}]})
-    with patch("custom_components.pantry.ai._generate", new=AsyncMock(return_value=answer)) as gen:
-        await client.send_json_auto_id({"type": "pantry/recipe_ai_check", "draft": d})
+    with patch(
+        "custom_components.home_inventory.ai._generate", new=AsyncMock(return_value=answer)
+    ) as gen:
+        await client.send_json_auto_id({"type": "home_inventory/recipe_ai_check", "draft": d})
         res = (await client.receive_json())["result"]
     assert res["status"] == "changes" and len(res["steps"]) == 2
     assert gen.await_args.kwargs["entity_id"] == "ai_task.test"
@@ -292,12 +294,12 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
 
     p = {"name": "Spaghetti", "category_id": None, "off_json": "{}", "ean": "8076800195057"}
     answer = SimpleNamespace(data={"ok": False, "name": "Spaghetti n.5", "reason": "r"})
-    with patch("custom_components.pantry.ai._generate", new=AsyncMock(return_value=answer)):
-        await client.send_json_auto_id({"type": "pantry/product_ai_check", "draft": p})
+    with patch("custom_components.home_inventory.ai._generate", new=AsyncMock(return_value=answer)):
+        await client.send_json_auto_id({"type": "home_inventory/product_ai_check", "draft": p})
         res = (await client.receive_json())["result"]
     assert res == {"status": "changes", "name": "Spaghetti n.5", "reason": "r"}
 
     options = {CONF_AI_TASK: "ai_task.test", CONF_AI_PRODUCT: False}
     hass.config_entries.async_update_entry(entry, options=options)
-    await client.send_json_auto_id({"type": "pantry/product_ai_check", "draft": p})
+    await client.send_json_auto_id({"type": "home_inventory/product_ai_check", "draft": p})
     assert (await client.receive_json())["result"] == {"status": "off"}

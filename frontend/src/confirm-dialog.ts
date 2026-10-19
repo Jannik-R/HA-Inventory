@@ -17,7 +17,7 @@ export interface ConfirmOptions {
 }
 
 /** Modal yes/no question following the dialog rules; replaces the browser's `confirm()`. */
-class PantryConfirm extends LitElement {
+class HomeInventoryConfirm extends LitElement {
   declare o: ConfirmOptions;
   resolve!: (ok: boolean) => void;
   private ok = false;
@@ -102,12 +102,12 @@ class PantryConfirm extends LitElement {
   ];
 }
 
-customElements.define("pantry-confirm", PantryConfirm);
+customElements.define("home-inventory-confirm", HomeInventoryConfirm);
 
 /** Ask a yes/no question in a modal dialog; resolves true only on the action button. */
 export function confirmDialog(o: ConfirmOptions): Promise<boolean> {
   return new Promise((resolve) => {
-    const el = document.createElement("pantry-confirm") as PantryConfirm;
+    const el = document.createElement("home-inventory-confirm") as HomeInventoryConfirm;
     el.o = o;
     el.resolve = resolve;
     document.body.append(el);

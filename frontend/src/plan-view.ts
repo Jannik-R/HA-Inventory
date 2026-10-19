@@ -14,11 +14,11 @@ import { monthGrid, monthStyles } from "./plan-month";
 import "./meal-dialog";
 import "./receipt-button";
 import "./plan-shopping-dialog";
-import type { PantryPlanShoppingDialog } from "./plan-shopping-dialog";
-import type { PantryMealDialog } from "./meal-dialog";
+import type { HomeInventoryPlanShoppingDialog } from "./plan-shopping-dialog";
+import type { HomeInventoryMealDialog } from "./meal-dialog";
 
 /** Meal planner with day, week and month view; the view comes from the route (`plan/<view>`). */
-export class PantryPlan extends LitElement {
+export class HomeInventoryPlan extends LitElement {
   static properties = {
     hass: { attribute: false },
     section: { attribute: false },
@@ -96,12 +96,16 @@ export class PantryPlan extends LitElement {
 
   private nav(view: View) {
     this.dispatchEvent(
-      new CustomEvent("pantry-navigate", { detail: `plan/${view}`, bubbles: true, composed: true }),
+      new CustomEvent("home-inventory-navigate", {
+        detail: `plan/${view}`,
+        bubbles: true,
+        composed: true,
+      }),
     );
   }
 
   private dialog() {
-    return this.renderRoot.querySelector<PantryMealDialog>("pantry-meal-dialog")!;
+    return this.renderRoot.querySelector<HomeInventoryMealDialog>("home-inventory-meal-dialog")!;
   }
 
   /** Run a backend action on a meal, show its error, reload. */
@@ -128,7 +132,7 @@ export class PantryPlan extends LitElement {
         m.recipe_id == null
           ? this.dialog().open(m.day, m.slot, this.recipes, this.household, m)
           : this.dispatchEvent(
-              new CustomEvent("pantry-navigate", {
+              new CustomEvent("home-inventory-navigate", {
                 detail: `recipes/${m.recipe_id}`,
                 bubbles: true,
                 composed: true,
@@ -211,31 +215,33 @@ export class PantryPlan extends LitElement {
           data-testid="plan-shop"
           @click=${() =>
             this.renderRoot
-              .querySelector<PantryPlanShoppingDialog>("pantry-plan-shopping-dialog")!
+              .querySelector<HomeInventoryPlanShoppingDialog>(
+                "home-inventory-plan-shopping-dialog",
+              )!
               .open()}
         >
           ${t("plan.shop")}
         </button>
         ${
           view !== "month" // a month does not fit a receipt
-            ? html`<pantry-receipt-button
+            ? html`<home-inventory-receipt-button
                 .hass=${this.hass}
                 .print=${() => printPlan(this.hass!, iso(range(view, this.date)[0]), view === "day" ? 1 : 7)}
                 .done=${t("plan.printed")}
                 .testid=${"plan-print"}
-              ></pantry-receipt-button>`
+              ></home-inventory-receipt-button>`
             : nothing
         }
       </div>
       ${this.body()}
-      <pantry-plan-shopping-dialog
+      <home-inventory-plan-shopping-dialog
         .hass=${this.hass}
-        @pantry-shopped=${(e: CustomEvent<string>) => (this.note = e.detail)}
-      ></pantry-plan-shopping-dialog>
-      <pantry-meal-dialog
+        @home-inventory-shopped=${(e: CustomEvent<string>) => (this.note = e.detail)}
+      ></home-inventory-plan-shopping-dialog>
+      <home-inventory-meal-dialog
         .hass=${this.hass}
-        @pantry-saved=${() => this.load()}
-      ></pantry-meal-dialog>`;
+        @home-inventory-saved=${() => this.load()}
+      ></home-inventory-meal-dialog>`;
   }
 
   static styles = [
@@ -270,4 +276,4 @@ export class PantryPlan extends LitElement {
   ];
 }
 
-customElements.define("pantry-plan", PantryPlan);
+customElements.define("home-inventory-plan", HomeInventoryPlan);

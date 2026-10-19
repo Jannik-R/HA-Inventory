@@ -4,10 +4,10 @@ import { expect, test } from "./fixtures";
 const DISH = `E2E Gericht ${Date.now()}`;
 
 test("add, edit and delete a meal in the week plan", async ({ page }) => {
-  await openPage(page, "/pantry/plan", "Speiseplan");
+  await openPage(page, "/home_inventory/plan", "Speiseplan");
   // phone: the day's plus; wider screens: the plus of each cell
   await page.locator('[data-testid^="plan-add"]:visible').first().click();
-  const dialog = page.locator("pantry-meal-dialog dialog");
+  const dialog = page.locator("home-inventory-meal-dialog dialog");
   await expect(dialog.getByTestId("meal-save")).toBeDisabled(); // no dish
   await dialog.getByTestId("meal-text").fill(DISH);
   await dialog.getByTestId("meal-servings").fill("3");
@@ -22,7 +22,7 @@ test("add, edit and delete a meal in the week plan", async ({ page }) => {
   await expect(row).toContainText("2 Portionen");
 
   await row.getByTestId("plan-meal-delete").click();
-  await page.locator("pantry-confirm").getByRole("button", { name: "Löschen" }).click();
+  await page.locator("home-inventory-confirm").getByRole("button", { name: "Löschen" }).click();
   await expect(row).toHaveCount(0);
 });
 
@@ -30,21 +30,21 @@ test("a recipe is planned from the recipe list for today", async ({ page }) => {
   const RECIPE = `E2E Planrezept ${Date.now()}`;
   const api = await apiPage(page.context().browser()!);
   const { id } = (await ws(api, {
-    type: "pantry/recipe_save",
+    type: "home_inventory/recipe_save",
     data: { name: RECIPE, servings: 2, ingredients: [] },
   })) as { id: number };
   try {
-    await openPage(page, "/pantry/recipes", "Rezepte");
+    await openPage(page, "/home_inventory/recipes", "Rezepte");
     const row = page.getByTestId("recipe-row").filter({ hasText: RECIPE });
     await row.getByTestId("recipe-toggle").click();
     await row.getByTestId("recipe-to-plan").click();
-    const dialog = page.locator("pantry-meal-dialog dialog");
+    const dialog = page.locator("home-inventory-meal-dialog dialog");
     await expect(dialog.getByTestId("meal-text")).toHaveValue(RECIPE);
     await expect(dialog.getByTestId("meal-servings")).toHaveValue("2"); // the shown servings
     await expect(dialog.getByTestId("meal-slot")).toHaveValue("3"); // dinner by default
     await dialog.getByTestId("meal-save").click();
 
-    await openPage(page, "/pantry/plan", "Speiseplan");
+    await openPage(page, "/home_inventory/plan", "Speiseplan");
     const meal = page
       .locator('[data-slot="3"]')
       .getByTestId("plan-meal")
@@ -52,13 +52,13 @@ test("a recipe is planned from the recipe list for today", async ({ page }) => {
     await expect(meal).toContainText("2 Portionen");
     // the dish title opens its recipe, not the edit dialog
     await meal.getByTestId("plan-meal-open").click();
-    await expect(page).toHaveURL(new RegExp(`/pantry/recipes/${id}$`));
+    await expect(page).toHaveURL(new RegExp(`/home_inventory/recipes/${id}$`));
     await expect(
       page.getByTestId("recipe-row").filter({ hasText: RECIPE }).getByTestId("recipe-to-plan"),
     ).toBeVisible();
-    await openPage(page, "/pantry/plan", "Speiseplan");
+    await openPage(page, "/home_inventory/plan", "Speiseplan");
     await meal.getByTestId("plan-meal-delete").click();
-    await page.locator("pantry-confirm").getByRole("button", { name: "Löschen" }).click();
+    await page.locator("home-inventory-confirm").getByRole("button", { name: "Löschen" }).click();
     await expect(meal).toHaveCount(0);
   } finally {
     await remove(api, "recipe", id);
@@ -86,16 +86,16 @@ test("shifting a slot moves the run of consecutive days one day later", async ({
       ids.push(
         (
           (await ws(api, {
-            type: "pantry/meal_save",
+            type: "home_inventory/meal_save",
             data: { day: d, slot: 4, recipe_id: null, text, servings: 1 },
           })) as { id: number }
         ).id,
       );
-    await openPage(page, "/pantry/plan/week", "Speiseplan");
+    await openPage(page, "/home_inventory/plan/week", "Speiseplan");
     const cell = (n: number) =>
       page.locator(`[data-day="${day(n)}"] [data-slot="4"]`).getByTestId("plan-meal");
     await cell(0).filter({ hasText: A }).getByTestId("plan-meal-shift").click();
-    const confirm = page.locator("pantry-confirm");
+    const confirm = page.locator("home-inventory-confirm");
     await expect(confirm.getByTestId("shift-list")).toContainText(A);
     await expect(confirm.getByTestId("shift-list")).toContainText(B);
     await confirm.getByTestId("confirm-ok").click();
@@ -104,19 +104,19 @@ test("shifting a slot moves the run of consecutive days one day later", async ({
     await expect(cell(2).filter({ hasText: B })).toHaveCount(1);
   } finally {
     const plan = (await ws(api, {
-      type: "pantry/meal_plan",
+      type: "home_inventory/meal_plan",
       start: day(0),
       end: day(4),
     })) as { meals: { id: number; name: string }[] };
     for (const m of plan.meals)
       if (m.name === A || m.name === B)
-        await ws(api, { type: "pantry/meal_delete", meal_id: m.id }).catch(() => undefined);
+        await ws(api, { type: "home_inventory/meal_delete", meal_id: m.id }).catch(() => undefined);
     await api.close();
   }
 });
 
 test("the plan switches between day, month and week view", async ({ page }) => {
-  await openPage(page, "/pantry/plan", "Speiseplan");
+  await openPage(page, "/home_inventory/plan", "Speiseplan");
   await expect(page.getByTestId("plan-week")).toBeVisible(); // default
   await page.getByTestId("plan-view-month").click();
   await expect(page.getByTestId("plan-month")).toBeVisible();
@@ -137,14 +137,14 @@ test("the plan switches between day, month and week view", async ({ page }) => {
 });
 
 test("print the week and the day on the receipt printer", async ({ page, wsStub, printCalls }) => {
-  wsStub("pantry/label_config", {
+  wsStub("home_inventory/label_config", {
     printer: false,
     print_on_book_in: false,
     width_mm: 0,
     height_mm: 0,
     receipt: true,
   });
-  await openPage(page, "/pantry/plan/week", "Speiseplan");
+  await openPage(page, "/home_inventory/plan/week", "Speiseplan");
   await page.getByTestId("plan-print").click();
   await expect(page.getByTestId("plan-printed")).toHaveText("Speiseplan gedruckt.");
   await page.getByTestId("plan-view-day").click();
@@ -152,8 +152,8 @@ test("print the week and the day on the receipt printer", async ({ page, wsStub,
   await expect(page.getByTestId("plan-printed")).toBeVisible();
   const calls = printCalls as { type: string; start: string; days: number }[];
   expect(calls.map((c) => [c.type, c.days])).toEqual([
-    ["pantry/print_plan", 7],
-    ["pantry/print_plan", 1],
+    ["home_inventory/print_plan", 7],
+    ["home_inventory/print_plan", 1],
   ]);
   expect(new Date(calls[0].start).getDay()).toBe(1); // the week starts on Monday
   await page.getByTestId("plan-view-month").click();
@@ -164,18 +164,18 @@ test("the planned recipes of a date range go on the shopping list", async ({ pag
   const RECIPE = `E2E Planeinkauf ${Date.now()}`;
   const api = await apiPage(page.context().browser()!);
   const { id } = (await ws(api, {
-    type: "pantry/recipe_save",
+    type: "home_inventory/recipe_save",
     data: { name: RECIPE, servings: 2, ingredients: [] },
   })) as { id: number };
   const day = local(new Date());
   const meal = (await ws(api, {
-    type: "pantry/meal_save",
+    type: "home_inventory/meal_save",
     data: { day, slot: 3, recipe_id: id, text: "", servings: 5 },
   })) as { id: number };
   try {
-    await openPage(page, "/pantry/plan", "Speiseplan");
+    await openPage(page, "/home_inventory/plan", "Speiseplan");
     await page.getByTestId("plan-shop").click();
-    const dialog = page.locator("pantry-plan-shopping-dialog dialog");
+    const dialog = page.locator("home-inventory-plan-shopping-dialog dialog");
     await expect(dialog.getByTestId("plan-shop-from")).toHaveValue(day);
     await dialog.getByTestId("plan-shop-to").fill("2000-01-01"); // before the start
     await expect(dialog.getByTestId("plan-shop-save")).toBeDisabled();
@@ -183,13 +183,13 @@ test("the planned recipes of a date range go on the shopping list", async ({ pag
     await dialog.getByTestId("plan-shop-to").fill(day);
     await dialog.getByTestId("plan-shop-save").click();
     await expect(page.getByTestId("plan-shop-note")).toContainText(`${RECIPE} (5)`);
-    const listed = (await ws(api, { type: "pantry/shopping_recipes" })) as {
+    const listed = (await ws(api, { type: "home_inventory/shopping_recipes" })) as {
       recipe_id: number;
       servings: number;
     }[];
     expect(listed.find((s) => s.recipe_id === id)?.servings).toBe(5);
   } finally {
-    await ws(api, { type: "pantry/meal_delete", meal_id: meal.id }).catch(() => undefined);
+    await ws(api, { type: "home_inventory/meal_delete", meal_id: meal.id }).catch(() => undefined);
     await remove(api, "recipe", id); // takes its shopping list entry along
     await api.close();
   }

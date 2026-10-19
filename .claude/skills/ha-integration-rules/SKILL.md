@@ -1,9 +1,9 @@
 ---
 name: ha-integration-rules
-description: Condensed Home Assistant integration rules as applied in this repo - manifest, config flow, setup/unload, panel, translations, services, websocket, entities, tests, hassfest/HACS. Use before adding or changing anything in custom_components/pantry instead of looking up HA developer docs.
+description: Condensed Home Assistant integration rules as applied in this repo - manifest, config flow, setup/unload, panel, translations, services, websocket, entities, tests, hassfest/HACS. Use before adding or changing anything in custom_components/home_inventory instead of looking up HA developer docs.
 ---
 
-Applies to `custom_components/pantry/`. Business logic stays in the `inventory` package (see CLAUDE.md).
+Applies to `custom_components/home_inventory/`. Business logic stays in the `inventory` package (see CLAUDE.md).
 
 ## Manifest
 - `version` required (custom integration). Bump it for every release; it also busts the panel cache (`?v=`).
@@ -14,7 +14,7 @@ Applies to `custom_components/pantry/`. Business logic stays in the `inventory` 
 ## Setup lifecycle
 - `async_setup`: once per HA start. Things that cannot be undone (static HTTP paths) go here. Needs `CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)`.
 - `async_setup_entry`: everything removable (panel, websocket handlers are global → register in `async_setup`, services → `async_setup`).
-- Runtime objects on `entry.runtime_data` (typed `type PantryConfigEntry = ConfigEntry[Pantry]`), never `hass.data[DOMAIN]`.
+- Runtime objects on `entry.runtime_data` (typed `type HomeInventoryConfigEntry = ConfigEntry[HomeInventory]`), never `hass.data[DOMAIN]`.
 - `async_unload_entry` must undo setup_entry (panel removal, `async_unload_platforms`).
 - Options: `OptionsFlow` + `entry.add_update_listener` → reload.
 
@@ -28,7 +28,9 @@ Applies to `custom_components/pantry/`. Business logic stays in the `inventory` 
 
 ## Websocket API (panel ↔ backend)
 ```python
-@websocket_api.websocket_command({vol.Required("type"): "pantry/xyz", vol.Required("id_"): int})
+@websocket_api.websocket_command(
+    {vol.Required("type"): "home_inventory/xyz", vol.Required("id_"): int}
+)
 @websocket_api.async_response
 async def ws_xyz(hass, connection, msg):
     connection.send_result(msg["id"], result)

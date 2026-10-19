@@ -1,7 +1,7 @@
-"""Constants for the Pantry integration."""
+"""Constants for the Home Inventory integration."""
 
-DOMAIN = "pantry"
-PANEL_URL = "/pantry_static"
+DOMAIN = "home_inventory"
+PANEL_URL = "/home_inventory_static"
 SIGNAL_CHANGED = f"{DOMAIN}_changed"  # dispatcher: the DB was written
 MAX_LABELS = 20  # per print call (any user may print); also in the panel (label-print.ts)
 

@@ -12,9 +12,9 @@ const daysBetween = (from: string, to: string) =>
 
 /**
  * Put the recipes planned from a start to an end date on the shopping list. Call `open()`;
- * fires `pantry-shopped` (detail = result message) after saving.
+ * fires `home-inventory-shopped` (detail = result message) after saving.
  */
-export class PantryPlanShoppingDialog extends LitElement {
+export class HomeInventoryPlanShoppingDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
     from: { state: true },
@@ -72,7 +72,11 @@ export class PantryPlanShoppingDialog extends LitElement {
           })
         : t("plan.shop.none");
       this.dispatchEvent(
-        new CustomEvent("pantry-shopped", { detail: message, bubbles: true, composed: true }),
+        new CustomEvent("home-inventory-shopped", {
+          detail: message,
+          bubbles: true,
+          composed: true,
+        }),
       );
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -119,4 +123,4 @@ export class PantryPlanShoppingDialog extends LitElement {
   static styles = formStyles;
 }
 
-customElements.define("pantry-plan-shopping-dialog", PantryPlanShoppingDialog);
+customElements.define("home-inventory-plan-shopping-dialog", HomeInventoryPlanShoppingDialog);

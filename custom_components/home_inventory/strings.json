@@ -34,7 +34,7 @@
       "message": "The location still holds stock. Move or take it out first."
     },
     "not_loaded": {
-      "message": "The pantry integration is not loaded."
+      "message": "The home_inventory integration is not loaded."
     },
     "not_found": {
       "message": "The entry no longer exists."
@@ -225,7 +225,7 @@
       "fields": {
         "code": {
           "name": "Barcode",
-          "description": "EAN or name of a product already in the pantry."
+          "description": "EAN or name of a product already in the home_inventory."
         },
         "packages": {
           "name": "Packages",

@@ -25,11 +25,11 @@ Available:
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
-- Shopping list from the meal plan: the recipes planned in a date range (button *Einkaufsliste* in the meal plan, action `pantry.plan_to_shopping_list`) go on the list minus stock; no consumption forecast yet
+- Shopping list from the meal plan: the recipes planned in a date range (button *Einkaufsliste* in the meal plan, action `home_inventory.plan_to_shopping_list`) go on the list minus stock; no consumption forecast yet
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Speiseplan*
 - Non-food: categories marked *Kein Lebensmittel* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
-- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `pantry.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Geschätztes Ablaufdatum vorausfüllen* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
-- Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `pantry.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; seeded for the food categories, e.g. milk 3; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
+- Shelf life (*Haltbarkeit*, days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `home_inventory.book_in`) becomes today + shelf life, shown as guessed (*geschätzt*) until the stock row is edited; option *Geschätztes Ablaufdatum vorausfüllen* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
+- Opened packages (*Anbrechen*): mark one package as opened (button on the batch row, scan mode *Anbrechen*, action `home_inventory.open_package`); it becomes its own stock row and expires earlier by the inherited *Haltbar nach Anbruch* (days; seeded for the food categories, e.g. milk 3; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
 - Canning (tab *Einkochen*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Rezepte* view, not in the recipe tab or the meal plan
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
 
@@ -41,11 +41,11 @@ Requires Home Assistant 2026.10.1 or newer.
 
 HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
 
-Manual: download the release (or clone the repository), copy `custom_components/pantry` into your `config/custom_components/` and restart Home Assistant.
+Manual: download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
 
 Python packages (installed by Home Assistant): `segno` (QR codes on labels) and `yt-dlp` (reads the video and caption of a post for the AI recipe import; it is already part of the Home Assistant image, so a standard install downloads nothing).
 
-Then: *Settings → Devices & services → Add integration → Home Inventory* (formerly *Pantry*; the internal domain stays `pantry`, so entities, services and automations are unchanged), choose the modules (see below). The panel *Vorrat* appears in the sidebar.
+Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
 **Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Einkaufsliste* (tab *Einkauf* and the shopping list to-do entity), *Rezepte* (tab *Rezepte*), *Speiseplan* (tab *Speiseplan*, the meal plan calendar entity and the settings section *Mahlzeiten*), *Einkochen* (tab *Einkochen*), *Anbrechen* (button *Anbrechen* on batch rows, booking mode *Anbrechen* and the field *Haltbar nach Anbruch*). Change them later under *Configure > Module*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *Auf die Einkaufsliste* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
@@ -129,7 +129,7 @@ too). With an AI set up:
   fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p)
   when *Videos für den Rezeptimport laden* is on (default off: many platforms forbid downloads in
   their terms of use), otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
-  to the AI (attachments go through a hidden folder `.pantry_import` in the first media directory and
+  to the AI (attachments go through a hidden folder `.home_inventory_import` in the first media directory and
   are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
   video (Google Gemini does); otherwise it gets the text only. Instagram often refuses videos without
   login; then only the caption and the image are used.
@@ -202,18 +202,18 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 
 | Service | Fields | Response |
 |---|---|---|
-| `pantry.book_in` | `code` (EAN or name of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional; empty: today + shelf life, marked as guessed), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
-| `pantry.book_out` | `code` (EAN, label code `PTRY:…` or product name), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
-| `pantry.open_package` | `code` (EAN or product name: earliest expiry first; label code `PTRY:…`: a package of that batch), `location` (name, optional, not with a label code) | `batch_id` (the opened package's batch), `location_id`, `booking_id`, `expires_on` (new expiry date), `name`, `location` |
-| `pantry.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
-| `pantry.print_shopping_list` | none | `printed` (number of items) |
-| `pantry.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |
-| `pantry.print_planned` | `day` (date, default today), `meal` (`breakfast` … `snack`; default: the current meal by the start times under *Einstellungen > Mahlzeiten*) | `printed` (number of recipes), `day`, `meal` |
-| `pantry.print_recipe` | `recipe` (name, also a canning recipe), `servings` (optional; default: the recipe's own) | `printed` |
-| `pantry.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Portionen im Haushalt*) | `recipe_id` |
-| `pantry.plan_to_shopping_list` | `start` (date, default today), `days` (default 7, max 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (free-text dishes) |
-| `pantry.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Portionen im Haushalt*) | `meal_id` |
-| `pantry.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
+| `home_inventory.book_in` | `code` (EAN or name of a product that already exists; new products are created once in the panel, where the category is chosen), `packages` (default 1), `expires_on` (date, optional; empty: today + shelf life, marked as guessed), `location` (name, optional; default: the product's default location) | `product_id`, `batch_id`, `name` |
+| `home_inventory.book_out` | `code` (EAN, label code `PTRY:…` or product name), `packages` (default 1), `location` (name, optional) | `taken` (batch, location, packages, booking id per row), `name` (label code: also `location`) |
+| `home_inventory.open_package` | `code` (EAN or product name: earliest expiry first; label code `PTRY:…`: a package of that batch), `location` (name, optional, not with a label code) | `batch_id` (the opened package's batch), `location_id`, `booking_id`, `expires_on` (new expiry date), `name`, `location` |
+| `home_inventory.print_labels` | `batch_id` (from `book_in`), `count` (1 to 20, default 1) | `printed` |
+| `home_inventory.print_shopping_list` | none | `printed` (number of items) |
+| `home_inventory.print_plan` | `day` (date, default today), `period` (`day` or `week`, default `day`; a week runs Monday to Sunday around `day`) | `printed` (number of dishes) |
+| `home_inventory.print_planned` | `day` (date, default today), `meal` (`breakfast` … `snack`; default: the current meal by the start times under *Einstellungen > Mahlzeiten*) | `printed` (number of recipes), `day`, `meal` |
+| `home_inventory.print_recipe` | `recipe` (name, also a canning recipe), `servings` (optional; default: the recipe's own) | `printed` |
+| `home_inventory.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Portionen im Haushalt*) | `recipe_id` |
+| `home_inventory.plan_to_shopping_list` | `start` (date, default today), `days` (default 7, max 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (free-text dishes) |
+| `home_inventory.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Portionen im Haushalt*) | `meal_id` |
+| `home_inventory.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 
 - **book_out** with an EAN takes the earliest expiry first (packages without a date last), like the panel.
   A label code takes one package of the batch it names, from wherever that batch is (`packages` must be 1, no `location`).
@@ -230,14 +230,14 @@ Example: book in with a scanner that sends the barcode as an event, then print o
 
 ```yaml
 actions:
-  - action: pantry.book_in
+  - action: home_inventory.book_in
     data:
       code: "{{ trigger.event.data.code }}"
       packages: 2
       expires_on: "2027-01-31"
       location: Kühlschrank
     response_variable: booked
-  - action: pantry.print_labels
+  - action: home_inventory.print_labels
     data:
       batch_id: "{{ booked.batch_id }}"
       count: 2
@@ -252,7 +252,7 @@ docker compose -f dev/docker-compose.yml up -d homeassistant
 ```
 
 Opens Home Assistant on http://localhost:8123 with the integration mounted from
-`custom_components/pantry`. All dev HA data is stored in `dev/config/` and is git-ignored.
+`custom_components/home_inventory`. All dev HA data is stored in `dev/config/` and is git-ignored.
 The dev HA is reachable only from this machine (port bound to `127.0.0.1`) and logs in without a
 password (`trusted_networks` in `dev/configuration.yaml`), so browser tests need no credentials.
 Never use this configuration for a real installation.
@@ -283,7 +283,7 @@ python scripts/receipt_bridge.py "Bondrucker"
 and set the receipt printer of the dev HA to `host.docker.internal:9100`. `file:<path>` instead of a
 printer name appends the bytes to a file (no printing). E2E tests block printing either way.
 
-Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/pantry/www/` (the built file is committed):
+Panel source is in `frontend/` (Lit + TypeScript). Build into `custom_components/home_inventory/www/` (the built file is committed):
 
 ```bash
 cd frontend && npm install && npm run build

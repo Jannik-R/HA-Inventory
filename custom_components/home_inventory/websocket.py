@@ -58,7 +58,7 @@ def async_register(hass: HomeAssistant) -> None:
         websocket_api.async_register_command(hass, command)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/master_data"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/master_data"})
 @websocket_api.async_response
 async def ws_master_data(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.master_data))
@@ -66,7 +66,7 @@ async def ws_master_data(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/save",
+        vol.Required("type"): "home_inventory/save",
         vol.Required("table"): vol.In(MASTER_SCHEMAS),
         vol.Required("data"): dict,
     }
@@ -88,7 +88,7 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/defaults_save",
+        vol.Required("type"): "home_inventory/defaults_save",
         vol.Required("data"): {
             vol.Required("unit_id"): ID,
             vol.Required("default_location_id"): NULL_ID,
@@ -109,10 +109,10 @@ async def ws_defaults_save(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/delete",
+        vol.Required("type"): "home_inventory/delete",
         vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe", "canning")),
         vol.Required("row_id"): ID,
-        # also delete what uses it (see pantry/delete_impact); locations: move the stock there
+        # also delete what uses it (see home_inventory/delete_impact); locations: move the stock there
         vol.Optional("force", default=False): bool,
         vol.Optional("move_to"): NULL_ID,
     }
@@ -134,7 +134,7 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/move_location",
+        vol.Required("type"): "home_inventory/move_location",
         vol.Required("location_id"): ID,
         vol.Required("move_to"): ID,
     }
@@ -154,7 +154,7 @@ async def ws_move_location(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/delete_impact",
+        vol.Required("type"): "home_inventory/delete_impact",
         vol.Required("table"): vol.In((*MASTER_SCHEMAS, "product", "recipe", "canning")),
         vol.Required("row_id"): ID,
     }
@@ -171,7 +171,7 @@ async def ws_delete_impact(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/lookup", vol.Required("code"): CODE}
+    {vol.Required("type"): "home_inventory/lookup", vol.Required("code"): CODE}
 )
 @websocket_api.async_response
 async def ws_lookup(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -184,7 +184,7 @@ async def ws_lookup(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/search",
+        vol.Required("type"): "home_inventory/search",
         vol.Required("query"): QUERY,
         vol.Optional("online", default=False): bool,
     }

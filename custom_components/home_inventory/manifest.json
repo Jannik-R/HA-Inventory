@@ -1,5 +1,5 @@
 {
-  "domain": "pantry",
+  "domain": "home_inventory",
   "name": "Home Inventory",
   "after_dependencies": ["ai_task"],
   "codeowners": ["@Jannik-R"],

@@ -5,7 +5,7 @@ import { mdiReceiptTextOutline } from "@mdi/js";
 import { backdropClick, escGuard, icon } from "./ui";
 import { hasAi } from "./modules";
 import "./receipt-import";
-import type { PantryReceiptImport } from "./receipt-import";
+import type { HomeInventoryReceiptImport } from "./receipt-import";
 import {
   errorMessage,
   getMasterData,
@@ -20,12 +20,12 @@ import {
   type StockRow,
 } from "./api";
 import "./booking-scan";
-import type { PantryBookingScan } from "./booking-scan";
+import type { HomeInventoryBookingScan } from "./booking-scan";
 import { blankProduct } from "./product-fields";
 import "./booking-form";
 import { doneStyles } from "./booking-done";
 import { hitList } from "./booking-hits";
-import type { Booked, PantryBookingForm } from "./booking-form";
+import type { Booked, HomeInventoryBookingForm } from "./booking-form";
 import { modeSwitch, modesStyles, type Mode } from "./booking-modes";
 import { openLabel, openPackage, type Opened } from "./api-open";
 import { afterLine, openWith, scanLabel } from "./booking-after";
@@ -37,7 +37,7 @@ const LABEL = /^PTRY:/i;
 
 /** The stock view's input (scanner, camera, name): filters the list (`query` event) and, when booking,
  *  opens a dialog with the hits and the booking form. Fires `booked` after each booking. */
-export class PantryBooking extends LitElement {
+export class HomeInventoryBooking extends LitElement {
   static properties = {
     hass: { attribute: false },
     mode: { attribute: false },
@@ -124,7 +124,7 @@ export class PantryBooking extends LitElement {
   /** The switch navigates (route = mode, /stock /in /out); the input keeps the focus for the scanner. */
   private setMode(mode: Mode) {
     this.dispatchEvent(
-      new CustomEvent("pantry-navigate", {
+      new CustomEvent("home-inventory-navigate", {
         detail: mode === "search" ? "stock" : mode,
         bubbles: true,
         composed: true,
@@ -141,10 +141,14 @@ export class PantryBooking extends LitElement {
 
   /** Unsaved input in the booking form (asks before Esc / click beside closes). */
   private dirty = () =>
-    !!this.renderRoot.querySelector<PantryBookingForm>("pantry-booking-form")?.dirty();
+    !!this.renderRoot
+      .querySelector<HomeInventoryBookingForm>("home-inventory-booking-form")
+      ?.dirty();
 
   focusInput() {
-    this.renderRoot.querySelector<PantryBookingScan>("pantry-booking-scan")?.focusInput();
+    this.renderRoot
+      .querySelector<HomeInventoryBookingScan>("home-inventory-booking-scan")
+      ?.focusInput();
   }
 
   private async fail(err: unknown) {
@@ -222,7 +226,9 @@ export class PantryBooking extends LitElement {
       this.stock = stock;
     }
     await this.updateComplete;
-    const form = this.renderRoot.querySelector<PantryBookingForm>("pantry-booking-form");
+    const form = this.renderRoot.querySelector<HomeInventoryBookingForm>(
+      "home-inventory-booking-form",
+    );
     await form?.updateComplete;
     form?.focusFirst();
   }
@@ -233,13 +239,13 @@ export class PantryBooking extends LitElement {
       ? html`<p class="error" role="alert" data-testid="error">${this.error}</p>`
       : nothing;
     return html`
-      <pantry-booking-scan
+      <home-inventory-booking-scan
         .value=${this.query}
         @query=${(e: CustomEvent<string>) => (this.query = e.detail)}
         @find=${() => this.find()}
       >
         ${modeSwitch(this.mode, (m) => this.setMode(m))}
-      </pantry-booking-scan>
+      </home-inventory-booking-scan>
       ${afterLine(this)} ${open ? nothing : error}
       ${
         this.mode === "in" && hasAi()
@@ -247,17 +253,17 @@ export class PantryBooking extends LitElement {
               type="button"
               class="receipt"
               data-testid="receipt-import"
-              @click=${() => this.renderRoot.querySelector<PantryReceiptImport>("pantry-receipt-import")!.open()}
+              @click=${() => this.renderRoot.querySelector<HomeInventoryReceiptImport>("home-inventory-receipt-import")!.open()}
             >
               ${icon(mdiReceiptTextOutline)} ${t("receipt.open")}
             </button>`
           : nothing
       }
-      <pantry-receipt-import
+      <home-inventory-receipt-import
         .hass=${this.hass}
         .md=${this.md}
         @booked=${this.receiptBooked}
-      ></pantry-receipt-import>
+      ></home-inventory-receipt-import>
       <dialog
         data-testid="booking-dialog"
         @close=${this.closed}
@@ -286,7 +292,7 @@ export class PantryBooking extends LitElement {
 
   private renderForm() {
     if (!this.product) return nothing;
-    return html`<pantry-booking-form
+    return html`<home-inventory-booking-form
       .hass=${this.hass}
       .mode=${this.mode}
       .product=${this.product}
@@ -297,7 +303,7 @@ export class PantryBooking extends LitElement {
       @booked=${this.booked}
       @master=${(e: CustomEvent<MasterData>) => ((this.md = e.detail), this.requestUpdate())}
       @cancel=${() => this.closed()}
-    ></pantry-booking-form>`;
+    ></home-inventory-booking-form>`;
   }
 
   private receiptBooked = (e: CustomEvent<number>) => {
@@ -335,4 +341,4 @@ export class PantryBooking extends LitElement {
   ];
 }
 
-customElements.define("pantry-booking", PantryBooking);
+customElements.define("home-inventory-booking", HomeInventoryBooking);

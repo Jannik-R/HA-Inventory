@@ -120,12 +120,12 @@ export const recipeDetail = (o: {
               </button>`
             : nothing
       }
-      <pantry-receipt-button
+      <home-inventory-receipt-button
         .hass=${o.hass}
         .print=${() => printRecipe(o.hass, r.id, o.servings)}
         .done=${t("recipes.printed")}
         .testid=${"recipe-print"}
-      ></pantry-receipt-button>
+      ></home-inventory-receipt-button>
       ${
         r.shopping_servings != null && hasModule("shopping")
           ? html`<span class="detail" data-testid="recipe-on-shopping"

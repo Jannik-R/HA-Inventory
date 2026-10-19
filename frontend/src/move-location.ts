@@ -7,7 +7,7 @@ import { errorMessage, getDeleteImpact, moveLocation, type Hass } from "./api";
 type Loc = { id: number; name: string };
 
 /** "Umlagern" dialog of a location row: move all its stock to another location (it stays). */
-export class PantryMoveLocation extends LitElement {
+export class HomeInventoryMoveLocation extends LitElement {
   static properties = {
     hass: { attribute: false },
     locations: { attribute: false },
@@ -116,4 +116,4 @@ export class PantryMoveLocation extends LitElement {
   ];
 }
 
-customElements.define("pantry-move-location", PantryMoveLocation);
+customElements.define("home-inventory-move-location", HomeInventoryMoveLocation);

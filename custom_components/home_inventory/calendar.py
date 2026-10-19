@@ -18,7 +18,7 @@ from . import inventory
 from .coordinator import async_coordinator, module_off
 
 if TYPE_CHECKING:
-    from . import PantryConfigEntry
+    from . import HomeInventoryConfigEntry
 
 SERVINGS = {"de": "{n} Portionen", "en": "{n} servings"}  # other languages get English
 SLOT_NAMES = {
@@ -30,7 +30,7 @@ LOOKAHEAD = 8  # days loaded for `event`
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: PantryConfigEntry,
+    entry: HomeInventoryConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     if module_off(hass, entry, "plan", "calendar"):
@@ -52,7 +52,7 @@ class MealPlan(CoordinatorEntity[DataUpdateCoordinator[list[dict]]], CalendarEnt
     _attr_has_entity_name = True
     _attr_translation_key = "meal_plan"
 
-    def __init__(self, coordinator, entry: PantryConfigEntry) -> None:
+    def __init__(self, coordinator, entry: HomeInventoryConfigEntry) -> None:
         super().__init__(coordinator)
         self._db = entry.runtime_data
         self._attr_unique_id = f"{entry.entry_id}_meal_plan"

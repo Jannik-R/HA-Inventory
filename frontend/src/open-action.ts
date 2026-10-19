@@ -17,7 +17,7 @@ export interface LabelRequest {
 /** Asks the stock view (which holds the label dialog) to open it; bubbles from the booking input. */
 export const requestLabel = (from: EventTarget, o: Opened) =>
   from.dispatchEvent(
-    new CustomEvent<LabelRequest>("pantry-print-label", {
+    new CustomEvent<LabelRequest>("home-inventory-print-label", {
       detail: { id: o.batch_id, name: o.name, packages: 1 },
       bubbles: true,
       composed: true,

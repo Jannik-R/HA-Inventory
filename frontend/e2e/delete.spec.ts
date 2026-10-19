@@ -14,55 +14,65 @@ let targetId: number | undefined;
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
   const save = (table: string, data: object) =>
-    ws(page, { type: "pantry/save", table, data }) as Promise<{ id: number }>;
+    ws(page, { type: "home_inventory/save", table, data }) as Promise<{ id: number }>;
   const parent = await save("category", { name: PARENT });
   const child = await save("category", { name: CHILD, parent_id: parent.id });
   const location = await save("location", { name: LOCATION });
   targetId = (await save("location", { name: TARGET })).id;
   const res = (await ws(page, {
-    type: "pantry/book_in",
+    type: "home_inventory/book_in",
     product: { name: PRODUCT, category_id: child.id },
     packages: 2,
     location_id: location.id,
   })) as { product_id: number };
   productId = res.product_id;
-  await ws(page, { type: "pantry/shopping_add", product_id: productId });
+  await ws(page, { type: "home_inventory/shopping_add", product_id: productId });
   await page.close();
 });
 
 test.afterAll(async ({ browser }) => {
   // Only left over when the test failed before deleting.
   const page = await apiPage(browser);
-  const md = (await ws(page, { type: "pantry/master_data" })) as {
+  const md = (await ws(page, { type: "home_inventory/master_data" })) as {
     categories: { id: number; name: string }[];
   };
   const parent = md.categories.find((c) => c.name === PARENT);
   if (parent)
-    await ws(page, { type: "pantry/delete", table: "category", row_id: parent.id, force: true });
+    await ws(page, {
+      type: "home_inventory/delete",
+      table: "category",
+      row_id: parent.id,
+      force: true,
+    });
   if (targetId != null)
-    await ws(page, { type: "pantry/delete", table: "location", row_id: targetId, force: true });
+    await ws(page, {
+      type: "home_inventory/delete",
+      table: "location",
+      row_id: targetId,
+      force: true,
+    });
   await page.close();
 });
 
 test("deleting things in use lists what goes with it; a location's stock moves", async ({
   page,
 }) => {
-  await openPage(page, "/pantry/settings/locations", "Einstellungen");
-  const shelf = page.locator("pantry-settings li").filter({ hasText: LOCATION });
+  await openPage(page, "/home_inventory/settings/locations", "Einstellungen");
+  const shelf = page.locator("home-inventory-settings li").filter({ hasText: LOCATION });
   await shelf.getByTestId("location-delete").click();
   await expect(page.getByTestId("delete-impact")).toContainText(PRODUCT);
   await expect(page.getByTestId("delete-impact")).toContainText("2 Pkg.");
   await page.getByTestId("delete-move-to").selectOption({ label: `Umlagern nach „${TARGET}“` });
   await page.getByTestId("confirm-ok").click();
   await expect(shelf).toHaveCount(0);
-  const rows = (await ws(page, { type: "pantry/stock", product_id: productId })) as {
+  const rows = (await ws(page, { type: "home_inventory/stock", product_id: productId })) as {
     location: string;
     packages: number;
   }[];
   expect(rows.map((r) => [r.location, r.packages])).toEqual([[TARGET, 2]]);
 
-  await openPage(page, "/pantry/settings/categories", "Einstellungen");
-  const parent = page.locator("pantry-settings li").filter({ hasText: PARENT });
+  await openPage(page, "/home_inventory/settings/categories", "Einstellungen");
+  const parent = page.locator("home-inventory-settings li").filter({ hasText: PARENT });
   await parent.getByTestId("category-delete").click();
   const impact = page.getByTestId("delete-impact");
   await expect(impact).toContainText("Unterkategorien werden gelöscht (1)");
@@ -74,5 +84,5 @@ test("deleting things in use lists what goes with it; a location's stock moves",
   await expect(page.getByTestId("confirm-ok")).toHaveText("Alles löschen");
   await page.getByTestId("confirm-ok").click();
   await expect(parent).toHaveCount(0);
-  await expect(page.locator("pantry-settings .error")).toHaveCount(0);
+  await expect(page.locator("home-inventory-settings .error")).toHaveCount(0);
 });

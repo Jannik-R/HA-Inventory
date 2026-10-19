@@ -37,7 +37,7 @@ def async_register(hass: HomeAssistant) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/receipt_read", vol.Required("text"): text(MAX_TEXT)}
+    {vol.Required("type"): "home_inventory/receipt_read", vol.Required("text"): text(MAX_TEXT)}
 )
 @websocket_api.async_response
 async def ws_receipt_read(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -47,7 +47,7 @@ async def ws_receipt_read(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/receipt_book",
+        vol.Required("type"): "home_inventory/receipt_book",
         vol.Optional("store"): vol.Any(None, text(100)),
         vol.Required("items"): _ITEMS,
     }

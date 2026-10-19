@@ -12,9 +12,9 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry import inventory
-from custom_components.pantry.backup import async_post_backup, async_pre_backup
-from custom_components.pantry.const import DOMAIN
+from custom_components.home_inventory import inventory
+from custom_components.home_inventory.backup import async_post_backup, async_pre_backup
+from custom_components.home_inventory.const import DOMAIN
 
 
 async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
@@ -49,10 +49,9 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
 
 async def _options_entry(hass: HomeAssistant) -> MockConfigEntry:
     assert await async_setup_component(hass, "http", {})
-    entry = MockConfigEntry(domain=DOMAIN, title="Pantry")
+    entry = MockConfigEntry(domain=DOMAIN, title="Home Inventory")
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
-    assert entry.title == "Home Inventory"  # renamed on setup
     return entry
 
 
@@ -121,14 +120,14 @@ async def test_options_flow_dymo_test_print(hass: HomeAssistant) -> None:
         result["flow_id"], {**form, "label_printer_host": " "}
     )
     assert result["errors"] == {"label_printer_host": "host_required"}
-    with patch("custom_components.pantry.label.send", side_effect=HomeAssistantError("x")):
+    with patch("custom_components.home_inventory.label.send", side_effect=HomeAssistantError("x")):
         result = await hass.config_entries.options.async_configure(
             result["flow_id"], {**form, "test_print": True}
         )
     assert result["errors"] == {"base": "printer_unreachable"}
     assert result["data_schema"]({})["test_print"] is True  # a retry tests again
 
-    with patch("custom_components.pantry.label.send", new=AsyncMock()) as send:
+    with patch("custom_components.home_inventory.label.send", new=AsyncMock()) as send:
         result = await hass.config_entries.options.async_configure(
             result["flow_id"], {**form, "test_print": True}
         )
@@ -154,7 +153,8 @@ async def test_failed_setup_closes_the_database(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(domain=DOMAIN)
     entry.add_to_hass(hass)
     with patch(
-        "custom_components.pantry.panel_custom.async_register_panel", side_effect=RuntimeError("x")
+        "custom_components.home_inventory.panel_custom.async_register_panel",
+        side_effect=RuntimeError("x"),
     ):
         assert not await hass.config_entries.async_setup(entry.entry_id)
     with pytest.raises(sqlite3.ProgrammingError):  # closed

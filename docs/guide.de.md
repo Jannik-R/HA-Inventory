@@ -68,7 +68,7 @@ Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der g
 Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst.
 
 > [!TIP]
-> Ein Lesezeichen auf `/pantry/in` öffnet den Bestand gleich mit **Einbuchen**, `/pantry/out` mit
+> Ein Lesezeichen auf `/home_inventory/in` öffnet den Bestand gleich mit **Einbuchen**, `/home_inventory/out` mit
 > **Auslagern**. Praktisch fürs Küchentablet.
 
 ```mermaid
@@ -150,7 +150,7 @@ desselben Händlers ist es schon ausgewählt.
 
 ## 3. Verbrauchen und auslagern
 
-Stell den Schalter im **Bestand** auf **−** (Auslagern; als Lesezeichen: `/pantry/out`). Dann geht es wie beim Einbuchen: scannen, Kamera oder Name, danach das Fenster.
+Stell den Schalter im **Bestand** auf **−** (Auslagern; als Lesezeichen: `/home_inventory/out`). Dann geht es wie beim Einbuchen: scannen, Kamera oder Name, danach das Fenster.
 
 - Standardmäßig wird die Packung mit dem frühesten Datum genommen. Du kannst auch eine bestimmte
   Charge und einen Lagerort wählen.
@@ -172,9 +172,9 @@ beim Öffnen als angebrochen, dann rechnet Vorrat mit dem kürzeren Datum.
 - **Im Bestand**: an der Charge das Symbol mit der offenen Schachtel (**Anbrechen**) antippen. Es bricht
   genau eine Packung dieser Charge an diesem Lagerort an.
 - **Per Scan**: den Schalter auf die offene Schachtel stellen (Anbrechen; als Lesezeichen:
-  `/pantry/open`). Ein gescanntes Vorrat-Etikett bricht eine Packung dieser Charge an; Barcode oder
+  `/home_inventory/open`). Ein gescanntes Vorrat-Etikett bricht eine Packung dieser Charge an; Barcode oder
   Name brechen die Packung mit dem frühesten Datum an.
-- **Per Automation**: Aktion `pantry.open_package` (siehe [README](../README.de.md#aktionen-automationen)).
+- **Per Automation**: Aktion `home_inventory.open_package` (siehe [README](../README.de.md#aktionen-automationen)).
 
 Die angebrochene Packung bekommt eine eigene Zeile „… · angebrochen am …“ und läuft nach der
 *Haltbar nach Anbruch* der Kategorie oder des Produkts ab (z. B. Milch 3 Tage), nie später als das
@@ -591,6 +591,6 @@ Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem St
 <details>
 <summary><b>Automationen</b></summary>
 
-Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`pantry.book_in`, `pantry.book_out`), zum Drucken (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), für die Einkaufsliste (`pantry.shop_recipe`), den Speiseplan (`pantry.plan_meal`, `pantry.plan_to_shopping_list`) und das Einkochen (`pantry.canning`) (siehe [README](../README.de.md#aktionen-automationen)).
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`home_inventory.book_in`, `home_inventory.book_out`), zum Drucken (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), für die Einkaufsliste (`home_inventory.shop_recipe`), den Speiseplan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) und das Einkochen (`home_inventory.canning`) (siehe [README](../README.de.md#aktionen-automationen)).
 
 </details>

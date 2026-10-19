@@ -1,4 +1,4 @@
-"""Pantry: food inventory for Home Assistant."""
+"""Home Inventory: household inventory for Home Assistant."""
 
 from pathlib import Path
 
@@ -25,7 +25,7 @@ from . import (
 from .const import CONF_AI_TASK, CONF_OFF, DOMAIN, PANEL_URL, modules_of
 from .db import Database
 
-type PantryConfigEntry = ConfigEntry[Database]
+type HomeInventoryConfigEntry = ConfigEntry[Database]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 PLATFORMS = [Platform.CALENDAR, Platform.SENSOR, Platform.TODO]
@@ -48,24 +48,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry) -> bool:
     """Open the database and add the sidebar panel."""
-    if entry.title == "Pantry":  # entries created before the rename
-        hass.config_entries.async_update_entry(entry, title="Home Inventory")
-    db = entry.runtime_data = Database(hass, hass.config.path("pantry.db"))
+    db = entry.runtime_data = Database(hass, hass.config.path("home_inventory.db"))
     await db.async_open()
     try:
         # Bundle mtime, not the integration version: every build must bust the browser cache.
-        bundle = Path(__file__).parent / "www" / "pantry-panel.js"
+        bundle = Path(__file__).parent / "www" / "home-inventory-panel.js"
         version = (await hass.async_add_executor_job(bundle.stat)).st_mtime_ns
         await panel_custom.async_register_panel(
             hass,
             frontend_url_path=DOMAIN,
-            webcomponent_name="pantry-panel",
+            webcomponent_name="home-inventory-panel",
             # shortcut: HA cannot translate custom panel titles; German only until it matters.
             sidebar_title="Vorrat",
             sidebar_icon="mdi:fridge-outline",
-            module_url=f"{PANEL_URL}/pantry-panel.js?v={version}",
+            module_url=f"{PANEL_URL}/home-inventory-panel.js?v={version}",
             require_admin=False,
             config={
                 "modules": modules_of(entry.options),
@@ -82,7 +80,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bo
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: PantryConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry) -> bool:
     """Remove the sidebar panel and entities, then close the database."""
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False

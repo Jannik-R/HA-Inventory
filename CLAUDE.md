@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Household inventory (food, batteries, household goods, medicine, home-canned jars) for Home Assistant as a **custom integration** (domain `pantry`, integration name "Home Inventory", panel name "Vorrat"). The domain stays `pantry` (renaming it breaks existing installs).
+Household inventory (food, batteries, household goods, medicine, home-canned jars) for Home Assistant as a **custom integration** (domain `home_inventory`, integration name "Home Inventory", panel name "Vorrat"). The domain stays `home_inventory` (renaming it breaks existing installs).
 Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decisions change.
 
 ## Working rules
@@ -34,7 +34,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 ## Layout
 
 ```
-custom_components/pantry/   integration (Python)
+custom_components/home_inventory/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
     __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer), purchase (receipt import: prompt, answer check, booking, learned receipt lines)
@@ -47,8 +47,8 @@ custom_components/pantry/   integration (Python)
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)
-  recipe_media.py           media for the AI import: yt-dlp video + caption, image download, hidden `.pantry_import` folder in the media dir (ai_task attachments)
-  llm_api.py                LLM API `pantry` for Assist agents / HA MCP Server: tools per access level (options `llm_access`); write tools call the services
+  recipe_media.py           media for the AI import: yt-dlp video + caption, image download, hidden `.home_inventory_import` folder in the media dir (ai_task attachments)
+  llm_api.py                LLM API `home_inventory` for Assist agents / HA MCP Server: tools per access level (options `llm_access`); write tools call the services
   off.py                    Open Food Facts client
   recipe_fetch.py           recipe page fetch for the import (HA session, on user click only)
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
@@ -58,7 +58,7 @@ custom_components/pantry/   integration (Python)
   backup.py                 locks the DB during HA backups
   services.py               HA services for automations (booking by code, opening a package, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
   websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning protocol commands; websocket_open.py: open a package / undo; websocket_purchase.py: receipt import (read via AI, book); ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
-  www/                      BUILT frontend bundle `pantry-panel.js` + hashed lazy chunks (committed, never edit by hand)
+  www/                      BUILT frontend bundle `home-inventory-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP
   label_printers.py         label printer models (limits, port, bottom reserve, stream encoder, e.g. Dymo LabelWriter)
@@ -82,7 +82,7 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
-- Schema change = new migration step in `db.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/pantry.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
+- Schema change = new migration step in `db.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 
@@ -92,11 +92,11 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - Dates/numbers via `Intl` with `hass.locale`, never manual formatting.
 - Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
-- After frontend changes run the build so `www/pantry-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
+- After frontend changes run the build so `www/home-inventory-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).
 - Interactive elements that E2E tests use get a stable `data-testid` (`frontend/e2e/`).
-- **Tests never call the real AI.** `fixtures.ts` answers `pantry/recipe_ai_check` and `pantry/product_ai_check` with `{status: "off"}` and refuses `pantry/recipe_import` and `pantry/receipt_read` (they reach the AI) unless a test stubs them (`wsStub`); backend tests patch `ai._generate` and `recipe_media.video` (yt-dlp).
-- **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `pantry/print_*` command (labels, shopping list, recipe, meal plan; the dev HA may have the real printers configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
+- **Tests never call the real AI.** `fixtures.ts` answers `home_inventory/recipe_ai_check` and `home_inventory/product_ai_check` with `{status: "off"}` and refuses `home_inventory/recipe_import` and `home_inventory/receipt_read` (they reach the AI) unless a test stubs them (`wsStub`); backend tests patch `ai._generate` and `recipe_media.video` (yt-dlp).
+- **Tests never print.** E2E specs import `test`/`expect` from `frontend/e2e/fixtures.ts`, which blocks every `home_inventory/print_*` command (labels, shopping list, recipe, meal plan; the dev HA may have the real printers configured); `playwright.config.ts` refuses to run otherwise. Backend tests patch `label.send`. Sending anything to the real printer (scripts, manual checks) needs the user's OK first, one label at a time.
 
 ## UI / UX
 
@@ -119,7 +119,7 @@ Calm, functional, looks like a tool, not like a demo.
   - Closing: a click beside it (`backdropClick`) or Esc (`escGuard`) closes it; with unsaved changes both ask "Änderungen verwerfen?" first. "Abbrechen" discards without asking (deliberate).
   - Backend errors show above the actions; width `min(480px, 100vw - 32px)`, content scrolls inside on small screens.
 - **Wording for inherited values**: always "Geerbt: <Wert> (<Quelle>)" (key `common.default`), never "Vorgabe" or "Erben"; source "von <Kategorie>", "vom Produkt", "Standard" or "zuletzt benutzt".
-- **Forms validate live**: every form computes its field errors on each render (an `errors()` function), shows them under the field (`fieldMsg`, `aria-invalid` red border) and disables its primary button while any exist. A field shows its error only once it was edited or left (`data-touched`, set globally in `pantry-panel.ts`, cleared when an `editDialog` closes), so a new form does not open in red. Warnings that must not block (e.g. a past date) use the hint style. The submit handler re-checks; the backend still validates (trust boundary).
+- **Forms validate live**: every form computes its field errors on each render (an `errors()` function), shows them under the field (`fieldMsg`, `aria-invalid` red border) and disables its primary button while any exist. A field shows its error only once it was edited or left (`data-touched`, set globally in `home-inventory-panel.ts`, cleared when an `editDialog` closes), so a new form does not open in red. Warnings that must not block (e.g. a past date) use the hint style. The submit handler re-checks; the backend still validates (trust boundary).
 
 ## Commands
 

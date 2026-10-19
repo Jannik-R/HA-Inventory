@@ -15,11 +15,11 @@ Prereq: `cd frontend && npm run build`, dev HA running (skill `ha-dev`). No logi
 
 ## Steps
 
-1. `navigate` to `http://localhost:8123/pantry/<tab>[/<sub>]`, then `resize_window` preset `mobile` (`colorScheme: dark`).
+1. `navigate` to `http://localhost:8123/home_inventory/<tab>[/<sub>]`, then `resize_window` preset `mobile` (`colorScheme: dark`).
 2. The panel lives in shadow DOM: `find`/`read_page` do not see it. Use `javascript_tool` with a deep query helper:
    ```js
    const deep=(root,sel)=>{const r=[];const walk=n=>{n.querySelectorAll(sel).forEach(e=>r.push(e));n.querySelectorAll('*').forEach(e=>e.shadowRoot&&walk(e.shadowRoot))};walk(root);return r};
-   const s = deep(document,'pantry-settings')[0].shadowRoot;   // element of the view
+   const s = deep(document,'home-inventory-settings')[0].shadowRoot;   // element of the view
    ```
    Click rows/buttons from JS and read text or `getComputedStyle` instead of screenshots. Call component methods directly when useful (e.g. `el.toggle(id)`).
    Do not `location.reload()` inside a script that also waits (the script is cut off); reload in its own call.

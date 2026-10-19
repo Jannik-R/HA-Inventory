@@ -13,8 +13,8 @@ from pytest_homeassistant_custom_component.common import (
     async_fire_time_changed,
 )
 
-from custom_components.pantry import inventory
-from custom_components.pantry.const import DOMAIN
+from custom_components.home_inventory import inventory
+from custom_components.home_inventory.const import DOMAIN
 
 
 async def refreshed(hass: HomeAssistant, seconds: int) -> None:
@@ -100,7 +100,7 @@ async def test_shopping_todo(hass: HomeAssistant) -> None:
 
 
 def test_uid_kinds() -> None:
-    from custom_components.pantry.todo import uid
+    from custom_components.home_inventory.todo import uid
 
     base = {"id": None, "manual": False, "product_id": None, "category_id": 4}
     assert uid(base) == "c4"
@@ -109,7 +109,7 @@ def test_uid_kinds() -> None:
 
 
 def test_summary_languages() -> None:
-    from custom_components.pantry.todo import summary
+    from custom_components.home_inventory.todo import summary
 
     item = {"manual": False, "packages": 2, "product_id": 7, "brand": "Barilla",
             "name": "Spaghetti", "any_of_subtree": False, "amount": None, "recipes": []}  # fmt: skip
@@ -123,7 +123,7 @@ def test_summary_languages() -> None:
 
 
 def test_recipe_item_uid_and_summary() -> None:
-    from custom_components.pantry.todo import summary, uid
+    from custom_components.home_inventory.todo import summary, uid
 
     item = {"manual": False, "packages": None, "product_id": None, "brand": None, "category_id": 4,
             "name": "Spaghetti", "any_of_subtree": False, "key": "r4-3",

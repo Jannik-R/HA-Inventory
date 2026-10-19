@@ -2,8 +2,8 @@
 
 import pytest
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.inventory.steps import import_steps, timers
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.inventory.steps import import_steps, timers
 
 
 def texts(steps):

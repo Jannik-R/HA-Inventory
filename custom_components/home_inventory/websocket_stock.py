@@ -76,7 +76,7 @@ def async_register(hass: HomeAssistant) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/book_in",
+        vol.Required("type"): "home_inventory/book_in",
         vol.Required("packages"): PACKAGES,
         vol.Optional("expires_on"): vol.Any(None, text(32)),
         vol.Optional("location_id"): NULL_ID,
@@ -120,7 +120,7 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/book_out",
+        vol.Required("type"): "home_inventory/book_out",
         vol.Required("product_id"): ID,
         vol.Required("packages"): PACKAGES,
         vol.Optional("batch_id"): ID,
@@ -146,7 +146,7 @@ async def ws_book_out(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/put_back",
+        vol.Required("type"): "home_inventory/put_back",
         vol.Required("booking_ids"): vol.All([ID], vol.Length(min=1, max=50)),
     }
 )
@@ -159,7 +159,7 @@ async def ws_put_back(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/stock_edit",
+        vol.Required("type"): "home_inventory/stock_edit",
         vol.Required("batch_id"): ID,
         vol.Required("location_id"): ID,
         vol.Required("expires_on"): vol.Any(None, text(32)),
@@ -182,7 +182,7 @@ async def ws_stock_edit(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/stock",
+        vol.Required("type"): "home_inventory/stock",
         vol.Optional("product_id"): ID,
         vol.Optional("search"): QUERY,
         vol.Optional("location_id"): ID,
@@ -202,14 +202,14 @@ async def ws_stock(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], rows)
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/products"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/products"})
 @websocket_api.async_response
 async def ws_products(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.list_products))
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/product_save", vol.Required("data"): _PRODUCT}
+    {vol.Required("type"): "home_inventory/product_save", vol.Required("data"): _PRODUCT}
 )
 @websocket_api.async_response
 async def ws_product_save(hass: HomeAssistant, connection, msg: dict) -> None:
@@ -221,7 +221,7 @@ async def ws_product_save(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], {"id": row_id})
 
 
-@websocket_api.websocket_command({vol.Required("type"): "pantry/shopping"})
+@websocket_api.websocket_command({vol.Required("type"): "home_inventory/shopping"})
 @websocket_api.async_response
 async def ws_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], await run(hass, inventory.shopping_list))
@@ -229,7 +229,7 @@ async def ws_shopping(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/shopping_done",
+        vol.Required("type"): "home_inventory/shopping_done",
         vol.Exclusive("category_id", "what"): ID,
         vol.Exclusive("product_id", "what"): ID,
         vol.Required("done"): bool,
@@ -249,7 +249,7 @@ async def ws_shopping_done(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/shopping_add",
+        vol.Required("type"): "home_inventory/shopping_add",
         vol.Optional("packages", default=1): PACKAGES,
         vol.Exclusive("product_id", "what"): ID,
         vol.Exclusive("category_id", "what"): ID,
@@ -275,7 +275,7 @@ async def ws_shopping_add(hass: HomeAssistant, connection, msg: dict) -> None:
 
 @websocket_api.websocket_command(
     {
-        vol.Required("type"): "pantry/shopping_item",
+        vol.Required("type"): "home_inventory/shopping_item",
         vol.Required("item_id"): ID,
         vol.Optional("packages"): PACKAGES,
         vol.Optional("done"): bool,
@@ -292,7 +292,7 @@ async def ws_shopping_item(hass: HomeAssistant, connection, msg: dict) -> None:
 
 
 @websocket_api.websocket_command(
-    {vol.Required("type"): "pantry/shopping_item_delete", vol.Required("item_id"): ID}
+    {vol.Required("type"): "home_inventory/shopping_item_delete", vol.Required("item_id"): ID}
 )
 @websocket_api.async_response
 async def ws_shopping_item_delete(hass: HomeAssistant, connection, msg: dict) -> None:

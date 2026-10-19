@@ -20,7 +20,7 @@ type Tab = (typeof TABS)[number];
 
 const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "canning"];
 
-export class PantryPanel extends LitElement {
+export class HomeInventoryPanel extends LitElement {
   static properties = {
     hass: { attribute: false },
     narrow: { type: Boolean },
@@ -120,27 +120,39 @@ export class PantryPanel extends LitElement {
             </button>`,
         )}
       </div>
-      <main role="tabpanel" @pantry-navigate=${(e: CustomEvent<string>) => this.select(e.detail)}>
+      <main
+        role="tabpanel"
+        @home-inventory-navigate=${(e: CustomEvent<string>) => this.select(e.detail)}
+      >
         ${
           active === "settings"
-            ? html`<pantry-settings .hass=${this.hass} .section=${this.sub}></pantry-settings>`
+            ? html`<home-inventory-settings
+                .hass=${this.hass}
+                .section=${this.sub}
+              ></home-inventory-settings>`
             : active === "stock"
-              ? html`<pantry-stock
+              ? html`<home-inventory-stock
                   .hass=${this.hass}
                   .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) ? this.seg : "search"}
-                ></pantry-stock>`
+                ></home-inventory-stock>`
               : active === "expiry"
-                ? html`<pantry-expiry .hass=${this.hass}></pantry-expiry>`
+                ? html`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>`
                 : active === "recipes"
-                  ? html`<pantry-recipes .hass=${this.hass} .section=${this.sub}></pantry-recipes>`
+                  ? html`<home-inventory-recipes
+                      .hass=${this.hass}
+                      .section=${this.sub}
+                    ></home-inventory-recipes>`
                   : active === "plan"
-                    ? html`<pantry-plan .hass=${this.hass} .section=${this.sub}></pantry-plan>`
+                    ? html`<home-inventory-plan
+                        .hass=${this.hass}
+                        .section=${this.sub}
+                      ></home-inventory-plan>`
                     : active === "canning"
-                      ? html`<pantry-canning
+                      ? html`<home-inventory-canning
                           .hass=${this.hass}
                           .section=${this.sub}
-                        ></pantry-canning>`
-                      : html`<pantry-shopping .hass=${this.hass}></pantry-shopping>`
+                        ></home-inventory-canning>`
+                      : html`<home-inventory-shopping .hass=${this.hass}></home-inventory-shopping>`
         }
       </main>
     `;
@@ -220,4 +232,4 @@ export class PantryPanel extends LitElement {
   `;
 }
 
-customElements.define("pantry-panel", PantryPanel);
+customElements.define("home-inventory-panel", HomeInventoryPanel);

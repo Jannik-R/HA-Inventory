@@ -11,7 +11,7 @@ let categoryId: number | undefined;
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
   const res = (await ws(page, {
-    type: "pantry/save",
+    type: "home_inventory/save",
     table: "category",
     data: { name: NAME },
   })) as { id: number };
@@ -22,18 +22,19 @@ test.beforeAll(async ({ browser }) => {
 test.afterAll(async ({ browser }) => {
   const page = await apiPage(browser);
   // Items by hand go with their product / category.
-  const items = (await ws(page, { type: "pantry/shopping" })) as {
+  const items = (await ws(page, { type: "home_inventory/shopping" })) as {
     name: string;
     product_id: number | null;
     category_id: number;
   }[];
   const product = items.find((i) => i.name === NEW_PRODUCT);
   if (product)
-    await ws(page, { type: "pantry/delete", table: "product", row_id: product.product_id });
+    await ws(page, { type: "home_inventory/delete", table: "product", row_id: product.product_id });
   const cat = items.find((i) => i.name === NEW_CATEGORY);
-  if (cat) await ws(page, { type: "pantry/delete", table: "category", row_id: cat.category_id });
+  if (cat)
+    await ws(page, { type: "home_inventory/delete", table: "category", row_id: cat.category_id });
   if (categoryId != null)
-    await ws(page, { type: "pantry/delete", table: "category", row_id: categoryId });
+    await ws(page, { type: "home_inventory/delete", table: "category", row_id: categoryId });
   await page.close();
 });
 
@@ -43,16 +44,16 @@ test("min stock in the settings puts the category on the shopping list", async (
   printCalls,
 }) => {
   // As if a receipt printer were set up (the print itself is blocked by the fixture).
-  wsStub("pantry/label_config", {
+  wsStub("home_inventory/label_config", {
     printer: false,
     print_on_book_in: false,
     width_mm: 57,
     height_mm: 32,
     receipt: true,
   });
-  await openPage(page, "/pantry/settings/categories", "Einstellungen");
+  await openPage(page, "/home_inventory/settings/categories", "Einstellungen");
   await page
-    .locator("pantry-settings li")
+    .locator("home-inventory-settings li")
     .filter({ hasText: NAME })
     .getByTestId("category-edit")
     .click();
@@ -64,11 +65,11 @@ test("min stock in the settings puts the category on the shopping list", async (
   await expect(page.getByTestId("min_packages-error")).toBeVisible();
   await page.getByTestId("min_packages").fill("2");
   await page.getByTestId("save").click();
-  await expect(page.locator("pantry-settings li").filter({ hasText: NAME })).toContainText(
+  await expect(page.locator("home-inventory-settings li").filter({ hasText: NAME })).toContainText(
     "min. 500 g",
   );
 
-  await openPage(page, "/pantry/shopping", "Einkauf");
+  await openPage(page, "/home_inventory/shopping", "Einkauf");
   const row = page.getByTestId("shopping-row").filter({ hasText: NAME });
   await expect(row).toContainText("500 g und 2 Pkg. fehlen");
   await row.getByTestId("shopping-check").check();
@@ -78,14 +79,16 @@ test("min stock in the settings puts the category on the shopping list", async (
 
   await page.getByTestId("shopping-print").click();
   await expect(page.getByTestId("shopping-printed")).toContainText("Einkaufszettel gedruckt");
-  expect(printCalls).toEqual([expect.objectContaining({ type: "pantry/print_shopping_list" })]);
+  expect(printCalls).toEqual([
+    expect.objectContaining({ type: "home_inventory/print_shopping_list" }),
+  ]);
 });
 
 test("add to the shopping list by hand: existing category, new product, new category", async ({
   page,
 }) => {
-  await openPage(page, "/pantry/shopping", "Einkauf");
-  const dialog = page.locator("pantry-shopping-add dialog");
+  await openPage(page, "/home_inventory/shopping", "Einkauf");
+  const dialog = page.locator("home-inventory-shopping-add dialog");
 
   // Existing category, then the same again: the packages add up.
   for (const n of ["2", "1"]) {
@@ -135,11 +138,11 @@ test("add to the shopping list by hand: existing category, new product, new cate
 test("a recipe on the shopping list adds its ingredients and can be removed", async ({ page }) => {
   const RECIPE = `E2E Einkaufsrezept ${Date.now()}`;
   const api = await apiPage(page.context().browser()!);
-  const md = (await ws(api, { type: "pantry/master_data" })) as {
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as {
     units: { id: number; symbol: string }[];
   };
   const { id } = (await ws(api, {
-    type: "pantry/recipe_save",
+    type: "home_inventory/recipe_save",
     data: {
       name: RECIPE,
       servings: 2,
@@ -154,13 +157,13 @@ test("a recipe on the shopping list adds its ingredients and can be removed", as
     },
   })) as { id: number };
   try {
-    await openPage(page, "/pantry/recipes", "Rezepte");
+    await openPage(page, "/home_inventory/recipes", "Rezepte");
     const row = page.getByTestId("recipe-row").filter({ hasText: RECIPE });
     await row.getByTestId("recipe-toggle").click();
     await row.getByTestId("recipe-to-shopping").click(); // no optional ingredients: no dialog
     await expect(row.getByTestId("recipe-on-shopping")).toContainText("2 Portionen");
 
-    await openPage(page, "/pantry/shopping", "Einkauf");
+    await openPage(page, "/home_inventory/shopping", "Einkauf");
     const entry = page.getByTestId("shopping-recipe").filter({ hasText: RECIPE });
     const no = (await entry.getByTestId("shopping-recipe-no").textContent())!.trim();
     // one line: "<category> – 300 g", small "<no>:300 g" (other recipes may be listed too)
@@ -176,7 +179,9 @@ test("a recipe on the shopping list adds its ingredients and can be removed", as
     await page.getByTestId("confirm-ok").click();
     await expect(item).toHaveCount(0);
   } finally {
-    await ws(api, { type: "pantry/shopping_recipe_remove", recipe_id: id }).catch(() => undefined);
+    await ws(api, { type: "home_inventory/shopping_recipe_remove", recipe_id: id }).catch(
+      () => undefined,
+    );
     await remove(api, "recipe", id);
     await api.close();
   }
@@ -193,12 +198,12 @@ test("optional ingredients, editing servings in the list, shown servings survive
     await save(api, "category", { name: REQ }),
     await save(api, "category", { name: OPT }),
   ];
-  const md = (await ws(api, { type: "pantry/master_data" })) as {
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as {
     units: { id: number; symbol: string }[];
   };
   const unit_id = md.units.find((u) => u.symbol === "g")!.id;
   const { id } = (await ws(api, {
-    type: "pantry/recipe_save",
+    type: "home_inventory/recipe_save",
     data: {
       name: RECIPE,
       servings: 2,
@@ -209,7 +214,7 @@ test("optional ingredients, editing servings in the list, shown servings survive
     },
   })) as { id: number };
   try {
-    await openPage(page, "/pantry/recipes", "Rezepte");
+    await openPage(page, "/home_inventory/recipes", "Rezepte");
     const row = page.getByTestId("recipe-row").filter({ hasText: RECIPE });
     await row.getByTestId("recipe-toggle").click();
     await row.getByTestId("recipe-servings").fill("4");
@@ -217,7 +222,7 @@ test("optional ingredients, editing servings in the list, shown servings survive
     await row.getByTestId("recipe-to-shopping").click();
 
     // The dialog starts with the servings shown in the detail; the optional one is ticked.
-    const dialog = page.locator("pantry-shopping-recipe-dialog dialog");
+    const dialog = page.locator("home-inventory-shopping-recipe-dialog dialog");
     await expect(dialog.getByTestId("shopping-recipe-servings")).toHaveValue("4");
     await dialog.getByTestId("shopping-recipe-optional").check();
     await dialog.getByTestId("shopping-recipe-save").click();
@@ -225,7 +230,7 @@ test("optional ingredients, editing servings in the list, shown servings survive
     // The shown servings were not reset by the refresh.
     await expect(row.getByTestId("recipe-servings")).toHaveValue("4");
 
-    await openPage(page, "/pantry/shopping", "Einkauf");
+    await openPage(page, "/home_inventory/shopping", "Einkauf");
     const item = (name: string) => page.getByTestId("shopping-row").filter({ hasText: name });
     await expect(item(REQ)).toContainText("600 g");
     await expect(item(OPT)).toContainText("200 g");
@@ -233,13 +238,17 @@ test("optional ingredients, editing servings in the list, shown servings survive
     // Edit the servings in "Für Rezepte": the amounts follow.
     const entry = page.getByTestId("shopping-recipe").filter({ hasText: RECIPE });
     await entry.getByTestId("shopping-recipe-edit").click();
-    const edit = page.locator("pantry-shopping-recipes pantry-shopping-recipe-dialog dialog");
+    const edit = page.locator(
+      "home-inventory-shopping-recipes home-inventory-shopping-recipe-dialog dialog",
+    );
     await edit.getByTestId("shopping-recipe-servings").fill("2");
     await edit.getByTestId("shopping-recipe-save").click();
     await expect(item(REQ)).toContainText("300 g");
     await expect(item(OPT)).toContainText("100 g");
   } finally {
-    await ws(api, { type: "pantry/shopping_recipe_remove", recipe_id: id }).catch(() => undefined);
+    await ws(api, { type: "home_inventory/shopping_recipe_remove", recipe_id: id }).catch(
+      () => undefined,
+    );
     await remove(api, "recipe", id);
     await remove(api, "category", req);
     await remove(api, "category", opt);

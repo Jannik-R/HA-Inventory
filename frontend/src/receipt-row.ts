@@ -96,12 +96,12 @@ export function receiptRow(o: {
             </label>
             <div>
               <span class="lbl">${t("book.category")}</span>
-              <pantry-category-picker
+              <home-inventory-category-picker
                 .categories=${o.md?.categories ?? []}
                 .value=${r.category_id}
                 .hass=${o.hass}
                 @change=${(e: CustomEvent<number>) => o.set({ category_id: e.detail })}
-              ></pantry-category-picker>
+              ></home-inventory-category-picker>
               ${fieldMsg(err.category, `${id}-category`)}
             </div>`
         : nothing

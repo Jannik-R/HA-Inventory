@@ -8,8 +8,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.pantry import inventory as inv
-from custom_components.pantry.const import CONF_AI_TASK, DOMAIN
+from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory.const import CONF_AI_TASK, DOMAIN
 from tests.test_inventory import cat, loc, product
 
 RECEIPT = "REWE\nJA H-MILCH 3,5% 1L  0,99\nPFAND 0,25\n2 x BANANEN 1,19\n"
@@ -78,7 +78,7 @@ async def test_websocket(hass: HomeAssistant, hass_ws_client) -> None:
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     client = await hass_ws_client(hass)
-    await client.send_json_auto_id({"type": "pantry/receipt_read", "text": RECEIPT})
+    await client.send_json_auto_id({"type": "home_inventory/receipt_read", "text": RECEIPT})
     assert (await client.receive_json())["error"]["translation_key"] == "ai_off"
 
     hass.config_entries.async_update_entry(entry, options={CONF_AI_TASK: "ai_task.test"})
@@ -86,15 +86,17 @@ async def test_websocket(hass: HomeAssistant, hass_ws_client) -> None:
     answer = SimpleNamespace(
         data={"store": "REWE", "items": [{"text": "BANANEN", "name": "Bananen", "packages": 2}]}
     )
-    with patch("custom_components.pantry.ai._generate", new=AsyncMock(return_value=answer)) as gen:
-        await client.send_json_auto_id({"type": "pantry/receipt_read", "text": RECEIPT})
+    with patch(
+        "custom_components.home_inventory.ai._generate", new=AsyncMock(return_value=answer)
+    ) as gen:
+        await client.send_json_auto_id({"type": "home_inventory/receipt_read", "text": RECEIPT})
         res = (await client.receive_json())["result"]
     assert "Receipt:\nREWE" in gen.await_args.kwargs["instructions"]
     item = res["items"][0]
     assert (item["name"], item["packages"], item["product_id"]) == ("Bananen", 2, None)
 
     book = {
-        "type": "pantry/receipt_book",
+        "type": "home_inventory/receipt_book",
         "store": "REWE",
         "items": [
             {

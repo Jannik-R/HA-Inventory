@@ -20,13 +20,13 @@ test.beforeAll(async ({ browser }) => {
 
 test.afterAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const hits = (await ws(page, { type: "pantry/search", query: NAME })) as { id: number }[];
+  const hits = (await ws(page, { type: "home_inventory/search", query: NAME })) as { id: number }[];
   for (const { id } of hits) {
-    const stock = (await ws(page, { type: "pantry/stock", product_id: id })) as {
+    const stock = (await ws(page, { type: "home_inventory/stock", product_id: id })) as {
       packages: number;
     }[];
     const left = stock.reduce((n, r) => n + r.packages, 0);
-    if (left) await ws(page, { type: "pantry/book_out", product_id: id, packages: left });
+    if (left) await ws(page, { type: "home_inventory/book_out", product_id: id, packages: left });
     await remove(page, "product", id);
   }
   if (parentId != null) await remove(page, "category", parentId);
@@ -35,7 +35,7 @@ test.afterAll(async ({ browser }) => {
 });
 
 test("book a new product in and out again", async ({ page, printCalls }) => {
-  await openPage(page, "/pantry/in", "Bestand");
+  await openPage(page, "/home_inventory/in", "Bestand");
   await expect(page.getByTestId("mode-in")).toHaveAttribute("aria-pressed", "true");
   const code = page.getByTestId("code-input");
   await expect(code).toBeFocused();
@@ -44,7 +44,9 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await code.fill(NAME);
   await code.press("Enter");
   await page.getByTestId("new-product").click();
-  await expect(page.locator("pantry-booking form.book > h2")).toHaveText("Produkt zubuchen");
+  await expect(page.locator("home-inventory-booking form.book > h2")).toHaveText(
+    "Produkt zubuchen",
+  );
   await expect(page.getByTestId("name")).toHaveValue(NAME);
   await page.getByTestId("category").click();
   await page.getByTestId("category-filter").fill(CHILD);
@@ -83,11 +85,13 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await expect(page.getByTestId("print-labels")).toBeChecked();
   await page.getByTestId("submit").click();
   // More than 2 labels are confirmed first.
-  await expect(page.locator("pantry-confirm")).toContainText("3 Etiketten drucken?");
+  await expect(page.locator("home-inventory-confirm")).toContainText("3 Etiketten drucken?");
   await page.getByTestId("confirm-ok").click();
   await expect(page.getByTestId("message")).toContainText(`3 × ${NAME}`);
   // The print request was sent, and blocked by the fixture (never reaches the printer).
-  expect(printCalls).toEqual([expect.objectContaining({ type: "pantry/print_labels", count: 3 })]);
+  expect(printCalls).toEqual([
+    expect.objectContaining({ type: "home_inventory/print_labels", count: 3 }),
+  ]);
   await expect(code).toBeFocused();
 
   // Known product: date, packages and location only; the location default is now the product's own.
@@ -109,7 +113,7 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await expect(product).toContainText("4 Pkg.");
   await page.getByTestId("product-edit").click();
   // Safety: only ever edit or delete the test's own product.
-  await expect(page.locator("pantry-product-dialog dialog > form > h2")).toHaveText(
+  await expect(page.locator("home-inventory-product-dialog dialog > form > h2")).toHaveText(
     `„${NAME}“ bearbeiten`,
   );
   await page.getByTestId("brand").fill("E2E Marke");
@@ -151,11 +155,11 @@ test("book a new product in and out again", async ({ page, printCalls }) => {
   await openTab(page, "Bestand");
   await code.fill(NAME);
   // Delete icon in the list, only on the row with the test's own product name.
-  const row = page.locator("pantry-stock li.item").filter({ hasText: NAME });
+  const row = page.locator("home-inventory-stock li.item").filter({ hasText: NAME });
   await expect(row).toHaveCount(1);
   await expect(row).toContainText("4 Pkg.");
   await row.getByTestId("product-delete").click();
-  await expect(page.locator("pantry-confirm h2")).toHaveText(`„${NAME}“ löschen?`);
+  await expect(page.locator("home-inventory-confirm h2")).toHaveText(`„${NAME}“ löschen?`);
   await page.getByTestId("confirm-ok").click();
   await expect(product).toHaveCount(0);
 });

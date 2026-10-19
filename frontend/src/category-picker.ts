@@ -12,7 +12,7 @@ import { categoryPath } from "./inherit";
  * With `hass`, a filter text without exact match can be created below a chosen category; then it
  * also fires `master` (bubbling, MasterData) so the host can refresh its categories.
  */
-export class PantryCategoryPicker extends LitElement {
+export class HomeInventoryCategoryPicker extends LitElement {
   static properties = {
     categories: { attribute: false },
     value: { attribute: false },
@@ -285,4 +285,4 @@ export class PantryCategoryPicker extends LitElement {
   ];
 }
 
-customElements.define("pantry-category-picker", PantryCategoryPicker);
+customElements.define("home-inventory-category-picker", HomeInventoryCategoryPicker);

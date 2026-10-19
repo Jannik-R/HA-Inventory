@@ -1,6 +1,6 @@
 ---
 name: ha-dev
-description: Run and inspect the dev Home Assistant and the backend tests for this repo - start/restart HA, read only the pantry log lines, run pytest in the container, build the panel. Use whenever a change must be checked in HA or tested, instead of figuring out commands or reading full logs.
+description: Run and inspect the dev Home Assistant and the backend tests for this repo - start/restart HA, read only the home_inventory log lines, run pytest in the container, build the panel. Use whenever a change must be checked in HA or tested, instead of figuring out commands or reading full logs.
 ---
 
 All commands from the repo root. Compose file: `dev/docker-compose.yml` (shortened to `$C` below).
@@ -13,7 +13,7 @@ C="docker compose -f dev/docker-compose.yml"
 |---|---|
 | Start HA (http://localhost:8123) | `$C up -d homeassistant` |
 | Apply Python changes | `$C restart homeassistant` (integration is mounted, no copy needed) |
-| Pantry log lines only | `$C logs homeassistant --since 5m 2>&1 \| grep -iE "pantry\|Traceback" \| tail -40` |
+| Home Inventory log lines only | `$C logs homeassistant --since 5m 2>&1 \| grep -iE "home_inventory\|Traceback" \| tail -40` |
 | Errors only | `$C logs homeassistant --since 5m 2>&1 \| grep -E "ERROR\|Traceback" -A5 \| tail -60` |
 | One test file | `$C run --rm test tests/test_inventory.py -q` |
 | All tests (parallel) | `$C run --rm test` (default: `-n 8 tests`) |

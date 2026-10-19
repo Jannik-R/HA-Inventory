@@ -16,11 +16,13 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import DOMAIN, SIGNAL_CHANGED, modules_of
 
 if TYPE_CHECKING:
-    from . import PantryConfigEntry
+    from . import HomeInventoryConfigEntry
 
 
 @callback
-def module_off(hass: HomeAssistant, entry: PantryConfigEntry, module: str, platform: str) -> bool:
+def module_off(
+    hass: HomeAssistant, entry: HomeInventoryConfigEntry, module: str, platform: str
+) -> bool:
     """True when `module` is turned off; then its entities leave the registry (no "unavailable" ghost)."""
     if module in modules_of(entry.options):
         return False
@@ -33,7 +35,7 @@ def module_off(hass: HomeAssistant, entry: PantryConfigEntry, module: str, platf
 
 async def async_coordinator(
     hass: HomeAssistant,
-    entry: PantryConfigEntry,
+    entry: HomeInventoryConfigEntry,
     update: Callable[[], Awaitable[Any]],
     midnight: bool = False,
 ) -> DataUpdateCoordinator:
@@ -59,7 +61,7 @@ async def async_coordinator(
     return coordinator
 
 
-def device_info(entry: PantryConfigEntry) -> DeviceInfo:
+def device_info(entry: HomeInventoryConfigEntry) -> DeviceInfo:
     return DeviceInfo(
         identifiers={(DOMAIN, entry.entry_id)},
         # shortcut: German like the sidebar title; translate when needed.

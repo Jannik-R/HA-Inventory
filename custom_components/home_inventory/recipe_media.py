@@ -15,9 +15,8 @@ from pathlib import Path
 
 import aiohttp
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .recipe_fetch import HEADERS, TIMEOUT
+from . import recipe_fetch
 
 _LOGGER = logging.getLogger(__name__)
 MAX_VIDEO = 50_000_000  # bytes; a 3 min reel at 720p is about 15 MB
@@ -39,7 +38,7 @@ class _YtLog:
     info = warning = error = debug
 
 
-def video(url: str, folder: Path) -> dict | None:
+def video(url: str, folder: Path, public_only: bool = False) -> dict | None:
     """{title, description, thumbnail, file} of a video post (blocking: executor). file is None
     when the clip is too long or too big; None when yt-dlp does not know the page or the platform
     refuses it (e.g. Instagram without login)."""
@@ -58,6 +57,8 @@ def video(url: str, folder: Path) -> dict | None:
         "socket_timeout": 15,
         "retries": 1,
     }
+    if public_only:  # the generic extractor loads any page and follows redirects into the LAN
+        opts["allowed_extractors"] = ["default", "-generic"]
     with yt_dlp.YoutubeDL(opts) as ydl:
         try:
             info = ydl.extract_info(url, download=False)
@@ -82,22 +83,19 @@ def video(url: str, folder: Path) -> dict | None:
     }
 
 
-async def async_image(hass: HomeAssistant, url: str, folder: Path) -> Path | None:
-    """Download an image (max 5 MB, JPEG/PNG/WebP) into `folder`; None when that fails."""
+async def async_image(
+    hass: HomeAssistant, url: str, folder: Path, public_only: bool = False
+) -> Path | None:
+    """Download an image (max 5 MB, JPEG/PNG/WebP) into `folder`; None when that fails or (for
+    public_only) it is in the local network."""
     try:
-        async with async_get_clientsession(hass).get(url, headers=HEADERS, timeout=TIMEOUT) as resp:
-            if resp.status != 200 or resp.content_type not in IMAGE_TYPES:
-                return None
-            body = bytearray()
-            async for chunk in resp.content.iter_chunked(65536):
-                body += chunk
-                if len(body) > MAX_IMAGE:
-                    return None
-            ext = mimetypes.guess_extension(resp.content_type) or ".jpg"
-    except (aiohttp.ClientError, TimeoutError):
+        content_type, _, body = await recipe_fetch.async_get(hass, url, MAX_IMAGE, public_only)
+    except (aiohttp.ClientError, OSError, TimeoutError):
         return None
-    path = folder / f"image{ext}"
-    await hass.async_add_executor_job(path.write_bytes, bytes(body))
+    if content_type not in IMAGE_TYPES or body is None:
+        return None
+    path = folder / f"image{mimetypes.guess_extension(content_type) or '.jpg'}"
+    await hass.async_add_executor_job(path.write_bytes, body)
     return path
 
 

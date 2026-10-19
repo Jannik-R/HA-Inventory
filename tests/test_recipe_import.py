@@ -1,12 +1,15 @@
 """Recipe import: ingredient line parser, unit dedupe, JSON-LD extraction, fetch via websocket."""
 
 import json
-from unittest.mock import AsyncMock, PropertyMock, patch
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
+import aiohttp
 import pytest
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from custom_components.home_inventory import inventory as inv
-from custom_components.home_inventory import recipe_fetch
+from custom_components.home_inventory import recipe_fetch, recipe_media
 
 from .test_inventory import unit
 from .test_websocket import ws  # noqa: F401  (fixture)
@@ -271,27 +274,68 @@ async def test_ws_import(ws, aioclient_mock):  # noqa: F811
 
 
 async def test_private_links_admin_only(hass, ws, aioclient_mock, hass_admin_user):  # noqa: F811
-    """Links into the local network: admins only (the page, or the AI's reading of it, comes back)."""
+    """Links into the local network: admins only (the page, or the AI's reading of it, comes back).
+    Every hop counts: a public page that redirects into the LAN is refused too."""
     html = {"Content-Type": "text/html; charset=utf-8"}
-    aioclient_mock.get("http://192.168.1.10/r", text=page(json.dumps(RECIPE)), headers=html)
-    aioclient_mock.get("https://x.test/ok", text=page(json.dumps(RECIPE)), headers=html)
+    body = page(json.dumps(RECIPE))
+    aioclient_mock.get("http://192.168.1.10/r", text=body, headers=html)
+    aioclient_mock.get("https://x.test/ok", text=body, headers=html)
+    aioclient_mock.get("https://x.test/hop", status=302, headers={"Location": "/ok"})
+    aioclient_mock.get("https://x.test/lan", status=302, headers={"Location": "http://10.0.0.5/r"})
     msg = {"type": "home_inventory/recipe_import", "url": "http://192.168.1.10/r"}
     assert (await ws.call(msg))["success"]  # admin
-    lan = [(2, 1, 6, "", ("10.0.0.5", 0))]
-    with (
-        patch.object(
-            type(hass_admin_user), "is_admin", new_callable=PropertyMock, return_value=False
-        ),
-        patch.object(hass.loop, "getaddrinfo", AsyncMock(return_value=lan)),
-    ):
-        assert (await ws.call(msg))["error"]["translation_key"] == "url_private"
-        nas = {**msg, "url": "http://nas.lan/r"}  # by name, resolved into the LAN
-        assert (await ws.call(nas))["error"]["translation_key"] == "url_private"
-    with patch.object(
+
+    def call(url):
+        return ws.call({**msg, "url": url})
+
+    not_admin = patch.object(
         type(hass_admin_user), "is_admin", new_callable=PropertyMock, return_value=False
-    ):
-        for url in ("http://127.0.0.1/r", "http://[::1]/r", "http://169.254.1.1/r"):
-            assert await recipe_fetch.async_private(hass, url)
-        assert not await recipe_fetch.async_private(hass, "http://93.184.215.14/r")
-        with patch.object(hass.loop, "getaddrinfo", AsyncMock(side_effect=OSError)):
-            assert (await ws.call({**msg, "url": "https://x.test/ok"}))["success"]  # no DNS answer
+    )
+    # the public session's resolver is real network: tests use the mocked HA session instead
+    mocked = patch.object(recipe_fetch, "_public_session", lambda h: async_create_clientsession(h))
+    with not_admin, mocked:
+        for url in ("http://192.168.1.10/r", "http://[::1]/r", "https://x.test/lan"):
+            assert (await call(url))["error"]["translation_key"] == "url_private", url
+        assert (await call("https://x.test/ok"))["success"]
+        assert (await call("https://x.test/hop"))["result"]["source_url"] == "https://x.test/hop"
+        img = "https://x.test/lan"
+        assert await recipe_media.async_image(hass, img, Path("."), public_only=True) is None
+
+
+async def test_public_resolver():
+    """A name is checked when the connection is made: no check-then-use gap."""
+    resolver = recipe_fetch._PublicResolver()
+    lan = [
+        {"hostname": "nas.lan", "host": "10.0.0.5", "port": 80, "family": 2, "proto": 0, "flags": 0}
+    ]
+    web = [{**lan[0], "hostname": "x.test", "host": "93.184.215.14"}]
+    with patch("aiohttp.ThreadedResolver.resolve", AsyncMock(return_value=lan)):
+        with pytest.raises(recipe_fetch.NotPublic):
+            await resolver.resolve("nas.lan", 80)
+    with patch("aiohttp.ThreadedResolver.resolve", AsyncMock(return_value=web)):
+        assert await resolver.resolve("x.test", 80) == web
+    wrapped = aiohttp.ClientConnectorError(MagicMock(), recipe_fetch.NotPublic("nas.lan"))
+    assert recipe_fetch._not_public(wrapped)
+    await resolver.close()
+
+
+def test_video_without_generic_extractor(tmp_path):
+    """For users who are no admin yt-dlp only uses its platform extractors (no arbitrary pages)."""
+    seen = {}
+
+    class Ydl:
+        def __init__(self, opts):
+            seen.update(opts)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def extract_info(self, url, download):
+            return None
+
+    with patch("yt_dlp.YoutubeDL", Ydl):
+        assert recipe_media.video("https://x.test/v", tmp_path, public_only=True) is None
+    assert seen["allowed_extractors"] == ["default", "-generic"]

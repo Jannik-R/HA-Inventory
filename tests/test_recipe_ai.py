@@ -98,7 +98,7 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
     enable_ai(hass, tmp_path)
     seen: list[str] = []
 
-    def video(url, folder):
+    def video(url, folder, public_only=False):
         seen.append(url)
         return None  # yt-dlp knows no video there
 
@@ -117,7 +117,7 @@ async def test_ws_url_fallback(hass, ws, aioclient_mock, tmp_path):  # noqa: F81
     assert not any((tmp_path / ".home_inventory_import").iterdir())  # cleaned up
 
     # a video post: caption from yt-dlp, the clip as attachment; also when the page is blocked
-    def clip(url, folder):
+    def clip(url, folder, public_only=False):
         (folder / "video.mp4").write_bytes(b"mp4")
         return {"title": "Reel", "description": "Spoken recipe", "thumbnail": None,
                 "file": folder / "video.mp4"}  # fmt: skip

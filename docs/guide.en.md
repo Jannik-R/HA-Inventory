@@ -109,7 +109,7 @@ flowchart LR
    and recipes calculate with it.
 5. **Minimum count** (optional): below it the product goes on the shopping list.
 6. **Expiry date**: the date on the package. The label names the date type (best before or
-   use by). If the category or product has a *Shelf life*, you may leave the field empty:
+   use by or guide value). If the category or product has a *Shelf life*, you may leave the field empty:
    Home Inventory then guesses today + shelf life (the hint below the field names the days). In the stock
    such a date shows "(guessed)" until you change or confirm it in the stock row. Without a
    shelf life an empty field means no date (see [Categories](#9-categories-product-types-and-inheritance)).
@@ -209,13 +209,14 @@ After opening, next to the message:
   the batch.
 - **Tag icon**: reprint labels for this batch.
 - Canned jars show their charge next to the date.
-- Red means expired, orange means expiring soon.
+- Red means expired (use by), orange means expiring soon or, in bold, past a best before or
+  guide date (check it instead of throwing it away).
 
 ## 5. What expires soon?
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-en-dark.png"><img src="images/expiry-en-light.png" alt="Expiry tab with expired and soon expiring batches" width="300"></picture></p>
 
-**Expiry** lists all expired (red) and soon expiring (orange) batches, earliest first. "Soon" means
+**Expiry** lists all expired (red; bold orange for best before and guide value) and soon expiring (orange) batches, earliest first. "Soon" means
 within the product's *Warning before expiry* (own or inherited). **Warning threshold**
 temporarily sets one value for all, e.g. 14 days for meal planning; nothing is saved.
 
@@ -545,6 +546,11 @@ Without a printed date, or when you do not want to type it, the *Shelf life* (sh
 usual shelf life from purchase, seeded for the food categories) counts: an empty date at book-in becomes
 today + shelf life ("guessed"), a canning protocol proposes made-on date + shelf life. Without
 a shelf life nothing is guessed. The date stays editable everywhere.
+
+**Date type** (inherited like the shelf life): *Best before* (often still good after it), *Use by*
+(do not use after it) or *Guide value* for things without a printed date, e.g. fresh fruit and
+vegetables (seeded on *Obst & Gemüse*). A guide value shows as "approx. 11/12/2026" in the stock and
+the expiry view and as "ca." on the label; at book-in it is always already in the date field.
 
 **Keeps after opening**: days an opened package still keeps (see 3a),
 inherited like the shelf life. Empty means opening does not change the date.

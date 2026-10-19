@@ -10,6 +10,7 @@ import {
   type Hass,
   type InheritField,
   type MasterData,
+  EXPIRY_TYPES,
 } from "./api";
 import { fmt } from "./settings-format";
 
@@ -148,7 +149,7 @@ export class HomeInventoryDefaults extends LitElement {
           >
           ${this.select(
             "expiry_type",
-            ["best_before", "use_by"].map((k) => [k, t(`settings.expiry.${k}`)]),
+            EXPIRY_TYPES.map((k) => [k, t(`settings.expiry.${k}`)]),
           )}
         </label>
         <label>

@@ -66,16 +66,17 @@ export function groupStock(
 export const daysLeft = (iso: string) =>
   Math.round((Date.parse(`${iso}T00:00`) - Date.parse(`${todayIso()}T00:00`)) / 86_400_000);
 
-/** "expired" / "soon" by the product's effective warn days, or by `days` when given. */
+/** "expired" (use by) / "past" (best before, guide: check it) / "soon" by the product's effective
+ * warn days, or by `days` when given. */
 export function expiryStatus(
   r: StockRow,
   p: Product | undefined,
   md: MasterData | undefined,
   days?: number,
-): "expired" | "soon" | "" {
+): "expired" | "past" | "soon" | "" {
   if (!r.expires_on) return "";
   const left = daysLeft(r.expires_on);
-  if (left < 0) return "expired";
+  if (left < 0) return r.expiry_type === "use_by" ? "expired" : "past";
   const warn =
     days ?? Number(p?.warn_days ?? categoryDefault(md, p?.category_id, "warn_days")?.value ?? 0);
   return left <= warn ? "soon" : "";

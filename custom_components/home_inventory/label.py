@@ -77,10 +77,10 @@ def render(info: dict, width_mm: float, height_mm: float, reserve_mm: float = 0)
     bottom = h - margin_bottom
     if info.get("expires_on"):
         big = _font(h // 9, bold=True)
-        draw.text(
-            (left, bottom), date.fromisoformat(info["expires_on"]).strftime("%d.%m.%Y"),
-            font=big, fill=0, anchor="ld",
-        )  # fmt: skip
+        text = date.fromisoformat(info["expires_on"]).strftime("%d.%m.%Y")
+        if info.get("approx"):
+            text = f"ca. {text}"  # date kind guide: an estimate, not a printed date
+        draw.text((left, bottom), text, font=big, fill=0, anchor="ld")
         bottom -= h // 8
     brand_h = 0
     if info.get("brand"):

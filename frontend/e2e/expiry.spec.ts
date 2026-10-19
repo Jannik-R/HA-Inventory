@@ -2,15 +2,20 @@ import { apiPage, openPage, remove, save, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
 const NAME = `E2E Ablauf ${Date.now()}`;
+const GUIDE = `E2E Richtwert ${Date.now()}`;
 const SCOPE = `E2E Ablauf-Ort ${Date.now()}`;
 
 let productId: number | undefined;
+let guideId: number | undefined;
 let categoryId: number | undefined;
 let locationId: number | undefined;
 
 test.beforeAll(async ({ browser }) => {
   const page = await apiPage(browser);
-  const category_id = (categoryId = await save(page, "category", { name: SCOPE }));
+  const category_id = (categoryId = await save(page, "category", {
+    name: SCOPE,
+    expiry_type: "use_by",
+  }));
   const location_id = (locationId = await save(page, "location", { name: SCOPE }));
   const res = (await ws(page, {
     type: "home_inventory/book_in",
@@ -27,12 +32,25 @@ test.beforeAll(async ({ browser }) => {
     expires_on: "2099-12-31",
     location_id,
   });
+  const guide = (await ws(page, {
+    type: "home_inventory/book_in",
+    product: { name: GUIDE, category_id },
+    packages: 1,
+    expires_on: "2020-01-02",
+    location_id,
+  })) as { product_id: number };
+  guideId = guide.product_id;
+  await ws(page, {
+    type: "home_inventory/product_save",
+    data: { id: guideId, expiry_type: "guide" },
+  });
   await page.close();
 });
 
 test.afterAll(async ({ browser }) => {
   const page = await apiPage(browser);
   if (productId != null) await remove(page, "product", productId);
+  if (guideId != null) await remove(page, "product", guideId);
   if (categoryId != null) await remove(page, "category", categoryId);
   if (locationId != null) await remove(page, "location", locationId);
   await page.close();
@@ -43,7 +61,10 @@ test("expired first; a temporary threshold widens the list", async ({ page }) =>
   const mine = page.getByTestId("expiry-row").filter({ hasText: NAME });
   await expect(mine).toHaveCount(1);
   await expect(mine.locator(".expired")).toHaveCount(1);
-  await expect(page.getByTestId("expiry-row").first().locator(".expired")).toHaveCount(1);
+  await expect(page.getByTestId("expiry-row").first().locator(".expired, .past")).toHaveCount(1);
+  // a guide date (Richtwert) past its day: warning colour, "ca." before the date
+  const guide = page.getByTestId("expiry-row").filter({ hasText: GUIDE });
+  await expect(guide.locator(".past")).toContainText("ca.");
 
   const days = page.getByTestId("expiry-days");
   await days.fill("1.5");

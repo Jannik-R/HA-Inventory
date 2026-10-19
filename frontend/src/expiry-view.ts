@@ -118,9 +118,15 @@ export class HomeInventoryExpiry extends LitElement {
                 ({ r, status }) =>
                   html`<li data-testid="expiry-row">
                     <span class="when">
-                      <span class=${status}>${fmtDate(this.hass, r.expires_on!)}</span>
+                      <span class=${status}
+                        >${
+                          r.expiry_type === "guide"
+                            ? t("stock.approx_date", { date: fmtDate(this.hass, r.expires_on!) })
+                            : fmtDate(this.hass, r.expires_on!)
+                        }</span
+                      >
                       <span class="detail"
-                        >${this.relative(r.expires_on!)}${r.expiry_guessed ? ` · ${t("stock.guessed")}` : ""}</span
+                        >${this.relative(r.expires_on!)}${r.expiry_guessed && r.expiry_type !== "guide" ? ` · ${t("stock.guessed")}` : ""}</span
                       >
                     </span>
                     <span class="what">
@@ -178,6 +184,10 @@ export class HomeInventoryExpiry extends LitElement {
       }
       .soon {
         color: var(--warning-color);
+      }
+      .past {
+        color: var(--warning-color);
+        font-weight: 500;
       }
     `,
   ];

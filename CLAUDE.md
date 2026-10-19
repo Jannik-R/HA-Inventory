@@ -45,6 +45,7 @@ custom_components/home_inventory/   integration (Python)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of migrations.py for size
   migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
+  migration_24.py           migration 24: date kind 'guide' (Richtwert): rebuilds defaults/category/product with the wider CHECK; `set_guide` (fresh produce) also after the seed
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)

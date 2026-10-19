@@ -9,6 +9,10 @@ export interface Hass {
   ): Promise<(key: string, values?: Record<string, string>) => string>;
 }
 
+/** Date kinds: printed best before / use by, or a guide value from the shelf life ("ca."). */
+export const EXPIRY_TYPES = ["best_before", "use_by", "guide"] as const;
+export type ExpiryType = (typeof EXPIRY_TYPES)[number];
+
 export const isAdmin = (hass?: Hass) => !!hass?.user?.is_admin;
 
 interface WsError {
@@ -60,7 +64,7 @@ export interface Category {
   off_tags: string[];
   unit_id: number | null;
   default_location_id: number | null;
-  expiry_type: "best_before" | "use_by" | null;
+  expiry_type: ExpiryType | null;
   warn_days: number | null;
   min_stock: number | null;
   min_stock_unit_id: number | null;
@@ -122,7 +126,7 @@ export interface Product {
   content_amount: number | null;
   content_unit_id: number | null;
   default_location_id?: number | null;
-  expiry_type?: "best_before" | "use_by" | null;
+  expiry_type?: ExpiryType | null;
   warn_days?: number | null;
   shelf_days?: number | null;
   opened_days?: number | null;
@@ -159,7 +163,7 @@ export interface StockRow {
   /** 1: the date was guessed at book-in (today + shelf life), nobody entered it. */
   expiry_guessed: number;
   /** The product's date type (own or inherited); batches have none of their own. */
-  expiry_type: "best_before" | "use_by";
+  expiry_type: ExpiryType;
   product_id: number;
   name: string;
   brand: string | null;

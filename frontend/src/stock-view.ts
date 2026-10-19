@@ -146,7 +146,8 @@ export class HomeInventoryStock extends LitElement {
 
   private date(r: StockRow) {
     let date = r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
-    if (r.expiry_guessed) date = t("stock.guessed_date", { date });
+    if (r.expires_on && r.expiry_type === "guide") date = t("stock.approx_date", { date });
+    else if (r.expiry_guessed) date = t("stock.guessed_date", { date });
     if (r.opened_on) date = t("stock.opened_on", { date, opened: fmtDate(this.hass, r.opened_on) });
     return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
   }

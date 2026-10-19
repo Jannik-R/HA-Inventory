@@ -13,6 +13,7 @@ import {
   type InheritField,
   type MasterData,
   type Table,
+  EXPIRY_TYPES,
 } from "./api";
 import { catName, fmt, inherited, sourceLabel } from "./settings-format";
 import { minErrors, minFields } from "./min-stock";
@@ -264,7 +265,7 @@ export class HomeInventorySettingsDialog extends LitElement {
         ${this.inh(
           "expiry_type",
           t("settings.category.expiry_type"),
-          ["best_before", "use_by"].map((k) => [k, t(`settings.expiry.${k}`)]),
+          EXPIRY_TYPES.map((k) => [k, t(`settings.expiry.${k}`)]),
           false,
         )}
         ${this.inh("warn_days", t("settings.category.warn_days"), [])}

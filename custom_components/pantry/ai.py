@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 120  # s; a big prompt on a free tier can take a while
 
 # The answer's shape; Gemini wants plain types (no nullables), so 0 stands for "no category".
-ANSWER = probatio.Schema(
+RECIPE_CHECK_SCHEMA = probatio.Schema(
     {
         probatio.Required("ok"): bool,
         probatio.Optional("ingredients"): [
@@ -39,7 +39,7 @@ ANSWER = probatio.Schema(
     }
 )
 
-PRODUCT_ANSWER = probatio.Schema(
+PRODUCT_CHECK_SCHEMA = probatio.Schema(
     {
         probatio.Required("ok"): bool,
         probatio.Optional("name"): str,
@@ -92,7 +92,7 @@ async def async_check_recipe(hass: HomeAssistant, draft: dict) -> dict:
     if not entity_of(hass):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_prompt, draft)
-    data = await _check(hass, "Vorrat: Rezeptimport prüfen", instructions, ANSWER)
+    data = await _check(hass, "Vorrat: Rezeptimport prüfen", instructions, RECIPE_CHECK_SCHEMA)
     found = await db.run(inventory.ai_changes, draft, data)
     return {"status": "ok"} if found["ok"] else {"status": "changes", **found}
 
@@ -103,6 +103,6 @@ async def async_check_product(hass: HomeAssistant, draft: dict) -> dict:
     if not entity_of(hass):
         return {"status": "off"}
     instructions = await db.run(inventory.ai_product_prompt, draft)
-    data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_ANSWER)
+    data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_CHECK_SCHEMA)
     found = await db.run(inventory.ai_product_changes, draft, data)
     return {"status": "ok"} if found.pop("ok") else {"status": "changes", **found}

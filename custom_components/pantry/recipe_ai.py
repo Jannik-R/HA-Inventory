@@ -23,8 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 180  # s; the AI provider processes an uploaded video first
 MAX_PHOTO = 3_000_000  # bytes after base64 decoding (the panel sends a scaled JPEG)
 
-# Gemini wants plain types (no nullables), as in ai.ANSWER.
-ANSWER = probatio.Schema(
+# Gemini wants plain types (no nullables), as in ai.RECIPE_CHECK_SCHEMA.
+RECIPE_IMPORT_SCHEMA = probatio.Schema(
     {
         probatio.Required("found"): bool,
         probatio.Optional("name"): str,
@@ -64,7 +64,7 @@ async def _extract(
                 task_name="Vorrat: Rezept auslesen",
                 entity_id=entity_id,
                 instructions=inventory.ai_import_prompt(sources),
-                structure=ANSWER,
+                structure=RECIPE_IMPORT_SCHEMA,
                 attachments=attachments or None,
             )
     except (HomeAssistantError, TimeoutError) as err:

@@ -33,4 +33,8 @@ export const stockStyles = css`
   .soon {
     color: var(--warning-color);
   }
+  .past {
+    color: var(--warning-color);
+    font-weight: 500;
+  }
 `;

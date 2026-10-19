@@ -106,7 +106,7 @@ flowchart LR
    Mindestmengen und Rezepte.
 5. **Mindestanzahl** (optional): Unter dieser Packungszahl kommt das Produkt auf die Einkaufsliste.
 6. **Ablaufdatum**: Das Datum von der Packung. Die Beschriftung nennt die Datumsart
-   (Mindesthaltbarkeit oder Verbrauchsdatum). Hat die Kategorie oder das Produkt eine *Haltbarkeit*,
+   (Mindesthaltbarkeit, Verbrauchsdatum oder Richtwert). Hat die Kategorie oder das Produkt eine *Haltbarkeit*,
    darfst du das Feld leer lassen: Vorrat schätzt dann heute + Haltbarkeit (der Hinweis unter dem
    Feld nennt die Tage). Im Bestand steht so ein Datum mit „(geschätzt)“, bis du es in der
    Bestandszeile änderst oder bestätigst. Ohne Haltbarkeit bleibt ein leeres Feld ohne Datum (siehe
@@ -206,13 +206,14 @@ Nach dem Anbrechen stehen neben der Meldung:
   0 Packungen entfernt die Charge.
 - **Etikett-Symbol**: Etiketten für diese Charge nachdrucken.
 - Eingekochte Gläser zeigen ihre Charge neben dem Datum.
-- Rot heißt abgelaufen, orange heißt bald fällig.
+- Rot heißt abgelaufen (Verbrauchsdatum), orange heißt bald fällig oder, fett, abgelaufen bei
+  Mindesthaltbarkeit oder Richtwert (prüfen statt wegwerfen).
 
 ## 5. Was läuft ab?
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-de-dark.png"><img src="images/expiry-de-light.png" alt="Tab Ablauf mit abgelaufenen und bald fälligen Chargen" width="300"></picture></p>
 
-**Ablauf** listet alle abgelaufenen (rot) und bald ablaufenden (orange) Chargen, das früheste Datum
+**Ablauf** listet alle abgelaufenen (rot, bei Mindesthaltbarkeit und Richtwert fett orange) und bald ablaufenden (orange) Chargen, das früheste Datum
 zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geerbt oder eigen).
 **Warnschwelle** setzt vorübergehend eine Zahl für alle, z. B. 14 Tage zur Essensplanung; gespeichert
 wird nichts.
@@ -546,6 +547,12 @@ oder wenn du es nicht eintippen willst, zählt die *Haltbarkeit* in Tagen (übli
 Einkauf, für die Lebensmittel-Kategorien vorbelegt): ein leeres Datum beim Einbuchen wird zu heute +
 Haltbarkeit („geschätzt“), ein Einkochprotokoll schlägt Herstellungsdatum + Haltbarkeit vor. Ohne
 Haltbarkeit wird nichts geschätzt. Das Datum bleibt überall änderbar.
+
+**Datumsart** (vererbt wie die Haltbarkeit): *Mindesthaltbarkeit* (danach oft noch gut),
+*Verbrauchsdatum* (danach nicht mehr verwenden) oder *Richtwert* für alles ohne aufgedrucktes Datum,
+z. B. frisches Obst und Gemüse (vorbelegt auf *Obst & Gemüse*). Ein Richtwert steht als „ca. 12.11.2026“
+im Bestand, in der Ablaufübersicht und auf dem Etikett; beim Einbuchen steht er immer schon im
+Datumsfeld.
 
 **Haltbar nach Anbruch**: Tage, die eine angebrochene Packung noch hält (siehe 3a), vererbt wie die
 Haltbarkeit. Leer heißt: Anbrechen ändert das Datum nicht.

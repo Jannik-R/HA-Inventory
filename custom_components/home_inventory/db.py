@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import SIGNAL_CHANGED
+from .migration_24 import set_guide
 from .migrations import MIGRATIONS
 from .seed import seed
 from .seed_days import fill_days
@@ -57,6 +58,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         mark_recipe_only(conn)  # not in seed(): old-schema DBs are seeded by tests
         add_general(conn)  # same
         fill_days(conn)  # same
+        set_guide(conn)  # same
         conn.commit()
 
 

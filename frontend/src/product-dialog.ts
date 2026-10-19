@@ -3,7 +3,14 @@ import { hasModule } from "./modules";
 import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
-import { errorMessage, saveProduct, type Hass, type MasterData, type Product } from "./api";
+import {
+  errorMessage,
+  saveProduct,
+  type Hass,
+  type MasterData,
+  type Product,
+  EXPIRY_TYPES,
+} from "./api";
 import { categoryDefault, inheritNumber, inheritSelect } from "./inherit";
 import { productErrors, productFields, type Errors } from "./product-fields";
 import { fmtDays } from "./format";
@@ -136,7 +143,7 @@ export class HomeInventoryProductDialog extends LitElement {
             testid: "expiry-type",
             own: p.expiry_type,
             dflt: dflt("expiry_type"),
-            options: ["best_before", "use_by"].map((k) => [k, t(`settings.expiry.${k}`)]),
+            options: EXPIRY_TYPES.map((k) => [k, t(`settings.expiry.${k}`)]),
             numeric: false,
             onChange: (v) => this.set("expiry_type", v),
           })}

@@ -66,7 +66,7 @@ test("overview groups by category, searches and filters by location", async ({ p
   const batches = page.getByTestId("stock-batch");
   await expect(batches).toHaveCount(2);
   await expect(batches.first()).toContainText(locations[0].name);
-  await expect(batches.first().locator(".expired")).toHaveCount(1);
+  await expect(batches.first().locator(".expired, .past")).toHaveCount(1);
 
   await page.getByTestId("stock-location").selectOption(String(locations[1].id));
   await expect(product).toContainText("3 Pkg.");

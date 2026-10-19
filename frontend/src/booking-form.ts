@@ -164,9 +164,10 @@ export class HomeInventoryBookingForm extends LitElement {
     return undefined;
   }
 
-  /** Option: the date field starts with the proposal; otherwise it stays empty and the backend guesses it. */
+  /** Option (always for a guide date): the date field starts with the proposal; otherwise it stays
+   * empty and the backend guesses it. */
   private prefill() {
-    return !!this.labels?.prefill_expiry;
+    return !!this.labels?.prefill_expiry || this.dflt("expiry_type")?.value === "guide";
   }
 
   /** Date proposed from the shelf life (today + days), "" without one. */

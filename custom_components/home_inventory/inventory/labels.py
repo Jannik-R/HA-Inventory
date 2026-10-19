@@ -35,9 +35,16 @@ def label_info(conn: sqlite3.Connection, batch_id: int) -> dict:
         lot = charge(row["made_on"], row["seq"])
         code += f":{lot}"
         brand = " · ".join(filter(None, (brand, lot)))
-    days = effective(conn, row["id"])["opened_days"]["value"]
-    expires_on = opened_until(row["expires_on"], row["opened_on"], days)
-    return {"name": row["name"], "brand": brand, "expires_on": expires_on, "code": code}
+    eff = effective(conn, row["id"])
+    expires_on = opened_until(row["expires_on"], row["opened_on"], eff["opened_days"]["value"])
+    approx = eff["expiry_type"]["value"] == "guide"  # printed as "ca." date
+    return {
+        "name": row["name"],
+        "brand": brand,
+        "expires_on": expires_on,
+        "approx": approx,
+        "code": code,
+    }
 
 
 def _label_batch(conn: sqlite3.Connection, code: str, unopened: bool = False) -> tuple:

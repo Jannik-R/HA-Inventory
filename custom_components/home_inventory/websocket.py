@@ -30,7 +30,7 @@ MASTER_SCHEMAS = {
             vol.Optional("parent_id"): NULL_ID,
             vol.Optional("unit_id"): NULL_ID,
             vol.Optional("default_location_id"): NULL_ID,
-            vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by"))),
+            vol.Optional("expiry_type"): vol.Any(None, vol.In(("best_before", "use_by", "guide"))),
             vol.Optional("warn_days"): vol.Any(None, DAYS),
             vol.Optional("shelf_days"): SHELF_DAYS,
             vol.Optional("opened_days"): SHELF_DAYS,
@@ -92,7 +92,7 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
         vol.Required("data"): {
             vol.Required("unit_id"): ID,
             vol.Required("default_location_id"): NULL_ID,
-            vol.Required("expiry_type"): vol.In(("best_before", "use_by")),
+            vol.Required("expiry_type"): vol.In(("best_before", "use_by", "guide")),
             vol.Required("warn_days"): DAYS,
             vol.Required("shelf_days"): SHELF_DAYS,
             vol.Required("opened_days"): SHELF_DAYS,

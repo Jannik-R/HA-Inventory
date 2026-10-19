@@ -28,7 +28,7 @@ from .ws_validate import (
     text,
 )
 
-_EXPIRY_TYPE = vol.Any(None, vol.In(("best_before", "use_by")))
+_EXPIRY_TYPE = vol.Any(None, vol.In(("best_before", "use_by", "guide")))
 _NEW_PRODUCT = vol.Schema(
     {
         vol.Required("name"): NAME,

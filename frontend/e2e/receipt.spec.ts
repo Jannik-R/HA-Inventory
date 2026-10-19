@@ -52,16 +52,19 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
   await page.getByTestId("mode-in").click();
   await page.getByTestId("receipt-import").click();
   await page.getByTestId("receipt-photo").evaluate(async (input: HTMLInputElement) => {
+    // a white receipt on a dark table: the scan finds its outline
     const c = document.createElement("canvas");
-    c.width = 600;
-    c.height = 300;
+    c.width = 900;
+    c.height = 700;
     const g = c.getContext("2d")!;
-    g.fillStyle = "#fff";
+    g.fillStyle = "#333";
     g.fillRect(0, 0, c.width, c.height);
+    g.fillStyle = "#fff";
+    g.fillRect(100, 100, 700, 400);
     g.fillStyle = "#000";
     g.font = "28px monospace";
     ["E2E MARKT", "JA H-MILCH 3,5%   2 x 0,99", "TRAGETASCHE   0,20"].forEach((l, i) =>
-      g.fillText(l, 20, 60 + i * 60),
+      g.fillText(l, 130, 180 + i * 80),
     );
     const blob = await new Promise<Blob>((done) => c.toBlob((b) => done(b!), "image/png"));
     const files = new DataTransfer();
@@ -69,6 +72,12 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
     input.files = files.files;
     input.dispatchEvent(new Event("change"));
   });
+  // outline step: corners found on the receipt, not the whole photo; then black and white
+  const corner = page.getByTestId("scan-corner").first();
+  await expect(page.getByTestId("camera-apply")).toBeEnabled({ timeout: 60_000 });
+  await expect.poll(async () => Number(await corner.getAttribute("cx"))).toBeGreaterThan(50);
+  await page.getByTestId("camera-apply").click();
+  await expect(page.getByTestId("receipt-preview")).toBeVisible();
   await page.getByTestId("receipt-read").click();
 
   const rows = page.getByTestId("receipt-row");
@@ -94,4 +103,23 @@ test("a receipt photo is read in the browser, checked and booked in", async ({ p
     [2, 1],
   ]);
   await api2.close();
+});
+
+test("the live camera takes a receipt and a recipe photo", async ({ page }) => {
+  test.setTimeout(120_000);
+  await openPage(page, "/pantry/stock", "Bestand");
+  await page.getByTestId("mode-in").click();
+  await page.getByTestId("receipt-import").click();
+  await page.getByTestId("receipt-scan").click();
+  await page.getByTestId("camera-capture").click();
+  await page.getByTestId("camera-uncut").click(); // the fake camera shows no receipt
+  await expect(page.getByTestId("receipt-preview")).toBeVisible();
+  await expect(page.getByTestId("receipt-read")).toBeEnabled();
+
+  await openPage(page, "/pantry/recipes", "Rezepte");
+  await page.getByTestId("recipe-import").click();
+  await page.getByTestId("recipe-import-source-photo").click();
+  await page.getByTestId("recipe-import-camera").click();
+  await page.getByTestId("camera-capture").click();
+  await expect(page.getByTestId("recipe-import-submit")).toBeEnabled();
 });

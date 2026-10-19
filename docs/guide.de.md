@@ -128,8 +128,12 @@ Statt jedes Produkt einzeln zu scannen, buchst du einen ganzen Einkauf vom Kasse
 nur, wenn eine KI eingerichtet ist (README, *KI*).
 
 1. Wähle beim Einbuchen (**+** vor dem Eingabefeld) **Kassenbon importieren**.
-2. **Foto des Kassenbons**: Fotografiere den Bon gerade und hell oder wähle ein Bild. Tippe auf
-   **Bon lesen**. Der Text wird auf deinem Gerät erkannt („Text wird erkannt … 40 %“), danach liest
+2. **Bon scannen**: Lege den Bon flach auf einen dunklen Untergrund. Die Kamera markiert seinen Rand;
+   tippe auf **Auslösen**. Danach siehst du das Foto mit vier Eckpunkten: ziehe sie auf die Ecken des
+   Bons, falls nötig, und tippe auf **Übernehmen**. Vorrat schneidet den Bon aus, richtet ihn gerade
+   und macht ihn schwarz-weiß; das Ergebnis erscheint als Vorschau. **Ohne Zuschnitt** nimmt das Foto
+   unverändert. Statt der Kamera geht auch **Oder Foto wählen** (mit demselben Eckenschritt). Beim
+   ersten Scan lädt Vorrat einige MB. Tippe auf **Bon lesen**. Der Text wird auf deinem Gerät erkannt („Text wird erkannt … 40 %“), danach liest
    die KI die Artikel („KI liest den Bon …“). An die KI geht nur der Text, nicht das Foto.
 3. Prüfe die Liste. Oben steht der **Händler** (änderbar). Jede Zeile zeigt den Bontext und darunter:
    - **Produkt**: das erkannte Produkt. Kommen mehrere in Frage, steht dort „Bitte wählen …“ und du
@@ -344,7 +348,7 @@ Importdialog wählst du die Quelle.
   KI den Beitrag aus: Beschreibung, Video (auch Gesprochenes und eingeblendeten Text) oder Bild. Den
   Link holst du in der App über *Teilen > Link kopieren*.
 - **Text**: Rezepttext einfügen, z. B. aus einer Nachricht; die KI ordnet ihn in Zutaten und Schritte.
-- **Foto**: ein Foto einer Kochbuchseite oder ein Screenshot.
+- **Foto**: ein Foto einer Kochbuchseite oder ein Screenshot; **Foto aufnehmen** öffnet die Kamera.
 
 **Importieren** zeigt „Rezept wird gelesen …“; mit KI dauert das bis zu einer Minute. Danach öffnet
 sich der Rezeptdialog wie bei jedem Import (mit KI-Prüfung). Findet die KI kein Rezept oder schlägt

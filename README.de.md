@@ -15,7 +15,7 @@ markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 Vorhanden:
 
 - Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts, bei Non-Food von Open Beauty Facts, Open Pet Food Facts und Open Products Facts
-- Kassenbon-Import (*Kassenbon importieren*, braucht eine KI): Foto des Bons, Texterkennung im Browser, die KI liest die Artikel, du prüfst Produkt, Packungen und Datum je Zeile in einem Dialog und buchst alles ein; merkt sich je Händler, welches Produkt zu einer Bonzeile gehört
+- Kassenbon-Import (*Kassenbon importieren*, braucht eine KI): Dokumentenscan des Bons (Live-Umriss, Ecken, Schwarz-Weiß), Texterkennung im Browser, die KI liest die Artikel, du prüfst Produkt, Packungen und Datum je Zeile in einem Dialog und buchst alles ein; merkt sich je Händler, welches Produkt zu einer Bonzeile gehört
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)
@@ -137,7 +137,7 @@ im Heimnetz). Mit eingerichteter KI:
   sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert
   Videos ohne Anmeldung oft; dann zählen nur Beschreibung und Bild.
 - *Text* und *Foto* im Importdialog schicken eingefügten Text (bis 20.000 Zeichen) oder ein Foto (im
-  Browser auf 2000 px verkleinert) an die KI.
+  Browser auf 2000 px verkleinert; gewählt oder mit *Foto aufnehmen* von der Live-Kamera) an die KI.
 
 Einen Beitrag auszulesen dauert 15 bis 60 Sekunden und kostet einen KI-Aufruf, dazu die Prüfung.
 
@@ -149,9 +149,12 @@ Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor
 Einbuchen angelegt.
 Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
 
-**Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) erkennt den Text eines
-Bonfotos im Browser (tesseract.js; Engine und deutsche Sprachdaten, einige MB, kommen einmal vom
-jsDelivr-CDN und bleiben im Browser-Cache). Nur dieser Text geht an die KI, zusammen mit der Liste
+**Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) scannt den Bon wie der
+Dokumentenscanner eines Handys: die Live-Kamera markiert den Rand des Bons, die Ecken lassen sich
+korrigieren, der Ausschnitt wird entzerrt und schwarz-weiß (OpenCV.js, etwa 10 MB, einmal vom
+jsDelivr-CDN, danach im Browser-Cache; ein gewähltes Foto bekommt denselben Zuschnitt-Schritt). Danach
+wird der Text im Browser erkannt (tesseract.js; Engine und deutsche Sprachdaten, einige MB, ebenfalls
+von jsDelivr und im Cache). Nur dieser Text geht an die KI, zusammen mit der Liste
 deiner Produkte (ID, Name, Marke), nicht das Foto: einige tausend Tokens. Die KI liefert den Händler
 und die Artikel mit bis zu fünf passenden Produkten je Zeile; Pfand, Tüten und Rabatte lässt sie weg.
 Eine einmal eingebuchte Bonzeile merkt sich Vorrat je Händler und wählt sie beim nächsten Mal vor.

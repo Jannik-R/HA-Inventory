@@ -14,7 +14,7 @@ minimum stock levels.
 Available:
 
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts, for non-food from Open Beauty Facts, Open Pet Food Facts and Open Products Facts
-- Receipt import (*Kassenbon importieren*, needs an AI): photo of a shopping receipt, text recognition in the browser, the AI reads the items, you check product, packages and date per line in one dialog and book all in; remembers per store which product a receipt line is
+- Receipt import (*Kassenbon importieren*, needs an AI): document scan of a shopping receipt (live outline, corners, black and white), text recognition in the browser, the AI reads the items, you check product, packages and date per line in one dialog and book all in; remembers per store which product a receipt line is
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
@@ -132,7 +132,8 @@ too). With an AI set up:
   video (Google Gemini does); otherwise it gets the text only. Instagram often refuses videos without
   login; then only the caption and the image are used.
 - *Text* and *Foto* in the import dialog send pasted text (up to 20,000 characters) or a photo
-  (scaled to 2000 px in the browser) to the AI.
+  (picked, or taken with *Foto aufnehmen* from the live camera; scaled to 2000 px in the browser) to
+  the AI.
 
 Reading a post takes 15 to 60 seconds and costs one AI call, plus the check.
 
@@ -143,9 +144,11 @@ category and the package content (e.g. "4 x 125 g" = 500 g). When no product typ
 new one below the right category; it is added when you book in. The book-in form stays usable meanwhile;
 fields you edited are kept.
 
-**Receipt import.** *Kassenbon importieren* (booking in, only with an AI) recognizes the text of a
-receipt photo in the browser (tesseract.js; engine and German data, a few MB, come once from the
-jsDelivr CDN and stay in the browser cache). Only that text goes to the AI, together with the list of
+**Receipt import.** *Kassenbon importieren* (booking in, only with an AI) scans the receipt like a
+phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and
+the cut-out is straightened and turned black and white (OpenCV.js, about 10 MB, once from the jsDelivr
+CDN, then cached; a picked photo gets the same outline step). Then the text is recognized in the
+browser (tesseract.js; engine and German data, a few MB, also from jsDelivr and cached). Only that text goes to the AI, together with the list of
 your products (id, name, brand), not the photo: a few thousand tokens. The AI returns the store and
 the items with up to five matching products each; deposit, bags and discounts are left out. A receipt
 line booked once is remembered per store and preselected next time without asking the AI to decide.

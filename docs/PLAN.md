@@ -206,6 +206,7 @@ marked "kein Lebensmittel" (`food` 0); migration 15 adds them to existing DBs (o
 does not exist yet) and marks *Haushalt & Drogerie*.
 
 Global defaults (integration options): warn 7 days, best-before, unit Stück, no shelf life.
+Shelf life and days after opening per food category / product type: `seed_days.py` (new DB after the seed, existing DBs by migration 21, only where empty; names must be unique).
 
 ## 3. Core flows
 

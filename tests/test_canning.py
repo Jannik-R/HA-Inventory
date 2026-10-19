@@ -99,6 +99,7 @@ def test_migration_15_keeps_batches(tmp_path, monkeypatch) -> None:
     full = db.MIGRATIONS
     monkeypatch.setattr(db, "MIGRATIONS", full[:14])
     monkeypatch.setattr(db, "add_general", lambda conn: None)  # the 14 seed had no such roots
+    monkeypatch.setattr(db, "fill_days", lambda conn: None)  # nor the columns
     c = db.connect(str(tmp_path / "old.db"))
     db.migrate(c)
     pid = c.execute(

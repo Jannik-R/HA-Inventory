@@ -15,6 +15,7 @@ from .const import SIGNAL_CHANGED
 from .migration_15 import SCHEMA_15
 from .migration_20 import SCHEMA_20
 from .seed import seed
+from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
 
@@ -431,6 +432,8 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     """,
     # 20: opened packages: inheritable opened_days, batch.opened_on, booking kind 'open' (see migration_20).
     SCHEMA_20,
+    # 21: typical shelf life and days after opening for seeded categories, only where empty (seed_days).
+    fill_days,
 ]
 
 
@@ -469,6 +472,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         seed(conn, "de")
         mark_recipe_only(conn)  # not in seed(): old-schema DBs are seeded by tests
         add_general(conn)  # same
+        fill_days(conn)  # same
         conn.commit()
 
 

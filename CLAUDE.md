@@ -5,6 +5,7 @@ Plan and data model: [docs/PLAN.md](docs/PLAN.md). Keep it current when decision
 
 ## Working rules
 
+- **Ask first.** Before starting a new feature or a larger task, ask all open questions in one message (numbered, each with a recommendation) and wait for the answers. Do not implement on assumptions; small obvious fixes need no questions.
 - **Always use Ponytail** (`/ponytail full`; plugin enabled in `.claude/settings.json`). Laziest solution that works; stdlib and native HA features first; no speculative abstractions.
 - **English** for code, comments, commits, docs. **German** only in UI strings (translation files) and in chat with the user.
 - **Tasks for the user (setup, manual tests, things Claude must not do itself) are always given as numbered step-by-step instructions**: where to click/what to type, exact commands in their own code block, what the expected result looks like, and what to report back.

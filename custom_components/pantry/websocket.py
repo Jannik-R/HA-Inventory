@@ -50,6 +50,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_defaults_save,
         ws_delete,
         ws_delete_impact,
+        ws_move_location,
         ws_lookup,
         ws_search,
     ):
@@ -126,6 +127,26 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
         )
     else:
         await run(hass, inventory.delete, msg["table"], msg["row_id"])
+    connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "pantry/move_location",
+        vol.Required("location_id"): ID,
+        vol.Required("move_to"): ID,
+    }
+)
+@websocket_api.require_admin
+@websocket_api.async_response
+async def ws_move_location(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Move all stock of a location to another one; the location stays."""
+    await run(
+        hass,
+        partial(inventory.move_location, user_id=connection.user.id),
+        msg["location_id"],
+        msg["move_to"],
+    )
     connection.send_result(msg["id"])
 
 

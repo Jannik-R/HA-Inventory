@@ -16,7 +16,7 @@ Available:
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
-- Stock overview with search, take-out and batch correction
+- Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
 - Expiry overview with a temporary "expiring soon" threshold and recipe suggestions that use up what expires (recipes ranked by expiring ingredients, then by availability; marked in the recipe list); sensors for expired / expiring packages
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode or label code, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
@@ -32,7 +32,7 @@ Available:
 
 Planned:
 
-- Moving a whole storage location, opened packages with a shorter shelf life, AI interface (Assist / MCP)
+- Opened packages with a shorter shelf life, AI interface (Assist / MCP)
 
 Order and details: [docs/PLAN.md](docs/PLAN.md) section 6.
 

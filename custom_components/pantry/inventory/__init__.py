@@ -39,7 +39,7 @@ from .queries import expiring, stock_list
 from .recipe_import import recipe_import
 from .recipe_print import recipe_sheet
 from .recipes import recipe_availability, recipes, save_recipe
-from .removal import delete_impact, force_delete
+from .removal import delete_impact, force_delete, move_location
 from .shopping import (
     add_shopping_by_name,
     add_shopping_item,
@@ -95,6 +95,7 @@ __all__ = [
     "meal_times",
     "meals",
     "move",
+    "move_location",
     "parse_ingredient",
     "plan_meal_by_name",
     "plan_to_shopping_list",

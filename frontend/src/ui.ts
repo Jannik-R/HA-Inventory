@@ -5,6 +5,7 @@ import {
   mdiDeleteOutline,
   mdiPencilOutline,
   mdiPlus,
+  mdiSwapHorizontal,
 } from "@mdi/js";
 import { t } from "./i18n";
 import { confirmDialog } from "./confirm-dialog";
@@ -140,6 +141,9 @@ export const rowActions = (o: {
   /** Tree rows: add a child; addLabel is the button's accessible name. */
   onAdd?: () => void;
   addLabel?: string;
+  /** Location rows: move all its stock elsewhere (moveLabel is the button's accessible name). */
+  onMove?: () => void;
+  moveLabel?: string;
 }) =>
   html`${
       o.onAdd
@@ -151,6 +155,18 @@ export const rowActions = (o: {
             @click=${o.onAdd}
           >
             ${icon(mdiPlus)}
+          </button>`
+        : nothing
+    }${
+      o.onMove
+        ? html`<button
+            class="icon-btn"
+            data-testid=${`${o.testid}-move`}
+            aria-label=${o.moveLabel ?? ""}
+            title=${o.moveLabel ?? ""}
+            @click=${o.onMove}
+          >
+            ${icon(mdiSwapHorizontal)}
           </button>`
         : nothing
     }<button

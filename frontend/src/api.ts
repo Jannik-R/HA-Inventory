@@ -93,6 +93,8 @@ export const deleteRow = (
   row_id: number,
   opts: { force?: boolean; move_to?: number | null } = {},
 ) => hass.callWS<unknown>({ type: "pantry/delete", table, row_id, ...opts });
+export const moveLocation = (hass: Hass, location_id: number, move_to: number) =>
+  hass.callWS<unknown>({ type: "pantry/move_location", location_id, move_to });
 export interface DeleteGroup {
   /** "<delete|change>.<table>" */
   kind: string;

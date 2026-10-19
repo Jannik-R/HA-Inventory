@@ -2,7 +2,7 @@ import { openPage, panelConfig } from "./helpers";
 import { expect, test } from "./fixtures";
 
 // Any image will do (the AI is stubbed); the dialog scales it to a JPEG data URL before sending.
-const PHOTO = "../docs/images/canning-dark.png";
+const PHOTO = "../docs/images/canning-de-dark.png";
 
 const draft = (name: string) => ({
   name,

@@ -28,7 +28,7 @@ export const ws = (page: Page, msg: Record<string, unknown>) =>
 /** A fresh page with HA's connection ready, for `ws` calls in beforeAll/afterAll. */
 export async function apiPage(browser: Browser) {
   const page = await browser.newPage();
-  await openPage(page, "/home_inventory/stock", "Bestand");
+  await page.goto("/home_inventory/stock"); // any language: only the connection matters here
   await page.waitForFunction(
     () => (document.querySelector("home-assistant") as unknown as { hass?: unknown })?.hass,
   );

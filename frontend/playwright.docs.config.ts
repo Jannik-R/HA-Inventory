@@ -5,6 +5,7 @@ import base from "./playwright.config";
 // never picks up *.docs.ts (Playwright's default testMatch only matches *.spec.ts / *.test.ts).
 export default defineConfig({
   ...base,
+  workers: 1, // the demo data is created once per worker
   projects: [
     base.projects![0], // setup (login)
     {

@@ -60,8 +60,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry
             hass,
             frontend_url_path=DOMAIN,
             webcomponent_name="home-inventory-panel",
-            # shortcut: HA cannot translate custom panel titles; German only until it matters.
-            sidebar_title="Vorrat",
+            # HA cannot translate custom panel titles: the system language at setup decides
+            sidebar_title="Vorrat" if hass.config.language.startswith("de") else "Home Inventory",
             sidebar_icon="mdi:fridge-outline",
             module_url=f"{PANEL_URL}/home-inventory-panel.js?v={version}",
             require_admin=False,

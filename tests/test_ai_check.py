@@ -291,6 +291,14 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
     assert res["status"] == "changes" and len(res["steps"]) == 2
     assert gen.await_args.kwargs["entity_id"] == "ai_task.test"
     assert "Recipe draft:" in gen.await_args.kwargs["instructions"]
+    assert gen.await_args.kwargs["instructions"].endswith('Write every "reason" in English.\n')
+    with patch(
+        "custom_components.home_inventory.ai._generate", new=AsyncMock(return_value=answer)
+    ) as gen:
+        msg = {"type": "home_inventory/recipe_ai_check", "draft": d, "language": "de-DE"}
+        await client.send_json_auto_id(msg)
+        await client.receive_json()
+    assert gen.await_args.kwargs["instructions"].endswith('Write every "reason" in German.\n')
 
     p = {"name": "Spaghetti", "category_id": None, "off_json": "{}", "ean": "8076800195057"}
     answer = SimpleNamespace(data={"ok": False, "name": "Spaghetti n.5", "reason": "r"})

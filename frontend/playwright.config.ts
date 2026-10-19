@@ -25,6 +25,8 @@ export default defineConfig({
     baseURL: process.env.HA_URL ?? "http://localhost:8123",
     // Installed Edge/Chrome instead of a downloaded browser; override with PW_CHANNEL.
     channel: process.env.PW_CHANNEL ?? "msedge",
+    // specs check German labels; HA picks the browser language (e2e/i18n.spec.ts switches to English)
+    locale: "de-DE",
     trace: "retain-on-failure",
     // HA registers a service worker on localhost; its first activation reloads the page mid-test.
     serviceWorkers: "block",

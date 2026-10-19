@@ -30,7 +30,7 @@ test.beforeAll(async ({ browser }) => {
   const cat = (name: string) => id("categories", name);
   const unit = (name: string) => id("units", name);
   const fridge = id("locations", "Kühlschrank");
-  const home_inventory = id("locations", "Vorratsschrank");
+  const cupboard = id("locations", "Vorratsschrank");
 
   const bookIn = async (
     name: string,
@@ -41,6 +41,9 @@ test.beforeAll(async ({ browser }) => {
     location_id: number,
     ean?: string,
   ) => {
+    // leftovers of an aborted run (same name or EAN) would make the book-in fail
+    const old = (await ws(api, { type: "home_inventory/search", query: name })) as Row[];
+    for (const p of old) if (p.name === name) await remove(api, "product", p.id);
     const r = (await ws(api, {
       type: "home_inventory/book_in",
       product: {
@@ -59,16 +62,16 @@ test.beforeAll(async ({ browser }) => {
   await bookIn("Vollmilch 1,5 %", "Milch", [1, "l"], 2, 3, fridge, "4000000000006");
   await bookIn("Naturjoghurt 3,5 %", "Naturjoghurt", [500, "g"], 1, -2, fridge);
   await bookIn("Parmesan am Stück", "Parmesan", [200, "g"], 1, 20, fridge);
-  await bookIn("Tomatenmark", "Tomatenmark", [200, "g"], 3, 400, home_inventory);
-  await bookIn("Passierte Tomaten", "Passierte Tomaten", [500, "g"], 2, 300, home_inventory);
-  await bookIn("Basmatireis", "Basmatireis", [1, "kg"], 1, 500, home_inventory);
+  await bookIn("Tomatenmark", "Tomatenmark", [200, "g"], 3, 400, cupboard);
+  await bookIn("Passierte Tomaten", "Passierte Tomaten", [500, "g"], 2, 300, cupboard);
+  await bookIn("Basmatireis", "Basmatireis", [1, "kg"], 1, 500, cupboard);
 
   const canning = (await ws(api, {
     type: "home_inventory/canning_save",
     data: {
       made_on: day(-30),
       jars: 6,
-      location_id: home_inventory,
+      location_id: cupboard,
       product: { name: "Erdbeermarmelade", category_id: cat("Marmelade & Gelee") },
       temp: 85,
       minutes: 10,
@@ -76,6 +79,8 @@ test.beforeAll(async ({ browser }) => {
   })) as { id: number };
   canningId = canning.id;
 
+  const recipes = (await ws(api, { type: "home_inventory/recipes" })) as Row[];
+  for (const r of recipes) if (r.name === "Pasta al pomodoro") await remove(api, "recipe", r.id);
   recipeId = (
     (await ws(api, {
       type: "home_inventory/recipe_save",
@@ -108,6 +113,14 @@ test.beforeAll(async ({ browser }) => {
   ).id;
   await ws(api, { type: "home_inventory/shopping_recipe_set", recipe_id: recipeId, servings: 6 });
 
+  const demo = ["Linsensuppe", "Pasta al pomodoro", "Müsli mit Joghurt", "Pizza vom Lieferdienst"];
+  const { meals: planned } = (await ws(api, {
+    type: "home_inventory/meal_plan",
+    start: day(monday),
+    end: day(monday + 2), // end excluded
+  })) as { meals: { id: number; name: string }[] };
+  for (const m of planned)
+    if (demo.includes(m.name)) await ws(api, { type: "home_inventory/meal_delete", meal_id: m.id });
   // slots: 0 breakfast, 1 lunch, 3 dinner
   for (const [offset, slot, text, recipe_id] of [
     [monday, 1, "Linsensuppe", null],
@@ -141,49 +154,76 @@ test.afterAll(async ({ browser }) => {
   await api.close();
 });
 
-const shot = (page: Page, name: string, theme: string) =>
-  page.screenshot({ path: `${OUT}/${name}-${theme}.png`, animations: "disabled" });
+// Tab names per guide language (the demo data stays German).
+const TABS = {
+  de: {
+    stock: "Bestand",
+    expiry: "Ablauf",
+    shopping: "Einkauf",
+    recipes: "Rezepte",
+    plan: "Speiseplan",
+    canning: "Einkochen",
+  },
+  en: {
+    stock: "Stock",
+    expiry: "Expiry",
+    shopping: "Shopping",
+    recipes: "Recipes",
+    plan: "Meal plan",
+    canning: "Canning",
+  },
+};
 
-for (const theme of ["light", "dark"] as const) {
-  test(`guide screenshots (${theme})`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: theme });
-    // German dates and numbers like the UI (HA keeps the language per browser)
-    await page.addInitScript(() => localStorage.setItem("selectedLanguage", '"de"'));
+for (const lang of ["de", "en"] as const)
+  test.describe(lang, () => {
+    test.use({ locale: lang === "de" ? "de-DE" : "en-US" }); // native date inputs
+    for (const theme of ["light", "dark"] as const) {
+      const tab = TABS[lang];
+      const shot = (page: Page, name: string) =>
+        page.screenshot({ path: `${OUT}/${name}-${lang}-${theme}.png`, animations: "disabled" });
+      test(`guide screenshots (${lang}, ${theme})`, async ({ page }) => {
+        await page.emulateMedia({ colorScheme: theme });
+        // panel language, dates and numbers of the guide (HA keeps the language per browser)
+        await page.addInitScript(
+          (l) => localStorage.setItem("selectedLanguage", JSON.stringify(l)),
+          lang,
+        );
 
-    await openPage(page, "/home_inventory/stock", "Bestand");
-    const closed = page.locator('[data-testid="stock-category"][aria-expanded="false"]');
-    await expect(closed.first()).toBeVisible();
-    while (await closed.count()) await closed.first().click();
-    await page.getByTestId("code-input").scrollIntoViewIfNeeded();
-    await shot(page, "stock", theme);
+        await openPage(page, "/home_inventory/stock", tab.stock);
+        const closed = page.locator('[data-testid="stock-category"][aria-expanded="false"]');
+        await expect(closed.first()).toBeVisible();
+        while (await closed.count()) await closed.first().click();
+        await page.getByTestId("code-input").scrollIntoViewIfNeeded();
+        await shot(page, "stock");
 
-    await openPage(page, "/home_inventory/in", "Bestand");
-    await page.getByTestId("code-input").fill("4000000000006");
-    await page.getByTestId("code-input").press("Enter");
-    await expect(page.locator("dialog[open]")).toBeVisible();
-    await shot(page, "book-in", theme);
-    await page.keyboard.press("Escape");
+        await openPage(page, "/home_inventory/in", tab.stock);
+        await page.getByTestId("code-input").fill("4000000000006");
+        await page.getByTestId("code-input").press("Enter");
+        await expect(page.locator("dialog[open]")).toBeVisible();
+        await shot(page, "book-in");
+        await page.keyboard.press("Escape");
 
-    await openPage(page, "/home_inventory/expiry", "Ablauf");
-    await expect(page.getByText("Naturjoghurt 3,5 %")).toBeVisible();
-    await shot(page, "expiry", theme);
+        await openPage(page, "/home_inventory/expiry", tab.expiry);
+        await expect(page.getByText("Naturjoghurt 3,5 %")).toBeVisible();
+        await shot(page, "expiry");
 
-    await openPage(page, "/home_inventory/shopping", "Einkauf");
-    await expect(page.getByText("Zwiebeln").first()).toBeVisible();
-    await shot(page, "shopping", theme);
+        await openPage(page, "/home_inventory/shopping", tab.shopping);
+        await expect(page.getByText("Zwiebeln").first()).toBeVisible();
+        await shot(page, "shopping");
 
-    await openPage(page, "/home_inventory/recipes", "Rezepte");
-    const recipe = page.getByTestId("recipe-row").filter({ hasText: "Pasta al pomodoro" });
-    await recipe.getByTestId("recipe-toggle").click();
-    await expect(recipe.getByText("Mit Parmesan und Basilikum servieren.")).toBeVisible();
-    await shot(page, "recipe", theme);
+        await openPage(page, "/home_inventory/recipes", tab.recipes);
+        const recipe = page.getByTestId("recipe-row").filter({ hasText: "Pasta al pomodoro" });
+        await recipe.getByTestId("recipe-toggle").click();
+        await expect(recipe.getByText("Mit Parmesan und Basilikum servieren.")).toBeVisible();
+        await shot(page, "recipe");
 
-    await openPage(page, "/home_inventory/plan/week", "Speiseplan");
-    await expect(page.getByText("Linsensuppe")).toBeVisible();
-    await shot(page, "plan", theme);
+        await openPage(page, "/home_inventory/plan/week", tab.plan);
+        await expect(page.getByText("Linsensuppe")).toBeVisible();
+        await shot(page, "plan");
 
-    await openPage(page, "/home_inventory/canning", "Einkochen");
-    await expect(page.getByText("Erdbeermarmelade").first()).toBeVisible();
-    await shot(page, "canning", theme);
+        await openPage(page, "/home_inventory/canning", tab.canning);
+        await expect(page.getByText("Erdbeermarmelade").first()).toBeVisible();
+        await shot(page, "canning");
+      });
+    }
   });
-}

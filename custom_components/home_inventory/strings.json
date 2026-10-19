@@ -11,6 +11,9 @@
       "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
     }
   },
+  "device": {
+    "inventory": { "name": "Home Inventory" }
+  },
   "entity": {
     "sensor": {
       "expired": { "name": "Expired", "unit_of_measurement": "packages" },

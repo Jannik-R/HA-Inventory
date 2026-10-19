@@ -11,6 +11,9 @@
       "single_instance_allowed": "Already configured. Only a single configuration possible."
     }
   },
+  "device": {
+    "inventory": { "name": "Home Inventory" }
+  },
   "entity": {
     "sensor": {
       "expired": { "name": "Expired", "unit_of_measurement": "packages" },

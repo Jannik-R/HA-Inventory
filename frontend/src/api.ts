@@ -359,7 +359,7 @@ export type AiCheck =
       steps?: Step[];
     };
 export const checkRecipe = (hass: Hass, draft: Record<string, unknown>) =>
-  hass.callWS<AiCheck>({ type: "home_inventory/recipe_ai_check", draft });
+  hass.callWS<AiCheck>({ type: "home_inventory/recipe_ai_check", draft, language: hass.language });
 /** AI check of a new product from Open Food Facts: only the fields that change. */
 export type ProductAiCheck =
   | { status: "off" | "ok" }
@@ -367,6 +367,10 @@ export type ProductAiCheck =
       Pick<Product, "name" | "category_id" | "content_amount" | "content_unit_id">
     >);
 export const checkProduct = (hass: Hass, draft: Record<string, unknown>) =>
-  hass.callWS<ProductAiCheck>({ type: "home_inventory/product_ai_check", draft });
+  hass.callWS<ProductAiCheck>({
+    type: "home_inventory/product_ai_check",
+    draft,
+    language: hass.language,
+  });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>
   hass.callWS<{ id: number }>({ type: "home_inventory/unit_add", name, symbol });

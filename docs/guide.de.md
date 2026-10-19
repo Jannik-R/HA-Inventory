@@ -61,7 +61,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 
 ## 2. Einkäufe einbuchen
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/book-in-dark.png"><img src="images/book-in-light.png" alt="Dialog Produkt zubuchen nach dem Scan eines bekannten Produkts" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/book-in-de-dark.png"><img src="images/book-in-de-light.png" alt="Dialog Produkt zubuchen nach dem Scan eines bekannten Produkts" width="300"></picture></p>
 
 Öffne **Bestand** und stelle den Schalter vor dem Eingabefeld auf **+** (Einbuchen). Die drei
 Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der gewählte ist gefüllt.
@@ -190,7 +190,7 @@ Nach dem Anbrechen stehen neben der Meldung:
 
 ## 4. Bestand ansehen und korrigieren
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stock-dark.png"><img src="images/stock-light.png" alt="Tab Bestand mit aufgeklapptem Kategoriebaum" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stock-de-dark.png"><img src="images/stock-de-light.png" alt="Tab Bestand mit aufgeklapptem Kategoriebaum" width="300"></picture></p>
 
 **Bestand** zeigt den Kategoriebaum mit allem, was da ist, mit Anzahl und frühestem Datum.
 
@@ -210,7 +210,7 @@ Nach dem Anbrechen stehen neben der Meldung:
 
 ## 5. Was läuft ab?
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-dark.png"><img src="images/expiry-light.png" alt="Tab Ablauf mit abgelaufenen und bald fälligen Chargen" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/expiry-de-dark.png"><img src="images/expiry-de-light.png" alt="Tab Ablauf mit abgelaufenen und bald fälligen Chargen" width="300"></picture></p>
 
 **Ablauf** listet alle abgelaufenen (rot) und bald ablaufenden (orange) Chargen, das früheste Datum
 zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geerbt oder eigen).
@@ -228,7 +228,7 @@ stehen oben, bei gleicher Zahl das Rezept mit mehr vorhandenen Zutaten. Ein Tipp
 
 ## 6. Einkaufsliste
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-dark.png"><img src="images/shopping-light.png" alt="Tab Einkauf mit Einträgen aus einem Rezept" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/shopping-de-dark.png"><img src="images/shopping-de-light.png" alt="Tab Einkauf mit Einträgen aus einem Rezept" width="300"></picture></p>
 
 Die Einkaufsliste im Tab **Einkauf** speist sich aus drei Quellen:
 
@@ -277,7 +277,7 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 
 ## 7. Rezepte
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/recipe-dark.png"><img src="images/recipe-light.png" alt="Aufgeklapptes Rezept mit Zutatenstatus und Schritten" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/recipe-de-dark.png"><img src="images/recipe-de-light.png" alt="Aufgeklapptes Rezept mit Zutatenstatus und Schritten" width="300"></picture></p>
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
 [Einkochen](#7b-einkochen), nicht hier). Das Suchfeld findet Name und
@@ -402,7 +402,7 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 
 ## 7a. Speiseplan
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-dark.png"><img src="images/plan-light.png" alt="Speiseplan in der Wochenansicht am Handy" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/plan-de-dark.png"><img src="images/plan-de-light.png" alt="Speiseplan in der Wochenansicht am Handy" width="300"></picture></p>
 
 **Speiseplan** zeigt den Plan als **Tag**, **Woche** oder **Monat** (Knöpfe oben). **Zurück** und **Weiter** springen um einen Tag, eine Woche oder einen Monat, je nach Ansicht; **Heute** springt zum heutigen Datum. Beim Öffnen des Tabs steht der Plan auf heute; ein Wechsel der Ansicht behält das gewählte Datum.
 
@@ -420,7 +420,7 @@ Status der Zutaten: *vorhanden*, *teilweise*, *fehlt*, *Menge unbekannt* (Produk
 
 Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog). Der Stift ändert ein Gericht, der Papierkorb löscht es. Wird ein Rezept gelöscht, bleiben seine Gerichte im Plan als freier Text; die Löschfrage listet sie auf.
 
-**Umplanen**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, auf den jeweils nächsten Tag. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
+**Ab hier um einen Tag verschieben**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, auf den jeweils nächsten Tag. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
 
 **Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
 
@@ -434,7 +434,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 ## 7b. Einkochen
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-dark.png"><img src="images/canning-light.png" alt="Tab Einkochen mit Einkochprotokollen" width="300"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-de-dark.png"><img src="images/canning-de-light.png" alt="Tab Einkochen mit Einkochprotokollen" width="300"></picture></p>
 
 Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) buchst du über ein **Einkochprotokoll**
 ein. Jedes Protokoll bekommt eine Charge. Die Etiketten tragen sie, daher bucht ein Scan genau ein

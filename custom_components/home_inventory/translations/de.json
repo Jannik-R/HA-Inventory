@@ -11,6 +11,9 @@
       "single_instance_allowed": "Bereits eingerichtet. Nur eine einzige Konfiguration möglich."
     }
   },
+  "device": {
+    "inventory": { "name": "Vorrat" }
+  },
   "entity": {
     "sensor": {
       "expired": { "name": "Abgelaufen", "unit_of_measurement": "Pkg." },

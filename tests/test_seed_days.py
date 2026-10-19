@@ -56,5 +56,10 @@ def test_book_in_without_date_guesses_from_shelf_life(conn) -> None:
     assert (
         conn.execute("SELECT expiry_guessed FROM batch WHERE id = ?", (guessed,)).fetchone()[0] == 0
     )
+    # "today" comes from HA's time zone when the caller passes it
+    other = inv.book_in(conn, milk, 1, None, loc(conn), today=date(2030, 1, 1))
+    assert conn.execute("SELECT expires_on FROM batch WHERE id = ?", (other,)).fetchone()[0] == (
+        "2030-04-01"
+    )
     paper = inv.book_in(conn, product(conn, "Küchenrolle", "Papier"), 1, None, loc(conn))
     assert conn.execute("SELECT expires_on FROM batch WHERE id = ?", (paper,)).fetchone()[0] is None

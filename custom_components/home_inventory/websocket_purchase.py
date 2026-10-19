@@ -7,6 +7,7 @@ from functools import partial
 import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from . import ai, inventory
 from .inventory.purchase import MAX_ITEMS, MAX_TEXT
@@ -55,5 +56,5 @@ async def ws_receipt_read(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.async_response
 async def ws_receipt_book(hass: HomeAssistant, connection, msg: dict) -> None:
     """Book the reviewed items in, one transaction; any user, like booking."""
-    fn = partial(inventory.book_receipt, user_id=connection.user.id)
+    fn = partial(inventory.book_receipt, user_id=connection.user.id, today=dt_util.now().date())
     connection.send_result(msg["id"], await run(hass, fn, msg.get("store") or "", msg["items"]))

@@ -98,10 +98,12 @@ def book_in(
     location_id: int | None = None,
     source: str = "manual",
     user_id: str | None = None,
+    today: date | None = None,
 ) -> int:
     """Book packages in; the same product+date merges into one batch. Returns batch id.
 
-    No date: today + the inherited shelf life, marked as guessed (no shelf life: no date)."""
+    No date: today (HA's time zone, passed by the callers) + the inherited shelf life, marked as
+    guessed (no shelf life: no date)."""
     _packages(packages)
     eff = effective(conn, product_id)  # raises not_found
     location_id = location_id or eff["default_location_id"]["value"]
@@ -111,7 +113,7 @@ def book_in(
     days = eff["shelf_days"]["value"]
     guessed = not expires_on and days is not None
     if guessed:
-        expires_on = date.today() + timedelta(days=days)
+        expires_on = (today or date.today()) + timedelta(days=days)
     batch_id = _batch(conn, product_id, expires_on, guessed=guessed)
     _add(conn, batch_id, location_id, packages)
     _booking(conn, "in", batch_id, location_id, packages, source, user_id)

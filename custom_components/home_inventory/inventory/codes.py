@@ -44,11 +44,13 @@ def book_in_by_code(
     expires_on: date | str | None = None,
     location: str | None = None,
     user_id: str | None = None,
+    today: date | None = None,
 ) -> dict:
     product = _product(conn, code)
     batch_id = book_in(
-        conn, product["id"], packages, expires_on, _location(conn, location), "service", user_id
-    )
+        conn, product["id"], packages, expires_on, _location(conn, location), "service", user_id,
+        today,
+    )  # fmt: skip
     return {"product_id": product["id"], "batch_id": batch_id, "name": product["name"]}
 
 

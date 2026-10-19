@@ -78,8 +78,7 @@ async def _generate(hass: HomeAssistant, **kwargs):
 
 def entity_of(hass: HomeAssistant) -> str | None:
     """The AI Task entity from the options, None = no AI (unset, or ai_task not loaded)."""
-    entries = hass.config_entries.async_loaded_entries(DOMAIN)
-    entity_id = entries[0].options.get(CONF_AI_TASK) if entries else None
+    entity_id = options_of(hass).get(CONF_AI_TASK)
     return entity_id if entity_id and "ai_task" in hass.config.components else None
 
 

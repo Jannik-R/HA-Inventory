@@ -5,6 +5,7 @@ which product a receipt line of a store is (table receipt_line)."""
 from __future__ import annotations
 
 import sqlite3
+from datetime import date
 
 from .booking import book_in
 from .common import InventoryError
@@ -102,7 +103,11 @@ def analyze(conn: sqlite3.Connection, answer: object) -> dict:
 
 
 def book_receipt(
-    conn: sqlite3.Connection, store: str, items: list[dict], user_id: str | None = None
+    conn: sqlite3.Connection,
+    store: str,
+    items: list[dict],
+    user_id: str | None = None,
+    today: date | None = None,
 ) -> dict:
     """Book every item in (one transaction): `product_id` or a new `product` {name, category_id},
     packages, expires_on (empty: guessed from the shelf life), location_id (empty: default).
@@ -119,6 +124,7 @@ def book_receipt(
             it.get("location_id"),
             "receipt",
             user_id,
+            today,
         )
         booked += it["packages"]
         if key := line_key(it.get("text") or ""):

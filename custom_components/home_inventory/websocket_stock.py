@@ -8,6 +8,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import Unauthorized
+from homeassistant.util import dt as dt_util
 
 from . import inventory
 from .ws_common import run
@@ -95,6 +96,7 @@ async def ws_book_in(hass: HomeAssistant, connection, msg: dict) -> None:
     opts = {k: msg[k] for k in ("expires_on", "location_id") if k in msg} | {
         "source": "panel",
         "user_id": connection.user.id,
+        "today": dt_util.now().date(),
     }
     try:
         if "product_id" in msg:

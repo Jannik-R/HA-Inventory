@@ -112,6 +112,7 @@ def async_register(hass: HomeAssistant) -> None:
             expires_on=d.get("expires_on") or None,
             location=d.get("location") or None,
             user_id=call.context.user_id,
+            today=dt_util.now().date(),
         )
         return await _run(hass, fn, d["code"], d["packages"])
 

@@ -177,3 +177,19 @@ async def test_ws_text_and_photo(hass, ws, tmp_path):  # noqa: F811
     bad = {"type": "home_inventory/recipe_import", "image": "data:image/png;base64,!!"}
     assert (await ws.call(bad))["error"]["translation_key"] == "invalid_value"
     assert not (await ws.call({**img, "image": "data:text/html;base64,AA=="}))["success"]
+
+
+async def test_image_download_limits(hass, aioclient_mock, tmp_path):
+    jpeg = {"Content-Type": "image/jpeg"}
+    aioclient_mock.get("https://cdn.test/a.jpg", content=b"x" * 20, headers=jpeg)
+    aioclient_mock.get(
+        "https://cdn.test/page", text="<html>", headers={"Content-Type": "text/html"}
+    )
+    assert (
+        await recipe_media.async_image(hass, "https://cdn.test/a.jpg", tmp_path)
+    ).stat().st_size == 20
+    with patch.object(recipe_media, "MAX_IMAGE", 10):  # too big: nothing kept in memory or on disk
+        assert (
+            await recipe_media.async_image(hass, "https://cdn.test/a.jpg", tmp_path / "x") is None
+        )
+    assert await recipe_media.async_image(hass, "https://cdn.test/page", tmp_path) is None

@@ -38,11 +38,12 @@ custom_components/home_inventory/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
     __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer), purchase (receipt import: prompt, answer check, booking, learned receipt lines)
-  db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
+  db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities after writes
+  migrations.py             MIGRATIONS: the schema steps (SQL scripts or callables), one per schema version
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
-  migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of db.py for size
+  migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of migrations.py for size
   migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
@@ -82,7 +83,7 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - Target the current stable Home Assistant release; follow HA developer docs (config flow, `entry.runtime_data`, `async_` naming).
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason.
-- Schema change = new migration step in `db.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
+- Schema change = new migration step in `migrations.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 

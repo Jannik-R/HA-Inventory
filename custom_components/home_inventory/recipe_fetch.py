@@ -6,18 +6,11 @@ import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from . import inventory
-from .db import Database
 from .inventory import InventoryError
 
 MAX_BYTES = 5_000_000
 TIMEOUT = aiohttp.ClientTimeout(total=15)
 HEADERS = {"User-Agent": "HA-Inventory (https://github.com/Jannik-R/HA-Inventory)"}
-
-
-async def async_import(hass: HomeAssistant, db: Database, url: str) -> dict:
-    """Recipe draft (not saved) from the schema.org data of the page at `url`."""
-    return await db.run(inventory.recipe_import, await async_fetch(hass, url), url, write=False)
 
 
 async def async_fetch(hass: HomeAssistant, url: str) -> str:

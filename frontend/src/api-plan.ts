@@ -37,3 +37,13 @@ export const shiftMeals = (hass: Hass, day: string, slot: number, apply: boolean
     slot,
     apply,
   });
+/** Recipes planned from `start` to `end` (both included) onto the shopping list. */
+export const planToShoppingList = (hass: Hass, start: string, end: string) =>
+  hass.callWS<{
+    recipes: { recipe_id: number; name: string; servings: number }[];
+    skipped: number;
+  }>({
+    type: "pantry/plan_to_shopping_list",
+    start,
+    end,
+  });

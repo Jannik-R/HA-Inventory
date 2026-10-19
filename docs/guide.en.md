@@ -325,6 +325,8 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Drucken** (print): in **Tag** and **Woche** this button prints the day or the week (Monday to Sunday) on the receipt printer, each day with all its dishes. It only shows with a receipt printer; the month does not fit a receipt.
 
+**Einkaufsliste** (shopping list): this button opens a dialog with **Von** (from) and **Bis** (to), by default today to six days later. **Auf die Liste** (onto the list) puts every recipe planned in that range on the shopping list with the servings of all its meals added up; what is in stock is subtracted, as for [recipes on the list](#6-shopping-list). Free-text dishes are skipped, and a recipe already on the list keeps the larger servings. **Bis** may not be before **Von** (at most 366 days). A line above the plan names what was added. There is no consumption forecast yet.
+
 **Mahlzeiten** (meal times, admins only): under *Einstellungen > Mahlzeiten* set from when each meal counts (default: Frühstück 05:00, Mittag 11:00, Kaffee 14:30, Abendessen 17:00, Snack 20:30). The action *Geplantes Rezept drucken* (print planned recipe) uses it when no meal is given, e.g. a button in the kitchen that prints the recipe for the next meal.
 
 **Household size** (admins only): in *Settings > Devices & services > Home Inventory > Configure*, step **Haushalt** (menu *Einstellungen*), set **Portionen im Haushalt** (1 to 99, default 3). It is the servings default for new dishes.
@@ -487,6 +489,6 @@ Right after the booking use **Rückgängig**, otherwise fix the batch with the p
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`pantry.book_in`, `pantry.book_out`), printing (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), the shopping list (`pantry.shop_recipe`), the meal plan (`pantry.plan_meal`) and canning (`pantry.canning`) (see [README](../README.md#services-automations)).
+For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`pantry.book_in`, `pantry.book_out`), printing (`pantry.print_labels`, `pantry.print_shopping_list`, `pantry.print_recipe`, `pantry.print_plan`, `pantry.print_planned`), the shopping list (`pantry.shop_recipe`), the meal plan (`pantry.plan_meal`, `pantry.plan_to_shopping_list`) and canning (`pantry.canning`) (see [README](../README.md#services-automations)).
 
 </details>

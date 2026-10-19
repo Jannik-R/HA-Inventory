@@ -125,6 +125,8 @@ async def test_services(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     planned = await call(hass, "plan_meal", text="Pizza", day="2026-10-19", meal="lunch")
     rows = await entry.runtime_data.run(inv.meals, "2026-10-19", "2026-10-20")
     assert [(m["id"], m["slot"], m["servings"]) for m in rows] == [(planned["meal_id"], 1, 3)]
+    shop = await call(hass, "plan_to_shopping_list", start="2026-10-19", days=2)
+    assert shop == {"recipes": [], "skipped": 1}  # only the free-text dish is planned
     with pytest.raises(ServiceValidationError) as err:
         await call(hass, "plan_meal")
     assert err.value.translation_key == "dish_required"

@@ -13,6 +13,8 @@ import { NARROW, weekStyles, weekTable } from "./plan-week";
 import { monthGrid, monthStyles } from "./plan-month";
 import "./meal-dialog";
 import "./receipt-button";
+import "./plan-shopping-dialog";
+import type { PantryPlanShoppingDialog } from "./plan-shopping-dialog";
 import type { PantryMealDialog } from "./meal-dialog";
 
 /** Meal planner with day, week and month view; the view comes from the route (`plan/<view>`). */
@@ -25,6 +27,7 @@ export class PantryPlan extends LitElement {
     household: { state: true },
     recipes: { state: true },
     error: { state: true },
+    note: { state: true },
   };
 
   declare hass?: Hass;
@@ -34,6 +37,7 @@ export class PantryPlan extends LitElement {
   declare household: number;
   declare recipes: Recipe[];
   declare error: string;
+  declare note: string;
   private started = false;
   private narrow = window.matchMedia(NARROW);
   private onNarrow = () => this.requestUpdate();
@@ -55,6 +59,7 @@ export class PantryPlan extends LitElement {
     this.household = 1;
     this.recipes = [];
     this.error = "";
+    this.note = "";
   }
 
   private get view(): View {
@@ -162,6 +167,11 @@ export class PantryPlan extends LitElement {
   render() {
     const view = this.view;
     return html`${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
+      ${
+        this.note
+          ? html`<p class="note" role="status" data-testid="plan-shop-note">${this.note}</p>`
+          : nothing
+      }
       <nav aria-label=${t("plan.view.label")}>
         ${VIEWS.map(
           (v) =>
@@ -197,6 +207,15 @@ export class PantryPlan extends LitElement {
           ${icon(mdiChevronRight)}
         </button>
         <span class="range" data-testid="plan-range">${this.label()}</span>
+        <button
+          data-testid="plan-shop"
+          @click=${() =>
+            this.renderRoot
+              .querySelector<PantryPlanShoppingDialog>("pantry-plan-shopping-dialog")!
+              .open()}
+        >
+          ${t("plan.shop")}
+        </button>
         ${
           view !== "month" // a month does not fit a receipt
             ? html`<pantry-receipt-button
@@ -209,6 +228,10 @@ export class PantryPlan extends LitElement {
         }
       </div>
       ${this.body()}
+      <pantry-plan-shopping-dialog
+        .hass=${this.hass}
+        @pantry-shopped=${(e: CustomEvent<string>) => (this.note = e.detail)}
+      ></pantry-plan-shopping-dialog>
       <pantry-meal-dialog
         .hass=${this.hass}
         @pantry-saved=${() => this.load()}
@@ -232,6 +255,10 @@ export class PantryPlan extends LitElement {
         align-items: center;
         gap: 8px;
         margin-bottom: 8px;
+      }
+      .note {
+        color: var(--secondary-text-color);
+        margin: 0 0 8px;
       }
       .range {
         color: var(--secondary-text-color);

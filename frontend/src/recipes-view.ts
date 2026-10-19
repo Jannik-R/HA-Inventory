@@ -7,6 +7,7 @@ import {
   errorMessage,
   getMasterData,
   getRecipeAvailability,
+  getExpiringRecipes,
   getRecipes,
   type Hass,
   type Ingredient,
@@ -40,6 +41,8 @@ export class PantryRecipes extends LitElement {
     recipes: { state: true },
     md: { state: true },
     query: { state: true },
+    expiring: { state: true },
+    onlyExpiring: { state: true },
     open: { state: true },
     servings: { state: true },
     scaled: { state: true },
@@ -54,6 +57,9 @@ export class PantryRecipes extends LitElement {
   declare recipes?: Recipe[];
   declare md?: MasterData;
   declare query: string;
+  /** Recipe id -> expiring ingredients it uses up; `onlyExpiring` hides the others. */
+  declare expiring: Map<number, number>;
+  declare onlyExpiring: boolean;
   declare open: Set<number>;
   /** Servings shown per recipe (this session only) and the ingredients computed for them. */
   declare servings: Map<number, number>;
@@ -63,6 +69,8 @@ export class PantryRecipes extends LitElement {
   constructor() {
     super();
     this.query = "";
+    this.expiring = new Map();
+    this.onlyExpiring = false;
     this.open = new Set();
     this.servings = new Map();
     this.scaled = new Map();
@@ -90,10 +98,13 @@ export class PantryRecipes extends LitElement {
 
   private async load() {
     try {
-      [this.recipes, this.md] = await Promise.all([
+      const [recipes, md, expiring] = await Promise.all([
         getRecipes(this.hass!),
         getMasterData(this.hass!),
+        getExpiringRecipes(this.hass!),
       ]);
+      [this.recipes, this.md] = [recipes, md];
+      this.expiring = new Map(expiring.map((e) => [e.recipe_id, e.used]));
       // Saved or changed stock: shown servings are recomputed from the fresh list.
       this.scaled = new Map();
       this.servings = new Map();
@@ -167,6 +178,7 @@ export class PantryRecipes extends LitElement {
     return (this.recipes ?? []).filter(
       (r) =>
         isCanning(r) === !!this.canning &&
+        (!this.onlyExpiring || this.expiring.has(r.id)) &&
         (!q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q))),
     );
   }
@@ -182,7 +194,14 @@ export class PantryRecipes extends LitElement {
           <span>${r.name}</span>
           <span class="detail"
             >${t("recipes.summary", r.summary)} ·
-            ${isCanning(r) ? t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings }) : fmtPortions(this.hass, r.servings)}</span
+            ${isCanning(r) ? t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings }) : fmtPortions(this.hass, r.servings)}${
+              this.expiring.has(r.id)
+                ? html` �
+                    <span class="soon" data-testid="recipe-expiring"
+                      >${t("recipes.expiring", { n: this.expiring.get(r.id)! })}</span
+                    >`
+                : nothing
+            }</span
           >
         </button>
         ${rowActions({
@@ -246,6 +265,19 @@ export class PantryRecipes extends LitElement {
           ${t(this.canning ? "canning.recipe_add" : "recipes.add")}
         </button>
       </div>
+      ${
+        this.expiring.size
+          ? html`<label class="check">
+              <input
+                type="checkbox"
+                data-testid="recipe-expiring-only"
+                .checked=${this.onlyExpiring}
+                @change=${(e: Event) => (this.onlyExpiring = (e.target as HTMLInputElement).checked)}
+              />
+              ${t("recipes.expiring_only")}
+            </label>`
+          : nothing
+      }
       <pantry-recipe-import
         .hass=${this.hass}
         @pantry-imported=${(e: CustomEvent<RecipeDraft>) =>

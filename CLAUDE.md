@@ -36,7 +36,7 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/pantry/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, steps, learned, ai_check, recipe_print
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, steps, learned, ai_check, recipe_print
   db.py                     sqlite3 schema + migrations (PRAGMA user_version); signals entities after writes
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)

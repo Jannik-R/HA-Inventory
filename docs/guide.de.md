@@ -154,6 +154,11 @@ zuerst. „Bald“ heißt: innerhalb der *Warnung vor Ablauf* des Produkts (geer
 **Warnschwelle** setzt vorübergehend eine Zahl für alle, z. B. 14 Tage zur Essensplanung; gespeichert
 wird nichts.
 
+Darunter schlägt **Rezepte für Ablaufendes** Rezepte vor, die Ablaufendes oder Abgelaufenes aufbrauchen
+(Lebensmittel, gleiche Schwelle wie die Liste, auch die vorübergehende). Die meisten verbrauchten Zutaten
+stehen oben, bei gleicher Zahl das Rezept mit mehr vorhandenen Zutaten. Ein Tipp öffnet das Rezept. Im Tab
+**Rezepte** trägt so ein Rezept die Markierung „Ablaufendes: n“; *Nur mit Ablaufendem* filtert darauf.
+
 > [!TIP]
 > Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe [README](../README.de.md#sensoren)), z. B. für
 > eine Benachrichtigung aufs Handy.

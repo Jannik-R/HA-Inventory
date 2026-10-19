@@ -285,6 +285,20 @@ export interface Recipe {
   shopping_servings: number | null;
 }
 export const getRecipes = (hass: Hass) => hass.callWS<Recipe[]>({ type: "pantry/recipes" });
+/** A recipe that uses up expiring stock, best first (`used` ingredients; `products` are the expiring ones). */
+export interface ExpiringRecipe {
+  recipe_id: number;
+  name: string;
+  used: number;
+  products: string[];
+  available: number;
+  total: number;
+}
+export const getExpiringRecipes = (hass: Hass, days?: number) =>
+  hass.callWS<ExpiringRecipe[]>({
+    type: "pantry/expiring_recipes",
+    ...(days == null ? {} : { days }),
+  });
 export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: number) =>
   hass.callWS<Ingredient[]>({ type: "pantry/recipe_availability", recipe_id, servings });
 export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>

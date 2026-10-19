@@ -14,6 +14,12 @@ export const recipesStyles = css`
   .bar button {
     flex: none;
   }
+  .soon {
+    color: var(--warning-color);
+  }
+  .check {
+    margin-bottom: 8px;
+  }
   li.recipe {
     display: block;
   }

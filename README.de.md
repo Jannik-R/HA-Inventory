@@ -18,7 +18,7 @@ Vorhanden:
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen
-- Ablaufübersicht mit vorübergehender Warnschwelle; Sensoren für abgelaufene und bald ablaufende Packungen
+- Ablaufübersicht mit vorübergehender Warnschwelle und Rezeptvorschlägen, die Ablaufendes aufbrauchen (Rezepte nach ablaufenden Zutaten, dann nach Vorrat sortiert; in der Rezeptliste markiert); Sensoren für abgelaufene und bald ablaufende Packungen
 - Etiketten (QR-Code von Produkt und Ablaufdatum) auf einem Etikettendrucker (Dymo LabelWriter 450 hinter einem USB-Druckserver oder per USB am HA-Rechner) oder über den Browser; Etikett scannen bucht aus
 - Aktionen für Automationen (Hardware-Scanner, NFC-Tags, ESPHome, Sprache): per Barcode oder Etikett ein- und ausbuchen, Etiketten, Einkaufszettel und Rezepte drucken, ein Rezept auf die Einkaufsliste setzen, ein Gericht planen, ein Einkochprotokoll anlegen
 - Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten)
@@ -33,7 +33,6 @@ Vorhanden:
 
 Geplant:
 
-- Rezeptvorschläge für Ablaufendes
 - Ganzen Lagerort umziehen, geöffnete Packungen mit kürzerer Haltbarkeit, KI-Schnittstelle (Assist / MCP)
 
 Reihenfolge und Details: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.

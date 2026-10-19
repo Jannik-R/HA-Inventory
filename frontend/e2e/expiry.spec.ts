@@ -63,3 +63,27 @@ test("expired first; a temporary threshold widens the list", async ({ page }) =>
   await expect(mine).toContainText("2 Pkg.");
   await expect(page.getByTestId("expiry-undo")).toHaveCount(0);
 });
+
+test("recipes using expired stock are suggested and marked in the recipe list", async ({
+  page,
+}) => {
+  const api = page;
+  await openPage(api, "/pantry/expiry", "Ablauf");
+  const recipeName = `E2E Ablaufrezept ${Date.now()}`;
+  const { id } = (await ws(api, {
+    type: "pantry/recipe_save",
+    data: { name: recipeName, servings: 2, ingredients: [{ category_id: categoryId, text: "" }] },
+  })) as { id: number };
+  try {
+    await page.reload();
+    const sug = page.getByTestId("expiry-recipe").filter({ hasText: recipeName });
+    await expect(sug).toContainText(NAME);
+    await sug.click();
+    await expect(page.getByTestId("recipe-row").filter({ hasText: recipeName })).toBeVisible();
+    await page.getByTestId("recipe-expiring-only").check();
+    const mine = page.getByTestId("recipe-row").filter({ hasText: recipeName });
+    await expect(mine.getByTestId("recipe-expiring")).toHaveText("Ablaufendes: 1");
+  } finally {
+    await remove(api, "recipe", id);
+  }
+});

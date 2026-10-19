@@ -16,6 +16,8 @@ import { daysLeft, expiryStatus } from "./stock-data";
 import { fmtDate, lang } from "./format";
 import { outButton, undoLine, type Undo } from "./take-out";
 import { doneStyles } from "./booking-done";
+import { hasModule } from "./modules";
+import "./expiry-recipes";
 
 /** Expired and soon expiring batches, earliest first; threshold per product or a temporary one. */
 export class PantryExpiry extends LitElement {
@@ -131,6 +133,15 @@ export class PantryExpiry extends LitElement {
               )}
             </ul>`
           : html`<p class="empty">${t("expiry.empty")}</p>`
+      }
+      ${
+        hasModule("recipes")
+          ? html`<pantry-expiry-recipes
+              .hass=${this.hass}
+              .days=${days}
+              .stock=${this.stock}
+            ></pantry-expiry-recipes>`
+          : nothing
       }
     `;
   }

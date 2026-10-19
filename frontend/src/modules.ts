@@ -14,8 +14,14 @@ let ai = false;
 export const setAi = (on: boolean | undefined) => (ai = !!on);
 export const hasAi = () => ai;
 
-let off = true;
+let offLookup = true;
 
 /** Open Food Facts lookup is on in the options (unset = on): book-in offers the online search. */
-export const setOff = (on: boolean | undefined) => (off = on ?? true);
-export const hasOff = () => off;
+export const setOffLookup = (on: boolean | undefined) => (offLookup = on ?? true);
+export const hasOffLookup = () => offLookup;
+
+let productAi = false;
+
+/** An AI is set up and the options let it check new products from Open Food Facts. */
+export const setProductAi = (on: boolean | undefined) => (productAi = !!on);
+export const hasProductAi = () => productAi;

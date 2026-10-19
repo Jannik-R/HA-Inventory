@@ -4,7 +4,7 @@
 
 ### Changed
 
-- **Breaking**: the domain is now `home_inventory` (was `pantry`): folder `custom_components/home_inventory`, actions `home_inventory.*`, websocket `home_inventory/*`, panel URL `/home_inventory`, database `home_inventory.db`. Remove the old integration and set it up again; data of `pantry.db` is not taken over.
+- **Breaking**: the domain is now `home_inventory` (was `pantry`): folder `custom_components/home_inventory`, actions `home_inventory.*`, websocket `home_inventory/*`, panel URL `/home_inventory`, database `home_inventory.db`, LLM API `home_inventory`, entity ids (set up anew, named after the HA language). Remove the old integration and set it up again; data of `pantry.db` is not taken over.
 - Opening packages is a module (*Anbrechen*, on by default). New options: *Produkte in Open Food Facts nachschlagen* (on), *Neue Produkte prüfen* (on) and *Videos für den Rezeptimport laden* (off).
 
 ### Added

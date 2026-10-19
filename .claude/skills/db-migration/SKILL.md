@@ -1,6 +1,6 @@
 ---
 name: db-migration
-description: Add or change the home_inventory SQLite schema the way this repo does it - a new step in migrations.MIGRATIONS, table rebuilds with foreign keys, data fixes, seed, upgrade test from the previous version. Use for any change to tables, columns, constraints or indexes in custom_components/home_inventory/db.py.
+description: Add or change the home_inventory SQLite schema the way this repo does it - a new step in migrations.MIGRATIONS, table rebuilds with foreign keys, data fixes, seed, upgrade test from the previous version. Use for any change to tables, columns, constraints or indexes in custom_components/home_inventory/migrations.py.
 ---
 
 Schema lives only in `custom_components/home_inventory/migrations.py` → `MIGRATIONS` (`db.MIGRATIONS` is the same list, tests patch it there) (list of SQL scripts; index + 1 = `PRAGMA user_version`).

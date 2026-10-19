@@ -26,6 +26,7 @@ import {
 } from "./product-fields";
 import { AUTO, maxPackages, pickedRow, pickStyles, renderPick } from "./booking-pick";
 import { productAiBanner, runProductAi, withNewType, type ProductAi } from "./product-ai";
+import { hasProductAi } from "./modules";
 
 /** `booked` event: the done message, and for a book-out what it took (for undo). */
 export interface Booked {
@@ -102,7 +103,8 @@ export class HomeInventoryBookingForm extends LitElement {
       this.ai = { kind: "none" };
       const p = this.product;
       // a new product from Open Food Facts is checked once by the AI set up in the options
-      if (this.hass && this.mode === "in" && p && !p.id && p.off_json) void this.check(p);
+      if (this.hass && this.mode === "in" && p && !p.id && p.off_json && hasProductAi())
+        void this.check(p);
       if (this.hass && this.mode === "in")
         getLabelConfig(this.hass).then(
           (c) => {

@@ -7,7 +7,8 @@ custom integration: book items in and out by barcode or name, track batches with
 dates per storage location, see what expires soon, and get a brand-independent shopping list from
 minimum stock levels.
 
-> Status: early development, first release 0.1.0 (booking, stock and products, expiry view, sensors, minimum stock and shopping list, labels, services, recipes, week planner, general use and canning). Changes: [CHANGELOG.md](CHANGELOG.md). See [docs/PLAN.md](docs/PLAN.md).
+> Status: early development, first release 0.1.0. Changes: [CHANGELOG.md](CHANGELOG.md).
+> Plan: [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
 
@@ -43,7 +44,7 @@ HACS (only once the repository is public; HACS cannot install from private repos
 
 Manual: download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
 
-Python packages (installed by Home Assistant): `segno` (QR codes on labels) and `yt-dlp` (reads the video and caption of a post for the AI recipe import; it is already part of the Home Assistant image, so a standard install downloads nothing).
+Python packages (installed by Home Assistant): `segno` (QR codes on labels) and `yt-dlp` (reads the caption, and with the option *Videos für den Rezeptimport laden* the video, of a post for the AI recipe import; it is already part of the Home Assistant image, so a standard install downloads nothing).
 
 Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel *Vorrat* appears in the sidebar.
 
@@ -58,7 +59,7 @@ German; the English guide names buttons by their German labels.
 ## Setup
 
 All options are under *Settings > Devices & services > Home Inventory > Configure*: modules, label
-printer, receipt printer, AI and household size.
+printer, receipt printer, household (servings, expiry guess, Open Food Facts) and AI.
 
 **Open Food Facts.** An unknown barcode and *Online suchen* ask Open Food Facts and its sister
 databases (the barcode or the search text is sent to openfoodfacts.org). Turn it off under
@@ -126,11 +127,11 @@ too). With an AI set up:
   fixes categories and units (an existing unit, or a new one that you add in the dialog). The AI only
   answers "ok" or the changes, and only proposes them; nothing is saved without you.
 - A link without recipe data (Instagram, TikTok, YouTube, a blog) is read by the AI: Home Assistant
-  fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p)
-  when *Videos für den Rezeptimport laden* is on (default off: many platforms forbid downloads in
-  their terms of use), otherwise the page's title, description, visible text and preview image (up to 5 MB), and sends them
-  to the AI (attachments go through a hidden folder `.home_inventory_import` in the first media directory and
-  are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
+  fetches the post with `yt-dlp` (caption, and the video up to 15 minutes and 50 MB, at most 720p,
+  when *Videos für den Rezeptimport laden* is on; default off, as many platforms forbid downloads in
+  their terms of use), otherwise the page's title, description, visible text and preview image (up
+  to 5 MB), and sends them to the AI (attachments go through a hidden folder
+  `.home_inventory_import` in the first media directory and are deleted right after). The AI reads spoken words and on-screen text of a video when it supports
   video (Google Gemini does); otherwise it gets the text only. Instagram often refuses videos without
   login; then only the caption and the image are used.
 - *Text* and *Foto* in the import dialog send pasted text (up to 20,000 characters) or a photo
@@ -150,8 +151,9 @@ fields you edited are kept. Turn this check off with *Neue Produkte prüfen*.
 phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and
 the cut-out is straightened and turned black and white (OpenCV.js, about 10 MB, once from the jsDelivr
 CDN, then cached; a picked photo gets the same outline step). Then the text is recognized in the
-browser (tesseract.js; engine and German data, a few MB, also from jsDelivr and cached). Only that text goes to the AI, together with the list of
-your products (id, name, brand), not the photo: a few thousand tokens. The AI returns the store and
+browser (tesseract.js; engine and German data, a few MB, also from jsDelivr and cached). Only that
+text goes to the AI, together with the list of your products (id, name, brand), not the photo: a few
+thousand tokens. The AI returns the store and
 the items with up to five matching products each; deposit, bags and discounts are left out. A receipt
 line booked once is remembered per store and preselected next time without asking the AI to decide.
 
@@ -314,6 +316,10 @@ docker compose -f dev/docker-compose.yml run --rm test
 ### Claude Code helpers
 
 - `.claude/skills/ha-dev`: commands for dev HA, logs, tests, build.
+- `.claude/skills/db-migration`: how a schema change becomes a migration step.
+- `.claude/skills/feature-checklist`: layers, tests, docs and checks of a feature, up to the PR.
+- `.claude/skills/import-check`: recipe import check against random Chefkoch pages.
+- `.claude/skills/release`: version bump, changelog, tag and GitHub release.
 - `.claude/skills/ha-integration-rules`: condensed HA integration rules used in this repo.
 - `.claude/skills/off-api`: Open Food Facts endpoints, limits and the seed category tag check.
 - `.claude/skills/ui-review`: check a panel view in the dev HA browser (phone width, light/dark) against the UI rules.

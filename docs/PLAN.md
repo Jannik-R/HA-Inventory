@@ -330,9 +330,9 @@ Network printing is **optional**: no printer configured → labels still work, t
 opens the same PNG in the browser print view (`@page` sized to the label). Camera scanner
 works on the Pi installation via HTTPS (cloud / local reverse proxy).
 
-## 4a. Receipt printer (shopping list, later recipes)
+## 4a. Receipt printer (shopping list, recipes, meal plan)
 
-Goal: print the shopping list (Phase 7) and later recipes on a cheap thermal receipt printer,
+Goal: print the shopping list (Phase 7), recipes and the meal plan on a cheap thermal receipt printer,
 from the panel, a service and automations, without a print dialog. Support as many printers as
 possible; the printer ordered for testing (58/80 mm thermal receipt printer from eBay) is only one example.
 
@@ -438,7 +438,7 @@ Design:
 All runtime data goes to `dev/config/` (git-ignored). Only `docker-compose.yml` and
 `configuration.yaml` are committed.
 Port bound to `127.0.0.1`; `trusted_networks` with `allow_bypass_login` → no password for local
-browser tests (Claude's browser, later Playwright). The MCP Server uses its own token (`HA_DEV_TOKEN`).
+browser tests (Playwright, Claude's browser). The MCP Server uses its own token (`HA_DEV_TOKEN`).
 
 ## 5a. Dev tooling (token economy)
 

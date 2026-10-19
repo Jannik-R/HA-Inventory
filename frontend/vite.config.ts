@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 import { thirdPartyLicenses } from "./licenses";
+import { vendorFiles } from "./vendor";
 
 export default defineConfig({
-  plugins: [thirdPartyLicenses()],
+  plugins: [thirdPartyLicenses(), vendorFiles()],
   build: {
     lib: {
       entry: "src/home-inventory-panel.ts",

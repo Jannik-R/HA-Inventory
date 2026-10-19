@@ -152,10 +152,10 @@ Abschalten mit *Externe Dienste > Neue Produkte prüfen*.
 
 **Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) scannt den Bon wie der
 Dokumentenscanner eines Handys: die Live-Kamera markiert den Rand des Bons, die Ecken lassen sich
-korrigieren, der Ausschnitt wird entzerrt und schwarz-weiß (OpenCV.js, etwa 10 MB, einmal vom
-jsDelivr-CDN, danach im Browser-Cache; ein gewähltes Foto bekommt denselben Zuschnitt-Schritt). Danach
-wird der Text im Browser erkannt (tesseract.js; Engine und deutsche Sprachdaten, einige MB, ebenfalls
-von jsDelivr und im Cache). Nur dieser Text geht an die KI, zusammen mit der Liste
+korrigieren, der Ausschnitt wird entzerrt und schwarz-weiß (OpenCV.js, etwa 10 MB, beim ersten Mal
+von Home Assistant geladen; ein gewähltes Foto bekommt denselben Zuschnitt-Schritt). Danach wird der
+Text im Browser erkannt (tesseract.js; Engine und deutsche Sprachdaten, etwa 5 MB, ebenfalls von Home
+Assistant). Nur dieser Text geht an die KI, zusammen mit der Liste
 deiner Produkte (ID, Name, Marke), nicht das Foto: einige tausend Tokens. Die KI liefert den Händler
 und die Artikel mit bis zu fünf passenden Produkten je Zeile; Pfand, Tüten und Rabatte lässt sie weg.
 Eine einmal eingebuchte Bonzeile merkt sich Vorrat je Händler und wählt sie beim nächsten Mal vor.
@@ -189,7 +189,7 @@ schickt nichts.
 | *Neue Produkte prüfen* | die Open-Food-Facts-Daten des Produkts, Kategoriebaum und Einheiten an die KI | neues Produkt beim Einbuchen | an (mit KI) |
 | *KI liest Rezepte (Link ohne Rezeptdaten, Text, Foto)* | Seitentext und Vorschaubild, eingefügter Text oder das Foto an die KI | Link ohne Rezeptdaten, *Text*, *Foto* | an (mit KI) |
 | *Videos für den Rezeptimport laden* | das Video des Beitrags wird heruntergeladen (yt-dlp, beim ersten Mal installiert) und an die KI geschickt | Link zu Instagram, TikTok, YouTube | aus |
-| *Kassenbon-Import* | der Browser lädt OpenCV.js und tesseract.js (mit deutschen Sprachdaten) von jsDelivr; an die KI gehen der erkannte Text und deine Produktliste (ID, Name, Marke), nicht das Foto | *Kassenbon importieren* | an (mit KI) |
+| *Kassenbon-Import* | an die KI gehen der erkannte Text und deine Produktliste (ID, Name, Marke), nicht das Foto | *Kassenbon importieren* | an (mit KI) |
 
 Nicht hier geschaltet, weil du sie selbst einrichtest: Etiketten- und Bondrucker (dein Netz oder USB)
 und die LLM-API für Assistenten (was sie lesen oder ändern dürfen, legt die Zugriffsstufe unter *KI*
@@ -279,6 +279,6 @@ Siehe [README.md, Development](README.md#development) (englisch).
 ## Lizenz
 
 MIT, siehe [LICENSE](LICENSE). Das Panel-Bundle enthält Code Dritter (Lit, Material Design Icons,
-zxing-wasm, barcode-detector, tesseract.js); deren Lizenzen stehen in
+zxing-wasm, barcode-detector, tesseract.js, OpenCV.js, deutsche Tesseract-Sprachdaten); deren Lizenzen stehen in
 [`www/THIRD_PARTY_LICENSES.txt`](custom_components/home_inventory/www/THIRD_PARTY_LICENSES.txt), vom
 Build erzeugt.

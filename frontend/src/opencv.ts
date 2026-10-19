@@ -1,8 +1,8 @@
 /** Document scan with OpenCV.js: find the outline of a receipt, straighten it, black and white.
- *  OpenCV.js (one file, ~10 MB with its wasm) comes from the jsDelivr CDN on first use and is then
- *  in the browser cache, like the OCR data. */
+ *  OpenCV.js (one file, ~10 MB with its wasm) ships in www/vendor/ (frontend/vendor.ts) and is
+ *  loaded on first use. */
 
-const URL = "https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.12.0-release.1/dist/opencv.js";
+const SRC = new URL(/* @vite-ignore */ "vendor/opencv.js", import.meta.url).href;
 
 // shortcut: OpenCV.js ships no types usable here; the calls below are its documented API.
 export type Cv = any;
@@ -15,7 +15,7 @@ let loading: Promise<{ cv: Cv }> | undefined;
 export function loadCv(): Promise<{ cv: Cv }> {
   loading ??= new Promise<{ cv: Cv }>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = URL;
+    script.src = SRC;
     script.async = true;
     script.onerror = () => {
       loading = undefined;

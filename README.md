@@ -146,9 +146,9 @@ fields you edited are kept. Turn this check off with *External services > AI che
 
 **Receipt import.** *Import receipt* (booking in, only with an AI) scans the receipt like a
 phone's document scanner: the live camera marks the receipt's outline, the corners can be fixed, and
-the cut-out is straightened and turned black and white (OpenCV.js, about 10 MB, once from the jsDelivr
-CDN, then cached; a picked photo gets the same outline step). Then the text is recognized in the
-browser (tesseract.js; engine and German data, a few MB, also from jsDelivr and cached). Only that
+the cut-out is straightened and turned black and white (OpenCV.js, about 10 MB, loaded from Home
+Assistant on first use; a picked photo gets the same outline step). Then the text is recognized in the
+browser (tesseract.js; engine and German data, about 5 MB, also from Home Assistant). Only that
 text goes to the AI, together with the list of your products (id, name, brand), not the photo: a few
 thousand tokens. The AI returns the store and
 the items with up to five matching products each; deposit, bags and discounts are left out. A receipt
@@ -182,7 +182,7 @@ it only through the services below. Each one has its own switch under *Configure
 | *AI checks new products* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |
 | *AI reads recipes (link without recipe data, text, photo)* | page text and preview image, pasted text or the photo to the AI | link without recipe data, *Text*, *Photo* | on (with AI) |
 | *Load videos for the recipe import* | the post's video is downloaded (yt-dlp, installed on first use) and sent to the AI | link to Instagram, TikTok, YouTube | off |
-| *Receipt import* | the browser loads OpenCV.js and tesseract.js (with German data) from jsDelivr; the recognized text and your product list (id, name, brand) go to the AI, not the photo | *Import receipt* | on (with AI) |
+| *Receipt import* | the recognized text and your product list (id, name, brand) go to the AI, not the photo | *Import receipt* | on (with AI) |
 
 Not switched here, because you set them up yourself: the label and receipt printer (your network or
 USB) and the LLM API for assistants (what they may read or change is the access level under *AI*;
@@ -363,6 +363,6 @@ docker compose -f dev/docker-compose.yml run --rm test
 ## License
 
 [MIT](LICENSE). The panel bundle contains third-party code (Lit, Material Design Icons, zxing-wasm,
-barcode-detector, tesseract.js); their licenses are in
+barcode-detector, tesseract.js, OpenCV.js, the German Tesseract data); their licenses are in
 [`www/THIRD_PARTY_LICENSES.txt`](custom_components/home_inventory/www/THIRD_PARTY_LICENSES.txt),
 written by the build.

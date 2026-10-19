@@ -9,6 +9,7 @@
 - Opening packages is a module (*Anbrechen*, on by default).
 - Privacy: new options step *Externe Dienste* with one switch per service that sends data out (Open Food Facts, recipe links, AI recipe check, AI product check, AI recipe reading, video download, receipt import); see the README section *Privacy*. `yt-dlp` is no longer a requirement; it is installed on first use when video download is turned on (default off).
 - The panel bundle ships `THIRD_PARTY_LICENSES.txt`.
+- Receipt import: OpenCV.js, tesseract.js and the German OCR data ship with the integration (`www/vendor/`, about 16 MB) instead of loading from the jsDelivr CDN.
 
 ### Added
 

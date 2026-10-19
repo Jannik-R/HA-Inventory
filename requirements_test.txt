@@ -2,7 +2,9 @@ pytest-homeassistant-custom-component==0.13.372
 ruff==0.17.1
 pytest-xdist==3.8.0
 # Requirements of the integration (manifest.json) and of the HA components its tests set up
-# (frontend); the HA container used to bring them. Keep on the versions of the pinned HA release.
+# (frontend, conversation for the LLM API); the HA container used to bring them. Keep on the versions of the pinned HA release.
 segno==1.6.6
 yt-dlp==2026.7.4
 home-assistant-frontend==20260930.3
+hassil==3.12.1
+home-assistant-intents==2026.10.6

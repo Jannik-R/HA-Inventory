@@ -93,8 +93,9 @@ test("module Anbrechen and the Open Food Facts lookup can be turned off", async 
   await expect(page.getByTestId("new-product")).toBeVisible();
   await expect(page.getByTestId("search-online")).toHaveCount(0);
   await expect(page.getByTestId("mode-open")).toHaveCount(0);
+  await page.getByTestId("cancel").click();
   await page.getByTestId("mode-search").click();
   await page.getByTestId("code-input").fill(NAME);
-  await expect(page.getByTestId("stock-batch")).toHaveCount(1);
+  await expect(page.getByTestId("stock-batch").first()).toBeVisible(); // earlier tests may leave an opened one
   await expect(page.getByTestId("stock-batch-open")).toHaveCount(0);
 });

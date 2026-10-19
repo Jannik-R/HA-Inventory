@@ -28,6 +28,10 @@ export default defineConfig({
     trace: "retain-on-failure",
     // HA registers a service worker on localhost; its first activation reloads the page mid-test.
     serviceWorkers: "block",
+    // A fake camera (test pattern), allowed without asking: the live camera dialog can be tested.
+    launchOptions: {
+      args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"],
+    },
   },
   projects: [
     { name: "setup", testMatch: /auth\.setup\.ts/ },

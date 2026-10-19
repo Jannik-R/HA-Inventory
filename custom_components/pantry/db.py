@@ -440,6 +440,16 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     ALTER TABLE batch ADD COLUMN expiry_guessed INTEGER NOT NULL DEFAULT 0
         CHECK (expiry_guessed IN (0, 1));
     """,
+    # 23: receipt import (inventory/purchase.py): a receipt line of a store -> the product a human
+    # booked it as; store '' = not recognized. Keys are purchase.line_key of the texts.
+    """
+    CREATE TABLE receipt_line (
+        store TEXT NOT NULL,
+        key TEXT NOT NULL CHECK (key <> ''),
+        product_id INTEGER NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+        PRIMARY KEY (store, key)
+    );
+    """,
 ]
 
 

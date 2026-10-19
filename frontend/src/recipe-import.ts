@@ -1,27 +1,18 @@
 import { LitElement, css, html, nothing } from "lit";
 import { t } from "./i18n";
-import { URL_RE, editDialog, fieldMsg } from "./ui";
+import { URL_RE, editDialog, fieldMsg, icon } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, importRecipe, type Hass, type ImportSource } from "./api";
 import { hasAi } from "./modules";
+import { scaledPhoto } from "./photo";
+import { mdiCameraOutline } from "@mdi/js";
+import "./camera-dialog";
+import type { PantryCamera } from "./camera-dialog";
 
 /** Where the recipe comes from; text and photo only with an AI set up (they always need it). */
 type Source = "url" | "text" | "photo";
 const SOURCES: Source[] = ["url", "text", "photo"];
 const MAX_TEXT = 20000; // backend: inventory.MAX_PASTE
-const MAX_PX = 2000; // longest side of a photo sent to the AI
-
-/** A photo as JPEG data URL, scaled down (phone photos are 3–10 MB; the websocket takes 4 MB). */
-const scaledPhoto = async (file: File) => {
-  const bmp = await createImageBitmap(file);
-  const f = Math.min(1, MAX_PX / Math.max(bmp.width, bmp.height));
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bmp.width * f);
-  canvas.height = Math.round(bmp.height * f);
-  canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-  bmp.close();
-  return canvas.toDataURL("image/jpeg", 0.85);
-};
 
 /** Ask for a recipe URL, text or photo. `open()`; fires `pantry-imported` (detail: RecipeDraft) on success. */
 export class PantryRecipeImport extends LitElement {
@@ -84,6 +75,12 @@ export class PantryRecipeImport extends LitElement {
     if (this.source === "text") return { text: this.text.trim() };
     if (this.source === "photo") return { image: this.photo };
     return { url: this.url.trim() };
+  }
+
+  private async takePhoto() {
+    const camera = this.renderRoot.querySelector<PantryCamera>("pantry-camera")!;
+    const url = await camera.take(false);
+    if (url) this.photo = url;
   }
 
   private async pickPhoto(e: Event) {
@@ -150,18 +147,32 @@ export class PantryRecipeImport extends LitElement {
         <span class="note">${t("recipes.import.text_hint")}</span>
       </label>`;
     if (this.source === "photo")
-      return html`<label>
-        <span class="lbl">${t("recipes.import.photo")}</span>
-        <input
-          type="file"
-          accept="image/*"
-          data-testid="recipe-import-photo"
-          aria-invalid=${!!err}
-          @change=${(e: Event) => this.pickPhoto(e)}
-        />
-        ${fieldMsg(err, "recipe-import-photo")}
-        <span class="note">${t("recipes.import.photo_hint")}</span>
-      </label>`;
+      return html`<button
+          type="button"
+          class="take"
+          data-testid="recipe-import-camera"
+          ?disabled=${this.busy}
+          @click=${() => this.takePhoto()}
+        >
+          ${icon(mdiCameraOutline)} ${t("recipes.import.take_photo")}
+        </button>
+        <label>
+          <span class="lbl">${t("recipes.import.photo")}</span>
+          <input
+            type="file"
+            accept="image/*"
+            data-testid="recipe-import-photo"
+            aria-invalid=${!!err}
+            @change=${(e: Event) => this.pickPhoto(e)}
+          />
+          ${fieldMsg(err, "recipe-import-photo")}
+          <span class="note">${t("recipes.import.photo_hint")}</span>
+        </label>
+        ${
+          this.photo
+            ? html`<img class="preview" src=${this.photo} alt=${t("recipes.import.photo")} />`
+            : nothing
+        }`;
     return html`<label>
       <span class="lbl">${t("recipes.import.url")}</span>
       <input
@@ -179,29 +190,42 @@ export class PantryRecipeImport extends LitElement {
   render() {
     if (!this.active) return html`<dialog></dialog>`;
     const err = this.errors();
-    return editDialog({
-      title: t("recipes.import.title"),
-      body: html`${hasAi() ? this.switcher() : nothing} ${this.field(err)}
-      ${
-        this.busy
-          ? html`<div class="busy" role="status" data-testid="recipe-import-busy">
-              <progress aria-label=${t("recipes.import.busy")}></progress>
-              <span>${t(hasAi() ? "recipes.import.busy_ai" : "recipes.import.busy")}</span>
-            </div>`
-          : nothing
-      }`,
-      error: this.error,
-      invalid: !!err || this.busy,
-      submit: { label: t("recipes.import.submit"), testid: "recipe-import-submit" },
-      dirty: () => !!(this.url.trim() || this.text.trim() || this.photo),
-      onSubmit: (e) => this.submit(e),
-      onClosed: () => (this.active = false),
-    });
+    // the camera dialog sits beside this one, so its clicks are no backdrop clicks here
+    return html`${editDialog({
+        title: t("recipes.import.title"),
+        body: html`${hasAi() ? this.switcher() : nothing} ${this.field(err)}
+        ${
+          this.busy
+            ? html`<div class="busy" role="status" data-testid="recipe-import-busy">
+                <progress aria-label=${t("recipes.import.busy")}></progress>
+                <span>${t(hasAi() ? "recipes.import.busy_ai" : "recipes.import.busy")}</span>
+              </div>`
+            : nothing
+        }`,
+        error: this.error,
+        invalid: !!err || this.busy,
+        submit: { label: t("recipes.import.submit"), testid: "recipe-import-submit" },
+        dirty: () => !!(this.url.trim() || this.text.trim() || this.photo),
+        onSubmit: (e) => this.submit(e),
+        onClosed: () => (this.active = false),
+      })}<pantry-camera></pantry-camera>`;
   }
 
   static styles = [
     formStyles,
     css`
+      .take {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+      .preview {
+        display: block;
+        max-width: 100%;
+        max-height: 30vh;
+        margin-top: 12px;
+      }
       .note {
         display: block;
         margin-top: 4px;

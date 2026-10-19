@@ -28,6 +28,7 @@ opens this guide. These are the tabs:
 
 1. [Getting started](#1-getting-started)
 2. [Booking in your shopping](#2-booking-in-your-shopping)
+2a. [Importing a receipt](#2a-importing-a-receipt)
 3. [Using up and booking out](#3-using-up-and-booking-out)
 3a. [Opening a package](#3a-opening-a-package)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
@@ -123,6 +124,33 @@ flowchart LR
 > [!NOTE]
 > The same product with the same date goes into the same batch. A different date makes a new batch,
 > so later you see which package has to go first.
+
+## 2a. Importing a receipt
+
+Instead of scanning every product, book in a whole shopping trip from its receipt. This needs an AI
+set up (README, *AI*).
+
+1. In booking in (**+** in front of the input field) choose **Kassenbon importieren** (import receipt).
+2. **Bon scannen** (scan receipt): put the receipt flat on a dark surface. The camera marks its outline;
+   tap **Auslösen** (take). Then you see the photo with four corner points: drag them onto the receipt's
+   corners if needed and tap **Übernehmen** (apply). Home Inventory cuts out the receipt, straightens it
+   and turns it black and white; the result shows as a preview. **Ohne Zuschnitt** (uncut) takes the
+   photo as it is. Instead of the camera, **Oder Foto wählen** (or pick a photo) works too, with the same
+   corner step. The first scan loads a few MB. Tap **Bon lesen** (read receipt). The text is recognized on your device ("Text wird erkannt …
+   40 %"), then the AI reads the items ("KI liest den Bon …"). Only the text goes to the AI, not the
+   photo.
+3. Check the list. At the top is the **Händler** (store, editable). Each row shows the receipt text and:
+   - **Produkt** (product): the recognized product. When several fit it says "Bitte wählen …" (please
+     choose) and you pick one. **Neues Produkt anlegen** (new product) shows name and category for a
+     new product; **Nicht einbuchen** (do not book) leaves the row out.
+   - **Packungen** (packages): taken from the receipt ("2 x 1,19" = 2).
+   - **Ablaufdatum** (expiry date): enter the date from the package. You may leave it empty: then
+     Home Inventory guesses today + the category's shelf life (see [Booking in](#2-booking-in-your-shopping), step 6).
+4. Tap **… einbuchen** (book in). All rows go to their product's default location; the top line says
+   "… Pkg. vom Kassenbon eingebucht."
+
+Home Inventory remembers per store which product you chose for a receipt line. On the next receipt of
+the same store it is already selected.
 
 ## 3. Using up and booking out
 
@@ -322,7 +350,7 @@ import dialog you pick the source.
   reads the post: caption, video (also spoken words and on-screen text) or image. Get the link in the
   app with *Share > Copy link*.
 - **Text**: paste a recipe text, e.g. from a message; the AI sorts it into ingredients and steps.
-- **Foto** (photo): a photo of a cookbook page or a screenshot.
+- **Foto** (photo): a photo of a cookbook page or a screenshot; **Foto aufnehmen** (take photo) opens the camera.
 
 **Importieren** shows "Rezept wird gelesen …" (reading); with the AI it takes up to a minute. Then
 the recipe dialog opens as for any import (with the AI check). When the AI finds no recipe or fails,

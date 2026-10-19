@@ -5,6 +5,7 @@ export type { Browser, Page } from "@playwright/test";
 
 // Every print command (labels, shopping list, recipe, meal plan, and any added later).
 const isPrint = (type: unknown) => typeof type === "string" && type.startsWith("pantry/print_");
+const AI_ALWAYS = ["pantry/recipe_import", "pantry/receipt_read"];
 const callsByContext = new WeakMap<BrowserContext, unknown[]>();
 const stubsByContext = new WeakMap<BrowserContext, Map<string, unknown>>();
 
@@ -35,14 +36,15 @@ export async function blockPrinting(context: BrowserContext) {
           JSON.stringify({ id: msg.id, type: "result", success: true, result: { printed: 0 } }),
         );
       }
-      // The import may hand a page, text or photo to the real AI: only stubbed imports run.
-      if (msg?.type === "pantry/recipe_import" && !stubs.has(msg.type))
+      // The import may hand a page, text or photo to the real AI, the receipt import always hands
+      // over the text: only stubbed ones run.
+      if (AI_ALWAYS.includes(msg?.type) && !stubs.has(msg.type))
         return ws.send(
           JSON.stringify({
             id: msg.id,
             type: "result",
             success: false,
-            error: { code: "e2e_blocked", message: "Stub pantry/recipe_import (wsStub)" },
+            error: { code: "e2e_blocked", message: `Stub ${msg.type} (wsStub)` },
           }),
         );
       if (msg && stubs.has(msg.type))

@@ -1,4 +1,4 @@
-"""AI check of recipe imports and new products, and AI reading of recipe imports through HA's AI Task (any AI set up in HA; chosen in the options)."""
+"""AI check of recipe imports and new products, AI reading of shopping receipts, and AI reading of recipe imports through HA's AI Task (any AI set up in HA; chosen in the options)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from . import inventory
 from .const import CONF_AI_TASK, DOMAIN
-from .ws_common import db_of
+from .ws_common import db_of, translated
 
 _LOGGER = logging.getLogger(__name__)
 _TIMEOUT = 120  # s; a big prompt on a free tier can take a while
@@ -51,6 +51,20 @@ PRODUCT_CHECK_SCHEMA = probatio.Schema(
         probatio.Optional("content_amount"): float,
         probatio.Optional("content_unit_id"): int,
         probatio.Optional("reason"): str,
+    }
+)
+
+RECEIPT_SCHEMA = probatio.Schema(
+    {
+        probatio.Required("store"): str,
+        probatio.Required("items"): [
+            {
+                probatio.Required("text"): str,
+                probatio.Required("name"): str,
+                probatio.Required("packages"): int,
+                probatio.Optional("product_ids"): [int],
+            }
+        ],
     }
 )
 
@@ -106,3 +120,14 @@ async def async_check_product(hass: HomeAssistant, draft: dict) -> dict:
     data = await _check(hass, "Vorrat: Neues Produkt prüfen", instructions, PRODUCT_CHECK_SCHEMA)
     found = await db.run(inventory.ai_product_changes, draft, data)
     return {"status": "ok"} if found.pop("ok") else {"status": "changes", **found}
+
+
+async def async_read_receipt(hass: HomeAssistant, text: str) -> dict:
+    """OCR text of a shopping receipt -> items to review (inventory.receipt_items); needs an AI."""
+    db = db_of(hass)
+    if not entity_of(hass):
+        raise HomeAssistantError(translation_domain=DOMAIN, translation_key="ai_off")
+    with translated():
+        instructions = await db.run(inventory.receipt_prompt, text)
+        data = await _check(hass, "Vorrat: Kassenbon lesen", instructions, RECEIPT_SCHEMA)
+        return await db.run(inventory.receipt_items, data, write=False)

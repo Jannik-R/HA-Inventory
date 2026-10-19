@@ -15,6 +15,7 @@ markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 Vorhanden:
 
 - Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts, bei Non-Food von Open Beauty Facts, Open Pet Food Facts und Open Products Facts
+- Kassenbon-Import (*Kassenbon importieren*, braucht eine KI): Dokumentenscan des Bons (Live-Umriss, Ecken, Schwarz-Weiß), Texterkennung im Browser, die KI liest die Artikel, du prüfst Produkt, Packungen und Datum je Zeile in einem Dialog und buchst alles ein; merkt sich je Händler, welches Produkt zu einer Bonzeile gehört
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)
@@ -28,7 +29,7 @@ Vorhanden:
 - Einkaufsliste aus dem Speiseplan: Die im Zeitraum geplanten Rezepte (Knopf *Einkaufsliste* im Speiseplan, Aktion `pantry.plan_to_shopping_list`) kommen abzüglich Vorrat auf die Liste; noch keine Verbrauchsprognose
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
 - Nicht-Lebensmittel: Kategorien mit *Kein Lebensmittel* (vererbt) sind nie Rezeptzutaten; vorbelegt *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel nach Sockel), *Hausapotheke* (verbrauchen bis, Warnung 30 Tage) und *Tierbedarf*
-- Haltbarkeit (Tage, vererbt wie die Warnung): ein leeres Ablaufdatum beim Einbuchen (Panel, `pantry.book_in`) wird zu heute + Haltbarkeit und steht als *geschätzt* da, bis die Bestandszeile bearbeitet wird; die Option *Geschätztes Ablaufdatum vorausfüllen* schreibt die Schätzung schon ins Datumsfeld; vorbelegt mit üblichen Werten für die Lebensmittel-Kategorien (z. B. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 Tage)
+- Haltbarkeit (Tage, vererbt wie die Warnung): ein leeres Ablaufdatum beim Einbuchen (Panel, Kassenbon-Import, `pantry.book_in`) wird zu heute + Haltbarkeit und steht als *geschätzt* da, bis die Bestandszeile bearbeitet wird; die Option *Geschätztes Ablaufdatum vorausfüllen* schreibt die Schätzung schon ins Datumsfeld; vorbelegt mit üblichen Werten für die Lebensmittel-Kategorien (z. B. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 Tage)
 - Angebrochene Packungen (*Anbrechen*): eine Packung als angebrochen markieren (Knopf an der Chargenzeile, Scan-Modus *Anbrechen*, Aktion `pantry.open_package`); sie wird eine eigene Bestandszeile und läuft früher ab, um die vererbte *Haltbar nach Anbruch* (Tage; vorbelegt für die Lebensmittel-Kategorien, z. B. Milch 3; leer = das Datum bleibt, z. B. Nudeln); Ablaufübersicht, Sensoren, Etiketten und Rezeptvorschläge nutzen dieses Datum; ein neues Etikett wird angeboten (gedruckt erst nach dem Etikettendialog)
 - Einkochen (Tab *Einkochen*): Protokolle mit einer Charge je Gläser-Partie (JJJJMMTT-n); die Etiketten tragen die Charge, ein Scan bucht ein Glas dieser Charge aus; Einkochrezepte (jedes ergibt ein Produkt, optional Temperatur und Dauer) in der eigenen Ansicht *Rezepte* des Tabs
 - KI-Assistenten: die LLM-API *Home Inventory* für Assist-Agenten und den MCP-Server von Home Assistant (Bestand, Ablauf, Rezepte, Einkaufsliste, Speiseplan; was sie ändern dürfen, steht in den Optionen)
@@ -136,7 +137,7 @@ im Heimnetz). Mit eingerichteter KI:
   sie Videos versteht (Google Gemini kann das); sonst bekommt sie nur den Text. Instagram verweigert
   Videos ohne Anmeldung oft; dann zählen nur Beschreibung und Bild.
 - *Text* und *Foto* im Importdialog schicken eingefügten Text (bis 20.000 Zeichen) oder ein Foto (im
-  Browser auf 2000 px verkleinert) an die KI.
+  Browser auf 2000 px verkleinert; gewählt oder mit *Foto aufnehmen* von der Live-Kamera) an die KI.
 
 Einen Beitrag auszulesen dauert 15 bis 60 Sekunden und kostet einen KI-Aufruf, dazu die Prüfung.
 
@@ -147,6 +148,16 @@ den Namen (ohne Marke und Größe), die Kategorie und den Packungsinhalt (z. B. 
 Passt keine Produktart, schlägt sie eine neue unter der passenden Kategorie vor; die wird beim
 Einbuchen angelegt.
 Das Einbuchen-Formular bleibt währenddessen bedienbar; Felder, die du geändert hast, bleiben.
+
+**Kassenbon-Import.** *Kassenbon importieren* (beim Einbuchen, nur mit KI) scannt den Bon wie der
+Dokumentenscanner eines Handys: die Live-Kamera markiert den Rand des Bons, die Ecken lassen sich
+korrigieren, der Ausschnitt wird entzerrt und schwarz-weiß (OpenCV.js, etwa 10 MB, einmal vom
+jsDelivr-CDN, danach im Browser-Cache; ein gewähltes Foto bekommt denselben Zuschnitt-Schritt). Danach
+wird der Text im Browser erkannt (tesseract.js; Engine und deutsche Sprachdaten, einige MB, ebenfalls
+von jsDelivr und im Cache). Nur dieser Text geht an die KI, zusammen mit der Liste
+deiner Produkte (ID, Name, Marke), nicht das Foto: einige tausend Tokens. Die KI liefert den Händler
+und die Artikel mit bis zu fünf passenden Produkten je Zeile; Pfand, Tüten und Rabatte lässt sie weg.
+Eine einmal eingebuchte Bonzeile merkt sich Vorrat je Händler und wählt sie beim nächsten Mal vor.
 
 **Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in
 einem Assist-Agenten (z. B. *Google Gemini > Konfigurieren > Home Assistant steuern*) oder in der

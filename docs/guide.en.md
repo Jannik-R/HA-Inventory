@@ -31,6 +31,7 @@ opens this guide. These are the tabs:
 2a. [Importing a receipt](#2a-importing-a-receipt)
 3. [Using up and booking out](#3-using-up-and-booking-out)
 3a. [Opening a package](#3a-opening-a-package)
+3b. [Freezing and thawing](#3b-freezing-and-thawing)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
 5. [What expires soon?](#5-what-expires-soon)
 6. [Shopping list](#6-shopping-list)
@@ -60,7 +61,7 @@ Admins should take a quick look at **Settings** first:
 3. **Units**: the checkbox **Recipes only** hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Categories**: give categories a default location (e.g. Milchprodukte & Eier → fridge), so booking in rarely
    needs a location choice.
-5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Modules* you turn shopping list, recipes, meal plan, canning and opened packages off one by one (also offered during setup). The tab or button disappears, the data is kept.
+5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Modules* you turn shopping list, recipes, meal plan, canning, opened packages and freezing off one by one (also offered during setup). The tab or button disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
@@ -190,6 +191,32 @@ After opening, next to the message:
 - **Undo**: makes the package unopened again (once, while it is still in stock).
 - **Print label**: opens the label dialog with the new date. Nothing is printed
   until you press **Print** there, never automatically.
+
+## 3b. Freezing and thawing
+
+Fresh meat, bread or berries keep longer in the freezer. Once frozen, the printed date no longer
+counts: Home Inventory sets today + *Keeps frozen* (e.g. meat 180, bread 90 days) as a *Guide value*
+("approx. …").
+
+- **In the stock**: tap the snowflake (**Freeze**) on the batch. The dialog has **Packages**
+  (prefilled 1) and the **Target location** (prefilled: the first freezer); **Freeze** confirms.
+- **Booking in or moving**: fresh food booked in at a freezer location or moved there is frozen
+  by that.
+- **By automation**: action `home_inventory.freeze_package` (see [README](../README.md#actions-automations)).
+
+The frozen package gets its own row "approx. … · frozen on …". Frozen goods (category
+*Tiefkühlkost* or another one marked **Frozen goods**) keep their printed date and offer no
+freezing, nor does non-food.
+
+**Thawing**: tap the melting snowflake on a frozen batch (or move the batch out of the freezer, or
+`home_inventory.thaw_package`). The target is prefilled with the product's location. Thawed food
+counts as opened today and keeps for *Keeps after opening* (1 day without one).
+
+After both, next to the message: **Undo** (once) and, after freezing, **Print label** with the new
+date.
+
+Which locations are freezers is set under *Settings → Locations* with **Freezer** (preset on
+*Gefrierschrank*).
 
 ## 4. Viewing and fixing the stock
 
@@ -554,6 +581,9 @@ the expiry view and as "ca." on the label; at book-in it is always already in th
 
 **Keeps after opening**: days an opened package still keeps (see 3a),
 inherited like the shelf life. Empty means opening does not change the date.
+
+**Keeps frozen** and **Frozen goods**: how long food you froze yourself keeps (see 3b; default 90
+days) and whether a category is bought frozen (keeps its date in the freezer), both inherited.
 
 **Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). Deleting a location with stock asks where its packages should go.

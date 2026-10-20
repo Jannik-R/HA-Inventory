@@ -52,10 +52,20 @@ export interface Location {
   id: number;
   name: string;
   sort: number;
+  /** 1 = a freezer: a freezable product booked in or moved here is frozen. */
+  freezer: 0 | 1;
 }
 export type Source = "own" | number | "default";
 export type InheritField =
-  "unit_id" | "default_location_id" | "expiry_type" | "warn_days" | "shelf_days" | "opened_days";
+  | "unit_id"
+  | "default_location_id"
+  | "expiry_type"
+  | "warn_days"
+  | "shelf_days"
+  | "opened_days"
+  | "frozen_days";
+/** Inherited down the category tree only (null at the root = food, not frozen goods). */
+export type CategoryFlag = "food" | "frozen_goods";
 export interface Category {
   id: number;
   parent_id: number | null;
@@ -74,7 +84,11 @@ export interface Category {
   opened_days: number | null;
   /** 0 = not a food (no recipe ingredient), null = inherit; the root is a food. */
   food: 0 | 1 | null;
-  effective: Record<InheritField | "food", { value: number | string | null; source: Source }>;
+  /** Days a product keeps frozen (home-frozen), null = inherit. */
+  frozen_days: number | null;
+  /** 1 = bought frozen (keeps its printed date in the freezer), null = inherit; the root is not. */
+  frozen_goods: 0 | 1 | null;
+  effective: Record<InheritField | CategoryFlag, { value: number | string | null; source: Source }>;
 }
 export interface MasterData {
   units: Unit[];
@@ -130,6 +144,7 @@ export interface Product {
   warn_days?: number | null;
   shelf_days?: number | null;
   opened_days?: number | null;
+  frozen_days?: number | null;
   /** Below this many packages the product goes on the shopping list. */
   min_packages?: number | null;
   /** Packages in stock (product list only). */
@@ -160,6 +175,8 @@ export interface StockRow {
   batch_expires_on: string | null;
   /** Set on an opened package (its own batch). */
   opened_on: string | null;
+  /** Set on a frozen package (its own batch, dated frozen_on + frozen days). */
+  frozen_on: string | null;
   /** 1: the date was guessed at book-in (today + shelf life), nobody entered it. */
   expiry_guessed: number;
   /** The product's date type (own or inherited); batches have none of their own. */

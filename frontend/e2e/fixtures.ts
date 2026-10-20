@@ -86,5 +86,17 @@ export const test = base.extend<
   wsStub: ({ context }, use) =>
     use((type, result) => stubsByContext.get(context)?.set(type, result)),
   printCalls: [({ context }, use) => use(callsByContext.get(context) ?? []), { auto: true }],
+  // HA's own survey toast covers the bottom of a phone screen: close it whenever it shows up.
+  page: async ({ page }, use) => {
+    await page.addLocatorHandler(
+      page.getByRole("button", { name: /An Umfrage teilnehmen|Take the survey/ }),
+      () =>
+        page
+          .getByRole("button", { name: /^(Schließen|Close)$/ })
+          .last()
+          .click(),
+    );
+    await use(page);
+  },
 });
 export { expect } from "@playwright/test";

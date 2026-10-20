@@ -29,7 +29,13 @@ def test_migration_24_widens_check_and_switches_produce(monkeypatch) -> None:
         db.migrate(c)
     c.execute("UPDATE category SET expiry_type = 'use_by' WHERE name = 'Obst & Gemüse'")
     apple = product(c, "Elstar", "Äpfel", expiry_type="use_by")
-    batch = inv.book_in(c, apple, 2, "2030-01-02", loc(c))
+    batch = c.execute(  # old schema: no booking functions (effective() reads newer columns)
+        "INSERT INTO batch (product_id, expires_on, created_at) VALUES (?, '2030-01-02', '')",
+        (apple,),
+    ).lastrowid
+    c.execute(
+        "INSERT INTO stock (batch_id, location_id, packages) VALUES (?, ?, 2)", (batch, loc(c))
+    )
     c.commit()
     db.migrate(c)
     assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)

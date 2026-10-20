@@ -433,6 +433,26 @@ async def test_open_package_and_undo(ws) -> None:
     assert (await ws.call(again))["error"]["translation_key"] == "already_opened"
 
 
+async def test_freeze_thaw_and_undo(ws) -> None:
+    data = await master(ws)
+    cat_id = by_name(data["categories"], "Hackfleisch")["id"]
+    fridge = by_name(data["locations"], "Kühlschrank")["id"]
+    res = await ws.call(
+        {"type": "home_inventory/book_in", "packages": 2, "location_id": fridge,
+         "expires_on": "2027-01-01", "product": {"name": "Frost-Hack", "category_id": cat_id}}
+    )  # fmt: skip
+    pid = res["result"]["product_id"]
+    frozen = await ws.call({"type": "home_inventory/freeze", "thaw": False, "product_id": pid})
+    assert frozen["result"]["location"] == "Gefrierschrank"
+    thawed = await ws.call(
+        {"type": "home_inventory/freeze", "thaw": True, "product_id": pid, "to_location_id": fridge}
+    )
+    assert thawed["result"]["location"] == "Kühlschrank"
+    undo = {"type": "home_inventory/frozen_undo", "booking_id": thawed["result"]["booking_id"]}
+    assert (await ws.call(undo))["success"]
+    assert (await ws.call(undo))["error"]["translation_key"] == "already_undone"
+
+
 async def test_input_validation(ws) -> None:
     data = await master(ws)
     cat_id = by_name(data["categories"], "Nudeln")["id"]

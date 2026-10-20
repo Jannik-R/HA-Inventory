@@ -27,6 +27,7 @@ Anleitung. Oben gibt es diese Tabs:
 2a. [Kassenbon importieren](#2a-kassenbon-importieren)
 3. [Verbrauchen und auslagern](#3-verbrauchen-und-auslagern)
 3a. [Packung anbrechen](#3a-packung-anbrechen)
+3b. [Einfrieren und auftauen](#3b-einfrieren-und-auftauen)
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
 5. [Was läuft ab?](#5-was-läuft-ab)
 6. [Einkaufsliste](#6-einkaufsliste)
@@ -56,7 +57,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
 4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte & Eier → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan, Einkochen und Anbrechen einzeln ab (auch schon beim Einrichten wählbar). Der Tab oder Knopf verschwindet, die Daten bleiben erhalten.
+5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan, Einkochen, Anbrechen und Einfrieren einzeln ab (auch schon beim Einrichten wählbar). Der Tab oder Knopf verschwindet, die Daten bleiben erhalten.
 6. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
@@ -187,6 +188,34 @@ Nach dem Anbrechen stehen neben der Meldung:
 - **Rückgängig**: macht die Packung wieder ungeöffnet (einmal, solange sie noch im Bestand ist).
 - **Etikett drucken**: öffnet den Etikettendialog mit dem neuen Datum. Gedruckt wird erst mit
   **Drucken** dort, nie automatisch.
+
+## 3b. Einfrieren und auftauen
+
+Frisches Fleisch, Brot oder Beeren hältst du mit dem Gefrierschrank länger. Beim Einfrieren zählt
+das aufgedruckte Datum nicht mehr: Vorrat setzt heute + *Haltbar eingefroren* (z. B. Fleisch 180,
+Brot 90 Tage) als *Richtwert* („ca. …“).
+
+- **Im Bestand**: an der Charge die Schneeflocke (**Einfrieren**) antippen. Im Dialog stehen
+  **Packungen** (vorbelegt 1) und der **Ziel-Lagerort** (vorbelegt der erste Gefrierort);
+  **Einfrieren** bestätigt.
+- **Einbuchen oder Umlagern**: wer frische Ware gleich an einem Gefrierort einbucht oder eine Charge
+  dorthin umlagert, friert sie damit ein.
+- **Per Automation**: Aktion `home_inventory.freeze_package` (siehe [README](../README.de.md#aktionen-automationen)).
+
+Die eingefrorene Packung bekommt eine eigene Zeile „ca. … · eingefroren am …“. Tiefkühlware
+(Kategorie *Tiefkühlkost* oder eine andere mit **Tiefkühlware**) behält ihr aufgedrucktes Datum und
+bietet kein Einfrieren an, Nicht-Lebensmittel auch nicht.
+
+**Auftauen**: an einer eingefrorenen Charge die tauende Schneeflocke antippen (oder die Charge aus
+dem Gefrierort umlagern, oder `home_inventory.thaw_package`). Ziel ist vorbelegt der Lagerort des
+Produkts. Aufgetautes gilt ab heute als angebrochen und hält *Haltbar nach Anbruch* (ohne Angabe
+1 Tag).
+
+Nach beidem stehen neben der Meldung **Rückgängig** (einmal) und, nach dem Einfrieren,
+**Etikett drucken** mit dem neuen Datum.
+
+Welche Lagerorte Gefrierorte sind, legst du unter *Einstellungen → Lagerorte* mit **Gefrierort** fest
+(vorbelegt beim *Gefrierschrank*).
 
 ## 4. Bestand ansehen und korrigieren
 
@@ -556,6 +585,10 @@ Datumsfeld.
 
 **Haltbar nach Anbruch**: Tage, die eine angebrochene Packung noch hält (siehe 3a), vererbt wie die
 Haltbarkeit. Leer heißt: Anbrechen ändert das Datum nicht.
+
+**Haltbar eingefroren** und **Tiefkühlware**: wie lange selbst Eingefrorenes hält (siehe 3b; Standard
+90 Tage) und ob eine Kategorie gekaufte Tiefkühlware ist (behält ihr Datum im Gefrierschrank), beides
+vererbt.
 
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
 Produkte, Bestand, Rezeptzutaten …). Löschst du einen Lagerort mit Bestand, wählst du, wohin die

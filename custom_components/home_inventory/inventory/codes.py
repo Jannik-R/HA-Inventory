@@ -8,8 +8,9 @@ from datetime import date, timedelta
 from .booking import book_in, book_out
 from .canning import save_canning
 from .common import InventoryError, id_by_name
+from .frozen import freeze, thaw
 from .inherit import effective
-from .labels import book_out_code, open_code
+from .labels import _label_batch, book_out_code, open_code
 from .master import list_rows
 from .meal_plan import save_meal
 from .opened import open_package
@@ -96,6 +97,29 @@ def open_by_code(
     return open_package(
         conn, product["id"], location_id=_location(conn, location), today=today,
         source="service", user_id=user_id,
+    )  # fmt: skip
+
+
+def frozen_by_code(
+    conn: sqlite3.Connection,
+    code: str,
+    today: date,
+    thawing: bool = False,
+    packages: int = 1,
+    location: str | None = None,
+    to_location: str | None = None,
+    user_id: str | None = None,
+) -> dict:
+    """Freeze (or thaw) packages. EAN / name: earliest date first (from `location` if given), to
+    `to_location` (default: first freezer / the product's location). Label code: its batch."""
+    batch_id = None
+    if code.strip().upper().startswith("PTRY:"):
+        product, batch_id = _label_batch(conn, code.strip()[5:])
+    else:
+        product = _product(conn, code)
+    return (thaw if thawing else freeze)(
+        conn, product["id"], packages, batch_id, _location(conn, location),
+        _location(conn, to_location), today, "service", user_id,
     )  # fmt: skip
 
 

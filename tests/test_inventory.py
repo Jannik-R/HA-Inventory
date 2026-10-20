@@ -392,7 +392,7 @@ def test_migration_3_normalizes_and_cleans_up():
     assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
     assert inv.defaults(c) == {
         "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7,
-        "shelf_days": None, "opened_days": None,
+        "shelf_days": None, "opened_days": None, "frozen_days": 90,
     }  # fmt: skip
     with pytest.raises(sqlite3.IntegrityError):
         c.execute("UPDATE unit SET is_count = 2")
@@ -480,6 +480,8 @@ def test_force_delete_unit_clears_references(conn):
 
 
 def test_force_delete_location_moves_or_removes_stock(conn):
+    # Gefrierschrank is not a freezer here: moving in would freeze (test_frozen)
+    conn.execute("UPDATE location SET freezer = 0")
     fridge, freezer, shelf = loc(conn), loc(conn, "Gefrierschrank"), loc(conn, "Vorratsschrank")
     p = product(conn)
     batch = inv.book_in(conn, p, 3, location_id=fridge)
@@ -680,6 +682,7 @@ def test_min_stock_count_unit_uses_package_content(conn):
 
 
 def test_move_location_keeps_location_and_merges(conn):
+    conn.execute("UPDATE location SET freezer = 0")  # a plain move (freezing: test_frozen)
     fridge, freezer = loc(conn), loc(conn, "Gefrierschrank")
     a, b = product(conn), product(conn, "Reis")
     batch = inv.book_in(conn, a, 2, location_id=fridge)

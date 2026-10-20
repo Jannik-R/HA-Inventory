@@ -28,6 +28,9 @@ import { stockFilterStyles, stockFilters } from "./stock-filters";
 import { stockStyles } from "./stock-styles";
 import { deleteMasterRow } from "./delete-flow";
 import type { HomeInventoryLabelDialog } from "./label-dialog";
+import { frozenButton, frozenLine, undoFrozenDone, type FrozenDone } from "./frozen-action";
+import type { HomeInventoryFrozenDialog } from "./frozen-dialog";
+import "./frozen-dialog";
 import "./product-dialog";
 import "./batch-dialog";
 import "./label-dialog";
@@ -49,6 +52,7 @@ export class HomeInventoryStock extends LitElement {
     error: { state: true },
     undo: { state: true },
     opened: { state: true },
+    frozen: { state: true },
     message: { state: true },
   };
 
@@ -66,6 +70,8 @@ export class HomeInventoryStock extends LitElement {
   declare undo?: Undo;
   /** The last package opened (undo, label offer). */
   declare opened?: Opened;
+  /** The last freeze / thaw (undo, label offer). */
+  declare frozen?: FrozenDone;
   declare message: string;
   private products = new Map<number, Product>();
 
@@ -88,8 +94,9 @@ export class HomeInventoryStock extends LitElement {
       this.load();
     }
     // One undo line at a time: taking out and opening replace each other's.
-    if (changed.has("undo") && this.undo) this.opened = undefined;
-    if (changed.has("opened") && this.opened) this.undo = undefined;
+    if (changed.has("undo") && this.undo) this.opened = this.frozen = undefined;
+    if (changed.has("opened") && this.opened) this.undo = this.frozen = undefined;
+    if (changed.has("frozen") && this.frozen) this.undo = this.opened = undefined;
     // The "label printed" note belongs to the moment of printing.
     if (["filter", "location", "withEmpty", "stock"].some((k) => changed.has(k))) this.message = "";
   }
@@ -149,6 +156,7 @@ export class HomeInventoryStock extends LitElement {
     if (r.expires_on && r.expiry_type === "guide") date = t("stock.approx_date", { date });
     else if (r.expiry_guessed) date = t("stock.guessed_date", { date });
     if (r.opened_on) date = t("stock.opened_on", { date, opened: fmtDate(this.hass, r.opened_on) });
+    if (r.frozen_on) date = t("stock.frozen_on", { date, frozen: fmtDate(this.hass, r.frozen_on) });
     return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
   }
 
@@ -180,6 +188,17 @@ export class HomeInventoryStock extends LitElement {
         () => this.label({ id: this.opened!.batch_id, name: this.opened!.name, packages: 1 }),
         "opened",
       )}
+      ${frozenLine(
+        this.hass,
+        this.frozen,
+        () => undoFrozenDone(this),
+        () =>
+          this.label({
+            id: this.frozen!.result.batch_id,
+            name: this.frozen!.result.name,
+            packages: 1,
+          }),
+      )}
       ${doneLine(this.message, undefined, "label")}
       ${
         rows.length
@@ -200,6 +219,14 @@ export class HomeInventoryStock extends LitElement {
         .hass=${this.hass}
         @home-inventory-saved=${this.saved}
       ></home-inventory-batch-dialog>
+      <home-inventory-frozen-dialog
+        .hass=${this.hass}
+        .locations=${this.md?.locations ?? []}
+        @home-inventory-frozen=${async (e: CustomEvent<FrozenDone>) => {
+          this.frozen = e.detail;
+          this.stock = await getStock(this.hass!);
+        }}
+      ></home-inventory-frozen-dialog>
       <home-inventory-label-dialog
         .hass=${this.hass}
         @home-inventory-printed=${(e: CustomEvent<number>) =>
@@ -288,7 +315,18 @@ export class HomeInventoryStock extends LitElement {
                     <span class="count">${t("book.count", { n: b.packages })}</span>
                     <span class="acts">
                       ${outButton(this, p.name, b, "stock-batch-out")}
-                      ${hasModule("opened") ? openButton(this, p.name, b) : ""}
+                      ${hasModule("opened") && !b.frozen_on ? openButton(this, p.name, b) : ""}
+                      ${
+                        hasModule("frozen")
+                          ? frozenButton(this.md, this.products.get(p.id), b, (thaw) =>
+                              this.renderRoot
+                                .querySelector<HomeInventoryFrozenDialog>(
+                                  "home-inventory-frozen-dialog",
+                                )!
+                                .open(b, thaw),
+                            )
+                          : ""
+                      }
                       <button
                         class="icon-btn"
                         data-testid="stock-batch-label"

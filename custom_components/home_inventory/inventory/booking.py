@@ -68,15 +68,16 @@ def _batch(
     opened_on=None,
     canning_id=None,
     guessed: bool = False,
+    frozen_on=None,
 ) -> int:
-    """Id of the batch with this key (default: unopened, no canning charge); created if missing.
+    """Id of the batch with this key (default: unopened, not frozen, no canning charge); created if missing.
 
     `guessed`: the date is an estimate (book-in without a date); a real date for a guessed
     batch confirms it."""
-    key = (product_id, _iso(expires_on), canning_id, opened_on)
+    key = (product_id, _iso(expires_on), canning_id, opened_on, frozen_on)
     row = conn.execute(
         "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS ?"
-        " AND opened_on IS ?",
+        " AND opened_on IS ? AND frozen_on IS ?",
         key,
     ).fetchone()
     if row:
@@ -84,8 +85,8 @@ def _batch(
             conn.execute("UPDATE batch SET expiry_guessed = 0 WHERE id = ?", (row["id"],))
         return row["id"]
     return conn.execute(
-        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, created_at,"
-        " expiry_guessed) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, frozen_on, created_at,"
+        " expiry_guessed) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (*key, _now(), int(bool(guessed) and key[1] is not None)),
     ).lastrowid
 
@@ -103,7 +104,10 @@ def book_in(
     """Book packages in; the same product+date merges into one batch. Returns batch id.
 
     No date: today (HA's time zone, passed by the callers) + the inherited shelf life, marked as
-    guessed (no shelf life: no date)."""
+    guessed (no shelf life: no date). At a freezer location a freezable product is frozen today
+    (its date: today + frozen days)."""
+    from .frozen import frozen_batch, frozen_days, is_freezer  # frozen imports this module
+
     _packages(packages)
     eff = effective(conn, product_id)  # raises not_found
     location_id = location_id or eff["default_location_id"]["value"]
@@ -114,7 +118,10 @@ def book_in(
     guessed = not expires_on and days is not None
     if guessed:
         expires_on = (today or date.today()) + timedelta(days=days)
-    batch_id = _batch(conn, product_id, expires_on, guessed=guessed)
+    if is_freezer(conn, location_id) and (frozen := frozen_days(conn, product_id)):
+        batch_id = frozen_batch(conn, product_id, None, frozen, today or date.today())
+    else:
+        batch_id = _batch(conn, product_id, expires_on, guessed=guessed)
     _add(conn, batch_id, location_id, packages)
     _booking(conn, "in", batch_id, location_id, packages, source, user_id)
     return batch_id
@@ -228,6 +235,10 @@ def move(
     available = _stock_of(conn, batch_id, from_location_id)
     if available < packages:
         raise InventoryError("not_enough_stock", available=available)
+    from .frozen import on_move  # frozen imports this module
+
+    if on_move(conn, batch_id, from_location_id, to_location_id, packages, source, user_id):
+        return  # into a freezer = freeze, out of it = thaw
     _take(conn, batch_id, from_location_id, packages)
     _add(conn, batch_id, to_location_id, packages)
     _booking(
@@ -280,7 +291,7 @@ def edit_stock(
     """
     _packages(packages, 0)
     row = conn.execute(
-        "SELECT product_id, canning_id, opened_on FROM batch WHERE id = ?", (batch_id,)
+        "SELECT product_id, canning_id, opened_on, frozen_on FROM batch WHERE id = ?", (batch_id,)
     ).fetchone()
     if not row or not _stock_of(conn, batch_id, location_id):
         raise InventoryError("not_found")
@@ -290,8 +301,10 @@ def edit_stock(
             (_iso(expires_on), row["canning_id"]),
         )
         target = batch_id
-    else:  # an opened package stays opened
-        target = _batch(conn, row["product_id"], expires_on, row["opened_on"])
+    else:  # an opened package stays opened, a frozen one frozen
+        target = _batch(
+            conn, row["product_id"], expires_on, row["opened_on"], frozen_on=row["frozen_on"]
+        )
     if target != batch_id:
         correct(conn, batch_id, location_id, 0, source, user_id)
         packages += _stock_of(conn, target, location_id)  # merge into what is already there

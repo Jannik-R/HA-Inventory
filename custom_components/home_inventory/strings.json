@@ -63,6 +63,15 @@
     "location_required": {
       "message": "Please choose a storage location."
     },
+    "not_freezable": {
+      "message": "This product is not frozen at home (not a food, bought frozen, or no days frozen set)."
+    },
+    "no_freezer": {
+      "message": "No freezer location: mark a location as freezer in the settings."
+    },
+    "frozen": {
+      "message": "This package is frozen; thaw it first."
+    },
     "already_opened": {
       "message": "This package is already opened."
     },
@@ -299,6 +308,50 @@
         }
       }
     },
+    "freeze_package": {
+      "name": "Freeze a package",
+      "description": "Freeze packages of a fresh product (not frozen goods) by barcode, name (earliest date first) or label code (that batch). They move to a freezer location and get the date today + days frozen (a guide value).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN, label code PTRY:… or product name"
+        },
+        "packages": {
+          "name": "Packages",
+          "description": "How many packages (default 1)."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Only from this location (not with a label code)."
+        },
+        "to_location": {
+          "name": "Target location",
+          "description": "Freezer location to put them in (default: the first freezer)."
+        }
+      }
+    },
+    "thaw_package": {
+      "name": "Thaw a package",
+      "description": "Thaw frozen packages by barcode, name (earliest date first) or label code (that batch). They count as opened today and keep for the days after opening (1 day without).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN, label code PTRY:… or product name"
+        },
+        "packages": {
+          "name": "Packages",
+          "description": "How many packages (default 1)."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Only from this freezer location (not with a label code)."
+        },
+        "to_location": {
+          "name": "Target location",
+          "description": "Where they go (default: the product's storage location)."
+        }
+      }
+    },
     "print_labels": {
       "name": "Print labels",
       "description": "Print labels of a batch on the label printer.",
@@ -457,7 +510,8 @@
         "recipes": "Recipes",
         "plan": "Meal plan (incl. calendar entity)",
         "canning": "Canning",
-        "opened": "Opened packages"
+        "opened": "Opened packages",
+        "frozen": "Freezing"
       }
     },
     "label_printer": {

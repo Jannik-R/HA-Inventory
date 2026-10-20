@@ -46,6 +46,14 @@ BOOK_OUT = vol.Schema(
     }
 )
 OPEN_PACKAGE = vol.Schema({vol.Required("code"): _CODE, vol.Optional("location"): _LOCATION})
+FROZEN = vol.Schema(
+    {
+        vol.Required("code"): _CODE,
+        vol.Optional("packages", default=1): _PACKAGES,
+        vol.Optional("location"): _LOCATION,
+        vol.Optional("to_location"): _LOCATION,
+    }
+)
 _DATE = vol.Any(None, "", cv.date)
 _SERVINGS = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
 MEALS = inventory.MEALS
@@ -134,6 +142,18 @@ def async_register(hass: HomeAssistant) -> None:
         )
         return await _run(hass, fn, d["code"], dt_util.now().date())
 
+    async def frozen(call: ServiceCall, thawing: bool) -> ServiceResponse:
+        d = call.data
+        fn = partial(
+            inventory.frozen_by_code,
+            thawing=thawing,
+            packages=d["packages"],
+            location=d.get("location") or None,
+            to_location=d.get("to_location") or None,
+            user_id=call.context.user_id,
+        )
+        return await _run(hass, fn, d["code"], dt_util.now().date())
+
     async def print_labels(call: ServiceCall) -> ServiceResponse:
         return await async_print_labels(
             hass, call.data["batch_id"], call.data["count"], browser=False
@@ -204,6 +224,8 @@ def async_register(hass: HomeAssistant) -> None:
         ("book_in", book_in, BOOK_IN),
         ("book_out", book_out, BOOK_OUT),
         ("open_package", open_package, OPEN_PACKAGE),
+        ("freeze_package", partial(frozen, thawing=False), FROZEN),
+        ("thaw_package", partial(frozen, thawing=True), FROZEN),
         ("print_labels", print_labels, PRINT_LABELS),
         ("print_shopping_list", print_shopping_list, vol.Schema({})),
         ("print_recipe", print_recipe, PRINT_RECIPE),

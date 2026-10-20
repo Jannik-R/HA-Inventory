@@ -16,12 +16,13 @@ def stock_list(
     location_id: int | None = None,
     product_id: int | None = None,
 ) -> list[dict]:
-    """One row per batch and location; expiry_type is the product's (own or inherited), expires_on
+    """One row per batch and location; expiry_type is the product's (own or inherited; guide when
+    frozen), expires_on
     the effective expiry (earlier when opened), batch_expires_on the batch's own date."""
     cats, dflt = _categories(conn), defaults(conn)
     sql = (
         "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on, b.opened_on,"
-        " b.expiry_guessed,"
+        " b.expiry_guessed, b.frozen_on,"
         " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type, p.opened_days,"
         " c.made_on, c.seq"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"
@@ -44,7 +45,8 @@ def stock_list(
         row["category_path"] = _path(cats, r["category_id"])
         eff = _resolve(cats, row, r["category_id"], dflt)
         del row["opened_days"]
-        row["expiry_type"] = eff["expiry_type"]["value"]
+        # a frozen batch's date is frozen_on + frozen days: a guide value whatever the product's kind
+        row["expiry_type"] = "guide" if r["frozen_on"] else eff["expiry_type"]["value"]
         row["batch_expires_on"] = r["expires_on"]
         row["expires_on"] = opened_until(
             r["expires_on"], r["opened_on"], eff["opened_days"]["value"]

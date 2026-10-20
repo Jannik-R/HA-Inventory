@@ -118,6 +118,10 @@ async def test_services(hass: HomeAssistant, entry: MockConfigEntry) -> None:
     with pytest.raises(ServiceValidationError) as err:
         await call(hass, "open_package", code=EAN, location="Keller")
     assert err.value.translation_key == "location_unknown"
+    frozen = await call(hass, "freeze_package", code=EAN, location="Kühlschrank")
+    assert frozen["location"] == "Gefrierschrank"
+    thawed = await call(hass, "thaw_package", code=EAN, packages=1, to_location="Vorratsschrank")
+    assert thawed["location"] == "Vorratsschrank"
 
     with pytest.raises(ServiceValidationError) as err:
         await call(hass, "book_out", code="12345678")

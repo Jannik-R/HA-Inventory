@@ -137,6 +137,15 @@ export class HomeInventorySettings extends LitElement {
         }),
       );
     if (c.food === 0) parts.push(t("settings.food.no"));
+    if (hasModule("frozen")) {
+      if (c.frozen_days != null)
+        parts.push(
+          t("settings.category.frozen_short", {
+            days: fmt(md, this.hass, "frozen_days", c.frozen_days),
+          }),
+        );
+      if (c.frozen_goods === 1) parts.push(t("settings.frozen_goods.yes"));
+    }
     if (c.min_stock != null) {
       const u = fmt(md, this.hass, "unit_id", c.min_stock_unit_id);
       parts.push(
@@ -256,7 +265,7 @@ export class HomeInventorySettings extends LitElement {
   private renderLocations() {
     const rows = this.data!.locations;
     return html`<ul>
-        ${rows.map((l) => this.row(l.name, "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
+        ${rows.map((l) => this.row(l.name, l.freezer ? t("settings.location.freezer") : "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
       </ul>
       ${this.empty(rows)}
       <home-inventory-move-location

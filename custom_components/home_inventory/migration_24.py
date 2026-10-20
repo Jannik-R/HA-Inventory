@@ -17,11 +17,12 @@ _NEW = "expiry_type IN ('best_before', 'use_by', 'guide')"
 _JARS = ("Schattenmorellen", "Preiselbeeren")
 
 
-def _widen(conn: sqlite3.Connection, table: str) -> None:
+def widen_check(conn: sqlite3.Connection, table: str, old: str = _OLD, new: str = _NEW) -> None:
+    """Rebuild `table` from its stored SQL with the CHECK text `old` replaced by `new` (ids, indexes kept)."""
     sql = conn.execute(
         "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?", (table,)
     ).fetchone()[0]
-    assert _OLD in sql, table
+    assert old in sql, table
     indexes = [
         r[0]
         for r in conn.execute(
@@ -32,7 +33,7 @@ def _widen(conn: sqlite3.Connection, table: str) -> None:
     cols = ", ".join(r[1] for r in conn.execute(f"PRAGMA table_info({table})"))
     # earlier rebuilds stored the name quoted ('CREATE TABLE "category"')
     new_sql = re.sub(
-        rf'^CREATE TABLE "?{table}"?', f"CREATE TABLE {table}_new", sql.replace(_OLD, _NEW)
+        rf'^CREATE TABLE "?{table}"?', f"CREATE TABLE {table}_new", sql.replace(old, new)
     )
     assert f"{table}_new" in new_sql, table
     conn.execute(new_sql)
@@ -61,5 +62,5 @@ def set_guide(conn: sqlite3.Connection) -> None:
 
 def guide_kind(conn: sqlite3.Connection) -> None:
     for table in ("defaults", "category", "product"):
-        _widen(conn, table)
+        widen_check(conn, table)
     set_guide(conn)

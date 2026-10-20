@@ -37,8 +37,8 @@ Avoid expensive actions unless they are really needed. When a task would need th
 custom_components/home_inventory/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
-    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, frozen (freeze / thaw, freezer rule), stocktake, steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer), purchase (receipt import: prompt, answer check, booking, learned receipt lines)
-  db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities after writes
+    __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, ingredient_line, meal_plan, plan_shopping, removal, canning, opened, frozen (freeze / thaw, freezer rule), stocktake, notify (read views for the HA events), steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer), purchase (receipt import: prompt, answer check, booking, learned receipt lines)
+  db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities and fires home_inventory_booked after writes
   migrations.py             MIGRATIONS: the schema steps (SQL scripts or callables), one per schema version
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
@@ -60,6 +60,7 @@ custom_components/home_inventory/   integration (Python)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   calendar.py               read-only meal plan calendar (Speiseplan): all-day event per dish
   backup.py                 locks the DB during HA backups
+  events.py                 HA events below_min (after writes) and expired (midnight); booked is fired by db.py per new booking row
   services.py               HA services for automations (booking by code, opening, freezing and thawing a package, printing, recipe on the shopping list, plan a dish, canning, drying) + services.yaml
   websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning / drying protocol commands; websocket_open.py: open, freeze or thaw a package / undo; websocket_purchase.py: receipt import (read via AI, book); websocket_stocktake.py: stocktaking a location; ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `home-inventory-panel.js` + hashed lazy chunks (committed, never edit by hand)

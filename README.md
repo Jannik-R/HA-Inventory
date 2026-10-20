@@ -30,6 +30,7 @@ Available:
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Meal plan*
 - Non-food: categories marked *Not food* (inherited) are never recipe ingredients; seeded roots *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel by socket), *Hausapotheke* (use-by, 30 days warning) and *Tierbedarf*
 - Shelf life (days, inherited like the warning): an empty expiry date at book-in (panel, receipt import, `home_inventory.book_in`) becomes today + shelf life, shown as *guessed* until the stock row is edited; option *Fill in the guessed expiry date* puts the guess into the date field; seeded with typical values for the food categories (e.g. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 days)
+- HA events for automations: `home_inventory_booked`, `home_inventory_below_min`, `home_inventory_expired` (see [Events](#events))
 - Location labels: QR `PTRY:L<id>` per location (tag icon in *Settings → Locations*); scanned in the booking field it sets the location for the following bookings
 - Stocktaking per location (*Stocktaking* in the stock view): scan everything stored there; what was not scanned is booked out, what was found but not in stock is booked in, both as corrections after one confirm
 - Date types: best before, use by, or *Guide value* for things without a printed date (fresh produce, seeded on *Obst & Gemüse*): shown as "approx." date (label "ca."), always prefilled from the shelf life; past use-by dates are red, past best-before and guide dates bold orange
@@ -272,6 +273,16 @@ actions:
       batch_id: "{{ booked.batch_id }}"
       count: 2
 ```
+
+### Events
+
+Automations can react to these events on the HA event bus (trigger type *Event*) without watching sensors:
+
+| Event | When | Data |
+|---|---|---|
+| `home_inventory_booked` | after every booking row (panel, services, receipt import, stocktaking, undo; freezing and thawing write two rows: -n on the old, +n on the new batch) | `booking_id`, `kind` (`in`, `out`, `move`, `correct`, `open`, `freeze`, `thaw`), `packages`, `source`, `user_id`, `batch_id`, `product_id`, `name`, `expires_on`, `location`, `to_location` |
+| `home_inventory_below_min` | when a minimum stock (category or product) is newly undercut; not again while it stays below | `key` (`p<id>` / `c<id>`), `name`, `product_id`, `category_id`, `packages`, `amount`, `unit` |
+| `home_inventory_expired` | at midnight, once per batch in stock whose date was yesterday | `batch_id`, `product_id`, `name`, `expires_on`, `expiry_type`, `packages`, `locations` |
 
 ## Development
 

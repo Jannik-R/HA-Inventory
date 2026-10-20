@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, opened, frozen, stocktake, assist, ai_import, purchase).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, opened, frozen, stocktake, notify, assist, ai_import, purchase).
 """
 
 from .ai_check import changes as ai_changes
@@ -48,6 +48,7 @@ from .meal_plan import (
     save_meal_times,
     shift_meals,
 )
+from .notify import below_min, bookings_since, expired_on, last_booking
 from .opened import open_package, undo_open
 from .plan_shopping import plan_to_shopping_list
 from .products import add_product, find_ean, list_products, product_draft, search_products
@@ -96,6 +97,7 @@ __all__ = [
     "assist_recipe",
     "assist_recipes",
     "assist_stock",
+    "below_min",
     "book_in",
     "book_in_by_code",
     "book_in_new",
@@ -103,6 +105,7 @@ __all__ = [
     "book_out_by_code",
     "book_out_code",
     "book_receipt",
+    "bookings_since",
     "canning_by_name",
     "cannings",
     "charge",
@@ -115,6 +118,7 @@ __all__ = [
     "delete_shopping_item",
     "edit_stock",
     "effective",
+    "expired_on",
     "expiring",
     "expiring_recipes",
     "find_ean",
@@ -123,6 +127,7 @@ __all__ = [
     "frozen_by_code",
     "keyword_score",
     "label_info",
+    "last_booking",
     "list_products",
     "list_rows",
     "location_label_info",

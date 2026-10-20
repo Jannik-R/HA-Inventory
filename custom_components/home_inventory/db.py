@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import SIGNAL_CHANGED
+from .const import EVENT_BOOKED, SIGNAL_CHANGED
+from .inventory.notify import bookings_since, last_booking
 from .migration_24 import set_guide
 from .migration_25 import set_frozen
 from .migration_26 import add_dried
@@ -91,26 +92,31 @@ class Database:
     async def async_open(self) -> None:
         self._conn = await self._hass.async_add_executor_job(self._open)
 
-    def _run(self, fn: Callable[..., Any], args: tuple) -> tuple[Any, bool]:
+    def _run(self, fn: Callable[..., Any], args: tuple) -> tuple[Any, bool, list[dict]]:
         with self.lock:
             before = self._conn.total_changes
+            last = last_booking(self._conn)
             try:
                 result = fn(self._conn, *args)
                 self._conn.commit()
             except BaseException:
                 self._conn.rollback()
                 raise
-            return result, self._conn.total_changes != before
+            changed = self._conn.total_changes != before
+            return result, changed, bookings_since(self._conn, last) if changed else []
 
     async def run(self, fn: Callable[..., Any], *args: Any, write: bool = True) -> Any:
         """Run an inventory function in the executor; commit on success, roll back on error.
 
         Any write sends SIGNAL_CHANGED, so entities refresh whatever the entry point was
-        (`write=False`: a dry run that is rolled back, nothing to announce).
+        (`write=False`: a dry run that is rolled back, nothing to announce). Each new booking row
+        fires EVENT_BOOKED on the HA event bus.
         """
         async with self.gate:
-            result, changed = await self._hass.async_add_executor_job(self._run, fn, args)
+            result, changed, booked = await self._hass.async_add_executor_job(self._run, fn, args)
         if changed and write:
+            for row in booked:
+                self._hass.bus.async_fire(EVENT_BOOKED, row)
             async_dispatcher_send(self._hass, SIGNAL_CHANGED)
         return result
 

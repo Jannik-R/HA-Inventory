@@ -3,6 +3,10 @@
 DOMAIN = "home_inventory"
 PANEL_URL = "/home_inventory_static"
 SIGNAL_CHANGED = f"{DOMAIN}_changed"  # dispatcher: the DB was written
+# HA event bus (events.py; booked: db.py): one event per booking row / new shortfall / expired batch
+EVENT_BOOKED = f"{DOMAIN}_booked"
+EVENT_BELOW_MIN = f"{DOMAIN}_below_min"
+EVENT_EXPIRED = f"{DOMAIN}_expired"
 MAX_LABELS = 20  # per print call (any user may print); also in the panel (label-print.ts)
 
 # Options (config entry); label size in mm. A receipt printer will be a separate setting later.

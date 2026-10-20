@@ -11,6 +11,7 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from . import (
+    events,
     llm_api,
     services,
     websocket,
@@ -73,6 +74,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry
             },
         )
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        await events.async_setup(hass, entry)
         entry.async_on_unload(llm_api.async_register(hass, entry.options))
     except BaseException:  # a later step failed: do not leave the DB connection open
         frontend.async_remove_panel(hass, DOMAIN, warn_if_unknown=False)

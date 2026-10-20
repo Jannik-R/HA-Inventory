@@ -146,6 +146,8 @@ pwsh scripts/dev.ps1                  # Windows: dev HA + receipt printer bridge
 
 Use the cheapest agent that can do the job.
 
+**Always delegate to these agents; this is the standing request to use subagents.** The main session (often Opus) only asks the questions, plans, coordinates, checks agent results and handles git/PRs. Implementation goes to `coder`, i18n/README/guide/small fixes to `chore`, reviews to `reviewer`, schema/architecture to `architect`. Only trivial one-step edits (a single line, a config value) stay in the main session.
+
 | Agent | Model | Use for |
 |---|---|---|
 | `architect` | opus | data model/migration design, new modules, cross-cutting decisions, phase planning |

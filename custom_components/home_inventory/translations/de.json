@@ -385,6 +385,20 @@
         }
       }
     },
+    "cooked": {
+      "name": "Gekocht ausbuchen",
+      "description": "Die Zutaten eines Rezepts so ausbuchen, wie das Panel es vorschlägt (Produkt mit dem frühesten Ablauf, ganze Packungen; der Rest bricht eine Packung an). Optionale Zutaten und unbekannte Mengen werden übersprungen. Es wird alles oder nichts gebucht.",
+      "fields": {
+        "recipe": {
+          "name": "Rezept",
+          "description": "Name des Rezepts (kein Einkochrezept)."
+        },
+        "servings": {
+          "name": "Portionen",
+          "description": "Leer = Portionen des Rezepts."
+        }
+      }
+    },
     "plan_to_shopping_list": {
       "name": "Einkaufsliste aus dem Speiseplan",
       "description": "Die im Zeitraum geplanten Rezepte auf die Einkaufsliste setzen (Portionen summiert; Gerichte mit freiem Text werden übersprungen). Vorhandener Vorrat wird abgezogen.",

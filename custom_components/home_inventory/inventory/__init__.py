@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, frozen, stocktake, notify, assist, ai_import, purchase).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, cooked, frozen, stocktake, notify, assist, ai_import, purchase).
 """
 
 from .ai_check import changes as ai_changes
@@ -32,6 +32,7 @@ from .codes import (
     shop_recipe_by_name,
 )
 from .common import InventoryError, check_ean
+from .cooked import book_cooked, cooked_by_name, cooked_proposal, undo_cooked
 from .emergency import GROUPS as EMERGENCY_GROUPS
 from .emergency import supply as emergency_supply
 from .expiry_recipes import expiring_recipes
@@ -102,6 +103,7 @@ __all__ = [
     "assist_recipes",
     "assist_stock",
     "below_min",
+    "book_cooked",
     "book_in",
     "book_in_by_code",
     "book_in_new",
@@ -114,6 +116,8 @@ __all__ = [
     "cannings",
     "charge",
     "check_ean",
+    "cooked_by_name",
+    "cooked_proposal",
     "correct",
     "defaults",
     "delete",
@@ -183,6 +187,7 @@ __all__ = [
     "suggest_by_keywords",
     "suggest_category",
     "thaw",
+    "undo_cooked",
     "undo_frozen",
     "undo_open",
     "unit_add",

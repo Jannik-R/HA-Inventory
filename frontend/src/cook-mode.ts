@@ -5,6 +5,8 @@ import { icon } from "./ui";
 import { formStyles } from "./styles";
 import { confirmDialog } from "./confirm-dialog";
 import { amountText } from "./recipe-detail";
+import "./cooked-dialog";
+import type { HomeInventoryCookedDialog } from "./cooked-dialog";
 import { stepList } from "./recipe-steps";
 import type { Hass, Ingredient, MasterData, Recipe, Step } from "./api";
 
@@ -224,7 +226,22 @@ export class HomeInventoryCookMode extends LitElement {
             </div>`
           : nothing
       }
+      <p>
+        <button type="button" data-testid="cook-cooked" @click=${() => this.cooked()}>
+          ${t("cooked.open")}
+        </button>
+      </p>
+      <home-inventory-cooked-dialog></home-inventory-cooked-dialog>
     </dialog>`;
+  }
+
+  /** The cooking is done: book out the ingredients (for the servings set when this opened). */
+  private cooked() {
+    const d = this.renderRoot.querySelector<HomeInventoryCookedDialog>(
+      "home-inventory-cooked-dialog",
+    )!;
+    d.hass = this.hass;
+    void d.open(this.recipe!, this.servings);
   }
 
   static styles = [

@@ -74,6 +74,10 @@ export const editDialog = (o: {
   invalid: boolean;
   /** Primary button text and testid (default: "Speichern"). */
   submit?: { label: string; testid: string };
+  /** Text of the left button (default: "Abbrechen"). */
+  cancel?: string;
+  /** Hide the primary button (e.g. after the action is done). */
+  hideSubmit?: boolean;
   dirty: () => boolean;
   /** May return a promise: until it settles, further submits (double click, Enter) are ignored. */
   onSubmit: (e: Event) => unknown;
@@ -98,13 +102,14 @@ export const editDialog = (o: {
           type="button"
           @click=${(e: Event) => (e.target as HTMLElement).closest("dialog")!.close()}
         >
-          ${t("common.cancel")}
+          ${o.cancel ?? t("common.cancel")}
         </button>
         <button
           class="primary"
           type="submit"
           data-testid=${o.submit?.testid ?? "save"}
           ?disabled=${o.invalid}
+          ?hidden=${o.hideSubmit}
         >
           ${o.submit?.label ?? t("common.save")}
         </button>

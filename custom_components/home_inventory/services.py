@@ -1,5 +1,5 @@
 """HA services for automations (scanners, NFC tags, ESPHome, voice): book in/out by code, print
-labels, open a package, the shopping list, the meal plan (day / week) and recipes (also the one planned for a meal), a recipe on the shopping
+labels, open a package, book out a cooked recipe, the shopping list, the meal plan (day / week) and recipes (also the one planned for a meal), a recipe on the shopping
 list, plan a dish, a canning protocol."""
 
 from __future__ import annotations
@@ -58,6 +58,7 @@ _DATE = vol.Any(None, "", cv.date)
 _SERVINGS = vol.All(vol.Coerce(int), vol.Range(min=1, max=99))
 MEALS = inventory.MEALS
 SHOP_RECIPE = vol.Schema({vol.Required("recipe"): NAME, vol.Optional("servings"): _SERVINGS})
+COOKED = SHOP_RECIPE
 PLAN_MEAL = vol.Schema(
     {
         vol.Exclusive("recipe", "dish"): NAME,
@@ -192,6 +193,12 @@ def async_register(hass: HomeAssistant) -> None:
         servings = call.data.get("servings") or _household(hass)
         return await _run(hass, inventory.shop_recipe_by_name, call.data["recipe"], servings)
 
+    async def cooked(call: ServiceCall) -> ServiceResponse:
+        fn = partial(
+            inventory.cooked_by_name, user_id=call.context.user_id, today=dt_util.now().date()
+        )
+        return await _run(hass, fn, call.data["recipe"], call.data.get("servings"))
+
     async def plan_meal(call: ServiceCall) -> ServiceResponse:
         d = call.data
         if not (d.get("recipe") or d.get("text")):
@@ -233,6 +240,7 @@ def async_register(hass: HomeAssistant) -> None:
         ("print_planned", print_planned, PRINT_PLANNED),
         ("print_plan", print_plan, PRINT_PLAN),
         ("shop_recipe", shop_recipe, SHOP_RECIPE),
+        ("cooked", cooked, COOKED),
         ("plan_meal", plan_meal, PLAN_MEAL),
         ("plan_to_shopping_list", plan_to_shopping_list, PLAN_SHOP),
         ("canning", canning, CANNING),

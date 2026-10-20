@@ -63,6 +63,7 @@ export const recipeDetail = (o: {
   /** Plan the dish; a canning recipe starts a protocol instead. */
   onPlan: () => void;
   onCook: () => void;
+  onCooked: () => void;
 }) => {
   const r = o.recipe;
   return html`<div class="detail-box">
@@ -122,6 +123,13 @@ export const recipeDetail = (o: {
                 ${t("recipes.to_plan")}
               </button>`
             : nothing
+      }
+      ${
+        isCanning(r)
+          ? nothing
+          : html`<button type="button" data-testid="recipe-cooked" @click=${o.onCooked}>
+              ${t("cooked.open")}
+            </button>`
       }
       <home-inventory-receipt-button
         .hass=${o.hass}

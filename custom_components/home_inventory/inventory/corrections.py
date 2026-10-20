@@ -17,7 +17,7 @@ def put_back(
     A location deactivated meanwhile is reactivated, so undo never fails on that."""
     for booking_id in booking_ids:
         out = conn.execute(
-            "SELECT batch_id, location_id, packages, remaining FROM booking WHERE id = ? AND kind = 'out'",
+            "SELECT batch_id, location_id, packages FROM booking WHERE id = ? AND kind = 'out'",
             (booking_id,),
         ).fetchone()
         if not out or out["location_id"] is None:
@@ -30,10 +30,6 @@ def put_back(
             conn, "in", out["batch_id"], out["location_id"], out["packages"], source, user_id,
             reverts_id=booking_id,
         )  # fmt: skip
-        if out["remaining"] is not None:  # the partly used package is back at its level
-            conn.execute(
-                "UPDATE batch SET remaining = ? WHERE id = ?", (out["remaining"], out["batch_id"])
-            )
 
 
 def move(
@@ -110,7 +106,8 @@ def edit_stock(
     """
     _packages(packages, 0)
     row = conn.execute(
-        "SELECT product_id, canning_id, opened_on, frozen_on FROM batch WHERE id = ?", (batch_id,)
+        "SELECT product_id, canning_id, opened_on, frozen_on, remaining FROM batch WHERE id = ?",
+        (batch_id,),
     ).fetchone()
     if not row or not _stock_of(conn, batch_id, location_id):
         raise InventoryError("not_found")
@@ -120,6 +117,13 @@ def edit_stock(
             (_iso(expires_on), row["canning_id"]),
         )
         target = batch_id
+    # a partly used package is its own batch: it takes the new date itself
+    elif row["remaining"] < 1:
+        conn.execute(
+            "UPDATE batch SET expires_on = ?, expiry_guessed = 0 WHERE id = ?",
+            (_iso(expires_on), batch_id),
+        )
+        target = batch_id
     else:  # an opened package stays opened, a frozen one frozen
         target = _batch(
             conn, row["product_id"], expires_on, row["opened_on"], frozen_on=row["frozen_on"]
@@ -127,12 +131,5 @@ def edit_stock(
     if target != batch_id:
         correct(conn, batch_id, location_id, 0, source, user_id)
         packages += _stock_of(conn, target, location_id)  # merge into what is already there
-        # shortcut: the level carry writes no 'remaining' booking (the 'correct' rows are the log).
-        conn.execute(  # an empty target takes the level, a stocked one holds the emptier level
-            "UPDATE batch SET remaining = CASE WHEN EXISTS (SELECT 1 FROM stock WHERE batch_id = ?1)"
-            " THEN min(remaining, (SELECT remaining FROM batch WHERE id = ?2))"
-            " ELSE (SELECT remaining FROM batch WHERE id = ?2) END WHERE id = ?1",
-            (target, batch_id),
-        )
     correct(conn, target, location_id, packages, source, user_id)
     return target

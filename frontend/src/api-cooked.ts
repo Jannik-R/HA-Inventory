@@ -8,7 +8,7 @@ export interface CookedBatch {
   packages: number;
   opened: boolean;
   frozen: boolean;
-  /** Level of the partly used package of an opened batch (1 = full). */
+  /** Level of the package(s) of the batch (1 = full; below 1 = one partly used package). */
   remaining: number;
 }
 
@@ -19,7 +19,10 @@ export interface CookedCandidate {
   brand: string | null;
   batches: CookedBatch[];
   action: CookedAction;
+  /** Packages booked out first (for a reduce: the used up partly used ones, then `batch_id` is lowered). */
   packages: number;
+  /** Of `packages` booked out first, the partly used ones taken by batch (out). */
+  used_up: number;
   /** Packages to open after taking `packages` (the remainder of a package). */
   open: number;
   /** null = earliest first over all batches. */
@@ -47,6 +50,7 @@ export interface CookedItem {
   packages: number;
   action: "out" | "open" | "reduce";
   open: number;
+  used_up: number;
   remaining: number | null;
 }
 

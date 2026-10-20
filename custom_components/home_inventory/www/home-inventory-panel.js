@@ -657,6 +657,7 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"valid.ean": "Die EAN besteht aus 8 bis 14 Ziffern.",
 	"valid.ean_taken": "Diese EAN gehört schon zu „{name}“.",
 	"valid.days": "Bitte eine ganze Zahl ab 0 eingeben.",
+	"valid.partial_one": "Eine angebrochene Packung mit Füllstand ist immer genau 1 Packung an einem Ort.",
 	"valid.packages_zero": "Bitte eine ganze Zahl ab 0 eingeben.",
 	"common.none_dash": "–",
 	"scan.detector": "Der Barcode-Scanner konnte nicht geladen werden.",
@@ -960,6 +961,7 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"cooked.submit": "Ausbuchen",
 	"cooked.product": "Produkt",
 	"cooked.batch": "Charge",
+	"cooked.used_up": "Aufgebrauchte Packungen",
 	"cooked.packages": "Packungen",
 	"cooked.action": "Aktion",
 	"cooked.action.out": "Ausbuchen",
@@ -1222,6 +1224,7 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"valid.ean": "An EAN has 8 to 14 digits.",
 	"valid.ean_taken": "This EAN already belongs to “{name}”.",
 	"valid.days": "Please enter a whole number from 0.",
+	"valid.partial_one": "A partly used package is always exactly 1 package at one location.",
 	"valid.packages_zero": "Please enter a whole number from 0.",
 	"common.none_dash": "–",
 	"scan.detector": "The barcode scanner could not be loaded.",
@@ -1525,6 +1528,7 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"cooked.submit": "Book out",
 	"cooked.product": "Product",
 	"cooked.batch": "Batch",
+	"cooked.used_up": "Used-up packages",
 	"cooked.packages": "Packages",
 	"cooked.action": "Action",
 	"cooked.action.out": "Book out",
@@ -3811,10 +3815,10 @@ function Wr(e, t, n, r) {
 	return t.expires_on && t.expiry_type === "guide" ? i = C("stock.approx_date", { date: i }) : t.expiry_guessed && (i = C("stock.guessed_date", { date: i })), t.opened_on && (i = C("stock.opened_on", {
 		date: i,
 		opened: z(e, t.opened_on)
-	}), t.remaining < 1 && (i += `, ${Dr(e, t.remaining, n, r?.units)}`)), t.frozen_on && (i = C("stock.frozen_on", {
+	})), t.frozen_on && (i = C("stock.frozen_on", {
 		date: i,
 		frozen: z(e, t.frozen_on)
-	})), t.charge ? C("stock.charge", {
+	})), t.remaining < 1 && (i += `, ${Dr(e, t.remaining, n, r?.units)}`), t.charge ? C("stock.charge", {
 		date: i,
 		charge: t.charge
 	}) : i;
@@ -3825,7 +3829,7 @@ var Gr = (e, t, n) => _`<li data-testid="stock-batch">
     <span class="count">${C("book.count", { n: n.packages })}</span>
     <span class="acts">
       ${Mr(e.host, t, n, "stock-batch-out")}
-      ${L("opened") && n.opened_on ? Nr(e.host, t, n) : ""}
+      ${L("opened") && (n.opened_on || n.frozen_on) ? Nr(e.host, t, n) : ""}
       ${L("opened") && !n.frozen_on ? zr(e.host, t, n) : ""}
       ${L("frozen") ? Vr(e.md, e.product, n, (t) => e.freeze(n, t)) : ""}
       <button
@@ -8964,13 +8968,23 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 	batch_id: e.batch_id,
 	packages: e.packages,
 	open: e.open,
+	used_up: e.used_up,
 	remaining: e.remaining ?? null,
 	action: e.action
-}), Ho = (e) => !e.opened && !e.frozen, Uo = (e) => e.reduce((e, t) => e + t.packages, 0), Wo = (e) => e.action === "open" ? $(e).batches.filter(Ho) : e.action === "reduce" ? $(e).batches.filter((e) => e.opened) : $(e).batches, Go = (e) => $(e).batches.filter((t) => t.opened && (e.batch_id == null || t.batch_id === e.batch_id)).sort((e, t) => Number((e.remaining ?? 1) === 1) - Number((t.remaining ?? 1) === 1))[0], Ko = (e) => {
+}), Ho = (e) => !e.opened && !e.frozen, Uo = (e) => e.reduce((e, t) => e + t.packages, 0), Wo = (e) => e.action === "open" ? $(e).batches.filter(Ho) : e.action === "reduce" ? $(e).batches.filter((e) => e.opened) : $(e).batches, Go = (e) => {
+	let t = $(e).batches.filter((e) => e.opened), n = t.filter((e) => e.remaining < 1).sort((e, t) => Number(e.expires_on == null) - Number(t.expires_on == null) || (e.expires_on ?? "").localeCompare(t.expires_on ?? "") || e.remaining - t.remaining);
+	return n.length ? n : t.slice(0, 1);
+}, Ko = (e) => $(e).batches.find((t) => t.opened && t.batch_id === e.batch_id) ?? Go(e)[e.packages ?? 0], qo = (e) => {
+	let t = Go(e);
+	return Math.max(0, e.batch_id == null ? t.length - 1 : t.length - +t.some((t) => t.batch_id === e.batch_id));
+}, Jo = (e) => {
 	if (!e.checked || e.action === "skip") return;
 	if (e.action === "reduce") {
-		let t = Go(e);
-		return t ? e.remaining == null || e.remaining >= (t.remaining ?? 1) - 1e-9 ? C("valid.level_below") : void 0 : C("cooked.no_opened");
+		let t = Ko(e);
+		if (!t) return C("cooked.no_opened");
+		if (e.packages == null || !Number.isInteger(e.packages) || e.packages < 0) return C("valid.packages_zero");
+		let n = qo(e);
+		return e.packages > n ? C("valid.max_packages", { n }) : e.remaining == null || e.remaining >= t.remaining - 1e-9 ? C("valid.level_below") : void 0;
 	}
 	let t = e.packages, n = t === 0 && !(e.action === "out" && e.open > 0);
 	if (t == null || !Number.isInteger(t) || t < 0 || n) return C("valid.packages");
@@ -8978,7 +8992,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 	if (t > r) return C("valid.max_packages", { n: r });
 	let i = Uo($(e).batches.filter(Ho));
 	if (e.action === "out" && t + e.open > i) return C("valid.max_packages", { n: i });
-}, qo = (e, t, n, r, i) => _`<label>
+}, Yo = (e, t, n, r, i) => _`<label>
     <span class="lbl">${e}</span>
     <select
       data-testid=${t}
@@ -8987,15 +9001,15 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
     >
       ${r.map(([e, t]) => _`<option value=${e} ?selected=${e === n}>${t}</option>`)}
     </select>
-  </label>`, Jo = (e, t) => {
+  </label>`, Xo = (e, t) => {
 	let n = [
 		t.expires_on ? z(e, t.expires_on) : C("cooked.no_date"),
 		t.location,
 		C("cooked.pkg", { n: t.packages })
 	];
 	return t.opened && n.push(C("cooked.opened")), t.frozen && n.push(C("cooked.frozen")), n.join(", ");
-}, Yo = (e) => {
-	let { r: t, err: n, change: r } = e, i = t.src, a = [i.amount == null ? "" : U(e.hass, i.amount, i.unit_symbol), i.text].filter(Boolean).join(" "), o = Wo(t).map((t) => [String(t.batch_id), Jo(e.hass, t)]);
+}, Zo = (e) => {
+	let { r: t, err: n, change: r } = e, i = t.src, a = [i.amount == null ? "" : U(e.hass, i.amount, i.unit_symbol), i.text].filter(Boolean).join(" "), o = Wo(t).map((t) => [String(t.batch_id), Xo(e.hass, t)]);
 	return _`<li class="crow" data-testid="cooked-row">
     <label class="check">
       <input
@@ -9009,25 +9023,27 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
       >
     </label>
     <div class="ctl">
-      ${qo(C("cooked.product"), "cooked-product", String(t.product_id), i.candidates.map((e) => [String(e.product_id), e.brand ? `${e.name} (${e.brand})` : e.name]), (e) => r(Vo(i.candidates.find((t) => String(t.product_id) === e))))}
-      ${qo(C("cooked.batch"), "cooked-batch", t.batch_id == null ? "" : String(t.batch_id), [["", C("cooked.fefo")], ...o], (e) => r({ batch_id: e === "" ? null : Number(e) }))}
-      <label class="pk">
-        <span class="lbl">${C("cooked.packages")}</span>
-        <input
-          type="number"
-          min="0"
-          step="1"
-          inputmode="numeric"
-          data-testid="cooked-packages"
-          aria-invalid=${!!n}
-          .value=${String(t.packages ?? "")}
-          @input=${(e) => {
+      ${Yo(C("cooked.product"), "cooked-product", String(t.product_id), i.candidates.map((e) => [String(e.product_id), e.brand ? `${e.name} (${e.brand})` : e.name]), (e) => r(Vo(i.candidates.find((t) => String(t.product_id) === e))))}
+      ${Yo(C("cooked.batch"), "cooked-batch", t.batch_id == null ? "" : String(t.batch_id), [["", C("cooked.fefo")], ...o], (e) => r({ batch_id: e === "" ? null : Number(e) }))}
+      ${t.action === "reduce" && qo(t) < 1 ? y : _`<label class="pk">
+              <span class="lbl"
+                >${t.action === "reduce" ? C("cooked.used_up") : C("cooked.packages")}</span
+              >
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                data-testid="cooked-packages"
+                aria-invalid=${!!n}
+                .value=${String(t.packages ?? "")}
+                @input=${(e) => {
 		let t = e.target.value;
 		r({ packages: t === "" ? null : Number(t) });
 	}}
-        />
-      </label>
-      ${qo(C("cooked.action"), "cooked-action", t.action, [
+              />
+            </label>`}
+      ${Yo(C("cooked.action"), "cooked-action", t.action, [
 		"out",
 		"open",
 		"reduce",
@@ -9036,12 +9052,15 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 		let n = e, i = n !== "open" && n !== "reduce" || $(t).batches.some((e) => e.batch_id === t.batch_id && (n === "open" ? Ho(e) : e.opened)), a = {
 			...t,
 			action: n,
-			batch_id: i ? t.batch_id : null
-		}, o = n === "reduce" ? Go(a) : void 0;
+			batch_id: i ? t.batch_id : null,
+			packages: n === "reduce" ? 0 : t.packages
+		}, o = n === "reduce" ? Ko(a) : void 0;
 		r({
+			...t.action === "reduce" && n !== "reduce" ? Vo($(t)) : {},
 			action: n,
+			...n === "reduce" ? { packages: 0 } : {},
 			...i ? {} : { batch_id: null },
-			...o ? { remaining: Tr(o.remaining ?? 1) } : {}
+			...o ? { remaining: Tr(o.remaining) } : {}
 		});
 	})}
     </div>
@@ -9066,7 +9085,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
           </label>` : y}
     ${k(n, "cooked-packages")}
   </li>`;
-}, Xo = s`
+}, Qo = s`
   .crow {
     display: block;
     padding: 8px 0;
@@ -9102,19 +9121,19 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
     box-sizing: border-box;
     width: 100%;
   }
-`, Zo = (e, t, n) => e.callWS({
+`, $o = (e, t, n) => e.callWS({
 	type: "home_inventory/cooked_proposal",
 	recipe_id: t,
 	servings: n
-}), Qo = (e, t) => e.callWS({
+}), es = (e, t) => e.callWS({
 	type: "home_inventory/cooked_book",
 	items: t
-}), $o = (e, t) => e.callWS({
+}), ts = (e, t) => e.callWS({
 	type: "home_inventory/cooked_undo",
 	out_ids: t.out_ids,
 	open_ids: t.open_ids,
 	remaining_ids: t.remaining_ids
-}), es = class extends S {
+}), ns = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -9131,7 +9150,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 	async open(e, t) {
 		this.error = "", this.result = void 0, this.dirty = !1;
 		try {
-			let n = await Zo(this.hass, e.id, t);
+			let n = await $o(this.hass, e.id, t);
 			this.rows = n.map((e) => ({
 				src: e,
 				checked: e.checked,
@@ -9151,7 +9170,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 	errors() {
 		let e = {};
 		return this.rows.forEach((t, n) => {
-			let r = Ko(t);
+			let r = Jo(t);
 			r && (e[n] = r);
 		}), e;
 	}
@@ -9162,6 +9181,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 			packages: e.packages ?? 0,
 			action: e.action,
 			open: e.action === "out" ? e.open : 0,
+			used_up: e.action === "out" && e.batch_id == null ? Math.min(e.used_up, e.packages ?? 0) : 0,
 			remaining: e.action === "reduce" ? e.remaining : e.action === "open" || e.open ? e.remaining ?? 1 : null
 		}));
 	}
@@ -9176,7 +9196,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 		let t = this.items();
 		if (t.length && !Object.keys(this.errors()).length) {
 			try {
-				this.result = await Qo(this.hass, t);
+				this.result = await es(this.hass, t);
 			} catch (e) {
 				this.error = await N(this.hass, e);
 				return;
@@ -9186,7 +9206,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 	}
 	async undo() {
 		try {
-			await $o(this.hass, this.result);
+			await ts(this.hass, this.result);
 		} catch (e) {
 			this.error = await N(this.hass, e);
 			return;
@@ -9206,7 +9226,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 			title: C("cooked.title", { name: this.recipe.name }),
 			body: t ? q(C("cooked.done", { what: this.summary() }), () => this.undo(), "cooked") : this.rows.length ? _`<p class="detail">${C("cooked.hint")}</p>
               <ul>
-                ${this.rows.map((t, n) => Yo({
+                ${this.rows.map((t, n) => Zo({
 				hass: this.hass,
 				r: t,
 				err: e[n],
@@ -9230,7 +9250,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 		this.styles = [
 			w,
 			mr,
-			Xo,
+			Qo,
 			s`
       dialog {
         width: min(720px, calc(100vw - 32px));
@@ -9241,13 +9261,13 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
 		];
 	}
 };
-customElements.define("home-inventory-cooked-dialog", es);
+customElements.define("home-inventory-cooked-dialog", ns);
 //#endregion
 //#region src/cook-mode.ts
-var ts = (e) => {
+var rs = (e) => {
 	let t = Math.max(0, Math.ceil(e / 1e3)), n = Math.floor(t / 3600), r = String(Math.floor(t % 3600 / 60)).padStart(n ? 2 : 1, "0"), i = String(t % 60).padStart(2, "0");
 	return n ? `${n}:${r}:${i}` : `${r}:${i}`;
-}, ns = () => {
+}, is = () => {
 	navigator.vibrate?.([
 		300,
 		200,
@@ -9262,7 +9282,7 @@ var ts = (e) => {
 			n.frequency.value = 880, n.connect(e.destination), n.start(e.currentTime + t * .4), n.stop(e.currentTime + t * .4 + .25);
 		}
 	} catch {}
-}, rs = class extends S {
+}, as = class extends S {
 	static {
 		this.properties = {
 			active: { state: !0 },
@@ -9310,7 +9330,7 @@ var ts = (e) => {
 	}
 	onTick() {
 		let e = this.now;
-		this.now = Date.now(), this.timers.some((t) => t.end <= this.now && t.end > e) && ns();
+		this.now = Date.now(), this.timers.some((t) => t.end <= this.now && t.end > e) && is();
 	}
 	toggle(e) {
 		let t = new Set(this.done);
@@ -9376,7 +9396,7 @@ var ts = (e) => {
 				n: e.step + 1,
 				what: e.label
 			})}:
-                  <strong>${t > 0 ? ts(t) : C("cook.timer_done")}</strong>
+                  <strong>${t > 0 ? rs(t) : C("cook.timer_done")}</strong>
                   <button
                     type="button"
                     class="icon-btn"
@@ -9499,10 +9519,10 @@ var ts = (e) => {
     `];
 	}
 };
-customElements.define("home-inventory-cook-mode", rs);
+customElements.define("home-inventory-cook-mode", as);
 //#endregion
 //#region src/recipes-view.ts
-var is = class extends S {
+var os = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -9694,10 +9714,10 @@ var is = class extends S {
 		this.styles = [w, no];
 	}
 };
-customElements.define("home-inventory-recipes", is);
+customElements.define("home-inventory-recipes", os);
 //#endregion
 //#region src/plan-shift.ts
-var as = (e, t) => _`<button
+var ss = (e, t) => _`<button
     class="icon-btn"
     data-testid="plan-meal-shift"
     aria-label=${C("plan.shift")}
@@ -9706,7 +9726,7 @@ var as = (e, t) => _`<button
   >
     ${E(Xe)}
   </button>`;
-async function os(e, t) {
+async function cs(e, t) {
 	let { meals: n } = await Ro(e, t.day, t.slot, !1), r = new Intl.DateTimeFormat(pi(e), {
 		weekday: "short",
 		day: "numeric",
@@ -9725,7 +9745,7 @@ async function os(e, t) {
 }
 //#endregion
 //#region src/plan-day.ts
-function ss(e, t) {
+function ls(e, t) {
 	let n = J(t);
 	return _`<div data-testid="plan-day" data-day=${n}>
     ${ci.map((t) => _`<section data-testid="plan-cell" data-slot=${t}>
@@ -9751,7 +9771,7 @@ function ss(e, t) {
                     >
                       ${t.name} · ${kn(e.hass, t.servings)}
                     </button>
-                    ${as(e, t)}
+                    ${ss(e, t)}
                     ${O({
 		testid: "plan-meal",
 		name: t.name,
@@ -9763,7 +9783,7 @@ function ss(e, t) {
         </section>`)}
   </div>`;
 }
-var cs = s`
+var us = s`
   .head {
     display: flex;
     align-items: center;
@@ -9775,12 +9795,12 @@ var cs = s`
     font-size: 1em;
     font-weight: 500;
   }
-`, ls = "(max-width: 600px)", us = (e, t) => _`<div class="dish" data-testid="plan-meal">
+`, ds = "(max-width: 600px)", fs = (e, t) => _`<div class="dish" data-testid="plan-meal">
     <button type="button" class="open" data-testid="plan-meal-open" @click=${() => e.open(t)}>
       ${t.name}
     </button>
     <span class="sec">${kn(e.hass, t.servings)}</span>
-    ${as(e, t)}
+    ${ss(e, t)}
     <button
       class="icon-btn"
       data-testid="plan-meal-edit"
@@ -9799,7 +9819,7 @@ var cs = s`
     >
       ${E(it)}
     </button>
-  </div>`, ds = (e, t, n, r) => _`<button
+  </div>`, ps = (e, t, n, r) => _`<button
     class="icon-btn quiet"
     data-testid=${r}
     aria-label=${C("plan.add")}
@@ -9807,14 +9827,14 @@ var cs = s`
     @click=${() => e.add(t, n)}
   >
     ${E(mt)}
-  </button>`, fs = (e, t, n) => _`<button
+  </button>`, ms = (e, t, n) => _`<button
     type="button"
     class="daylink"
     data-testid="plan-day-open"
     @click=${() => e.openDay(t)}
   >
     ${n.format(t)}
-  </button>`, ps = (e) => [
+  </button>`, hs = (e) => [
 	0,
 	1,
 	2,
@@ -9822,23 +9842,23 @@ var cs = s`
 	4,
 	5,
 	6
-].map((t) => X(e, t)), ms = (e, t, n) => e.meals.filter((e) => e.day === t && e.slot === n);
-function hs(e, t, n) {
+].map((t) => X(e, t)), gs = (e, t, n) => e.meals.filter((e) => e.day === t && e.slot === n);
+function _s(e, t, n) {
 	let r = new Intl.DateTimeFormat(pi(e.hass), {
 		weekday: "short",
 		day: "numeric",
 		month: "numeric"
 	}), i = J(/* @__PURE__ */ new Date());
 	return n ? _`<div data-testid="plan-week">
-      ${ps(t).map((t) => {
+      ${hs(t).map((t) => {
 		let n = J(t);
 		return _`<section class="daybox" data-testid="plan-day" data-day=${n}>
           <h3 class=${n === i ? "today" : ""}>
-            ${fs(e, t, r)} ${ds(e, n, 3, "plan-add-day")}
+            ${ms(e, t, r)} ${ps(e, n, 3, "plan-add-day")}
           </h3>
-          ${ci.filter((t) => ms(e, n, t).length).map((t) => _`<div class="slotline" data-testid="plan-cell" data-slot=${t}>
+          ${ci.filter((t) => gs(e, n, t).length).map((t) => _`<div class="slotline" data-testid="plan-cell" data-slot=${t}>
                 <span class="slot">${C(`plan.slot.${t}`)}</span>
-                <div>${ms(e, n, t).map((t) => us(e, t))}</div>
+                <div>${gs(e, n, t).map((t) => fs(e, t))}</div>
               </div>`)}
         </section>`;
 	})}
@@ -9846,19 +9866,19 @@ function hs(e, t, n) {
     <thead>
       <tr>
         <th class="slotcol"></th>
-        ${ps(t).map((t) => _`<th scope="col" class=${J(t) === i ? "today" : ""}>
-              ${fs(e, t, r)}
+        ${hs(t).map((t) => _`<th scope="col" class=${J(t) === i ? "today" : ""}>
+              ${ms(e, t, r)}
             </th>`)}
       </tr>
     </thead>
     <tbody>
       ${ci.map((n) => _`<tr>
             <th scope="row">${C(`plan.slot.${n}`)}</th>
-            ${ps(t).map((t) => {
+            ${hs(t).map((t) => {
 		let r = J(t);
 		return _`<td data-testid="plan-day" data-day=${r}>
                 <div data-testid="plan-cell" data-slot=${n}>
-                  ${ms(e, r, n).map((t) => us(e, t))} ${ds(e, r, n, "plan-add")}
+                  ${gs(e, r, n).map((t) => fs(e, t))} ${ps(e, r, n, "plan-add")}
                 </div>
               </td>`;
 	})}
@@ -9866,7 +9886,7 @@ function hs(e, t, n) {
     </tbody>
   </table>`;
 }
-var gs = s`
+var vs = s`
   /* fixed layout: every day column gets the same width, whatever the dish names */
   table.week {
     border-collapse: collapse;
@@ -9955,14 +9975,14 @@ var gs = s`
     color: var(--secondary-text-color);
     font-size: 0.875em;
   }
-`, _s = [
+`, ys = [
 	Ct,
 	wt,
 	rt,
 	St,
 	at
 ];
-function vs(e, t, n, r) {
+function bs(e, t, n, r) {
 	let i = pi(e.hass), a = new Intl.DateTimeFormat(i, { weekday: "short" }), o = new Intl.DateTimeFormat(i, { dateStyle: "full" }), s = J(/* @__PURE__ */ new Date());
 	return _`<div class="month" data-testid="plan-month">
     ${[
@@ -9994,7 +10014,7 @@ function vs(e, t, n, r) {
               data-slot=${e}
               aria-label=${t}
               title=${[t, ...i.filter((t) => t.slot === e).map((e) => e.name)].join("\n")}
-              >${E(_s[e])}</span
+              >${E(ys[e])}</span
             >`;
 		})}
         </span>
@@ -10002,7 +10022,7 @@ function vs(e, t, n, r) {
 	})}
   </div>`;
 }
-var ys = s`
+var xs = s`
   .month {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -10049,7 +10069,7 @@ var ys = s`
     height: 14px;
     fill: var(--secondary-text-color);
   }
-`, bs = 366, xs = (e, t) => Math.round((Y(t).getTime() - Y(e).getTime()) / 864e5), Ss = class extends S {
+`, Ss = 366, Cs = (e, t) => Math.round((Y(t).getTime() - Y(e).getTime()) / 864e5), ws = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -10074,7 +10094,7 @@ var ys = s`
 	}
 	errors() {
 		let e = {};
-		return (!this.from || j(this.bad.from, this.from)) && (e.from = C("valid.date")), !this.to || j(this.bad.to, this.to) ? e.to = C("valid.date") : !e.from && this.to < this.from ? e.to = C("plan.shop.order") : !e.from && xs(this.from, this.to) >= bs && (e.to = C("plan.shop.long", { max: bs })), e;
+		return (!this.from || j(this.bad.from, this.from)) && (e.from = C("valid.date")), !this.to || j(this.bad.to, this.to) ? e.to = C("valid.date") : !e.from && this.to < this.from ? e.to = C("plan.shop.order") : !e.from && Cs(this.from, this.to) >= Ss && (e.to = C("plan.shop.long", { max: Ss })), e;
 	}
 	async save(e) {
 		if (e.preventDefault(), !Object.keys(this.errors()).length) try {
@@ -10134,10 +10154,10 @@ var ys = s`
 		this.styles = w;
 	}
 };
-customElements.define("home-inventory-plan-shopping-dialog", Ss);
+customElements.define("home-inventory-plan-shopping-dialog", ws);
 //#endregion
 //#region src/plan-view.ts
-var Cs = class extends S {
+var Ts = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -10157,7 +10177,7 @@ var Cs = class extends S {
 		super.disconnectedCallback(), this.narrow.removeEventListener("change", this.onNarrow);
 	}
 	constructor() {
-		super(), this.started = !1, this.narrow = window.matchMedia(ls), this.onNarrow = () => this.requestUpdate(), this.date = /* @__PURE__ */ new Date(), this.meals = [], this.household = 1, this.recipes = [], this.error = "", this.note = "";
+		super(), this.started = !1, this.narrow = window.matchMedia(ds), this.onNarrow = () => this.requestUpdate(), this.date = /* @__PURE__ */ new Date(), this.meals = [], this.household = 1, this.recipes = [], this.error = "", this.note = "";
 	}
 	get view() {
 		return si.includes(this.section) ? this.section : "week";
@@ -10210,7 +10230,7 @@ var Cs = class extends S {
 				bubbles: !0,
 				composed: !0
 			})),
-			shift: (e) => this.act(() => os(this.hass, e)),
+			shift: (e) => this.act(() => cs(this.hass, e)),
 			openDay: (e) => {
 				this.date = e, this.nav("day");
 			}
@@ -10228,7 +10248,7 @@ var Cs = class extends S {
 	}
 	body() {
 		let e = this.ctx(), [t, n] = di(this.view, this.date);
-		return this.view === "day" ? ss(e, this.date) : this.view === "week" ? hs(e, t, this.narrow.matches) : vs(e, t, Math.round((n.getTime() - t.getTime()) / 6048e5), this.date.getMonth());
+		return this.view === "day" ? ls(e, this.date) : this.view === "week" ? _s(e, t, this.narrow.matches) : bs(e, t, Math.round((n.getTime() - t.getTime()) / 6048e5), this.date.getMonth());
 	}
 	render() {
 		let e = this.view;
@@ -10316,22 +10336,22 @@ var Cs = class extends S {
         color: var(--secondary-text-color);
       }
     `,
-			cs,
-			gs,
-			ys
+			us,
+			vs,
+			xs
 		];
 	}
 };
-customElements.define("home-inventory-plan", Cs);
+customElements.define("home-inventory-plan", Ts);
 //#endregion
 //#region src/api-canning.ts
-var ws = (e) => e.callWS({ type: "home_inventory/cannings" }), Ts = (e, t) => e.callWS({
+var Es = (e) => e.callWS({ type: "home_inventory/cannings" }), Ds = (e, t) => e.callWS({
 	type: "home_inventory/canning_save",
 	data: t
 });
 //#endregion
 //#region src/canning-new-fields.ts
-function Es(e) {
+function Os(e) {
 	let t = e.draft, n = e.e;
 	if (e.canning) return _`<p class="detail" data-testid="canning-fixed">
       ${Q(e.kind, "fixed", {
@@ -10386,7 +10406,7 @@ function Es(e) {
 }
 //#endregion
 //#region src/canning-dialog.ts
-var Ds = class extends S {
+var ks = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -10471,7 +10491,7 @@ var Ds = class extends S {
 			expires_on: t.expires_on || null
 		}, r = this.product();
 		try {
-			let e = await Ts(this.hass, this.canning ? {
+			let e = await Ds(this.hass, this.canning ? {
 				id: this.canning.id,
 				...n
 			} : {
@@ -10521,7 +10541,7 @@ var Ds = class extends S {
 		});
 	}
 	newFields(e) {
-		return Es({
+		return Os({
 			kind: this.kind,
 			canning: this.canning,
 			draft: this.draft,
@@ -10581,10 +10601,10 @@ var Ds = class extends S {
 		this.styles = w;
 	}
 };
-customElements.define("home-inventory-canning-dialog", Ds);
+customElements.define("home-inventory-canning-dialog", ks);
 //#endregion
 //#region src/canning-view.ts
-var Os = class extends S {
+var As = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -10623,7 +10643,7 @@ var Os = class extends S {
 	async load() {
 		try {
 			[this.rows, this.md, this.products, this.recipes] = await Promise.all([
-				ws(this.hass),
+				Es(this.hass),
 				P(this.hass),
 				an(this.hass),
 				pn(this.hass)
@@ -10763,17 +10783,17 @@ var Os = class extends S {
     `];
 	}
 };
-customElements.define("home-inventory-canning", Os);
+customElements.define("home-inventory-canning", As);
 //#endregion
 //#region src/api-stocktake.ts
-var ks = (e, t, n) => e.callWS({
+var js = (e, t, n) => e.callWS({
 	type: "home_inventory/stocktake_scan",
 	location_id: t,
 	code: n
-}), As = (e, t) => e.callWS({
+}), Ms = (e, t) => e.callWS({
 	type: "home_inventory/stocktake_apply",
 	...t
-}), js = class extends S {
+}), Ns = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -10828,7 +10848,7 @@ var ks = (e, t, n) => e.callWS({
 					this.error = C("location_label.unknown");
 					return;
 				}
-				let t = await ks(this.hass, this.location, e.trim()), n = t.batches.filter((e) => this.rows.some((t) => t.batch_id === e.batch_id));
+				let t = await js(this.hass, this.location, e.trim()), n = t.batches.filter((e) => this.rows.some((t) => t.batch_id === e.batch_id));
 				n.length === 1 ? this.count(n[0].batch_id, 1) : n.length > 1 ? this.pick = {
 					...t,
 					batches: n
@@ -10867,7 +10887,7 @@ var ks = (e, t, n) => e.callWS({
 			}),
 			action: C("stocktake.apply")
 		})) try {
-			let e = await As(this.hass, {
+			let e = await Ms(this.hass, {
 				location_id: this.location,
 				counts: this.rows.filter((e) => (this.counted.get(e.batch_id) ?? 0) !== e.packages).map((e) => ({
 					batch_id: e.batch_id,
@@ -10907,6 +10927,9 @@ var ks = (e, t, n) => e.callWS({
       </button>
     </span>`;
 	}
+	rowError(e) {
+		return e.remaining < 1 && (this.counted.get(e.batch_id) ?? 0) > 1 ? C("valid.partial_one") : void 0;
+	}
 	list() {
 		return _`<ul>
       ${this.rows.map((e) => {
@@ -10926,6 +10949,7 @@ var ks = (e, t, n) => e.callWS({
                   >` : y}
           </span>
           ${this.stepper("stocktake-row", e.name, t, (t) => this.count(e.batch_id, t))}
+          ${k(this.rowError(e), "stocktake-row")}
         </li>`;
 		})}
     </ul>`;
@@ -10996,7 +11020,7 @@ var ks = (e, t, n) => e.callWS({
                 <button
                   class="primary"
                   data-testid="stocktake-apply"
-                  ?disabled=${!e && !t}
+                  ?disabled=${!e && !t || this.rows.some((e) => this.rowError(e))}
                   @click=${() => this.apply()}
                 >
                   ${C("stocktake.apply")}
@@ -11015,10 +11039,14 @@ var ks = (e, t, n) => e.callWS({
       }
       li {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 8px;
         padding: 6px 0;
         border-bottom: 1px solid var(--divider-color);
+      }
+      li .field-error {
+        flex-basis: 100%;
       }
       .what {
         flex: 1;
@@ -11055,10 +11083,10 @@ var ks = (e, t, n) => e.callWS({
 		];
 	}
 };
-customElements.define("home-inventory-stocktake", js);
+customElements.define("home-inventory-stocktake", Ns);
 //#endregion
 //#region src/home-inventory-panel.ts
-var Ms = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Ns = [
+var Ps = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Fs = [
 	"stock",
 	"expiry",
 	"emergency",
@@ -11067,12 +11095,12 @@ var Ms = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Ns = [
 	"plan",
 	"canning",
 	"settings"
-], Ps = [
+], Is = [
 	"shopping",
 	"recipes",
 	"plan",
 	"emergency"
-], Fs = class extends S {
+], Ls = class extends S {
 	static {
 		this.properties = {
 			hass: { attribute: !1 },
@@ -11090,7 +11118,7 @@ var Ms = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Ns = [
 		e.has("hass") && this.hass && kt(this.hass.language), e.has("panel") && (Sn(this.panel?.config?.modules), wn(this.panel?.config?.external));
 	}
 	get tabs() {
-		return Ns.filter((e) => (e !== "settings" || Wt(this.hass)) && (!Ps.includes(e) || L(e)) && (e !== "canning" || $a().length > 0));
+		return Fs.filter((e) => (e !== "settings" || Wt(this.hass)) && (!Is.includes(e) || L(e)) && (e !== "canning" || $a().length > 0));
 	}
 	get seg() {
 		return (this.route?.path ?? "").split("/").filter(Boolean)[0];
@@ -11123,7 +11151,7 @@ var Ms = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Ns = [
         <h1>${C("panel.title")}</h1>
         <a
           class="menu help"
-          href=${`${Ms}.${this.hass?.language?.startsWith("de") ? "de" : "en"}.md`}
+          href=${`${Ps}.${this.hass?.language?.startsWith("de") ? "de" : "en"}.md`}
           target="_blank"
           rel="noopener noreferrer"
           data-testid="help"
@@ -11242,6 +11270,6 @@ var Ms = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", Ns = [
   `;
 	}
 };
-customElements.define("home-inventory-panel", Fs);
+customElements.define("home-inventory-panel", Ls);
 //#endregion
-export { Fs as HomeInventoryPanel };
+export { Ls as HomeInventoryPanel };

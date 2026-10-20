@@ -80,7 +80,7 @@ async def ws_open_undo(hass: HomeAssistant, connection, msg: dict) -> None:
 )
 @websocket_api.async_response
 async def ws_remaining(hass: HomeAssistant, connection, msg: dict) -> None:
-    """Set the level of the partly used package of an opened batch (0 = empty: books it out); any user."""
+    """Set the level of one package of an opened or frozen batch (0 = empty: books it out); any user."""
     fn = partial(inventory.set_remaining, source="panel", user_id=connection.user.id)
     result = await run(hass, fn, msg["batch_id"], msg["remaining"], msg["location_id"])
     connection.send_result(msg["id"], result)

@@ -49,7 +49,7 @@ custom_components/home_inventory/   integration (Python)
   migration_25.py           migration 25: freezing (location.freezer, category.frozen_goods, frozen_days, batch.frozen_on, booking kinds freeze/thaw); `set_frozen` seeds values, also after the seed
   migration_26.py           migration 26: drying (canning.kind, recipe.canning_kind); `add_dried` seeds the root Gedörrtes, also after the seed
   migration_27.py           migration 27: emergency stock group (category.emergency_group); `set_emergency` seeds it, also after the seed
-  migration_28.py           migration 28: remaining amount of opened packages (batch.remaining, booking kind 'remaining' + booking.remaining)
+  migration_28.py           migration 28: remaining amount of opened packages (batch.remaining; a partly used package is its own batch, batch_key only for full ones; booking kind 'remaining')
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)

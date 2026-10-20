@@ -67,6 +67,17 @@ def test_partly_used_package_counts_by_level(conn) -> None:
     assert groups(conn)["fats"]["unknown"] == 2  # unknown amounts stay whole packages
 
 
+def test_frozen_partly_used_package_counts_by_level(conn) -> None:
+    pid = inv.save(
+        conn, "product",
+        {"name": "Reis", "category_id": cat(conn, "Nudeln"), "content_amount": 1,
+         "content_unit_id": unit(conn, "kg"), "frozen_days": 30},
+    )  # fmt: skip
+    batch = inv.book_in(conn, pid, 1, location_id=loc(conn, "Gefrierschrank"))
+    inv.set_remaining(conn, batch, 0.5)
+    assert groups(conn)["grains"]["have"] == 0.5
+
+
 def test_migration_27(monkeypatch) -> None:
     c = db.connect(":memory:")
     with monkeypatch.context() as m:  # seeded DB of version 26

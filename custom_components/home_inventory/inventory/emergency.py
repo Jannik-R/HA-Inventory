@@ -33,11 +33,11 @@ def supply(conn: sqlite3.Connection, persons: int, today: date) -> dict:
     kg, litre, piece = by_name.get("kg"), by_name.get("l"), by_name.get("Stück")  # None: renamed
     cats, dflt = _categories(conn), defaults(conn)
     products = {r["id"]: r for r in conn.execute("SELECT * FROM product")}
-    packages: dict[int, float] = {}  # the partly used package of a batch counts by its level
+    packages: dict[int, float] = {}  # a partly used package counts by its level (frozen too)
     for r in stock_list(conn):
         if r["expires_on"] is None or r["expires_on"] >= today.isoformat():
             packages[r["product_id"]] = packages.get(r["product_id"], 0) + (
-                r["packages"] - 1 + r["remaining"]
+                r["packages"] * r["remaining"]
             )
     have = dict.fromkeys(GROUPS, 0.0)
     unknown = dict.fromkeys(GROUPS, 0)

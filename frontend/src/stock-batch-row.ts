@@ -15,11 +15,9 @@ export function stockDate(hass: Hass | undefined, r: StockRow, product?: Product
   let date = r.expires_on ? fmtDate(hass, r.expires_on) : t("stock.no_date");
   if (r.expires_on && r.expiry_type === "guide") date = t("stock.approx_date", { date });
   else if (r.expiry_guessed) date = t("stock.guessed_date", { date });
-  if (r.opened_on) {
-    date = t("stock.opened_on", { date, opened: fmtDate(hass, r.opened_on) });
-    if (r.remaining < 1) date += `, ${leftText(hass, r.remaining, product, md?.units)}`;
-  }
+  if (r.opened_on) date = t("stock.opened_on", { date, opened: fmtDate(hass, r.opened_on) });
   if (r.frozen_on) date = t("stock.frozen_on", { date, frozen: fmtDate(hass, r.frozen_on) });
+  if (r.remaining < 1) date += `, ${leftText(hass, r.remaining, product, md?.units)}`;
   return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
 }
 
@@ -43,7 +41,7 @@ export const batchRow = (c: RowContext, name: string, b: StockRow) =>
     <span class="count">${t("book.count", { n: b.packages })}</span>
     <span class="acts">
       ${outButton(c.host, name, b, "stock-batch-out")}
-      ${hasModule("opened") && b.opened_on ? levelButton(c.host, name, b) : ""}
+      ${hasModule("opened") && (b.opened_on || b.frozen_on) ? levelButton(c.host, name, b) : ""}
       ${hasModule("opened") && !b.frozen_on ? openButton(c.host, name, b) : ""}
       ${hasModule("frozen") ? frozenButton(c.md, c.product, b, (thaw) => c.freeze(b, thaw)) : ""}
       <button

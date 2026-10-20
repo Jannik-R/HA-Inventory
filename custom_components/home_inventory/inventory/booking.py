@@ -20,18 +20,22 @@ def _booking(
     user_id,
     to_location_id=None,
     reverts_id=None,
-    remaining=None,
 ) -> int:
     """Write the log row; returns its id."""
     return conn.execute(
         "INSERT INTO booking (ts, kind, batch_id, location_id, to_location_id, packages, source, user_id,"
-        " reverts_id, remaining) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (_now(), kind, batch_id, location_id, to_location_id, packages, source, user_id, reverts_id,
-         remaining),
+        " reverts_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (_now(), kind, batch_id, location_id, to_location_id, packages, source, user_id, reverts_id),
     ).lastrowid  # fmt: skip
 
 
 def _add(conn, batch_id: int, location_id: int, packages: int) -> None:
+    if conn.execute(
+        "SELECT 1 FROM batch WHERE id = ? AND remaining < 1"
+        " AND (? != 1 OR EXISTS (SELECT 1 FROM stock WHERE batch_id = ?))",
+        (batch_id, packages, batch_id),
+    ).fetchone():
+        raise InventoryError("partial_one_package")
     conn.execute(
         "INSERT INTO stock (batch_id, location_id, packages) VALUES (?, ?, ?)"
         " ON CONFLICT (batch_id, location_id) DO UPDATE SET packages = packages + excluded.packages",
@@ -79,7 +83,7 @@ def _batch(
     key = (product_id, _iso(expires_on), canning_id, opened_on, frozen_on)
     row = conn.execute(
         "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS ?"
-        " AND opened_on IS ? AND frozen_on IS ?",
+        " AND opened_on IS ? AND frozen_on IS ? AND remaining = 1",
         key,
     ).fetchone()
     if row:
@@ -171,26 +175,20 @@ def book_out(
     until = {r["batch_id"]: opened_until(r["expires_on"], r["opened_on"], days) for r in rows}
     rows.sort(  # a partly used package first, then the earliest expiry
         key=lambda r: (
-            r["remaining"] == 1,
+            r["remaining"] == 1 or not r["opened_on"],
             until[r["batch_id"]] is None,
             until[r["batch_id"]] or "",
+            r["remaining"],
         )
     )
     available = sum(r["packages"] for r in rows)
     if available < packages:
         raise InventoryError("not_enough_stock", available=available)
-    taken, left, reset = [], packages, set()
+    taken, left = [], packages
     for r in rows:
         n = min(left, r["packages"])
         _take(conn, r["batch_id"], r["location_id"], n)
-        level = None  # the partly used package goes out first: the batch is full again
-        if r["remaining"] < 1 and r["batch_id"] not in reset:
-            level = r["remaining"]
-            reset.add(r["batch_id"])
-            conn.execute("UPDATE batch SET remaining = 1 WHERE id = ?", (r["batch_id"],))
-        booking_id = _booking(
-            conn, "out", r["batch_id"], r["location_id"], n, source, user_id, remaining=level
-        )
+        booking_id = _booking(conn, "out", r["batch_id"], r["location_id"], n, source, user_id)
         taken.append(
             {
                 "batch_id": r["batch_id"],
@@ -203,6 +201,31 @@ def book_out(
         if not left:
             break
     return taken
+
+
+def _level_batch(conn, batch_id: int, remaining: float) -> int:
+    """The batch of the same key as `batch_id` at this level: the full one at 1, else a new one."""
+    src = conn.execute("SELECT * FROM batch WHERE id = ?", (batch_id,)).fetchone()
+    if remaining == 1:
+        return _batch(
+            conn, src["product_id"], src["expires_on"], src["opened_on"], src["canning_id"],
+            bool(src["expiry_guessed"]), src["frozen_on"],
+        )  # fmt: skip
+    same = conn.execute(  # an emptied partial batch of this key and level is reused
+        "SELECT id FROM batch WHERE product_id = ? AND expires_on IS ? AND canning_id IS ?"
+        " AND opened_on IS ? AND frozen_on IS ? AND remaining = ?"
+        " AND NOT EXISTS (SELECT 1 FROM stock WHERE batch_id = batch.id)",
+        (src["product_id"], src["expires_on"], src["canning_id"], src["opened_on"],
+         src["frozen_on"], remaining),
+    ).fetchone()  # fmt: skip
+    if same:
+        return same["id"]
+    return conn.execute(
+        "INSERT INTO batch (product_id, expires_on, canning_id, opened_on, frozen_on, created_at,"
+        " expiry_guessed, remaining) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (src["product_id"], src["expires_on"], src["canning_id"], src["opened_on"], src["frozen_on"],
+         _now(), src["expiry_guessed"], remaining),
+    ).lastrowid  # fmt: skip
 
 
 def _stock_of(conn, batch_id: int, location_id: int) -> int:

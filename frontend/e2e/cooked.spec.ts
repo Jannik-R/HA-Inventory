@@ -20,6 +20,7 @@ const cand = (product_id: number, name: string, batches: unknown[], packages: nu
   action: "out",
   packages,
   open: 0,
+  used_up: 0,
   remaining: null,
   batch_id: (batches[0] as { batch_id: number }).batch_id,
 });
@@ -138,4 +139,40 @@ test("cooked: switching to reduce clears an unopened batch and lowers the level"
   await expect(dialog.getByTestId("cooked-save")).toBeEnabled();
   await dialog.getByTestId("cooked-level").selectOption("0.5"); // not below the current level
   await expect(dialog.getByTestId("cooked-save")).toBeDisabled();
+});
+
+test("cooked: two partly used packages show packages 1 and the level afterwards", async ({
+  page,
+  wsStub,
+}) => {
+  const quarter = { ...batch(21, "2027-01-01", 1), opened: true, remaining: 0.25 };
+  const three = { ...batch(22, "2027-01-01", 1), opened: true, remaining: 0.75 };
+  wsStub("home_inventory/cooked_proposal", [
+    {
+      ingredient_id: 1,
+      text: "Nudeln",
+      amount: 250,
+      unit_symbol: "g",
+      optional: false,
+      checked: true,
+      product_id: 1,
+      candidates: [
+        {
+          ...cand(1, "Spaghetti", [quarter, three], 1),
+          action: "reduce",
+          batch_id: 22,
+          remaining: 0.5,
+        },
+      ],
+    },
+  ]);
+  await openPage(page, "/home_inventory/recipes", "Rezepte");
+  const row = page.getByTestId("recipe-row").filter({ hasText: NAME });
+  await row.getByTestId("recipe-toggle").click();
+  await row.getByTestId("recipe-cooked").click();
+  const dialog = page.locator("home-inventory-cooked-dialog dialog");
+  await expect(dialog.getByTestId("cooked-packages")).toHaveValue("1");
+  await expect(dialog.getByTestId("cooked-level")).toHaveValue("0.5");
+  await expect(dialog.getByText("Rest danach")).toBeVisible();
+  await expect(dialog.getByTestId("cooked-save")).toBeEnabled();
 });

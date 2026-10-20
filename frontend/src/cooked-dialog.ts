@@ -87,6 +87,8 @@ export class HomeInventoryCookedDialog extends LitElement {
         packages: r.packages ?? 0,
         action: r.action as "out" | "open" | "reduce",
         open: r.action === "out" ? r.open : 0,
+        used_up:
+          r.action === "out" && r.batch_id == null ? Math.min(r.used_up, r.packages ?? 0) : 0,
         remaining:
           r.action === "reduce"
             ? r.remaining

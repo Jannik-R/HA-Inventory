@@ -20,6 +20,7 @@ ITEM = {
     vol.Required("packages"): PACKAGES_OR_ZERO,
     vol.Required("action"): vol.In(["out", "open", "reduce"]),
     vol.Optional("open", default=0): PACKAGES_OR_ZERO,
+    vol.Optional("used_up", default=0): PACKAGES_OR_ZERO,
     vol.Optional("remaining"): vol.Any(None, REMAINING),
 }
 IDS = vol.All([ID], vol.Length(max=500))

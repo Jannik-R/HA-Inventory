@@ -456,7 +456,7 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     drying,
     # 27: emergency stock: category.emergency_group (see migration_27).
     emergency_stock,
-    # 28: remaining amount of opened packages: batch.remaining, booking kind 'remaining' and
-    # booking.remaining (see migration_28).
+    # 28: remaining amount of opened packages: batch.remaining, batch_key only for full batches,
+    # booking kind 'remaining' (see migration_28).
     remaining_amount,
 ]

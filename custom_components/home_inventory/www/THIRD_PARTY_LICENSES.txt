@@ -836,7 +836,7 @@ Apache License
 
 ------------------------------------------------------------------------
 
-zxing-wasm 3.1.5 (MIT)
+zxing-wasm 3.1.6 (MIT)
 
 MIT License
 

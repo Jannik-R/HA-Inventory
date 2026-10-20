@@ -19,6 +19,9 @@
     "tesseract.js": "^7.0.0",
     "zxing-wasm": "^3.1.5"
   },
+  "overrides": {
+    "zxing-wasm": "$zxing-wasm"
+  },
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@techstark/opencv-js": "^4.12.0-release.1",

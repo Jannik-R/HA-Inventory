@@ -54,7 +54,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry) -> bool:
     """Open the database and add the sidebar panel."""
     db = entry.runtime_data = Database(hass, hass.config.path("home_inventory.db"))
-    await db.async_open()
+    await db.async_open(freezing="frozen" in modules_of(entry.options))
     try:
         # Bundle mtime, not the integration version: every build must bust the browser cache.
         bundle = Path(__file__).parent / "www" / "home-inventory-panel.js"

@@ -214,13 +214,38 @@ Example: notify when something has expired.
 ```yaml
 triggers:
   - trigger: numeric_state
-    entity_id: sensor.vorrat_expired
+    entity_id: sensor.home_inventory_expired
     above: 0
 actions:
   - action: notify.notify
     data:
       message: >
-        Expired: {{ state_attr('sensor.vorrat_expired', 'items') | map(attribute='name') | join(', ') }}
+        Expired: {{ state_attr('sensor.home_inventory_expired', 'items') | map(attribute='name') | join(', ') }}
+```
+
+## Dashboard
+
+For a kitchen tablet, native cards are enough: a Markdown card lists what expires (from the `items` attribute of the two sensors), the To-do list card shows the shopping list, the Calendar card today's meal plan. Add it via *Edit dashboard › Add card › Manual* and paste the YAML. Entity ids follow the HA language at setup (English shown here; German install: `sensor.vorrat_abgelaufen`, `sensor.vorrat_lauft_bald_ab`, `todo.vorrat_einkaufsliste`, `calendar.vorrat_speiseplan`).
+
+```yaml
+type: vertical-stack
+cards:
+  - type: markdown
+    title: Expiring
+    content: >-
+      {% set items = (state_attr('sensor.home_inventory_expired', 'items') or [])
+         + (state_attr('sensor.home_inventory_expiring_soon', 'items') or []) %}
+      {% for i in items | sort(attribute='days_left') %}
+      - **{{ i.name }}** ({{ i.location }}): {{ 'expired' if i.days_left < 0 else 'in ' ~ i.days_left ~ ' days' }}
+      {% else %}
+      Nothing expires soon.
+      {% endfor %}
+  - type: todo-list
+    entity: todo.home_inventory_shopping_list
+  - type: calendar
+    initial_view: dayGridDay
+    entities:
+      - calendar.home_inventory_meal_plan
 ```
 
 ## Services (automations)

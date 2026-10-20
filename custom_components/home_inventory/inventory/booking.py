@@ -1,4 +1,4 @@
-"""Bookings: book in/out, move, correct, edit a stock row. Every change writes a booking row."""
+"""Bookings: book in/out and the shared stock helpers (undo, move, correct: corrections.py). Every change writes a booking row."""
 
 from __future__ import annotations
 
@@ -20,12 +20,14 @@ def _booking(
     user_id,
     to_location_id=None,
     reverts_id=None,
+    remaining=None,
 ) -> int:
     """Write the log row; returns its id."""
     return conn.execute(
         "INSERT INTO booking (ts, kind, batch_id, location_id, to_location_id, packages, source, user_id,"
-        " reverts_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (_now(), kind, batch_id, location_id, to_location_id, packages, source, user_id, reverts_id),
+        " reverts_id, remaining) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (_now(), kind, batch_id, location_id, to_location_id, packages, source, user_id, reverts_id,
+         remaining),
     ).lastrowid  # fmt: skip
 
 
@@ -154,7 +156,7 @@ def book_out(
     _exists(conn, "batch", batch_id)
     _exists(conn, "location", location_id)
     sql = (
-        "SELECT s.batch_id, s.location_id, s.packages, b.expires_on, b.opened_on FROM stock s"
+        "SELECT s.batch_id, s.location_id, s.packages, b.expires_on, b.opened_on, b.remaining FROM stock s"
         " JOIN batch b ON b.id = s.batch_id WHERE b.product_id = ?"
     )
     args: list = [product_id]
@@ -167,15 +169,28 @@ def book_out(
     days = effective(conn, product_id)["opened_days"]["value"]
     rows = conn.execute(sql + " ORDER BY s.location_id", args).fetchall()
     until = {r["batch_id"]: opened_until(r["expires_on"], r["opened_on"], days) for r in rows}
-    rows.sort(key=lambda r: (until[r["batch_id"]] is None, until[r["batch_id"]] or ""))
+    rows.sort(  # a partly used package first, then the earliest expiry
+        key=lambda r: (
+            r["remaining"] == 1,
+            until[r["batch_id"]] is None,
+            until[r["batch_id"]] or "",
+        )
+    )
     available = sum(r["packages"] for r in rows)
     if available < packages:
         raise InventoryError("not_enough_stock", available=available)
-    taken, left = [], packages
+    taken, left, reset = [], packages, set()
     for r in rows:
         n = min(left, r["packages"])
         _take(conn, r["batch_id"], r["location_id"], n)
-        booking_id = _booking(conn, "out", r["batch_id"], r["location_id"], n, source, user_id)
+        level = None  # the partly used package goes out first: the batch is full again
+        if r["remaining"] < 1 and r["batch_id"] not in reset:
+            level = r["remaining"]
+            reset.add(r["batch_id"])
+            conn.execute("UPDATE batch SET remaining = 1 WHERE id = ?", (r["batch_id"],))
+        booking_id = _booking(
+            conn, "out", r["batch_id"], r["location_id"], n, source, user_id, remaining=level
+        )
         taken.append(
             {
                 "batch_id": r["batch_id"],
@@ -190,127 +205,9 @@ def book_out(
     return taken
 
 
-def put_back(
-    conn, booking_ids: list[int], source: str = "undo", user_id: str | None = None
-) -> None:
-    """Undo book-outs: each 'out' booking is reversed once (an 'in' booking that names it).
-
-    A location deactivated meanwhile is reactivated, so undo never fails on that."""
-    for booking_id in booking_ids:
-        out = conn.execute(
-            "SELECT batch_id, location_id, packages FROM booking WHERE id = ? AND kind = 'out'",
-            (booking_id,),
-        ).fetchone()
-        if not out or out["location_id"] is None:
-            raise InventoryError("not_found")
-        if conn.execute("SELECT 1 FROM booking WHERE reverts_id = ?", (booking_id,)).fetchone():
-            raise InventoryError("already_undone")
-        conn.execute("UPDATE location SET active = 1 WHERE id = ?", (out["location_id"],))
-        _add(conn, out["batch_id"], out["location_id"], out["packages"])
-        _booking(
-            conn, "in", out["batch_id"], out["location_id"], out["packages"], source, user_id,
-            reverts_id=booking_id,
-        )  # fmt: skip
-
-
 def _stock_of(conn, batch_id: int, location_id: int) -> int:
     row = conn.execute(
         "SELECT packages FROM stock WHERE batch_id = ? AND location_id = ?",
         (batch_id, location_id),
     ).fetchone()
     return row["packages"] if row else 0
-
-
-def move(
-    conn: sqlite3.Connection,
-    batch_id: int,
-    from_location_id: int,
-    to_location_id: int,
-    packages: int,
-    source: str = "manual",
-    user_id: str | None = None,
-) -> None:
-    _packages(packages)
-    if from_location_id == to_location_id:
-        raise InventoryError("invalid_value")
-    _exists(conn, "batch", batch_id)
-    _exists(conn, "location", from_location_id)
-    _exists(conn, "location", to_location_id)
-    available = _stock_of(conn, batch_id, from_location_id)
-    if available < packages:
-        raise InventoryError("not_enough_stock", available=available)
-    from .frozen import on_move  # frozen imports this module
-
-    if on_move(conn, batch_id, from_location_id, to_location_id, packages, source, user_id):
-        return  # into a freezer = freeze, out of it = thaw
-    _take(conn, batch_id, from_location_id, packages)
-    _add(conn, batch_id, to_location_id, packages)
-    _booking(
-        conn,
-        "move",
-        batch_id,
-        from_location_id,
-        packages,
-        source,
-        user_id,
-        to_location_id,
-    )
-
-
-def correct(
-    conn: sqlite3.Connection,
-    batch_id: int,
-    location_id: int,
-    packages: int,
-    source: str = "manual",
-    user_id: str | None = None,
-) -> None:
-    """Set the absolute count (0 deletes the row); the booking stores the signed difference."""
-    _packages(packages, 0)
-    _exists(conn, "batch", batch_id)
-    _exists(conn, "location", location_id)
-    diff = packages - _stock_of(conn, batch_id, location_id)
-    if not diff:
-        return
-    if diff > 0:
-        _add(conn, batch_id, location_id, diff)
-    else:
-        _take(conn, batch_id, location_id, -diff)
-    _booking(conn, "correct", batch_id, location_id, diff, source, user_id)
-
-
-def edit_stock(
-    conn: sqlite3.Connection,
-    batch_id: int,
-    location_id: int,
-    expires_on: date | str | None,
-    packages: int,
-    source: str = "manual",
-    user_id: str | None = None,
-) -> int:
-    """Fix one stock row (batch at a location): date and count. Returns its batch id.
-
-    Another date moves the packages to that batch (merging with an existing one); the log gets a 'correct' out of the
-    old and into the new batch. Other locations keep the old batch.
-    """
-    _packages(packages, 0)
-    row = conn.execute(
-        "SELECT product_id, canning_id, opened_on, frozen_on FROM batch WHERE id = ?", (batch_id,)
-    ).fetchone()
-    if not row or not _stock_of(conn, batch_id, location_id):
-        raise InventoryError("not_found")
-    if row["canning_id"] is not None:  # a charge keeps its batch: the date moves the whole charge
-        conn.execute(  # incl. its opened batches
-            "UPDATE batch SET expires_on = ? WHERE canning_id = ?",
-            (_iso(expires_on), row["canning_id"]),
-        )
-        target = batch_id
-    else:  # an opened package stays opened, a frozen one frozen
-        target = _batch(
-            conn, row["product_id"], expires_on, row["opened_on"], frozen_on=row["frozen_on"]
-        )
-    if target != batch_id:
-        correct(conn, batch_id, location_id, 0, source, user_id)
-        packages += _stock_of(conn, target, location_id)  # merge into what is already there
-    correct(conn, target, location_id, packages, source, user_id)
-    return target

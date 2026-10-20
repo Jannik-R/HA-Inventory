@@ -8,6 +8,8 @@ export interface CookedBatch {
   packages: number;
   opened: boolean;
   frozen: boolean;
+  /** Level of the partly used package of an opened batch (1 = full). */
+  remaining: number;
 }
 
 /** A product that could be used for the ingredient, with the defaults proposed for it. */
@@ -22,6 +24,8 @@ export interface CookedCandidate {
   open: number;
   /** null = earliest first over all batches. */
   batch_id: number | null;
+  /** Level of the opened or reduced package afterwards, null = unchanged. */
+  remaining: number | null;
 }
 
 export interface CookedRow {
@@ -35,20 +39,27 @@ export interface CookedRow {
   checked: boolean;
 }
 
-export type CookedAction = "out" | "open" | "skip";
+export type CookedAction = "out" | "open" | "reduce" | "skip";
 
 export interface CookedItem {
   product_id: number;
   batch_id: number | null;
   packages: number;
-  action: "out" | "open";
+  action: "out" | "open" | "reduce";
   open: number;
+  remaining: number | null;
 }
 
 export interface CookedResult {
-  bookings: { product_id: number; name: string; packages: number; action: "out" | "open" }[];
+  bookings: {
+    product_id: number;
+    name: string;
+    packages: number;
+    action: "out" | "open" | "reduce";
+  }[];
   out_ids: number[];
   open_ids: number[];
+  remaining_ids: number[];
 }
 
 export const cookedProposal = (hass: Hass, recipe_id: number, servings: number) =>
@@ -60,4 +71,5 @@ export const cookedUndo = (hass: Hass, r: CookedResult) =>
     type: "home_inventory/cooked_undo",
     out_ids: r.out_ids,
     open_ids: r.open_ids,
+    remaining_ids: r.remaining_ids,
   });

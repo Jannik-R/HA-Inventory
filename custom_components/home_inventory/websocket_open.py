@@ -12,7 +12,7 @@ from homeassistant.util import dt as dt_util
 
 from . import inventory
 from .ws_common import run
-from .ws_validate import CODE, ID, PACKAGES
+from .ws_validate import CODE, ID, PACKAGES, REMAINING
 
 
 def async_register(hass: HomeAssistant) -> None:
@@ -20,6 +20,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_open_package,
         ws_open_label,
         ws_open_undo,
+        ws_remaining,
         ws_freeze,
         ws_freeze_scan,
         ws_frozen_undo,
@@ -67,6 +68,22 @@ async def ws_open_undo(hass: HomeAssistant, connection, msg: dict) -> None:
     """Undo an opening by its booking id (once)."""
     await run(hass, partial(inventory.undo_open, user_id=connection.user.id), msg["booking_id"])
     connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_inventory/remaining",
+        vol.Required("batch_id"): ID,
+        vol.Required("location_id"): ID,
+        vol.Required("remaining"): REMAINING,
+    }
+)
+@websocket_api.async_response
+async def ws_remaining(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Set the level of the partly used package of an opened batch (0 = empty: books it out); any user."""
+    fn = partial(inventory.set_remaining, source="panel", user_id=connection.user.id)
+    result = await run(hass, fn, msg["batch_id"], msg["remaining"], msg["location_id"])
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(

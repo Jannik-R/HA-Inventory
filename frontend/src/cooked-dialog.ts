@@ -85,8 +85,14 @@ export class HomeInventoryCookedDialog extends LitElement {
         product_id: r.product_id,
         batch_id: r.batch_id,
         packages: r.packages ?? 0,
-        action: r.action as "out" | "open",
+        action: r.action as "out" | "open" | "reduce",
         open: r.action === "out" ? r.open : 0,
+        remaining:
+          r.action === "reduce"
+            ? r.remaining
+            : r.action === "open" || r.open
+              ? (r.remaining ?? 1)
+              : null,
       }));
   }
 
@@ -123,7 +129,7 @@ export class HomeInventoryCookedDialog extends LitElement {
 
   private summary() {
     return this.result!.bookings.map((b) =>
-      t(b.action === "out" ? "cooked.done_out" : "cooked.done_open", {
+      t(`cooked.done_${b.action}`, {
         n: b.packages,
         name: b.name,
       }),

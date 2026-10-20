@@ -56,6 +56,17 @@ def test_unknown_amount(conn) -> None:
     assert groups(conn)["fats"]["unknown"] == 2
 
 
+def test_partly_used_package_counts_by_level(conn) -> None:
+    add(conn, "Reis", "Nudeln", 1, "kg", 2)
+    pid = conn.execute("SELECT id FROM product WHERE name = 'Reis'").fetchone()[0]
+    inv.set_remaining(conn, inv.open_package(conn, pid, today=TODAY)["batch_id"], 0.5)
+    assert groups(conn)["grains"]["have"] == 1.5
+    pid = inv.save(conn, "product", {"name": "Speiseöl", "category_id": cat(conn, "Öl")})
+    inv.book_in(conn, pid, 2, expires_on="2027-01-01", location_id=loc(conn))
+    inv.set_remaining(conn, inv.open_package(conn, pid, today=TODAY)["batch_id"], 0.5)
+    assert groups(conn)["fats"]["unknown"] == 2  # unknown amounts stay whole packages
+
+
 def test_migration_27(monkeypatch) -> None:
     c = db.connect(":memory:")
     with monkeypatch.context() as m:  # seeded DB of version 26

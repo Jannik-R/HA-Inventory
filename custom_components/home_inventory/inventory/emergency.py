@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from datetime import date
-from math import floor
+from math import ceil, floor
 
 from .amounts import _amount, _units
 from .inherit import _categories, _resolve, defaults
@@ -33,10 +33,12 @@ def supply(conn: sqlite3.Connection, persons: int, today: date) -> dict:
     kg, litre, piece = by_name.get("kg"), by_name.get("l"), by_name.get("Stück")  # None: renamed
     cats, dflt = _categories(conn), defaults(conn)
     products = {r["id"]: r for r in conn.execute("SELECT * FROM product")}
-    packages: dict[int, int] = {}
+    packages: dict[int, float] = {}  # the partly used package of a batch counts by its level
     for r in stock_list(conn):
         if r["expires_on"] is None or r["expires_on"] >= today.isoformat():
-            packages[r["product_id"]] = packages.get(r["product_id"], 0) + r["packages"]
+            packages[r["product_id"]] = packages.get(r["product_id"], 0) + (
+                r["packages"] - 1 + r["remaining"]
+            )
     have = dict.fromkeys(GROUPS, 0.0)
     unknown = dict.fromkeys(GROUPS, 0)
     group_of: dict[int, str | None] = {}  # per category
@@ -63,7 +65,7 @@ def supply(conn: sqlite3.Connection, persons: int, today: date) -> dict:
         ):
             value = count * p["content_amount"] * PIECE_KG[key]
         if value is None:
-            unknown[key] += count
+            unknown[key] += ceil(count - 1e-9)
         else:
             have[key] += value
     rows = []

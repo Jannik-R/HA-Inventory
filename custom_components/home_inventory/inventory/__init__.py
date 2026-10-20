@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, cooked, frozen, stocktake, notify, assist, ai_import, purchase).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase).
 """
 
 from .ai_check import changes as ai_changes
@@ -18,7 +18,7 @@ from .assist import meal_plan as assist_meal_plan
 from .assist import recipe as assist_recipe
 from .assist import recipe_list as assist_recipes
 from .assist import stock as assist_stock
-from .booking import book_in, book_in_new, book_out, correct, edit_stock, move, put_back
+from .booking import book_in, book_in_new, book_out
 from .canning import cannings, charge, save_canning
 from .codes import (
     book_in_by_code,
@@ -33,6 +33,7 @@ from .codes import (
 )
 from .common import InventoryError, check_ean
 from .cooked import book_cooked, cooked_by_name, cooked_proposal, undo_cooked
+from .corrections import correct, edit_stock, move, put_back
 from .emergency import GROUPS as EMERGENCY_GROUPS
 from .emergency import supply as emergency_supply
 from .expiry_recipes import expiring_recipes
@@ -53,7 +54,7 @@ from .meal_plan import (
     shift_meals,
 )
 from .notify import below_min, bookings_since, expired_on, last_booking
-from .opened import open_package, undo_open
+from .opened import open_package, set_remaining, undo_open, undo_remaining
 from .plan_shopping import plan_to_shopping_list
 from .products import add_product, find_ean, list_products, product_draft, search_products
 from .purchase import analyze as receipt_items
@@ -174,6 +175,7 @@ __all__ = [
     "save_recipe",
     "search_products",
     "set_recipe_done",
+    "set_remaining",
     "set_shopping_done",
     "set_shopping_recipe",
     "shift_meals",
@@ -190,6 +192,7 @@ __all__ = [
     "undo_cooked",
     "undo_frozen",
     "undo_open",
+    "undo_remaining",
     "unit_add",
     "update_shopping_item",
 ]

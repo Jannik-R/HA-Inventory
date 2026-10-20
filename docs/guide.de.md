@@ -191,6 +191,8 @@ Nach dem Anbrechen stehen neben der Meldung:
 - **Etikett drucken**: öffnet den Etikettendialog mit dem neuen Datum. Gedruckt wird erst mit
   **Drucken** dort, nie automatisch.
 
+**Füllstand**: Bei einer angebrochenen Zeile zeigt das Auswahlfeld, wie viel noch drin ist: *voll*, *¾*, *½*, *¼*, *fast leer* oder *leer*. Die Zeile zeigt dann z. B. „… · angebrochen am …, ca. ½ (ca. 250 g)“; die Menge steht dort nur, wenn der Inhalt der Packung bekannt ist. Der Notvorrat rechnet mit dem Rest; Mindestmenge und Einkaufsliste zählen weiter ganze Packungen. *leer* bucht die Packung aus; **Rückgängig** legt sie zurück und stellt den vorherigen Füllstand wieder her. Die übrigen Füllstände lassen sich im Panel nicht rückgängig machen. Auslagern, der Etikett-Scan und **Gekocht** nehmen eine angebrochene Packung zuerst.
+
 ## 3b. Einfrieren und auftauen
 
 Frisches Fleisch, Brot oder Beeren hältst du mit dem Gefrierschrank länger. Beim Einfrieren zählt
@@ -396,7 +398,7 @@ Kochmodus offen ist (wenn der Browser es erlaubt).
 > [!WARNING]
 > Die Timer laufen nur in diesem Browserfenster. Schließen fragt nach und beendet sie.
 
-**Gekocht ausbuchen**: Im aufgeklappten Rezept (nicht bei Einkochrezepten) und am Ende des Kochmodus öffnet **Gekocht** einen Vorschlag, welche Zutaten aus dem Vorrat gehen, für die angezeigten Portionen. Je Zeile: Haken, Zutat und Menge, **Produkt**, **Charge** (Ablauf, Lagerort, Packungen, angebrochen), **Aktion** (*Ausbuchen*, *Anbrechen* oder *Überspringen*), **Packungen** und ein Haken „und für den Rest eine weitere Packung anbrechen“. Vorgabe: die Charge mit dem frühesten Ablauf, ganze Packungen; der Rest bricht eine Packung an, wenn nicht schon eine angebrochen ist. Optionale Zutaten und Mengen, die sich nicht umrechnen lassen, sind abgehakt aus; Zutaten ohne Vorrat (z. B. Salz, Wasser) fehlen. Mit **Ausbuchen** werden alle angehakten Zeilen in einem Schritt gebucht; danach bietet das Panel **Rückgängig** an.
+**Gekocht ausbuchen**: Im aufgeklappten Rezept (nicht bei Einkochrezepten) und am Ende des Kochmodus öffnet **Gekocht** einen Vorschlag, welche Zutaten aus dem Vorrat gehen, für die angezeigten Portionen. Je Zeile: Haken, Zutat und Menge, **Produkt**, **Charge** (Ablauf, Lagerort, Packungen, angebrochen), **Aktion** (*Ausbuchen*, *Anbrechen*, *Rest verringern* oder *Überspringen*), **Packungen** und ein Haken „und für den Rest eine weitere Packung anbrechen“. Vorgabe: zuerst eine angebrochene Packung, dann die Charge mit dem frühesten Ablauf, ganze Packungen. Reicht der Rest der angebrochenen Packung für die Menge, lautet die Aktion **Rest verringern**: sie senkt nur deren Füllstand, **Rest danach** stellt ihn ein (auch auf *leer*; dann wird die Packung ausgebucht). Sonst geht die angebrochene Packung zuerst aus, und der Rest bricht eine neue Packung an; deren Füllstand stellt **Rest danach** ein. Optionale Zutaten und Mengen, die sich nicht umrechnen lassen, sind abgehakt aus; Zutaten ohne Vorrat (z. B. Salz, Wasser) fehlen. Mit **Ausbuchen** werden alle angehakten Zeilen in einem Schritt gebucht; danach bietet das Panel **Rückgängig** an.
 
 Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat
 die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind

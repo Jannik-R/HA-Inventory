@@ -8,7 +8,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import date
 
-from .booking import _add, _batch, _booking, _stock_of, _take
+from .booking import _add, _batch, _booking, _stock_of, _take, book_out
 from .common import InventoryError, _exists, opened_until
 from .inherit import effective
 
@@ -62,6 +62,11 @@ def open_package(
         conn, product_id, src["expires_on"], opened_on, src["canning_id"], src["expiry_guessed"]
     )
     _take(conn, src["batch_id"], src["location_id"], 1)
+    conn.execute(  # an emptied opened batch may keep a stale level
+        "UPDATE batch SET remaining = 1 WHERE id = ? AND NOT EXISTS"
+        " (SELECT 1 FROM stock WHERE batch_id = ?)",
+        (target, target),
+    )
     _add(conn, target, src["location_id"], 1)
     eff = effective(conn, product_id)
     return {
@@ -96,4 +101,62 @@ def undo_open(conn: sqlite3.Connection, booking_id: int, user_id: str | None = N
     _booking(
         conn, "open", row["batch_id"], row["location_id"], -1, "undo", user_id,
         reverts_id=booking_id,
+    )  # fmt: skip
+
+
+def set_remaining(
+    conn: sqlite3.Connection,
+    batch_id: int,
+    remaining: float,
+    location_id: int | None = None,
+    source: str = "manual",
+    user_id: str | None = None,
+) -> dict:
+    """Set the level (0..1) of the partly used package of an opened batch.
+
+    0 = empty: books one package out ({kind: out, taken}). Else {kind: remaining, booking_id}
+    (None when the level did not change)."""
+    remaining = round(remaining, 3)
+    if not 0 <= remaining <= 1:
+        raise InventoryError("invalid_value")
+    sql = (
+        "SELECT s.location_id, b.product_id, b.remaining FROM stock s JOIN batch b ON b.id = s.batch_id"
+        " WHERE s.batch_id = ? AND b.opened_on IS NOT NULL"
+    )
+    args: list = [batch_id]
+    if location_id is not None:
+        sql += " AND s.location_id = ?"
+        args.append(location_id)
+    row = conn.execute(sql + " ORDER BY s.location_id LIMIT 1", args).fetchone()
+    if not row:
+        raise InventoryError("not_found")
+    if remaining == 0:
+        taken = book_out(conn, row["product_id"], 1, batch_id, row["location_id"], source, user_id)
+        return {"kind": "out", "taken": taken}
+    if remaining == row["remaining"]:
+        return {"kind": "remaining", "booking_id": None}
+    conn.execute("UPDATE batch SET remaining = ? WHERE id = ?", (remaining, batch_id))
+    booking_id = _booking(
+        conn, "remaining", batch_id, row["location_id"], 0, source, user_id,
+        remaining=row["remaining"],
+    )  # fmt: skip
+    return {"kind": "remaining", "booking_id": booking_id}
+
+
+def undo_remaining(conn: sqlite3.Connection, booking_id: int, user_id: str | None = None) -> None:
+    """Restore the level a 'remaining' booking changed (once)."""
+    row = conn.execute(
+        "SELECT o.batch_id, o.location_id, o.remaining, b.remaining AS now FROM booking o"
+        " JOIN batch b ON b.id = o.batch_id"
+        " WHERE o.id = ? AND o.kind = 'remaining' AND o.reverts_id IS NULL",
+        (booking_id,),
+    ).fetchone()
+    if not row:
+        raise InventoryError("not_found")
+    if conn.execute("SELECT 1 FROM booking WHERE reverts_id = ?", (booking_id,)).fetchone():
+        raise InventoryError("already_undone")
+    conn.execute("UPDATE batch SET remaining = ? WHERE id = ?", (row["remaining"], row["batch_id"]))
+    _booking(
+        conn, "remaining", row["batch_id"], row["location_id"], 0, "undo", user_id,
+        reverts_id=booking_id, remaining=row["now"],
     )  # fmt: skip

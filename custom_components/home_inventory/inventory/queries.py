@@ -22,7 +22,7 @@ def stock_list(
     cats, dflt = _categories(conn), defaults(conn)
     sql = (
         "SELECT s.batch_id, s.location_id, s.packages, l.name AS location, b.expires_on, b.opened_on,"
-        " b.expiry_guessed, b.frozen_on,"
+        " b.remaining, b.expiry_guessed, b.frozen_on,"
         " p.id AS product_id, p.name, p.brand, p.ean, p.category_id, p.expiry_type, p.opened_days,"
         " c.made_on, c.seq"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN product p ON p.id = b.product_id"

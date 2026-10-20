@@ -1,8 +1,6 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
-import { hasModule } from "./modules";
-import { mdiTagOutline } from "@mdi/js";
 import { t } from "./i18n";
-import { chevron, icon, rowActions, toggled } from "./ui";
+import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -17,9 +15,9 @@ import {
 } from "./api";
 import { expiryStatus, groupStock, type Item } from "./stock-data";
 import { stockTree } from "./stock-tree";
-import { fmtDate } from "./format";
-import { outButton, undoLine, type Undo } from "./take-out";
-import { openButton, openedLine, undoOpened, type LabelRequest } from "./open-action";
+import { undoLine, type Undo } from "./take-out";
+import { batchRow, categoryRow, stockDate } from "./stock-batch-row";
+import { openedLine, undoOpened, type LabelRequest } from "./open-action";
 import type { Opened } from "./api-open";
 import { doneLine, doneStyles } from "./booking-done";
 import type { HomeInventoryProductDialog } from "./product-dialog";
@@ -28,7 +26,7 @@ import { stockFilterStyles, stockFilters } from "./stock-filters";
 import { stockStyles } from "./stock-styles";
 import { deleteMasterRow } from "./delete-flow";
 import type { HomeInventoryLabelDialog } from "./label-dialog";
-import { frozenButton, frozenLine, undoFrozenDone, type FrozenDone } from "./frozen-action";
+import { frozenLine, undoFrozenDone, type FrozenDone } from "./frozen-action";
 import type { HomeInventoryFrozenDialog } from "./frozen-dialog";
 import "./frozen-dialog";
 import "./product-dialog";
@@ -127,38 +125,16 @@ export class HomeInventoryStock extends LitElement {
     );
     return stockTree(this.md?.categories ?? [], items, this.open, searching).map((n) =>
       n.kind === "category"
-        ? this.renderCategory(n.id, n.name, n.packages, n.depth, n.open)
+        ? categoryRow(n.id, n.name, n.packages, n.depth, n.open, (id) => this.toggle(id))
         : this.renderItem(n.item, n.depth, n.open),
     );
-  }
-
-  private renderCategory(id: number, name: string, packages: number, depth: number, open: boolean) {
-    return html`<li style="padding-left:${depth * 24}px">
-      ${chevron(open, () => this.toggle(`c${id}`))}
-      <button
-        class="row"
-        data-testid="stock-category"
-        aria-expanded=${open}
-        @click=${() => this.toggle(`c${id}`)}
-      >
-        <span>${name}</span>
-        <span class="detail">${t("book.count", { n: packages })}</span>
-      </button>
-    </li>`;
   }
 
   private status(r: StockRow) {
     return expiryStatus(r, this.products.get(r.product_id), this.md);
   }
 
-  private date(r: StockRow) {
-    let date = r.expires_on ? fmtDate(this.hass, r.expires_on) : t("stock.no_date");
-    if (r.expires_on && r.expiry_type === "guide") date = t("stock.approx_date", { date });
-    else if (r.expiry_guessed) date = t("stock.guessed_date", { date });
-    if (r.opened_on) date = t("stock.opened_on", { date, opened: fmtDate(this.hass, r.opened_on) });
-    if (r.frozen_on) date = t("stock.frozen_on", { date, frozen: fmtDate(this.hass, r.frozen_on) });
-    return r.charge ? t("stock.charge", { date, charge: r.charge }) : date;
-  }
+  private date = (r: StockRow) => stockDate(this.hass, r, this.products.get(r.product_id), this.md);
 
   private toggle(id: string) {
     this.open = toggled(this.open, id);
@@ -282,6 +258,19 @@ export class HomeInventoryStock extends LitElement {
     const first = p.batches[0];
     // Without stock there is nothing to open: the row edits the product (list rule).
     const onRow = first ? () => this.toggle(`p${p.id}`) : () => this.editProduct(p.id);
+    const ctx = {
+      host: this,
+      md: this.md,
+      product: this.products.get(p.id),
+      status: (b: StockRow) => this.status(b),
+      date: this.date,
+      freeze: (b: StockRow, thaw: boolean) =>
+        this.renderRoot
+          .querySelector<HomeInventoryFrozenDialog>("home-inventory-frozen-dialog")!
+          .open(b, thaw),
+      label: (b: StockRow) => this.printBatch(b, p.batches),
+      edit: (b: StockRow) => this.editBatch(b),
+    };
     return html`<li class="item" style="padding-left:${depth * 24}px">
       <div class="head">
         ${first ? chevron(expanded, onRow) : html`<span class="chev"></span>`}
@@ -307,43 +296,7 @@ export class HomeInventoryStock extends LitElement {
       ${
         expanded
           ? html`<ul class="batches">
-              ${p.batches.map(
-                (b) =>
-                  html`<li data-testid="stock-batch">
-                    <span class=${this.status(b)}>${this.date(b)}</span>
-                    <span class="detail">${b.location}</span>
-                    <span class="count">${t("book.count", { n: b.packages })}</span>
-                    <span class="acts">
-                      ${outButton(this, p.name, b, "stock-batch-out")}
-                      ${hasModule("opened") && !b.frozen_on ? openButton(this, p.name, b) : ""}
-                      ${
-                        hasModule("frozen")
-                          ? frozenButton(this.md, this.products.get(p.id), b, (thaw) =>
-                              this.renderRoot
-                                .querySelector<HomeInventoryFrozenDialog>(
-                                  "home-inventory-frozen-dialog",
-                                )!
-                                .open(b, thaw),
-                            )
-                          : ""
-                      }
-                      <button
-                        class="icon-btn"
-                        data-testid="stock-batch-label"
-                        aria-label=${t("label.print_name", { name: p.name })}
-                        title=${t("label.print")}
-                        @click=${() => this.printBatch(b, p.batches)}
-                      >
-                        ${icon(mdiTagOutline)}
-                      </button>
-                      ${rowActions({
-                        testid: "batch",
-                        name: `${p.name}, ${this.date(b)}`,
-                        onEdit: () => this.editBatch(b),
-                      })}
-                    </span>
-                  </li>`,
-              )}
+              ${p.batches.map((b) => batchRow(ctx, p.name, b))}
             </ul>`
           : nothing
       }

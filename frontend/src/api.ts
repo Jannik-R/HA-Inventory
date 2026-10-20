@@ -177,6 +177,8 @@ export interface StockRow {
   batch_expires_on: string | null;
   /** Set on an opened package (its own batch). */
   opened_on: string | null;
+  /** Level of the partly used package of an opened batch: 1 = full, 0.5 = half. */
+  remaining: number;
   /** Set on a frozen package (its own batch, dated frozen_on + frozen days). */
   frozen_on: string | null;
   /** 1: the date was guessed at book-in (today + shelf life), nobody entered it. */

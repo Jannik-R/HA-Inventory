@@ -75,7 +75,8 @@ product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             image_url, off_json, updated_at,
             min_packages NULL)                                        -- own minimum in packages (migration 11)
 batch      (id, product_id, expires_on DATE, created_at, canning_id NULL → canning (cascade), opened_on DATE NULL,
-            frozen_on DATE NULL)   -- frozen_on: home-frozen batch, part of the unique key (migration 25)
+            frozen_on DATE NULL,   -- frozen_on: home-frozen batch, part of the unique key (migration 25)
+            remaining REAL NOT NULL DEFAULT 1 (0 < r <= 1))   -- level of the one partly used package of an opened batch; the others count as full (migration 28)
            -- unique (product_id, expires_on, canning_id, opened_on) (expression index, migrations 15/20): a canning charge is its own batch,
            -- an opened package too (same product, date and charge, opened_on set; canning_id no longer UNIQUE since migration 20)
            -- date type is a product property (own or inherited), never per batch (migration 2)
@@ -100,10 +101,11 @@ recipe_ingredient (id, recipe_id → recipe (cascade), category_id NULL → cate
 meal_plan (id, day DATE, slot INTEGER 0..4 (0 Frühstück, 1 Mittag, 2 Kaffee, 3 Abendessen, 4 Snack), recipe_id NULL → recipe (set null: text stays as free text), text, servings > 0)   -- week planner (migration 14); text = recipe name snapshot or free text; a day's dishes in slot, then id order
 off_tag    (id, tag UNIQUE)                    -- each Open Food Facts category tag once
 category_off_tag (category_id → category, off_tag_id → off_tag, PK both)   -- n:m; a known tag is referenced
-booking    (id, ts, kind 'in'|'out'|'move'|'correct'|'open', batch_id → batch (cascade), location_id → location,
+booking    (id, ts, kind 'in'|'out'|'move'|'correct'|'open'|'remaining', batch_id → batch (cascade), location_id → location,
             to_location_id → location,           -- only 'move' (location_id = source)
-            packages,                            -- always positive; 'correct' = signed difference; 'open' (migration 20):
-                                                 -- batch_id = the opened batch, +n opened, -n = undo (reverts_id names it)
+            packages,                            -- positive; 'correct' = signed difference; 'open' (migration 20):
+                                                 -- batch_id = the opened batch, +n opened, -n = undo (reverts_id names it); 'remaining' = 0
+            remaining NULL,                      -- level of the batch BEFORE this booking changed it ('remaining': packages 0; 'out' of a partly used package); undo restores it (migration 28)
             source 'scan'|'manual'|'label'|'service'|'undo', user_id,
             reverts_id UNIQUE NULL → booking)    -- an undo's 'in' names the 'out' it reverses: undone once (migration 6)
             -- root category names are unique too (partial unique index, migration 6)
@@ -272,6 +274,16 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
 - Labels: the code keeps the batch key (product, date, charge), the printed date is the effective one.
   `shortcut: a label scan takes an opened package of that key first, so scanning a closed package's
   label takes the opened one; add an opened marker to the code if that bites.`
+- Remaining amount (phase 28b, migration 28): the level of the partly used package is `batch.remaining`
+  (1 / 0.75 / 0.5 / 0.25 / 0.1 = almost empty); the other packages of the batch count as full.
+  - The level select on opened rows uses the websocket command `home_inventory/remaining`; panel only, no service.
+  - *Empty* books one package out (undo = put back, level restored). Other level changes have no undo.
+  - Opening sets the level to 1; a same-day merge keeps the partly used package's level.
+  - Book-out takes a partly used package first and resets the level.
+  - The stock list shows "… · opened on …, about ½ (about 250 g)"; the amount only when the content is known.
+  - The emergency check counts the remainder; min stock and the shopping list stay in whole packages.
+  - A move keeps the level; a date edit carries it.
+  - Shortcuts: freeze and thaw drop the level (frozen = full); a batch in two locations shows the level on both rows; only the first partly used batch counts in the cooked plan.
 
 **Canning** (tab *Einkochen*):
 - **Process instruction** = a canning recipe: a recipe with `canning_product_id`, the product it
@@ -571,7 +583,8 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 24 | HA events | done | `home_inventory_booked`: `Database.run` notes the last booking id before the call and fires one event per new booking row after the commit (all entry points; data from `inventory.bookings_since`). `events.py`: `home_inventory_below_min` compares the min stock shortfalls (`inventory.below_min`, from `shopping_list`, recipes and items by hand left out) after every write with the set before (startup set = known, no event; serialized by a lock), fires for new keys only; `home_inventory_expired` at 00:00:01 for each batch in stock whose effective date was yesterday (`inventory.expired_on`). Names in `const.EVENT_*`. No schema change. README section *Events* |
 | 26 | Dashboard example | done | no own card: native cards are enough (Markdown card over the sensors' `items`, To-do list card, Calendar card); a ready-made `vertical-stack` YAML in the README section *Dashboard*. Decided 2026-10-20; blueprints (former phase 25) dropped the same day |
 | 27 | Emergency stock check | done | module `emergency`, migration 27 (`migration_27.py`): inheritable `category.emergency_group` (`'none'` = not in it), seeded by name in `set_emergency` (also after the seed). `inventory/emergency.py`: BBK need per person for 10 days x `household_servings`; unexpired stock in kg / l 1:1, eggs 60 g, packages without amount counted apart; supply days floor per group, overall = minimum. Websocket `home_inventory/emergency` (`websocket_emergency.py`); tab `emergency-view.ts`; sensor `EmergencySensor` with its own coordinator, removed when the module is off; no service |
-| 28 | Cooked books out | done | no schema change. `inventory/cooked.py` (`cooked_proposal`, `book_cooked` in one transaction, `undo_cooked`; source `cooked`; `cooked_by_name` for the service); `websocket_cooked.py`: `home_inventory/cooked_proposal`, `cooked_book`, `cooked_undo`; service `home_inventory.cooked` (`recipe`, `servings`; response `recipe_id`, `bookings`, `out_ids`, `open_ids`); panel `cooked-dialog.ts`, button *Gekocht* in the recipe view and at the end of cook mode (not for canning recipes). Proposal: FEFO per ingredient, scaled servings; whole packages out, the remainder opens one package unless one is open already; optional and unconvertible amounts unchecked, skip-stock ingredients left out. Known limits: two ingredients of the same category are proposed independently (booking may fail as a whole); frozen batches count as normal stock |
+| 28 | Cooked books out | done | no schema change. `inventory/cooked.py` (`cooked_proposal`, `book_cooked` in one transaction, `undo_cooked`; source `cooked`; `cooked_by_name` for the service); `websocket_cooked.py`: `home_inventory/cooked_proposal`, `cooked_book`, `cooked_undo`; service `home_inventory.cooked` (`recipe`, `servings`; response `recipe_id`, `bookings`, `out_ids`, `open_ids`); panel `cooked-dialog.ts`, button *Gekocht* in the recipe view and at the end of cook mode (not for canning recipes). Proposal: FEFO per ingredient, scaled servings; whole packages out, the remainder opens one package; an opened package's remainder is used first (phase 28b); optional and unconvertible amounts unchecked, skip-stock ingredients left out. Known limits: two ingredients of the same category are proposed independently (booking may fail as a whole); frozen batches count as normal stock |
+| 28b | Remaining amount of opened packages | done | migration 28 (`migration_28.py`): `batch.remaining`, booking kind `remaining` + `booking.remaining`; `inventory/opened.py` `set_remaining` / `undo_remaining`; `book_out` takes a partly used package first; `websocket_open.py` `home_inventory/remaining`; cooked: action `reduce`, `cooked_book` items take `remaining`, `cooked_undo` takes `remaining_ids`; emergency counts the remainder; `booking.py` split: `corrections.py` (put back, move, correct, edit stock) |
 | 29 | Leftovers as a charge | open | cooked leftovers (fridge / freezer) saved like a canning protocol: own charge with date, shelf life and label |
 | 30 | Allergens and diet | open | allergens and vegan / vegetarian from OFF (product) or inherited on the category; filter recipes by them |
 | 31 | Recipe export | open | recipe as schema.org `Recipe` JSON-LD (import into Mealie, Tandoor, back into this app) and a print / PDF view |
@@ -602,6 +615,5 @@ Order decided 2026-10-16; 21c–21e inserted before 22 on 2026-10-20 (21c first:
 | Manual order within a slot | `meal_plan` rows in id order within a slot; add `sort` when needed |
 | Editing the plan from the HA calendar | read-only `calendar.py`; add `CREATE_EVENT` etc. with free-text entries |
 | Import from the phone's share sheet (Instagram/TikTok *Teilen* → Vorrat) | phase 19 home_inventory/recipe_import {url}; needs a pending-import inbox in the panel (the draft must be confirmed by a person) filled by an automation on the companion app's share event, or a deep link /home_inventory/recipes?import=<url> that opens the import dialog. For now: *Link kopieren* and paste |
-| Remaining amount of opened packages | phase 18 (done) marks opened packages as their own batch (`opened_on`); a remaining amount would be a column on that batch; book out by cooking is done in phase 28 |
 
 New feature = new module + next migration + new websocket commands + new panel tab.

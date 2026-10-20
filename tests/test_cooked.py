@@ -38,11 +38,51 @@ def test_existing_opened_package_is_used(conn):
     p = pasta(conn)
     b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
     opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
-    (row,) = rows(conn, [ing(conn, "Nudeln", 200, "g")], cook=2)  # less than a package
+    (row,) = rows(conn, [ing(conn, "Nudeln", 200, "g")], cook=2)  # less than the opened package
     c = row["candidates"][0]
-    assert (c["action"], c["batch_id"], row["checked"]) == ("skip", opened, False)
-    (row,) = rows(conn, [ing(conn, "Nudeln", 600, "g")], cook=2)  # 1 out, the opened one covers 100
-    assert (row["candidates"][0]["packages"], row["candidates"][0]["open"]) == (1, 0)
+    assert (c["action"], c["batch_id"], c["remaining"], row["checked"]) == (
+        "reduce", opened, 0.6, True,
+    )  # fmt: skip
+    (row,) = rows(conn, [ing(conn, "Nudeln", 600, "g")], cook=2)  # opened one out, 100 of a new one
+    c = row["candidates"][0]
+    assert (c["action"], c["packages"], c["open"], c["remaining"]) == ("out", 1, 1, 0.8)
+
+
+def test_open_level_is_at_least_almost_empty(conn):
+    p = pasta(conn)
+    inv.book_in(conn, p, 1, "2027-01-01", loc(conn))
+    (row,) = rows(conn, [ing(conn, "Nudeln", 499.9, "g")], cook=2)  # 0.9998 of a package
+    c = row["candidates"][0]
+    assert (c["action"], c["remaining"]) == ("open", 0.1)  # not rounded to 0 (= empty)
+
+
+def test_reduce_empty_and_out_with_level_and_undo(conn):
+    p = pasta(conn)
+    b = inv.book_in(conn, p, 3, "2027-01-01", loc(conn))
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    before = stock(conn)
+    lv = lambda: conn.execute("SELECT remaining FROM batch WHERE id = ?", (opened,)).fetchone()[0]  # noqa: E731
+    res = inv.book_cooked(
+        conn, [{"product_id": p, "packages": 0, "action": "reduce", "remaining": 0.6}]
+    )
+    assert (lv(), len(res["remaining_ids"]), res["bookings"][0]["action"]) == (0.6, 1, "reduce")
+    inv.undo_cooked(conn, res["out_ids"], res["open_ids"], remaining_ids=res["remaining_ids"])
+    assert lv() == 1
+    inv.set_remaining(conn, opened, 0.4)
+    res = inv.book_cooked(
+        conn, [{"product_id": p, "packages": 0, "action": "reduce", "remaining": 0}]
+    )
+    assert len(res["out_ids"]) == 1 and sum(stock(conn).values()) == sum(before.values()) - 1
+    inv.undo_cooked(conn, res["out_ids"], res["open_ids"], remaining_ids=res["remaining_ids"])
+    assert lv() == 0.4 and stock(conn) == before
+    inv.set_remaining(conn, opened, 1)
+    item = {"product_id": p, "packages": 1, "action": "out", "open": 1, "remaining": 0.8}
+    res = inv.book_cooked(conn, [item], today=TODAY)  # the opened one out, a new one opened at 0.8
+    assert len(res["remaining_ids"]) == 1 and lv() == 0.8
+    inv.undo_cooked(conn, res["out_ids"], res["open_ids"], remaining_ids=res["remaining_ids"])
+    assert stock(conn) == before and lv() == 1
+    with pytest.raises(InventoryError):  # reduce needs a level and an opened batch
+        inv.book_cooked(conn, [{"product_id": p, "packages": 0, "action": "reduce"}])
 
 
 def test_fefo_default_product_and_batch(conn):

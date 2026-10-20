@@ -49,6 +49,7 @@ def transfer(
     packages: int, source: str, user_id: str | None,
 ) -> int:  # fmt: skip
     """Move packages from one batch/location to another; returns the id of the +n booking."""
+    # shortcut: the target batch is full (remaining 1); a level of an opened source is not carried over.
     available = _stock_of(conn, batch_id, location_id)
     if available < packages:
         raise InventoryError("not_enough_stock", available=available)

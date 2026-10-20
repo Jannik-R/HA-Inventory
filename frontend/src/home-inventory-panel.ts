@@ -140,7 +140,7 @@ export class HomeInventoryPanel extends LitElement {
               : active === "stock"
                 ? html`<home-inventory-stock
                     .hass=${this.hass}
-                    .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) ? this.seg : "search"}
+                    .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) || (this.seg === "freeze" && hasModule("frozen")) ? this.seg : "search"}
                   ></home-inventory-stock>`
                 : active === "expiry"
                   ? html`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>`

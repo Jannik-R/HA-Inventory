@@ -76,3 +76,27 @@ test("a location can be marked as freezer", async ({ page }) => {
   expect(rows.locations.find((l) => l.id === freezerId)?.freezer).toBe(1);
   expect(rows.locations.find((l) => l.id === fridgeId)?.freezer).toBe(0);
 });
+
+test("scan mode Einfrieren freezes by label to a scanned freezer and undoes", async ({ page }) => {
+  await openPage(page, "/home_inventory/freeze", "Bestand");
+  await panelConfig(page, {
+    modules: ["shopping", "recipes", "plan", "canning", "opened", "frozen"],
+  });
+  await expect(page.getByTestId("mode-freeze")).toHaveAttribute("aria-pressed", "true");
+  const input = page.getByTestId("code-input");
+  // our freezer as target, then the fresh batch's label
+  await input.fill(`PTRY:L${freezerId}`);
+  await input.press("Enter");
+  await expect(page.getByTestId("scanned-location")).toContainText(FREEZER);
+  await input.fill(`PTRY:P${productId}:2099-12-31`);
+  await input.press("Enter");
+  await expect(page.getByTestId("frozen-done")).toContainText(`„${NAME}“ eingefroren (${FREEZER})`);
+  // the frozen batch exists at our freezer; thawing by its label is covered by the backend test
+  const rows = (await ws(page, { type: "home_inventory/stock", product_id: productId })) as {
+    location_id: number;
+    frozen_on: string | null;
+  }[];
+  expect(rows.some((r) => r.frozen_on && r.location_id === freezerId)).toBe(true);
+  await page.getByTestId("frozen-undo").click();
+  await expect(page.getByTestId("message")).toContainText("Rückgängig");
+});

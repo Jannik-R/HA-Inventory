@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from .booking import book_in, book_out
 from .canning import save_canning
 from .common import InventoryError, id_by_name
-from .frozen import freeze, thaw
+from .frozen import freeze, is_freezer, thaw
 from .inherit import effective
 from .labels import _label_batch, book_out_code, open_code
 from .master import list_rows
@@ -121,6 +121,32 @@ def frozen_by_code(
         conn, product["id"], packages, batch_id, _location(conn, location),
         _location(conn, to_location), today, "service", user_id,
     )  # fmt: skip
+
+
+def freeze_scan(
+    conn: sqlite3.Connection,
+    code: str,
+    today: date,
+    location_id: int | None = None,
+    user_id: str | None = None,
+) -> dict:
+    """Scan mode Einfrieren: one package. A label of a frozen batch thaws it, any other label
+    freezes its batch; EAN / name freezes the earliest fresh one. `location_id` (a scanned
+    location): the target when it is a freezer, else where the package comes from.
+    Returns the freeze / thaw result plus `thaw`."""
+    batch_id, thawing = None, False
+    if code.strip().upper().startswith("PTRY:"):
+        product, batch_id = _label_batch(conn, code.strip()[5:])
+        thawing = bool(
+            conn.execute("SELECT frozen_on FROM batch WHERE id = ?", (batch_id,)).fetchone()[0]
+        )
+    else:
+        product = _product(conn, code)
+    into = location_id is not None and is_freezer(conn, location_id)
+    from_id, to_id = (None, location_id) if into != thawing else (location_id, None)
+    fn = thaw if thawing else freeze
+    res = fn(conn, product["id"], 1, batch_id, from_id, to_id, today, "panel", user_id)
+    return {**res, "thaw": thawing}
 
 
 def _recipe(conn: sqlite3.Connection, name: str, canning: str | None = None) -> sqlite3.Row:

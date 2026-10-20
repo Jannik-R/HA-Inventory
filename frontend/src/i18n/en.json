@@ -503,5 +503,8 @@
   "location_label.hint": "Scanned in the booking field, this location applies to the following bookings.",
   "location_label.active": "Location: {name} (for the following bookings)",
   "location_label.clear": "Clear",
-  "location_label.unknown": "Unknown location."
+  "location_label.unknown": "Unknown location.",
+  "stock.mode_freeze": "Freeze",
+  "book.undone_frozen": "Undone.",
+  "book.pick_freeze": "Choose the product to freeze"
 }

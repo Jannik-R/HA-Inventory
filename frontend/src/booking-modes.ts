@@ -1,23 +1,29 @@
 import { css, html } from "lit";
-import { mdiMagnify, mdiMinus, mdiPackageVariant, mdiPlus } from "@mdi/js";
+import { mdiMagnify, mdiMinus, mdiPackageVariant, mdiPlus, mdiSnowflake } from "@mdi/js";
 import { t } from "./i18n";
 import { hasModule } from "./modules";
 import { icon } from "./ui";
 
 /** "search" only filters the stock list; Enter (scanners send one) books nothing. "open" marks a
- *  package as opened (label: that batch; EAN / name: earliest expiry first). */
-export type Mode = "search" | "in" | "out" | "open";
+ *  package as opened (label: that batch; EAN / name: earliest expiry first); "freeze" freezes one
+ *  (a frozen batch's label: thaws it). */
+export type Mode = "search" | "in" | "out" | "open" | "freeze";
 const MODES: [Mode, string][] = [
   ["search", mdiMagnify],
   ["in", mdiPlus],
   ["out", mdiMinus],
   ["open", mdiPackageVariant],
+  ["freeze", mdiSnowflake],
 ];
+const MODE_MODULE: Partial<Record<Mode, "opened" | "frozen">> = {
+  open: "opened",
+  freeze: "frozen",
+};
 
 /** The mode switch in front of the booking input (slot "before"). */
 export const modeSwitch = (mode: Mode, pick: (m: Mode) => void) =>
   html`<div slot="before" class="modes" role="group" aria-label=${t("stock.mode")}>
-    ${MODES.filter(([m]) => m !== "open" || hasModule("opened")).map(
+    ${MODES.filter(([m]) => !MODE_MODULE[m] || hasModule(MODE_MODULE[m])).map(
       ([m, path]) =>
         html`<button
           type="button"

@@ -199,6 +199,11 @@ Brot 90 Tage) als *Richtwert* („ca. …“).
 - **Im Bestand**: an der Charge die Schneeflocke (**Einfrieren**) antippen. Im Dialog stehen
   **Packungen** (vorbelegt 1) und der **Ziel-Lagerort** (vorbelegt der erste Gefrierort);
   **Einfrieren** bestätigt.
+- **Per Scan**: den Schalter auf die Schneeflocke stellen (Einfrieren; als Lesezeichen:
+  `/home_inventory/freeze`). Barcode oder Name friert eine Packung mit dem frühesten Datum ein, ein
+  Vorrat-Etikett eine Packung genau dieser Charge. Das Etikett einer **eingefrorenen** Charge taut eine
+  Packung wieder auf. Ein vorher gescanntes Lagerort-Etikett ist das Ziel (Gefrierort) bzw. die
+  Herkunft (anderer Lagerort).
 - **Einbuchen oder Umlagern**: wer frische Ware gleich an einem Gefrierort einbucht oder eine Charge
   dorthin umlagert, friert sie damit ein.
 - **Per Automation**: Aktion `home_inventory.freeze_package` (siehe [README](../README.de.md#aktionen-automationen)).

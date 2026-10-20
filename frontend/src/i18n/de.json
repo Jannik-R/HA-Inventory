@@ -503,5 +503,8 @@
   "location_label.hint": "Gescannt im Buchungsfeld gilt dieser Lagerort für die folgenden Buchungen.",
   "location_label.active": "Lagerort: {name} (für die folgenden Buchungen)",
   "location_label.clear": "Aufheben",
-  "location_label.unknown": "Unbekannter Lagerort."
+  "location_label.unknown": "Unbekannter Lagerort.",
+  "stock.mode_freeze": "Einfrieren",
+  "book.undone_frozen": "Rückgängig gemacht.",
+  "book.pick_freeze": "Produkt zum Einfrieren wählen"
 }

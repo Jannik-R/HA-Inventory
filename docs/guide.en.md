@@ -201,6 +201,10 @@ counts: Home Inventory sets today + *Keeps frozen* (e.g. meat 180, bread 90 days
 
 - **In the stock**: tap the snowflake (**Freeze**) on the batch. The dialog has **Packages**
   (prefilled 1) and the **Target location** (prefilled: the first freezer); **Freeze** confirms.
+- **By scan**: set the switch to the snowflake (Freeze; as a bookmark: `/home_inventory/freeze`).
+  A barcode or name freezes one package with the earliest date, a Home Inventory label one package of
+  exactly that batch. The label of a **frozen** batch thaws one package again. A location label scanned
+  before is the target (a freezer) or the source (another location).
 - **Booking in or moving**: fresh food booked in at a freezer location or moved there is frozen
   by that.
 - **By automation**: action `home_inventory.freeze_package` (see [README](../README.md#actions-automations)).

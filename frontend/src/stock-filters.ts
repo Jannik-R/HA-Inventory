@@ -1,5 +1,7 @@
 import { css, html } from "lit";
+import { mdiClipboardCheckOutline } from "@mdi/js";
 import { t } from "./i18n";
+import { icon } from "./ui";
 import type { MasterData } from "./api";
 
 /** The stock view's filter state; the view owns it (reactive properties). */
@@ -22,6 +24,20 @@ export const stockFilters = (h: StockFilterHost) =>
           (l) => html`<option value=${l.id} .selected=${l.id === h.location}>${l.name}</option>`,
         )}
       </select>
+      <button
+        type="button"
+        data-testid="stocktake-start"
+        @click=${(e: Event) =>
+          e.target!.dispatchEvent(
+            new CustomEvent("home-inventory-navigate", {
+              detail: "stocktake",
+              bubbles: true,
+              composed: true,
+            }),
+          )}
+      >
+        ${icon(mdiClipboardCheckOutline)}${t("stocktake.start")}
+      </button>
     </div>
     <label class="check">
       <input

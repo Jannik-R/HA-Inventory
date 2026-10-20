@@ -33,6 +33,7 @@ opens this guide. These are the tabs:
 3a. [Opening a package](#3a-opening-a-package)
 3b. [Freezing and thawing](#3b-freezing-and-thawing)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
+4a. [Stocktaking](#4a-stocktaking)
 5. [What expires soon?](#5-what-expires-soon)
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
@@ -238,6 +239,20 @@ Which locations are freezers is set under *Settings → Locations* with **Freeze
 - Canned jars show their charge next to the date.
 - Red means expired (use by), orange means expiring soon or, in bold, past a best before or
   guide date (check it instead of throwing it away).
+
+## 4a. Stocktaking
+
+Does the stock of a cupboard no longer match? Count it again with a stocktaking.
+
+1. In **Stock**, tap **Stocktaking**, then pick the **Location**. The list shows everything stored there
+   according to the stock, with "0 of N counted".
+2. Scan everything stored there (barcode, Home Inventory label, or type the name). Each scan counts one
+   package. If the product has several batches there, Home Inventory asks which one it was; a label
+   names its batch itself. **−** and **+** on the row fix the number by hand.
+3. Scanned products that are not stored there according to the stock show under **Not in stock**, with a
+   date field (prefilled with today + shelf life).
+4. **Book differences**: after a question ("N pkg. missing, M pkg. too many") everything is booked as a
+   correction: what was not scanned is booked out, what was found is booked in.
 
 ## 5. What expires soon?
 

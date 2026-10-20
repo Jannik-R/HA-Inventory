@@ -482,5 +482,21 @@
   "valid.drying_hours": "Bitte 0,5 bis 24 Stunden eingeben.",
   "preserve.kind_label": "Art",
   "preserve.canning": "Einkochen",
-  "preserve.drying": "Dörren"
+  "preserve.drying": "Dörren",
+  "stocktake.start": "Inventur",
+  "stocktake.location": "Lagerort",
+  "stocktake.choose": "Bitte wählen",
+  "stocktake.hint": "Scanne alles, was hier liegt (Barcode, Etikett oder Name). Was nicht gescannt wird, gilt als fehlend.",
+  "stocktake.counted": "{n} von {packages} gezählt",
+  "stocktake.missing": "fehlt {n}",
+  "stocktake.too_many": "{n} zu viel",
+  "stocktake.extra": "Nicht im Bestand",
+  "stocktake.pick": "Welche Charge von „{name}“?",
+  "stocktake.less": "Eine Packung „{name}“ weniger",
+  "stocktake.one_more": "Eine Packung „{name}“ mehr",
+  "stocktake.apply": "Differenzen buchen",
+  "stocktake.confirm_title": "Differenzen buchen?",
+  "stocktake.confirm_message": "{missing} Pkg. fehlen, {more} Pkg. sind zu viel. Beides wird als Korrektur gebucht.",
+  "stocktake.done": "{n} Korrekturen gebucht.",
+  "stocktake.empty": "Laut Bestand liegt hier nichts. Gescannte Packungen erscheinen unter „Nicht im Bestand“."
 }

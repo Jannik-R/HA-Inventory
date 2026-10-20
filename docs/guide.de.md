@@ -29,6 +29,7 @@ Anleitung. Oben gibt es diese Tabs:
 3a. [Packung anbrechen](#3a-packung-anbrechen)
 3b. [Einfrieren und auftauen](#3b-einfrieren-und-auftauen)
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
+4a. [Inventur](#4a-inventur)
 5. [Was läuft ab?](#5-was-läuft-ab)
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
@@ -237,6 +238,20 @@ Welche Lagerorte Gefrierorte sind, legst du unter *Einstellungen → Lagerorte* 
 - Eingekochte Gläser zeigen ihre Charge neben dem Datum.
 - Rot heißt abgelaufen (Verbrauchsdatum), orange heißt bald fällig oder, fett, abgelaufen bei
   Mindesthaltbarkeit oder Richtwert (prüfen statt wegwerfen).
+
+## 4a. Inventur
+
+Stimmt der Bestand eines Schranks nicht mehr? Zähle ihn mit der Inventur nach.
+
+1. Im **Bestand** auf **Inventur** tippen, dann den **Lagerort** wählen. Die Liste zeigt alles, was laut
+   Bestand dort liegt, mit „0 von N gezählt“.
+2. Alles scannen, was dort liegt (Barcode, Vorrat-Etikett oder Name eintippen). Jeder Scan zählt eine
+   Packung. Gibt es vom Produkt dort mehrere Chargen, fragt Vorrat, welche es war; ein Etikett nennt
+   seine Charge selbst. Mit **−** und **+** an der Zeile korrigierst du die Zahl von Hand.
+3. Gescannte Produkte, die laut Bestand nicht dort liegen, erscheinen unter **Nicht im Bestand**, mit
+   einem Datumsfeld (vorbelegt heute + Haltbarkeit).
+4. **Differenzen buchen**: Nach einer Rückfrage („N Pkg. fehlen, M Pkg. sind zu viel“) bucht Vorrat
+   alles als Korrektur: Nicht Gescanntes wird ausgebucht, Gefundenes eingebucht.
 
 ## 5. Was läuft ab?
 

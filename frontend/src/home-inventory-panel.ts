@@ -11,6 +11,7 @@ import "./shopping-view";
 import "./recipes-view";
 import "./plan-view";
 import "./canning-view";
+import "./stocktake-view";
 import { preserveKinds } from "./preserve";
 
 // shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
@@ -134,29 +135,33 @@ export class HomeInventoryPanel extends LitElement {
                 .hass=${this.hass}
                 .section=${this.sub}
               ></home-inventory-settings>`
-            : active === "stock"
-              ? html`<home-inventory-stock
-                  .hass=${this.hass}
-                  .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) ? this.seg : "search"}
-                ></home-inventory-stock>`
-              : active === "expiry"
-                ? html`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>`
-                : active === "recipes"
-                  ? html`<home-inventory-recipes
-                      .hass=${this.hass}
-                      .section=${this.sub}
-                    ></home-inventory-recipes>`
-                  : active === "plan"
-                    ? html`<home-inventory-plan
+            : active === "stock" && this.seg === "stocktake"
+              ? html`<home-inventory-stocktake .hass=${this.hass}></home-inventory-stocktake>`
+              : active === "stock"
+                ? html`<home-inventory-stock
+                    .hass=${this.hass}
+                    .mode=${this.seg === "in" || this.seg === "out" || (this.seg === "open" && hasModule("opened")) ? this.seg : "search"}
+                  ></home-inventory-stock>`
+                : active === "expiry"
+                  ? html`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>`
+                  : active === "recipes"
+                    ? html`<home-inventory-recipes
                         .hass=${this.hass}
                         .section=${this.sub}
-                      ></home-inventory-plan>`
-                    : active === "canning"
-                      ? html`<home-inventory-canning
+                      ></home-inventory-recipes>`
+                    : active === "plan"
+                      ? html`<home-inventory-plan
                           .hass=${this.hass}
                           .section=${this.sub}
-                        ></home-inventory-canning>`
-                      : html`<home-inventory-shopping .hass=${this.hass}></home-inventory-shopping>`
+                        ></home-inventory-plan>`
+                      : active === "canning"
+                        ? html`<home-inventory-canning
+                            .hass=${this.hass}
+                            .section=${this.sub}
+                          ></home-inventory-canning>`
+                        : html`<home-inventory-shopping
+                            .hass=${this.hass}
+                          ></home-inventory-shopping>`
         }
       </main>
     `;

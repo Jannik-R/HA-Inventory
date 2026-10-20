@@ -106,25 +106,29 @@ def book_in(
     No date: today (HA's time zone, passed by the callers) + the inherited shelf life, marked as
     guessed (no shelf life: no date). At a freezer location a freezable product is frozen today
     (its date: today + frozen days)."""
-    from .frozen import frozen_batch, frozen_days, is_freezer  # frozen imports this module
-
     _packages(packages)
     eff = effective(conn, product_id)  # raises not_found
     location_id = location_id or eff["default_location_id"]["value"]
     if location_id is None:
         raise InventoryError("location_required")
     _exists(conn, "location", location_id)
-    days = eff["shelf_days"]["value"]
+    batch_id = in_batch(conn, product_id, expires_on, location_id, today)
+    _add(conn, batch_id, location_id, packages)
+    _booking(conn, "in", batch_id, location_id, packages, source, user_id)
+    return batch_id
+
+
+def in_batch(conn, product_id: int, expires_on, location_id: int, today: date | None) -> int:
+    """The batch new packages go into (see book_in): guessed date, frozen at a freezer."""
+    from .frozen import frozen_batch, frozen_days, is_freezer  # frozen imports this module
+
+    days = effective(conn, product_id)["shelf_days"]["value"]
     guessed = not expires_on and days is not None
     if guessed:
         expires_on = (today or date.today()) + timedelta(days=days)
     if is_freezer(conn, location_id) and (frozen := frozen_days(conn, product_id)):
-        batch_id = frozen_batch(conn, product_id, None, frozen, today or date.today())
-    else:
-        batch_id = _batch(conn, product_id, expires_on, guessed=guessed)
-    _add(conn, batch_id, location_id, packages)
-    _booking(conn, "in", batch_id, location_id, packages, source, user_id)
-    return batch_id
+        return frozen_batch(conn, product_id, None, frozen, today or date.today())
+    return _batch(conn, product_id, expires_on, guessed=guessed)
 
 
 def book_in_new(conn, product: dict, packages: int, **kwargs) -> dict:

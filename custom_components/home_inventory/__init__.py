@@ -21,6 +21,7 @@ from . import (
     websocket_purchase,
     websocket_recipe,
     websocket_stock,
+    websocket_stocktake,
 )
 from .const import DOMAIN, EXTERNAL, PANEL_URL, external, modules_of
 from .db import Database
@@ -42,6 +43,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_recipe.async_register(hass)
     websocket_plan.async_register(hass)
     websocket_canning.async_register(hass)
+    websocket_stocktake.async_register(hass)
     websocket_open.async_register(hass)
     websocket_purchase.async_register(hass)
     services.async_register(hass)

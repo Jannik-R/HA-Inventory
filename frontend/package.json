@@ -14,13 +14,10 @@
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
-    "barcode-detector": "^3.2.2",
+    "barcode-detector": "^3.2.3",
     "lit": "^3.3.3",
     "tesseract.js": "^7.0.0",
-    "zxing-wasm": "^3.1.5"
-  },
-  "overrides": {
-    "zxing-wasm": "$zxing-wasm"
+    "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

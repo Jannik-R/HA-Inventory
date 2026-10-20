@@ -5050,7 +5050,7 @@ var Ei = (e, t, n, r) => _`${n && B("receipt_import") ? _`<button
 async function Oi() {
 	let e = window.BarcodeDetector, t = e ? await e.getSupportedFormats() : [];
 	if (e && t.includes("ean_13")) return new e({ formats: Di.filter((e) => t.includes(e)) });
-	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-B4FQvd9R.js"), import("./zxing_reader-B_eQ7OPO.js")]);
+	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-uT9tp3Ca.js"), import("./zxing_reader-B_eQ7OPO.js")]);
 	return r({ overrides: { locateFile: (e, t) => e.endsWith(".wasm") ? i : t + e } }), new n({ formats: [...Di] });
 }
 var ki = class extends S {
@@ -5092,7 +5092,13 @@ var ki = class extends S {
 			return;
 		}
 		let i = async () => {
-			let [t] = await n.detect(r).catch(() => []);
+			let t;
+			try {
+				[t] = await n.detect(r);
+			} catch {
+				this.stop(), this.error = C("scan.detector");
+				return;
+			}
 			e.open && (t ? (e.close(), this.dispatchEvent(new CustomEvent("scan", { detail: t.rawValue }))) : this.timer = window.setTimeout(i, 250));
 		};
 		this.timer = window.setTimeout(i, 250);

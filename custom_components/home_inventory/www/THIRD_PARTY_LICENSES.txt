@@ -273,7 +273,7 @@ Apache License
 
 ------------------------------------------------------------------------
 
-barcode-detector 3.2.2 (MIT)
+barcode-detector 3.2.3 (MIT)
 
 MIT License
 

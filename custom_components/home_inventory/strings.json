@@ -64,7 +64,7 @@
       "message": "Please choose a storage location."
     },
     "not_freezable": {
-      "message": "This product is not frozen at home (not a food, bought frozen, or no days frozen set)."
+      "message": "This product is not frozen at home (module Freezing off, not a food, bought frozen, or no days frozen set)."
     },
     "no_freezer": {
       "message": "No freezer location: mark a location as freezer in the settings."

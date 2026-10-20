@@ -21,7 +21,10 @@ def is_freezer(conn: sqlite3.Connection, location_id: int) -> bool:
 
 
 def frozen_days(conn: sqlite3.Connection, product_id: int) -> int | None:
-    """Days the product keeps frozen; None = not freezable (non-food, frozen goods, no value)."""
+    """Days the product keeps frozen; None = not freezable (module off, non-food, frozen goods,
+    no value). Module off: no freezing at all, also not by the freezer rule (dates stay)."""
+    if not getattr(conn, "freezing", True):
+        return None
     eff = effective(conn, product_id)
     if eff["food"]["value"] == 0 or eff["frozen_goods"]["value"] == 1:
         return None

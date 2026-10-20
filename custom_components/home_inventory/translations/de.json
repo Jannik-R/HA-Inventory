@@ -64,7 +64,7 @@
       "message": "Bitte einen Lagerort wählen."
     },
     "not_freezable": {
-      "message": "Dieses Produkt wird nicht eingefroren (kein Lebensmittel, Tiefkühlware oder keine Haltbarkeit eingefroren)."
+      "message": "Dieses Produkt wird nicht eingefroren (Modul Einfrieren aus, kein Lebensmittel, Tiefkühlware oder keine Haltbarkeit eingefroren)."
     },
     "no_freezer": {
       "message": "Kein Gefrierort: markiere in den Einstellungen einen Lagerort als Gefrierort."

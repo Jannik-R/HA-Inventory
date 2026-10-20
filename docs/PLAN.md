@@ -342,8 +342,8 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
   `home_inventory.freeze_package` / `thaw_package` (code, packages, location, to_location).
 - Not built: a scan mode *Einfrieren* (the services cover NFC / automations), an expiry view filter
   for frozen batches (their warn days come late anyway).
-- `shortcut: module off hides buttons and fields only; a location marked Gefrierort still freezes on
-  book-in / move. Gate the rule on the module if that surprises anyone.`
+- Module off (decided 2026-10-20): nothing is frozen and no date changes, also not by the freezer rule
+  (`db.Connection.freezing`, set from the options at setup; `frozen.frozen_days` returns None).
 
 **Drying** (phase 21e, module `drying`, migration 26 `migration_26.py`):
 - Same as canning, same table: `canning.kind` (`canning` | `drying`), `recipe.canning_kind` (which tab

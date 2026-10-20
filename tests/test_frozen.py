@@ -113,3 +113,14 @@ def test_migration_25(monkeypatch) -> None:
     assert stock(c) == {(b, loc(c)): 2}
     assert inv.effective(c, meat)["frozen_days"]["value"] == 90
     assert inv.freeze(c, meat, today=TODAY)["location"] == "Gefrierschrank"
+
+
+def test_module_off_changes_no_date(conn) -> None:
+    conn.freezing = False  # module Einfrieren off
+    meat = product(conn, "Rinderhack", "Hackfleisch")
+    b = inv.book_in(conn, meat, 2, "2026-10-22", freezer(conn), today=TODAY)
+    assert batch(conn, b)["frozen_on"] is None and batch(conn, b)["expires_on"] == "2026-10-22"
+    fresh = inv.book_in(conn, meat, 1, "2026-10-23", loc(conn))
+    inv.move(conn, fresh, loc(conn), freezer(conn), 1)
+    assert stock(conn)[(fresh, freezer(conn))] == 1  # a plain move
+    assert err_key(lambda: inv.freeze(conn, meat)) == "not_freezable"

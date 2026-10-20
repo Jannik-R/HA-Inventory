@@ -236,7 +236,7 @@ cards:
       {% set items = (state_attr('sensor.home_inventory_expired', 'items') or [])
          + (state_attr('sensor.home_inventory_expiring_soon', 'items') or []) %}
       {% for i in items | sort(attribute='days_left') %}
-      - **{{ i.name }}** ({{ i.location }}): {{ 'expired' if i.days_left < 0 else 'in ' ~ i.days_left ~ ' days' }}
+      - **{{ i.name }}** ({{ i.location }}): {{ 'expired' if i.days_left < 0 else 'today' if i.days_left == 0 else 'tomorrow' if i.days_left == 1 else 'in ' ~ i.days_left ~ ' days' }}
       {% else %}
       Nothing expires soon.
       {% endfor %}

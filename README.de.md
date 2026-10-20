@@ -242,7 +242,7 @@ cards:
       {% set items = (state_attr('sensor.vorrat_abgelaufen', 'items') or [])
          + (state_attr('sensor.vorrat_lauft_bald_ab', 'items') or []) %}
       {% for i in items | sort(attribute='days_left') %}
-      - **{{ i.name }}** ({{ i.location }}): {{ 'abgelaufen' if i.days_left < 0 else 'in ' ~ i.days_left ~ ' Tagen' }}
+      - **{{ i.name }}** ({{ i.location }}): {{ 'abgelaufen' if i.days_left < 0 else 'heute' if i.days_left == 0 else 'morgen' if i.days_left == 1 else 'in ' ~ i.days_left ~ ' Tagen' }}
       {% else %}
       Nichts läuft bald ab.
       {% endfor %}

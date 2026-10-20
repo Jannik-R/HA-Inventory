@@ -345,20 +345,19 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
 - `shortcut: module off hides buttons and fields only; a location marked Gefrierort still freezes on
   book-in / move. Gate the rule on the module if that surprises anyone.`
 
-**Drying** (proposal, phase 21e, module `drying`):
-- Same as canning, one table: `canning` gets `kind` (`canning` | `drying`); everything else (protocol,
-  automatic charge `YYYYMMDD-n`, own batch, labels, scan per charge, edit, delete) is reused. Process
-  instruction = a drying recipe (`recipe.canning_product_id` + `canning_temp` °C + `canning_minutes`,
-  shown in hours for drying; columns keep their names).
-- Protocol fields for drying: made on, recipe / product, amount (bags / jars, a count like `jars`),
-  location, date (made on + shelf life, kind *Richtwert*), temperature, duration, notes (e.g.
-  weight before/after).
-- One tab *Haltbarmachen* (replaces *Einkochen*) for both, shown when module `canning` or `drying`
-  is on; inside, *Einkochen* and *Dörren* (each only with its module) with the same elements (protocols +
-  recipes, `kind` as a property). Module `drying` in `const.MODULES`. Duration stored in minutes,
-  shown in hours for drying. Seeded root *Gedörrtes* (food, *Vorratsschrank*, shelf 180 d,
-  date kind *Richtwert*) with types Trockenobst, Gemüsechips, Kräuter, Pilze, Jerky.
-- Service `home_inventory.drying` (own service, same handler as `canning`).
+**Drying** (phase 21e, module `drying`, migration 26 `migration_26.py`):
+- Same as canning, same table: `canning.kind` (`canning` | `drying`), `recipe.canning_kind` (which tab
+  a process recipe belongs to). Protocol, automatic charge `YYYYMMDD-n` (numbering shared by both
+  kinds), own batch, labels, scan per charge, edit, delete are reused. A recipe's kind wins over the
+  one sent with a new protocol.
+- Drying counts packages instead of jars (same column `jars`); the duration is stored in minutes
+  (`canning_minutes` / `minutes`, max 1440) and shown / typed in hours (half steps) in the panel.
+- One tab *Haltbarmachen* (route `canning`; `canning/recipes`, `canning/drying`,
+  `canning/drying-recipes`), shown while module `canning` or `drying` is on; with both, a switch
+  *Einkochen* / *Dörren* above *Protokolle* / *Rezepte* (`preserve.ts`). Seeded root *Gedörrtes*
+  (food, *Vorratsschrank*, shelf 180 days, warn 14, date kind *Richtwert*) with types Trockenobst,
+  Gemüsechips, Getrocknete Kräuter, Getrocknete Pilze, Jerky (`add_dried`, also after a new seed).
+- Service `home_inventory.drying` (same handler as `canning`, drying recipes only).
 
 ## 4. Label printing (Dymo LabelWriter 450)
 
@@ -562,7 +561,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 21b | External services | done | every way data leaves HA is one entry in `const.EXTERNAL` (key -> default) with its own switch in the options step *Externe Dienste* and a gate `external_on(hass, key)` where the data would go out; the panel gets them resolved as `panel.config.external` (`hasExternal`). Keys: `off_lookup`, `recipe_url`, `ai_recipe_check`, `ai_product_check`, `ai_import`, `ai_video` (default off; yt-dlp is not in the manifest, `async_process_requirements` installs it on first use), `receipt_import`. The panel loads no library from a CDN (OCR files ship in `www/vendor/`). AI keys also need the AI Task entity. README section *Privacy* lists each. A new external service: new entry, gate, README row; the user decides its default. Third-party licenses of the bundle: `www/THIRD_PARTY_LICENSES.txt`, written by the build (`frontend/licenses.ts`) |
 | 21c | Date kind *Richtwert* | done | third `expiry_type` `guide` for things without a printed date (fresh produce, dried, frozen, leftovers): "ca." date from the shelf life, warning colour when past (use_by keeps the error colour). Details: section 3 *Date kinds*. Decided 2026-10-20: name *Richtwert*; existing DBs: *Obst & Gemüse* always switched to it |
 | 21d | Freezing | done | *Einfrieren* / *Auftauen* for fresh products like *Anbrechen*: `batch.frozen_on`, inheritable `frozen_days`, `location.freezer`, thawed = opened. Details: section 3 *Freezing*. Decided 2026-10-20: own module `frozen`, freezer by the flag `location.freezer`. Seeded `frozen_days` decided (section 3) |
-| 21e | Drying | proposal | module `drying`: the canning protocol and recipe with `canning.kind` = `drying`, seeded root *Gedörrtes*. Details: section 3 *Drying*. Decided 2026-10-20: one tab *Haltbarmachen* (shown when canning or drying is on) with *Einkochen* / *Dörren* inside; duration stored in minutes, shown in hours |
+| 21e | Drying | done | module `drying`: the canning protocol and recipe with `canning.kind` = `drying`, seeded root *Gedörrtes*. Details: section 3 *Drying*. Decided 2026-10-20: one tab *Haltbarmachen* (shown when canning or drying is on) with *Einkochen* / *Dörren* inside; duration stored in minutes, shown in hours |
 | 22 | Stocktaking | open | *Inventur* mode per location: scan everything there, then the differences (missing / too many per batch) become correction bookings after one confirm. Decided 2026-10-20: not scanned = *fehlt* (booked out as correction after the confirm); scanned but not there = *zu viel* with a date field (prefilled from the shelf life), booked in as correction; an EAN with several batches at the location asks which batch (a `PTRY:` label names its batch) |
 | 23 | Location labels | open | QR `PTRY:L<id>` per location (shelf, compartment), printed with the existing label printing; scanning it in the booking field sets the location for the following bookings. Decided 2026-10-20: it stays until another location is scanned or the booking view is left; the active location is shown |
 | 24 | HA events | open | fire `home_inventory_booked`, `home_inventory_below_min`, `home_inventory_expired` on the HA event bus (after the DB write), so automations react without watching sensors. Decided 2026-10-20: `expired` once per batch at the midnight refresh of the day it expires; `below_min` only when crossing below the minimum |

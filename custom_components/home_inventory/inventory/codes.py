@@ -123,10 +123,13 @@ def frozen_by_code(
     )  # fmt: skip
 
 
-def _recipe(conn: sqlite3.Connection, name: str, canning: bool = False) -> sqlite3.Row:
-    """Dish recipe or (canning) canning recipe by name, ignoring case."""
+def _recipe(conn: sqlite3.Connection, name: str, canning: str | None = None) -> sqlite3.Row:
+    """Dish recipe or (canning: 'canning' / 'drying') process recipe of that kind by name,
+    ignoring case."""
     rows = conn.execute(
-        "SELECT * FROM recipe WHERE (canning_product_id IS NOT NULL) = ? ORDER BY id", (canning,)
+        "SELECT * FROM recipe WHERE (canning_product_id IS NOT NULL) = ?"
+        " AND (? IS NULL OR canning_kind = ?) ORDER BY id",
+        (canning is not None, canning, canning),
     ).fetchall()
     if (found := id_by_name(rows, name)) is None:
         raise InventoryError("recipe_unknown", name=name)
@@ -138,7 +141,10 @@ def recipe_by_name(conn: sqlite3.Connection, recipe: str) -> int:
     try:
         return _recipe(conn, recipe)["id"]
     except InventoryError:
-        return _recipe(conn, recipe, canning=True)["id"]
+        try:
+            return _recipe(conn, recipe, canning="canning")["id"]
+        except InventoryError:
+            return _recipe(conn, recipe, canning="drying")["id"]
 
 
 def shop_recipe_by_name(conn: sqlite3.Connection, recipe: str, servings: int) -> dict:
@@ -171,10 +177,12 @@ def canning_by_name(
     expires_on: date | None = None,
     notes: str | None = None,
     user_id: str | None = None,
+    kind: str = "canning",
 ) -> dict:
-    """Protocol from a canning recipe: its product, jars (default: its yield), temperature and
-    minutes; best-before = made-on date + shelf life unless given. Returns {id, batch_id, charge}."""
-    r = _recipe(conn, recipe, canning=True)
+    """Protocol from a canning (or drying) recipe: its product, jars (default: its yield),
+    temperature and minutes; best-before = made-on date + shelf life unless given.
+    Returns {id, batch_id, charge}."""
+    r = _recipe(conn, recipe, canning=kind)
     if expires_on is None and (
         days := effective(conn, r["canning_product_id"])["shelf_days"]["value"]
     ):

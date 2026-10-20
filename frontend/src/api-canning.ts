@@ -3,6 +3,7 @@ import type { Hass } from "./api";
 /** A canning protocol: one charge (made_on + seq) with its own batch. */
 export interface Canning {
   id: number;
+  kind: "canning" | "drying";
   made_on: string;
   seq: number;
   /** YYYYMMDD-n, printed on the labels. */

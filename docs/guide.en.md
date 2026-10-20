@@ -21,7 +21,7 @@ opens this guide. These are the tabs:
 | **Shopping** | Shopping list from minimum stock, recipes and by hand ([6](#6-shopping-list)) |
 | **Recipes** | Recipes checked against stock, import and cook mode ([7](#7-recipes)) |
 | **Meal plan** | Dishes by day and meal ([7a](#7a-meal-plan)) |
-| **Canning** | Canning protocols and canning recipes ([7b](#7b-canning)) |
+| **Preserving** | Canning and drying protocols and their recipes ([7b](#7b-canning-and-drying)) |
 | **Settings** | Admins only: locations, units, categories, defaults ([1](#1-getting-started), [9](#9-categories-product-types-and-inheritance)) |
 
 ## Contents
@@ -37,7 +37,7 @@ opens this guide. These are the tabs:
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
 7a. [Meal plan](#7a-meal-plan)
-7b. [Canning](#7b-canning)
+7b. [Canning and drying](#7b-canning-and-drying)
 8. [Labels and receipt printer](#8-labels-and-receipt-printer)
 9. [Categories, product types and inheritance](#9-categories-product-types-and-inheritance)
 10. [Tips and FAQ](#10-tips-and-faq)
@@ -316,8 +316,8 @@ image; **Servings** scales the amounts (display only). **On the shopping list** 
 the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)). **Plan** adds it to the
 [meal plan](#7a-meal-plan) with the shown servings (date: today, meal: Abendessen/dinner, both changeable in the dialog).
 
-Canning recipes are not listed here; they are in the **Canning** tab, view **Recipes**
-(see [Canning](#7b-canning)). They are never offered in the meal plan.
+Canning recipes are not listed here; they are in the **Preserving** tab, view **Recipes**
+(see [Canning](#7b-canning-and-drying)). They are never offered in the meal plan.
 
 **Add recipe**:
 
@@ -461,21 +461,22 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Calendar**: the plan is also a read-only calendar in Home Assistant, entity *Meal plan*. Each dish is an all-day event titled "Mahlzeit: Gericht" (e.g. "Mittag: Spaghetti"); its description shows the servings. Change the plan in the panel.
 
-## 7b. Canning
+## 7b. Canning and drying
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-en-dark.png"><img src="images/canning-en-light.png" alt="Canning tab with canning protocols" width="300"></picture></p>
 
 Home-canned jars (jam, compote, pickles …) are booked in with a **canning protocol**.
 Each protocol gets a charge. The labels carry it, so scanning a label books out exactly one jar of that charge.
 
-The **Canning** tab has two views, buttons at the top: **Protocols** and **Recipes**.
+The **Preserving** tab has two views, buttons at the top: **Protocols** and **Recipes**. With both
+canning and drying turned on, you pick **Canning** or **Drying** above them (see below).
 
 **Protocols** lists the protocols, newest first, with charge, product, jars (made and still in stock),
 temperature and duration.
 
 **Add protocol**:
 
-1. Open the **Canning** tab, view **Protocols**, and tap **Add protocol**.
+1. Open the **Preserving** tab, view **Protocols**, and tap **Add protocol**.
 2. **Canning recipe** (optional): with a recipe the product is fixed to the recipe's product
    (shown as **Ergibt: …**), and **Jars**, **Temperature** and **Duration** are prefilled from it. You can change them.
 3. Without a recipe, **Product**: pick an existing product by name, or type a new name and choose a
@@ -493,7 +494,7 @@ temperature and duration.
 > [!NOTE]
 > Made-on date, product and jars stay, since the labels carry them.
 
-**Recipes** (view in the **Canning** tab) lists only canning recipes, with the same list, search, import
+**Recipes** (view in the **Preserving** tab) lists only canning recipes, with the same list, search, import
 and editing as the recipe list. **Add canning recipe** opens the recipe dialog:
 
 - **Name**, **Preparation** (steps), source and image link, ingredients as for normal recipes.
@@ -514,6 +515,12 @@ usual question.
 **Labels**: the label shows the charge in its brand line. The QR code contains it, so a scan in **Stock**
 (switch on Einbuchen or Auslagern) books out a jar of that charge.
 
+**Drying** works the same, with its own protocols and recipes: pick **Drying** at the top (or turn
+on only the drying module). Instead of jars you count **Packages** (bags, tins), the **Duration** is
+in hours (half hours work, e.g. 7.5). The charge numbering is shared with canning (`YYYYMMDD-n`).
+New products go e.g. under *Gedörrtes* (Trockenobst, Gemüsechips, Getrocknete Kräuter, Getrocknete
+Pilze, Jerky; shelf life 180 days as a *Guide value*).
+
 ## 8. Labels and receipt printer
 
 A label shows product, brand, expiry date and a QR code of the batch, so every package says what is
@@ -526,7 +533,7 @@ Scanning the label books the package out.
   the browser's print dialog opens.
 - **When booking in**: tick **Print labels**, one label per package (at most 20).
 - **Reprint**: tag icon on a batch in Bestand.
-- **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning)).
+- **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning-and-drying)).
 - Printing more than 2 labels at once asks first.
 
 **Receipt printer** (for the shopping list, recipes and meal plan): *Settings > Devices & services > Home Inventory > Configure >

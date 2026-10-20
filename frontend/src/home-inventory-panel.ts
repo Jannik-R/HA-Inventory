@@ -11,6 +11,7 @@ import "./shopping-view";
 import "./recipes-view";
 import "./plan-view";
 import "./canning-view";
+import { preserveKinds } from "./preserve";
 
 // shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
 const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
@@ -18,7 +19,8 @@ const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
 const TABS = ["stock", "expiry", "shopping", "recipes", "plan", "canning", "settings"] as const;
 type Tab = (typeof TABS)[number];
 
-const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "canning"];
+// canning: tab *Haltbarmachen*, shown with module canning or drying (preserveKinds)
+const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan"];
 
 export class HomeInventoryPanel extends LitElement {
   static properties = {
@@ -57,7 +59,8 @@ export class HomeInventoryPanel extends LitElement {
     return TABS.filter(
       (tab) =>
         (tab !== "settings" || isAdmin(this.hass)) &&
-        (!MODULE_TABS.includes(tab) || hasModule(tab as Module)),
+        (!MODULE_TABS.includes(tab) || hasModule(tab as Module)) &&
+        (tab !== "canning" || preserveKinds().length > 0),
     );
   }
 

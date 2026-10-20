@@ -1,6 +1,6 @@
 import { LitElement, html, nothing } from "lit";
 import { t } from "./i18n";
-import { dateInvalid, editDialog, fieldMsg, todayIso } from "./ui";
+import { dateInvalid, editDialog, todayIso } from "./ui";
 import { dateInput, numField } from "./form-fields";
 import { formStyles } from "./styles";
 import {
@@ -12,26 +12,13 @@ import {
   type Recipe,
 } from "./api";
 import { saveCanning, type Canning } from "./api-canning";
-import { categoryDefault, inheritSelect, type Dflt } from "./inherit";
+import { categoryDefault, type Dflt } from "./inherit";
 import { plusDays } from "./plan-dates";
-import { productInput } from "./product-input";
+import { durationField, pt, type Preserve } from "./preserve";
+import { newFields, type Draft } from "./canning-new-fields";
 
-interface Draft {
-  made_on: string;
-  name: string;
-  category_id: number | null;
-  recipe_id: number | null;
-  jars: number | null;
-  location_id: number | null;
-  expires_on: string;
-  temp: number | null;
-  minutes: number | null;
-  notes: string;
-  dateBad: boolean;
-}
-
-/** New canning protocol (a new charge, jars booked in) or edit of its process data.
- * `open(md, products, recipes, canning?)`; fires `home-inventory-saved` (detail: the save result + jars). */
+/** New canning or drying protocol (a new charge, jars / packages booked in) or edit of its process
+ * data. `open(md, products, recipes, kind, canning?)`; fires `home-inventory-saved` (detail: the save result + jars). */
 export class HomeInventoryCanningDialog extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -48,6 +35,7 @@ export class HomeInventoryCanningDialog extends LitElement {
   private products: Product[] = [];
   private recipes: Recipe[] = [];
   private canning?: Canning;
+  private kind: Preserve = "canning";
   private initial = "";
 
   constructor() {
@@ -77,12 +65,14 @@ export class HomeInventoryCanningDialog extends LitElement {
     md: MasterData,
     products: Product[],
     recipes: Recipe[],
+    kind: Preserve,
     c?: Canning,
     recipeId?: number,
   ) {
     this.md = md;
     this.products = products;
-    this.recipes = recipes.filter(isCanning);
+    this.kind = c?.kind ?? kind;
+    this.recipes = recipes.filter((r) => isCanning(r) && r.canning_kind === this.kind);
     this.canning = c;
     this.draft = c
       ? {
@@ -187,6 +177,7 @@ export class HomeInventoryCanningDialog extends LitElement {
               ...process,
               made_on: d.made_on,
               jars: d.jars,
+              kind: this.kind,
               location_id: d.location_id,
               ...(p
                 ? { product_id: p.id }
@@ -206,7 +197,7 @@ export class HomeInventoryCanningDialog extends LitElement {
     }
   }
 
-  private num(field: "jars" | "temp" | "minutes", label: string, unit: string, err?: string) {
+  private num(field: "jars" | "temp", label: string, unit: string, err?: string) {
     const testid = `canning-${field}`;
     return numField({
       testid,
@@ -230,60 +221,21 @@ export class HomeInventoryCanningDialog extends LitElement {
 
   /** Made on, product, jars, location: only for a new protocol (the labels carry them). */
   private newFields(e: Record<string, string>) {
-    const d = this.draft;
-    if (this.canning)
-      return html`<p class="detail" data-testid="canning-fixed">
-        ${t("canning.fixed", { charge: this.canning.charge, name: d.name, jars: d.jars ?? "" })}
-      </p>`;
-    const recipe = this.recipes.find((r) => r.id === d.recipe_id);
-    return html`<label>
-        <span class="lbl">${t("canning.recipe")}</span>
-        <select
-          data-testid="canning-recipe"
-          @change=${(ev: Event) => {
-            const v = (ev.target as HTMLSelectElement).value;
-            this.pickRecipe(v ? Number(v) : null);
-          }}
-        >
-          <option value="" .selected=${d.recipe_id == null}>${t("common.none")}</option>
-          ${this.recipes.map(
-            (r) => html`<option value=${r.id} .selected=${r.id === d.recipe_id}>${r.name}</option>`,
-          )}
-        </select>
-      </label>
-      ${this.date("made_on", t("canning.made_on"), e.made_on)}
-      ${
-        recipe
-          ? html`<p class="detail" data-testid="canning-recipe-product">
-              ${t("canning.recipe_product", { name: recipe.canning_product ?? "" })}
-            </p>`
-          : productInput({
-              testid: "canning",
-              label: t("canning.product"),
-              hass: this.hass,
-              md: this.md,
-              products: this.products,
-              name: d.name,
-              categoryId: d.category_id,
-              err: e,
-              onName: (name) => this.set({ name }),
-              onCategory: (category_id) => this.set({ category_id }),
-            })
-      }
-      ${this.num("jars", t("canning.jars"), "", e.jars)}
-      <label>
-        <span class="lbl">${t("book.location")}</span>
-        ${inheritSelect({
-          testid: "canning-location",
-          own: d.location_id,
-          dflt: this.dflt("default_location_id"),
-          options: (this.md?.locations ?? []).map((l) => [l.id, l.name]),
-          numeric: true,
-          invalid: !!e.location,
-          onChange: (v) => this.set({ location_id: v as number | null }),
-        })}
-        ${fieldMsg(e.location, "canning-location")}
-      </label>`;
+    return newFields({
+      kind: this.kind,
+      canning: this.canning,
+      draft: this.draft,
+      recipes: this.recipes,
+      hass: this.hass,
+      md: this.md,
+      products: this.products,
+      e,
+      location: this.dflt("default_location_id"),
+      set: (patch) => this.set(patch),
+      pickRecipe: (id) => this.pickRecipe(id),
+      madeOn: this.date("made_on", t("canning.made_on"), e.made_on),
+      jars: this.num("jars", pt(this.kind, "jars"), "", e.jars),
+    });
   }
 
   render() {
@@ -293,12 +245,20 @@ export class HomeInventoryCanningDialog extends LitElement {
     const shelf =
       d.expires_on && d.expires_on === this.proposal(d) ? this.dflt("shelf_days") : undefined;
     return editDialog({
-      title: this.canning ? t("common.edit_name", { name: this.canning.charge }) : t("canning.add"),
+      title: this.canning
+        ? t("common.edit_name", { name: this.canning.charge })
+        : pt(this.kind, "add_title"),
       body: html`${this.newFields(e)} ${this.date("expires_on", t("canning.expires_on"))}
         ${shelf ? html`<span class="detail">${t("book.shelf_hint", { days: String(shelf.value), source: shelf.source })}</span>` : nothing}
         <div class="pair">
           ${this.num("temp", t("recipes.field.canning_temp"), "°C", e.temp)}
-          ${this.num("minutes", t("recipes.field.canning_minutes"), t("recipes.minutes_unit"), e.minutes)}
+          ${durationField({
+            kind: this.kind,
+            testid: "canning-minutes",
+            minutes: d.minutes,
+            err: e.minutes,
+            onChange: (minutes) => this.set({ minutes }),
+          })}
         </div>
         <label>
           <span class="lbl">${t("canning.notes")}</span>

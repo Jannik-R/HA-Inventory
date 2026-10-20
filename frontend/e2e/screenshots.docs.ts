@@ -162,7 +162,7 @@ const TABS = {
     shopping: "Einkauf",
     recipes: "Rezepte",
     plan: "Speiseplan",
-    canning: "Einkochen",
+    canning: "Haltbarmachen",
   },
   en: {
     stock: "Stock",
@@ -170,7 +170,7 @@ const TABS = {
     shopping: "Shopping",
     recipes: "Recipes",
     plan: "Meal plan",
-    canning: "Canning",
+    canning: "Preserving",
   },
 };
 

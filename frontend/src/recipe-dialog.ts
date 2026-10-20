@@ -1,3 +1,4 @@
+import { durationField, pt, type Preserve } from "./preserve";
 import { LitElement, html, nothing } from "lit";
 import { t } from "./i18n";
 import { URL_RE, editDialog, fieldMsg, numOrNull } from "./ui";
@@ -45,8 +46,12 @@ export class HomeInventoryRecipeDialog extends LitElement {
   private md?: MasterData;
   private recipe?: Recipe;
   private initial = "";
-  /** A canning recipe (Einkochen tab): makes a product, has temperature and minutes. */
-  private canningMode = false;
+  /** A process recipe (tab Haltbarmachen, canning or drying): makes a product, has temperature
+   *  and minutes; undefined = a dish. */
+  private kind?: Preserve;
+  private get canningMode() {
+    return !!this.kind;
+  }
   private products: Product[] = [];
 
   constructor() {
@@ -57,10 +62,10 @@ export class HomeInventoryRecipeDialog extends LitElement {
     this.ai = { kind: "none" };
   }
 
-  async open(md: MasterData, recipe?: Recipe, imported?: RecipeDraft, canning = false) {
+  async open(md: MasterData, recipe?: Recipe, imported?: RecipeDraft, canning?: Preserve) {
     this.md = md;
     this.recipe = recipe;
-    this.canningMode = canning;
+    this.kind = recipe?.canning_product_id != null ? recipe.canning_kind : canning;
     if (canning) this.products = await listProducts(this.hass!).catch(() => [] as Product[]); // suggestions only
     this.draft = fromRecipe(recipe ?? imported);
     // An import counts as unsaved: closing asks first.
@@ -136,6 +141,7 @@ export class HomeInventoryRecipeDialog extends LitElement {
       await saveRecipe(this.hass!, {
         ...(this.recipe ? { id: this.recipe.id } : {}),
         ...toPayload(d, this.canningMode ? this.products : null),
+        ...(this.kind ? { canning_kind: this.kind } : {}),
       });
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -165,8 +171,16 @@ export class HomeInventoryRecipeDialog extends LitElement {
     </label>`;
   }
 
-  /** Canning process value (°C or minutes) with its unit after the input. */
+  /** Process temperature (°C) or duration (minutes; hours for drying) with its unit. */
   private canning(field: "canning_temp" | "canning_minutes", unit: string, err?: string) {
+    if (field === "canning_minutes")
+      return durationField({
+        kind: this.kind!,
+        testid: "recipe-canning_minutes",
+        minutes: this.draft.canning_minutes,
+        err,
+        onChange: (v) => (this.draft = { ...this.draft, canning_minutes: v }),
+      });
     return numField({
       testid: `recipe-${field}`,
       label: t(`recipes.field.${field}`),
@@ -184,7 +198,9 @@ export class HomeInventoryRecipeDialog extends LitElement {
     return editDialog({
       title: this.recipe
         ? t("common.edit_name", { name: this.recipe.name })
-        : t(this.canningMode ? "canning.recipe_add" : "recipes.add"),
+        : this.kind
+          ? pt(this.kind, "recipe_add")
+          : t("recipes.add"),
       body: html`${aiBanner(this.ai, {
           onSkip: () => {
             this.aiRun++;
@@ -215,7 +231,7 @@ export class HomeInventoryRecipeDialog extends LitElement {
         }
         <label>
           <span class="lbl"
-            >${t(this.canningMode ? "canning.recipe_jars" : "recipes.servings")}</span
+            >${this.kind ? pt(this.kind, "recipe_jars") : t("recipes.servings")}</span
           >
           <input
             type="number"

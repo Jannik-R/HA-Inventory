@@ -8,6 +8,8 @@ export const numField = (o: {
   unit: string;
   value: number | null;
   err?: string;
+  /** Input step (default whole numbers). */
+  step?: string;
   onChange: (v: number | null) => void;
 }) =>
   html`<label>
@@ -15,8 +17,8 @@ export const numField = (o: {
     <span class="num">
       <input
         type="number"
-        min="1"
-        step="1"
+        min=${o.step ?? "1"}
+        step=${o.step ?? "1"}
         inputmode="numeric"
         data-testid=${o.testid}
         aria-invalid=${!!o.err}

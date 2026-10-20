@@ -31,9 +31,11 @@ COLUMNS = {
     ),
     "recipe": (
         "name", "servings", "instructions", "source_url", "image_url", "canning_product_id",
-        "canning_temp", "canning_minutes",
+        "canning_temp", "canning_minutes", "canning_kind",
     ),
-    "canning": ("made_on", "seq", "product_id", "recipe_id", "jars", "temp", "minutes", "notes"),
+    "canning": (
+        "made_on", "seq", "product_id", "recipe_id", "jars", "temp", "minutes", "notes", "kind",
+    ),
 }  # fmt: skip
 
 

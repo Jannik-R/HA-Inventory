@@ -1,3 +1,4 @@
+import { fmtDuration, pt } from "./preserve";
 import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
@@ -66,7 +67,9 @@ export const recipeDetail = (o: {
   const r = o.recipe;
   return html`<div class="detail-box">
     <label class="servings">
-      <span class="lbl">${t(isCanning(r) ? "canning.recipe_jars" : "recipes.servings")}</span>
+      <span class="lbl"
+        >${isCanning(r) ? pt(r.canning_kind, "recipe_jars") : t("recipes.servings")}</span
+      >
       <input
         type="number"
         min="1"
@@ -112,7 +115,7 @@ export const recipeDetail = (o: {
       ${
         isCanning(r)
           ? html`<button type="button" data-testid="recipe-to-canning" @click=${o.onPlan}>
-              ${t("canning.add")}
+              ${pt(r.canning_kind, "add_title")}
             </button>`
           : hasModule("plan")
             ? html`<button type="button" data-testid="recipe-to-plan" @click=${o.onPlan}>
@@ -138,7 +141,7 @@ export const recipeDetail = (o: {
       isCanning(r)
         ? html`<p data-testid="recipe-canning">
             ${t("canning.recipe_summary", { name: r.canning_product ?? "", jars: r.servings })}
-            ${r.canning_temp != null ? t("recipes.canning", { temp: r.canning_temp, minutes: r.canning_minutes ?? "" }) : ""}
+            ${r.canning_temp != null ? `· ${r.canning_temp} °C, ${fmtDuration(o.hass, r.canning_kind, r.canning_minutes ?? 0)}` : ""}
           </p>`
         : nothing
     }

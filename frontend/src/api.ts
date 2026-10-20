@@ -320,6 +320,8 @@ export interface Recipe {
   /** Only on a canning recipe, both or none (°C, minutes). */
   canning_temp: number | null;
   canning_minutes: number | null;
+  /** Which tab a process recipe belongs to (Einkochen / Dörren). */
+  canning_kind: "canning" | "drying";
   ingredients: Ingredient[];
   summary: { available: number; total: number };
   /** Servings on the shopping list, null when the recipe is not on it. */

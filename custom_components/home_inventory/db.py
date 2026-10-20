@@ -15,6 +15,7 @@ from .inventory.notify import bookings_since, last_booking
 from .migration_24 import set_guide
 from .migration_25 import set_frozen
 from .migration_26 import add_dried
+from .migration_27 import set_emergency
 from .migrations import MIGRATIONS
 from .seed import seed
 from .seed_days import fill_days
@@ -71,6 +72,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         set_guide(conn)  # same
         set_frozen(conn)  # same
         add_dried(conn)  # same
+        set_emergency(conn)  # same
         conn.commit()
 
 

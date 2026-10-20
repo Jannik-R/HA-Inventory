@@ -33,6 +33,7 @@ export const COLUMNS: Record<Table, string[]> = {
     "food",
     "frozen_days",
     "frozen_goods",
+    "emergency_group",
   ],
 };
 export const ADD: Record<Table, string> = {

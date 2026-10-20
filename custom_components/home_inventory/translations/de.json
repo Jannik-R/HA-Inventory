@@ -17,7 +17,8 @@
   "entity": {
     "sensor": {
       "expired": { "name": "Abgelaufen", "unit_of_measurement": "Pkg." },
-      "soon": { "name": "Läuft bald ab", "unit_of_measurement": "Pkg." }
+      "soon": { "name": "Läuft bald ab", "unit_of_measurement": "Pkg." },
+      "emergency": { "name": "Notvorrat", "unit_of_measurement": "Tage" }
     },
     "todo": {
       "shopping": { "name": "Einkaufsliste" }
@@ -541,7 +542,8 @@
         "canning": "Einkochen",
         "drying": "Dörren",
         "opened": "Anbrechen",
-        "frozen": "Einfrieren"
+        "frozen": "Einfrieren",
+        "emergency": "Notvorrat"
       }
     },
     "label_printer": {

@@ -11,6 +11,7 @@ from .migration_20 import SCHEMA_20
 from .migration_24 import guide_kind
 from .migration_25 import freezing
 from .migration_26 import drying
+from .migration_27 import emergency_stock
 from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -452,4 +453,6 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     # 26: drying beside canning: canning.kind, recipe.canning_kind, seeded root Gedörrtes
     # (see migration_26).
     drying,
+    # 27: emergency stock: category.emergency_group (see migration_27).
+    emergency_stock,
 ]

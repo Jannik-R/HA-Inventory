@@ -21,7 +21,10 @@ export function inherited(
   const p = md.categories.find((c) => c.id === parentId);
   if (!p)
     return {
-      value: field === "food" || field === "frozen_goods" ? null : md.defaults[field],
+      value:
+        field === "food" || field === "frozen_goods" || field === "emergency_group"
+          ? null
+          : md.defaults[field],
       source: "default",
     };
   return p[field] != null ? { value: p[field], source: p.id } : p.effective[field];
@@ -36,6 +39,8 @@ export function fmt(
   if (field === "food") return t(v === 0 ? "settings.food.no" : "settings.food.yes"); // null: root = food
   if (field === "frozen_goods")
     return t(v === 1 ? "settings.frozen_goods.yes" : "settings.frozen_goods.no");
+  if (field === "emergency_group")
+    return t(v == null || v === "none" ? "settings.emergency_group.none" : `emergency.group.${v}`);
   if (v == null) return t("common.none_dash");
   const { units, locations } = md;
   if (field === "unit_id") {

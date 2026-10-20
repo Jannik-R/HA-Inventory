@@ -20,6 +20,7 @@ Vorhanden:
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)
 - Ablaufübersicht mit vorübergehender Warnschwelle und Rezeptvorschlägen, die Ablaufendes aufbrauchen (Rezepte nach ablaufenden Zutaten, dann nach Vorrat sortiert; in der Rezeptliste markiert); Sensoren für abgelaufene und bald ablaufende Packungen
+- Notvorrat (Modul *Notvorrat*): Tab *Notvorrat* prüft den Bestand gegen die BBK-Empfehlung für zehn Tage je Person (Personen aus *Portionen im Haushalt*): eine Zeile je Lebensmittelgruppe mit Soll, Ist und den Tagen, die es reicht; Kategorien werden einer Gruppe zugeordnet; Sensor *Notvorrat* (Tage); siehe [Anleitung](docs/guide.de.md#5a-notvorrat)
 - Etiketten (QR-Code von Produkt und Ablaufdatum) auf einem Etikettendrucker (Dymo LabelWriter 450 hinter einem USB-Druckserver oder per USB am HA-Rechner) oder über den Browser; Etikett scannen bucht aus
 - Aktionen für Automationen (Hardware-Scanner, NFC-Tags, ESPHome, Sprache): per Barcode, Etikett oder Produktname ein- und ausbuchen, Etiketten, Einkaufszettel und Rezepte drucken, ein Rezept auf die Einkaufsliste setzen, ein Gericht planen, ein Einkochprotokoll anlegen
 - Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten); mit eingerichteter KI auch Beiträge ohne Rezeptdaten (Instagram, TikTok, YouTube: Beschreibung, Video, Bild), eingefügter Text und Fotos (z. B. eine Kochbuchseite)
@@ -205,15 +206,17 @@ Diese Integration und jeder Export ihrer Daten sind für den privaten Gebrauch i
 
 ## Sensoren
 
-Die Integration legt ein Gerät *Vorrat* (englisch: *Home Inventory*) mit zwei Sensoren an (Packungen, ohne Abfrageintervall,
-aktualisiert nach jeder Buchung und um Mitternacht):
+Die Integration legt ein Gerät *Vorrat* (englisch: *Home Inventory*) mit zwei Sensoren für Packungen an (ohne Abfrageintervall,
+aktualisiert nach jeder Buchung und um Mitternacht) und mit dem Modul *Notvorrat* den Sensor für den Notvorrat:
 
-| Sensor | Wert | Attribut `items` |
+| Sensor | Wert | Attribut |
 |---|---|---|
-| *Abgelaufen* | Packungen nach ihrem Datum | name, expires_on, days_left, packages, location je Charge |
-| *Läuft bald ab* | Packungen innerhalb ihrer Warnzeit | ebenso |
+| *Abgelaufen* | Packungen nach ihrem Datum | `items`: name, expires_on, days_left, packages, location je Charge |
+| *Läuft bald ab* | Packungen innerhalb ihrer Warnzeit | `items`: ebenso |
+| *Notvorrat* (Modul *Notvorrat*) | Tage, die der Notvorrat reicht (schwächste Lebensmittelgruppe) | `groups`: Tage je Gruppe (`drinks`, `grains`, `vegetables`, `fruit_nuts`, `dairy`, `meat_fish_eggs`, `fats`) |
 
-Eine angebrochene Packung zählt mit ihrem kürzeren Datum (angebrochen am + *Haltbar nach Anbruch*).
+Eine angebrochene Packung zählt mit ihrem kürzeren Datum (angebrochen am + *Haltbar nach Anbruch*). Der Sensor *Notvorrat*
+gibt es nur, solange sein Modul eingeschaltet ist; er hat keinen Dienst.
 
 Beispiel: Benachrichtigung, wenn etwas abgelaufen ist.
 

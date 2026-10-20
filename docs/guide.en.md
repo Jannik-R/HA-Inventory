@@ -35,6 +35,7 @@ opens this guide. These are the tabs:
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
 4a. [Stocktaking](#4a-stocktaking)
 5. [What expires soon?](#5-what-expires-soon)
+5a. [Emergency stock](#5a-emergency-stock)
 6. [Shopping list](#6-shopping-list)
 7. [Recipes](#7-recipes)
 7a. [Meal plan](#7a-meal-plan)
@@ -274,6 +275,47 @@ ingredients come first, then the one with more ingredients in stock. Tap one to 
 > [!TIP]
 > For automations there are the sensors *Expired* and *Expiring soon* (expiring
 > soon), see the [README](../README.md#sensors), e.g. for a phone notification.
+
+## 5a. Emergency stock
+
+The tab **Emergency stock** (module *Emergency stock*, switched on in *Settings > Devices & services >
+Home Inventory > Configure > Module*) checks the stock against the emergency supply recommended by the
+German Federal Office of Civil Protection (BBK): enough food and drink for **ten days**, per person.
+
+The tab has one row per food group: **Target** (what the BBK recommends for the household), **In stock**
+(what you have) and **Lasts** (how many days the stock covers). The line above the rows gives the overall
+supply: the lowest value of all groups, because the weakest group limits the whole supply. The number of
+persons is the option *Household servings* (step *Household*); the target is the BBK amount per
+person multiplied by it:
+
+| Group | Per person for 10 days |
+|---|---|
+| Drinks | 20 l |
+| Grains, bread, pasta, rice, potatoes | 3.5 kg |
+| Vegetables and legumes | 4.0 kg |
+| Fruit and nuts | 2.5 kg |
+| Milk and dairy | 2.6 kg |
+| Meat, fish and eggs | 1.5 kg |
+| Fats and oils | 0.357 kg |
+
+**What counts**
+
+- Only packages that have not expired. Expired food is not part of the supply.
+- The content of the package counts, if it is given in kg or l: 1 l counts as 1 kg, so 1.5 l of milk
+  counts as 1.5 kg.
+- An egg (a piece, unit *Stück*) counts 60 g.
+- A package without a content amount cannot be counted. The row says so, e.g. "2 packages without an
+  amount", so you know what is missing from the calculation.
+- *Lasts* is the stock of the group divided by its daily target, rounded down to whole days.
+
+**Assigning categories**
+
+Each category has the field **Emergency stock**: the food group it counts for, or **Not in the emergency
+stock** for things that should not count (the seeded *Kaffee*, *Tee* and *Alkohol* are set this way). Like
+the other fields it is inherited down the category tree (see [section 9](#9-categories-product-types-and-inheritance)),
+so a product counts for the group of its category or the nearest category above it that has one. The
+default categories come with their group already set; for your own categories, set the field in the
+category dialog.
 
 ## 6. Shopping list
 

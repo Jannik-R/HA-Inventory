@@ -7,6 +7,7 @@ import { hasModule, setExternal, setModules, type External, type Module } from "
 import "./settings-view";
 import "./stock-view";
 import "./expiry-view";
+import "./emergency-view";
 import "./shopping-view";
 import "./recipes-view";
 import "./plan-view";
@@ -17,11 +18,20 @@ import { preserveKinds } from "./preserve";
 // shortcut: the guide lives on GitHub; while the repo is private only its members can open it.
 const GUIDE = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide";
 
-const TABS = ["stock", "expiry", "shopping", "recipes", "plan", "canning", "settings"] as const;
+const TABS = [
+  "stock",
+  "expiry",
+  "emergency",
+  "shopping",
+  "recipes",
+  "plan",
+  "canning",
+  "settings",
+] as const;
 type Tab = (typeof TABS)[number];
 
 // canning: tab *Haltbarmachen*, shown with module canning or drying (preserveKinds)
-const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan"];
+const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "emergency"];
 
 export class HomeInventoryPanel extends LitElement {
   static properties = {
@@ -144,24 +154,26 @@ export class HomeInventoryPanel extends LitElement {
                   ></home-inventory-stock>`
                 : active === "expiry"
                   ? html`<home-inventory-expiry .hass=${this.hass}></home-inventory-expiry>`
-                  : active === "recipes"
-                    ? html`<home-inventory-recipes
-                        .hass=${this.hass}
-                        .section=${this.sub}
-                      ></home-inventory-recipes>`
-                    : active === "plan"
-                      ? html`<home-inventory-plan
+                  : active === "emergency"
+                    ? html`<home-inventory-emergency .hass=${this.hass}></home-inventory-emergency>`
+                    : active === "recipes"
+                      ? html`<home-inventory-recipes
                           .hass=${this.hass}
                           .section=${this.sub}
-                        ></home-inventory-plan>`
-                      : active === "canning"
-                        ? html`<home-inventory-canning
+                        ></home-inventory-recipes>`
+                      : active === "plan"
+                        ? html`<home-inventory-plan
                             .hass=${this.hass}
                             .section=${this.sub}
-                          ></home-inventory-canning>`
-                        : html`<home-inventory-shopping
-                            .hass=${this.hass}
-                          ></home-inventory-shopping>`
+                          ></home-inventory-plan>`
+                        : active === "canning"
+                          ? html`<home-inventory-canning
+                              .hass=${this.hass}
+                              .section=${this.sub}
+                            ></home-inventory-canning>`
+                          : html`<home-inventory-shopping
+                              .hass=${this.hass}
+                            ></home-inventory-shopping>`
         }
       </main>
     `;

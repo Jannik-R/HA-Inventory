@@ -37,6 +37,9 @@ MASTER_SCHEMAS = {
             vol.Optional("food"): vol.Any(None, vol.In((0, 1))),
             vol.Optional("frozen_goods"): vol.Any(None, vol.In((0, 1))),
             vol.Optional("frozen_days"): SHELF_DAYS,
+            vol.Optional("emergency_group"): vol.Any(
+                None, vol.In((*inventory.EMERGENCY_GROUPS, "none"))
+            ),
             # amount and its unit only together (DB CHECK as well)
             vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
             vol.Inclusive("min_stock_unit_id", "min_stock"): NULL_ID,

@@ -48,3 +48,24 @@ async def test_expiry_sensors(hass: HomeAssistant) -> None:
     assert hass.states.get(ids["soon"]).state == "1"
 
     assert await hass.config_entries.async_unload(entry.entry_id)
+
+
+async def test_emergency_sensor(hass: HomeAssistant) -> None:
+    async def ids(options) -> tuple:
+        entry = MockConfigEntry(domain=DOMAIN, options=options)
+        entry.add_to_hass(hass)
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+        reg = er.async_get(hass)
+        found = tuple(
+            reg.async_get_entity_id("sensor", DOMAIN, f"{entry.entry_id}_{k}")
+            for k in ("emergency", "expired")
+        )
+        state = found[0] and hass.states.get(found[0]).state
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        return (state, found[1])
+
+    emergency, expired = await ids({})
+    assert emergency == "0" and expired
+    emergency, expired = await ids({"modules": ["shopping"]})
+    assert emergency is None and expired  # the expiry sensors stay

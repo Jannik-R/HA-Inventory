@@ -318,7 +318,7 @@ Automations can react to these events on the HA event bus (trigger type *Event*)
 
 ## Development
 
-Requires Docker (running) and Node.js LTS. Python lint and format: ruff (config in `pyproject.toml`, checked in CI; command in CLAUDE.md). CI also pins the Home Assistant and tool versions; Dependabot opens weekly update PRs.
+Requires Docker (running) and Node.js LTS. Python lint and format: ruff (config in `pyproject.toml`, checked in CI; command in CLAUDE.md). CI on a PR runs only the affected jobs and test files (the full suite when shared basics or the workflow change); the full suite runs before a release or by hand (Actions > CI > Run workflow). CI also pins the Home Assistant and tool versions; Dependabot opens weekly update PRs.
 
 ```bash
 docker compose -f dev/docker-compose.yml up -d homeassistant

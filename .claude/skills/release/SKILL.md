@@ -21,8 +21,18 @@ equal `manifest.json` → `version` (HACS and HA show that number).
 
 ## 2. Publish (only after the user confirms; outward-facing)
 
+PRs run only the affected jobs and test files, so run the full CI on `main` first and do not release unless it is green:
+
 ```bash
 git checkout main && git pull --prune
+gh workflow run ci.yml --ref main
+gh run list --workflow ci.yml --branch main --limit 1 --json databaseId --jq '.[0].databaseId'   # the new run's id
+gh run watch <id> --exit-status
+```
+
+Then tag:
+
+```bash
 gh release create v<version> --target main --title "v<version>" --notes-file <changelog section as file>
 ```
 

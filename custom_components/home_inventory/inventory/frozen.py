@@ -10,7 +10,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import date, timedelta
 
-from .booking import _add, _batch, _booking, _stock_of, _take
+from .booking import _add, _batch, _booking, _level_batch, _stock_of, _take
 from .common import InventoryError, _exists, _packages
 from .inherit import effective
 
@@ -58,6 +58,13 @@ def transfer(
     return _booking(conn, kind, target, to_location_id, packages, source, user_id)
 
 
+def _carry(conn, batch_id: int, target: int) -> int:
+    """The target for a transfer: a partly used package keeps its level in a new batch."""
+    level = conn.execute("SELECT remaining FROM batch WHERE id = ?", (batch_id,)).fetchone()[0]
+    # the full target row may stay empty; harmless.
+    return target if level == 1 else _level_batch(conn, target, level)
+
+
 def on_move(
     conn, batch_id: int, from_location_id: int, to_location_id: int, packages: int,
     source: str, user_id: str | None, today: date | None = None,
@@ -76,6 +83,7 @@ def on_move(
         kind = "thaw"
     else:
         return False
+    target = _carry(conn, batch_id, target)
     transfer(
         conn, kind, batch_id, from_location_id, target, to_location_id, packages, source, user_id
     )
@@ -98,7 +106,9 @@ def _source(conn, product_id, batch_id, location_id, frozen: bool) -> sqlite3.Ro
         sql += " AND s.location_id = ?"
         args.append(location_id)
     row = conn.execute(
-        sql + " ORDER BY b.expires_on IS NULL, b.expires_on, s.location_id LIMIT 1", args
+        sql
+        + " ORDER BY b.expires_on IS NULL, b.expires_on, b.remaining DESC, s.location_id LIMIT 1",
+        args,
     ).fetchone()
     if not row:
         raise InventoryError("not_enough_stock", available=0)
@@ -152,7 +162,11 @@ def freeze(
     canning_id = conn.execute(
         "SELECT canning_id FROM batch WHERE id = ?", (src["batch_id"],)
     ).fetchone()[0]
-    target = frozen_batch(conn, product_id, canning_id, days, today or date.today())
+    target = _carry(
+        conn,
+        src["batch_id"],
+        frozen_batch(conn, product_id, canning_id, days, today or date.today()),
+    )
     booking_id = transfer(
         conn, "freeze", src["batch_id"], src["location_id"], target, to_location_id, packages,
         source, user_id,
@@ -183,7 +197,9 @@ def thaw(
     canning_id = conn.execute(
         "SELECT canning_id FROM batch WHERE id = ?", (src["batch_id"],)
     ).fetchone()[0]
-    target = _thawed_batch(conn, product_id, canning_id, today or date.today())
+    target = _carry(
+        conn, src["batch_id"], _thawed_batch(conn, product_id, canning_id, today or date.today())
+    )
     booking_id = transfer(
         conn, "thaw", src["batch_id"], src["location_id"], target, to_location_id, packages,
         source, user_id,
@@ -191,11 +207,17 @@ def thaw(
     return _result(conn, product_id, target, to_location_id, booking_id)
 
 
-def undo_frozen(conn: sqlite3.Connection, booking_id: int, user_id: str | None = None) -> None:
-    """Undo a freeze / thaw once: the packages go back to the source batch and location."""
+def undo_frozen(
+    conn: sqlite3.Connection,
+    booking_id: int,
+    user_id: str | None = None,
+    kinds: tuple[str, ...] = ("freeze", "thaw"),
+) -> None:
+    """Undo a transfer (freeze, thaw, level change) once: the packages go back to the source batch and location."""
     plus = conn.execute(
-        "SELECT * FROM booking WHERE id = ? AND kind IN ('freeze', 'thaw') AND packages > 0",
-        (booking_id,),
+        f"SELECT * FROM booking WHERE id = ? AND kind IN ({', '.join('?' * len(kinds))})"
+        " AND packages > 0",
+        (booking_id, *kinds),
     ).fetchone()
     # transfer() writes the -n row right before the +n row (one connection, one lock)
     minus = conn.execute(

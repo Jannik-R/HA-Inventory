@@ -194,6 +194,8 @@ After opening, next to the message:
 - **Print label**: opens the label dialog with the new date. Nothing is printed
   until you press **Print** there, never automatically.
 
+**Level**: On an opened or frozen row, the level select shows how much is left: *full*, *¾*, *½*, *¼*, *almost empty* or *empty*. A partly used package gets its own row, e.g. "… · opened on …, about ½ (about 250 g)"; the amount appears only when the package content is known. Choosing another level moves one package to the row of that level: a full row splits off one package, and *full* moves it back into the full row. The old row loses one package, the new one gains it. **Undo** moves it back. *empty* books the package out. Moving, freezing, thawing and changing the date keep the level. The emergency stock counts the remainder, frozen packages too; min stock and the shopping list still count whole packages. Booking out, label scans and **Cooked** take a partly used package first (earliest date, then the smallest remainder).
+
 ## 3b. Freezing and thawing
 
 Fresh meat, bread or berries keep longer in the freezer. Once frozen, the printed date no longer
@@ -410,7 +412,7 @@ and turns red. The screen stays on while the cook mode is open (if the browser a
 > [!WARNING]
 > Timers only run in this browser window. Closing asks first and ends them.
 
-**Book out cooked**: in an open recipe (not for canning recipes) and at the end of the cook mode, **Cooked** opens a proposal of the ingredients to take out of your stock, for the shown servings. Per row: tick box, ingredient and amount, **Product**, **Batch** (expiry, location, packages, opened), **Action** (*Book out*, *Open* or *Skip*), **Packages** and a tick box "and open one more package for the rest". Default: the batch with the earliest expiry, whole packages; the rest opens one package unless one is already opened. Optional ingredients and amounts that cannot be converted are unticked; ingredients not kept in stock (e.g. salt, water) are left out. **Book out** books all ticked rows in one step; afterwards the panel offers **Undo**.
+**Book out cooked**: in an open recipe (not for canning recipes) and at the end of the cook mode, **Cooked** opens a proposal of the ingredients to take out of your stock, for the shown servings. Per row: tick box, ingredient and amount, **Product**, **Batch** (expiry, location, packages, opened), **Action** (*Book out*, *Open*, *Reduce remainder* or *Skip*), **Packages** and a tick box "and open one more package for the rest". Default: the partly used packages first (earliest date, then the smallest remainder), then the batch with the earliest expiry, whole packages. If the partly used packages cover the amount, the action is **Reduce remainder**: it first books out the partly used packages that are used up completely (the **Packages** count), then only lowers the level of the next one; **Left afterwards** sets that level (also to *empty*, which books the package out). Otherwise the partly used packages go out first and the rest opens a new package; **Left afterwards** sets that package's level. Optional ingredients and amounts that cannot be converted are unticked; ingredients not kept in stock (e.g. salt, water) are left out. **Book out** books all ticked rows in one step; afterwards the panel offers **Undo**.
 
 Units marked *Recipes only* (e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb:
 

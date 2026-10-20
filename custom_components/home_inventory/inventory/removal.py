@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from .booking import correct, move
 from .canning import charge
 from .common import InventoryError
+from .corrections import correct, move
 from .master import _deactivate_location, delete
 
 _SUBTREE = (

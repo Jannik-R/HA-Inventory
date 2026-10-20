@@ -2,6 +2,7 @@ import { css, html, nothing } from "lit";
 import { t } from "./i18n";
 import { fieldMsg } from "./ui";
 import { fmtAmount, fmtDate } from "./format";
+import { levelSelect, lowerLevel } from "./remaining";
 import type { Hass } from "./api";
 import type { CookedAction, CookedBatch, CookedCandidate, CookedRow } from "./api-cooked";
 
@@ -13,6 +14,10 @@ export interface Row {
   batch_id: number | null;
   packages: number | null;
   open: number;
+  /** Partly used packages of the packages booked out first by batch (out only). */
+  used_up: number;
+  /** Level of the opened or reduced package afterwards (null = unchanged). */
+  remaining: number | null;
   action: CookedAction;
 }
 
@@ -23,6 +28,8 @@ export const defaults = (c: CookedCandidate) => ({
   batch_id: c.batch_id,
   packages: c.packages,
   open: c.open,
+  used_up: c.used_up,
+  remaining: c.remaining ?? null,
   action: c.action,
 });
 
@@ -30,11 +37,53 @@ export const defaults = (c: CookedCandidate) => ({
 const openable = (b: CookedBatch) => !b.opened && !b.frozen;
 const sum = (bs: CookedBatch[]) => bs.reduce((a, b) => a + b.packages, 0);
 const batchesFor = (r: Row) =>
-  r.action === "open" ? candidate(r).batches.filter(openable) : candidate(r).batches;
+  r.action === "open"
+    ? candidate(r).batches.filter(openable)
+    : r.action === "reduce"
+      ? candidate(r).batches.filter((b) => b.opened)
+      : candidate(r).batches;
+
+/** The partly used batches in the backend's order (date, remainder); none: the first opened one. */
+const parts = (r: Row) => {
+  const opened = candidate(r).batches.filter((b) => b.opened);
+  const partly = opened
+    .filter((b) => b.remaining < 1)
+    .sort(
+      (a, b) =>
+        Number(a.expires_on == null) - Number(b.expires_on == null) ||
+        (a.expires_on ?? "").localeCompare(b.expires_on ?? "") ||
+        a.remaining - b.remaining,
+    );
+  return partly.length ? partly : opened.slice(0, 1);
+};
+
+/** The opened batch a reduce lowers: the chosen one, else the (packages)th part. */
+const reduceBatch = (r: Row) =>
+  candidate(r).batches.find((b) => b.opened && b.batch_id === r.batch_id) ??
+  parts(r)[r.packages ?? 0];
+
+/** How many used-up packages a reduce may book out first: the parts besides the lowered one. */
+const maxUsedUp = (r: Row) => {
+  const p = parts(r);
+  return Math.max(
+    0,
+    r.batch_id == null ? p.length - 1 : p.length - +p.some((b) => b.batch_id === r.batch_id),
+  );
+};
 
 /** Live validation of a checked row (undefined = fine). */
 export const rowError = (r: Row): string | undefined => {
   if (!r.checked || r.action === "skip") return;
+  if (r.action === "reduce") {
+    const b = reduceBatch(r);
+    if (!b) return t("cooked.no_opened");
+    if (r.packages == null || !Number.isInteger(r.packages) || r.packages < 0)
+      return t("valid.packages_zero");
+    const max = maxUsedUp(r);
+    if (r.packages > max) return t("valid.max_packages", { n: max });
+    if (r.remaining == null || r.remaining >= b.remaining - 1e-9) return t("valid.level_below");
+    return;
+  }
   const n = r.packages;
   const none = n === 0 && !(r.action === "out" && r.open > 0);
   if (n == null || !Number.isInteger(n) || n < 0 || none) return t("valid.packages");
@@ -117,34 +166,57 @@ export const cookedRow = (o: {
         [["", t("cooked.fefo")], ...batches],
         (v) => change({ batch_id: v === "" ? null : Number(v) }),
       )}
-      <label class="pk">
-        <span class="lbl">${t("cooked.packages")}</span>
-        <input
-          type="number"
-          min="0"
-          step="1"
-          inputmode="numeric"
-          data-testid="cooked-packages"
-          aria-invalid=${!!err}
-          .value=${String(r.packages ?? "")}
-          @input=${(e: Event) => {
-            const v = (e.target as HTMLInputElement).value;
-            change({ packages: v === "" ? null : Number(v) });
-          }}
-        />
-      </label>
+      ${
+        r.action === "reduce" && maxUsedUp(r) < 1
+          ? nothing
+          : html`<label class="pk">
+              <span class="lbl"
+                >${r.action === "reduce" ? t("cooked.used_up") : t("cooked.packages")}</span
+              >
+              <input
+                type="number"
+                min="0"
+                step="1"
+                inputmode="numeric"
+                data-testid="cooked-packages"
+                aria-invalid=${!!err}
+                .value=${String(r.packages ?? "")}
+                @input=${(e: Event) => {
+                  const v = (e.target as HTMLInputElement).value;
+                  change({ packages: v === "" ? null : Number(v) });
+                }}
+              />
+            </label>`
+      }
       ${select(
         t("cooked.action"),
         "cooked-action",
         r.action,
-        (["out", "open", "skip"] as const).map((a) => [a, t(`cooked.action.${a}`)]),
+        (["out", "open", "reduce", "skip"] as const).map((a) => [a, t(`cooked.action.${a}`)]),
         (v) => {
           const action = v as CookedAction;
-          // a batch that cannot be opened is no longer offered: back to earliest first
+          // a batch that cannot be opened (reduced) is no longer offered: back to earliest first
           const ok =
-            action !== "open" ||
-            candidate(r).batches.some((b) => b.batch_id === r.batch_id && openable(b));
-          change({ action, ...(ok ? {} : { batch_id: null }) });
+            (action !== "open" && action !== "reduce") ||
+            candidate(r).batches.some(
+              (b) => b.batch_id === r.batch_id && (action === "open" ? openable(b) : b.opened),
+            );
+          const next = {
+            ...r,
+            action,
+            batch_id: ok ? r.batch_id : null,
+            packages: action === "reduce" ? 0 : r.packages,
+          };
+          // a reduce starts one level below the current one (never null or "voll")
+          const b = action === "reduce" ? reduceBatch(next) : undefined;
+          change({
+            // leaving a reduce: back to what the backend proposed
+            ...(r.action === "reduce" && action !== "reduce" ? defaults(candidate(r)) : {}),
+            action,
+            ...(action === "reduce" ? { packages: 0 } : {}),
+            ...(ok ? {} : { batch_id: null }),
+            ...(b ? { remaining: lowerLevel(b.remaining) } : {}),
+          });
         },
       )}
     </div>
@@ -158,6 +230,20 @@ export const cookedRow = (o: {
               @change=${(e: Event) => change({ open: (e.target as HTMLInputElement).checked ? 1 : 0 })}
             />
             ${t("cooked.also_open")}
+          </label>`
+        : nothing
+    }
+    ${
+      r.action === "reduce" || r.action === "open" || (r.action === "out" && r.open > 0)
+        ? html`<label class="lvl">
+            <span class="lbl">${t("cooked.left_after")}</span>
+            ${levelSelect({
+              value: r.remaining ?? 1,
+              empty: r.action === "reduce",
+              label: t("cooked.left_after"),
+              testid: "cooked-level",
+              on: (remaining) => change({ remaining }),
+            })}
           </label>`
         : nothing
     }
@@ -185,8 +271,14 @@ export const cookedRowStyles = css`
   .ctl .pk {
     flex: 0 0 90px;
   }
-  .also {
+  .also,
+  .lvl {
     margin: 6px 0 0 24px;
+  }
+  .lvl {
+    display: flex;
+    flex-direction: column;
+    max-width: 160px;
   }
   select,
   input[type="number"] {

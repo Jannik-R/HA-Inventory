@@ -36,6 +36,7 @@ Available:
 - Stocktaking per location (*Stocktaking* in the stock view): scan everything stored there; what was not scanned is booked out, what was found but not in stock is booked in, both as corrections after one confirm
 - Date types: best before, use by, or *Guide value* for things without a printed date (fresh produce, seeded on *Obst & Gemüse*): shown as "approx." date (label "ca."), always prefilled from the shelf life; past use-by dates are red, past best-before and guide dates bold orange
 - Opened packages: mark one package as opened (button *Open* on the batch row, scan mode *Open*, action `home_inventory.open_package`); it becomes its own stock row and expires earlier by the inherited *Keeps after opening* (days; seeded for the food categories, e.g. milk 3; empty = the date stays, e.g. pasta); the expiry view, sensors, labels and recipe suggestions use that date; a new label is offered (printed only after the label dialog)
+- Remaining amount of opened packages: the level select on an opened or frozen row (full, ¾, ½, ¼, almost empty, empty); a partly used package has its own row, shown as "about ½ (about 250 g)" when the package content is known; another level moves one package to the row of that level; *empty* books the package out (with undo); book-out and cooking take a partly used package first; the emergency stock counts the remainder, min stock and the shopping list still count whole packages
 - Freezing: *Freeze* / *Thaw* on a batch row (count, target location), scan mode *Freeze* (a frozen batch's label thaws it), or book in / move fresh food to a location marked *Freezer*; the frozen package gets its own row dated today + *Keeps frozen* (inherited, default 90 days, e.g. meat 180) as a guide value; thawed = opened today; frozen goods (category flag *Frozen goods*, seeded on *Tiefkühlkost*) keep their printed date; actions `home_inventory.freeze_package` / `thaw_package`
 - Canning and drying (tab *Preserving*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Recipes* view, not in the recipe tab or the meal plan; drying works the same (own recipes and protocols, packages instead of jars, duration in hours, action `home_inventory.drying`, seeded root *Gedörrtes* with a guide date)
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
@@ -272,7 +273,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 | `home_inventory.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Household servings*) | `recipe_id` |
 | `home_inventory.plan_to_shopping_list` | `start` (date, default today), `days` (default 7, max 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (free-text dishes) |
 | `home_inventory.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Household servings*) | `meal_id` |
-| `home_inventory.cooked` | `recipe` (name, not a canning recipe), `servings` (optional; default: the recipe's own) | `recipe_id`, `bookings` (`product_id`, `name`, `packages`, `action`), `out_ids`, `open_ids` |
+| `home_inventory.cooked` | `recipe` (name, not a canning recipe), `servings` (optional; default: the recipe's own) | `recipe_id`, `bookings` (`product_id`, `name`, `packages`, `action`), `out_ids`, `open_ids`, `remaining_ids` |
 | `home_inventory.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 | `home_inventory.drying` | like `canning`, with a drying recipe (`jars` = packages) | like `canning` |
 
@@ -284,7 +285,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 - **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
 - **plan_to_shopping_list** puts every recipe planned in the range on the list with the summed servings of its meals (like **shop_recipe**, keeps optional ingredients chosen in the panel; a recipe already on the list keeps the larger servings, so running it twice changes nothing). Free-text dishes are skipped.
 - **canning** takes product, temperature and minutes from the canning recipe; print the jar labels with `print_labels` and the returned `batch_id`.
-- **cooked** books the checked rows of the default proposal of the *Cooked* dialog without asking (earliest expiry first, whole packages, the remainder opens one package); everything or nothing is booked, with source `cooked`.
+- **cooked** books the checked rows of the default proposal of the *Cooked* dialog without asking (earliest expiry first, a partly used package first, whole packages; the remainder lowers that package's level or opens one package); everything or nothing is booked, with source `cooked`.
 - Location and recipe names are matched ignoring case. Bookings made by a service are logged with source `service`
   (label codes: `label`) and the calling user, if any.
 
@@ -311,7 +312,7 @@ Automations can react to these events on the HA event bus (trigger type *Event*)
 
 | Event | When | Data |
 |---|---|---|
-| `home_inventory_booked` | after every booking row (panel, services, receipt import, stocktaking, undo; freezing and thawing write two rows: -n on the old, +n on the new batch) | `booking_id`, `kind` (`in`, `out`, `move`, `correct`, `open`, `freeze`, `thaw`), `packages`, `source`, `user_id`, `batch_id`, `product_id`, `name`, `expires_on`, `location`, `to_location` |
+| `home_inventory_booked` | after every booking row (panel, services, receipt import, stocktaking, undo; freezing, thawing and level changes write two rows: -n on the old, +n on the new batch) | `booking_id`, `kind` (`in`, `out`, `move`, `correct`, `open`, `freeze`, `thaw`, `remaining`), `packages`, `source`, `user_id`, `batch_id`, `product_id`, `name`, `expires_on`, `location`, `to_location` |
 | `home_inventory_below_min` | when a minimum stock (category or product) is newly undercut; not again while it stays below | `key` (`p<id>` / `c<id>`), `name`, `product_id`, `category_id`, `packages`, `amount`, `unit` |
 | `home_inventory_expired` | at midnight, once per batch in stock whose date was yesterday | `batch_id`, `product_id`, `name`, `expires_on`, `expiry_type`, `packages`, `locations` |
 

@@ -3,6 +3,8 @@ import { mdiMinusCircleOutline } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
 import { doneLine } from "./booking-done";
+import { setRemaining } from "./api-open";
+import { levelSelect } from "./remaining";
 import {
   bookOut,
   errorMessage,
@@ -76,6 +78,27 @@ export const outButton = (host: TakeOutHost, name: string, b: StockRow, testid: 
   >
     ${icon(mdiMinusCircleOutline)}
   </button>`;
+};
+
+/** Level select of an opened batch row; "leer" books the package out (undo like a take-out),
+ *  any other level keeps the current undo. */
+export const levelButton = (host: TakeOutHost, name: string, b: StockRow) => {
+  const keep = host.undo;
+  return levelSelect({
+    value: b.remaining,
+    empty: true,
+    label: t("stock.level", { name }),
+    testid: "stock-batch-level",
+    on: (remaining) =>
+      apply(host, async () => {
+        const res = await setRemaining(host.hass!, {
+          batch_id: b.batch_id,
+          location_id: b.location_id,
+          remaining,
+        });
+        return res.kind === "out" ? { name, taken: res.taken } : keep;
+      }),
+  });
 };
 
 /** Status line "1 Pkg. … ausgelagert." with undo; testids `<prefix>-done` / `<prefix>-undo`. */

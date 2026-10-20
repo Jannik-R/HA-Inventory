@@ -1,4 +1,4 @@
-import type { Hass } from "./api";
+import type { Hass, Taken } from "./api";
 
 /** What opening a package did: the opened batch (own batch with opened_on) and its booking. */
 export interface Opened {
@@ -43,4 +43,14 @@ export const freezeScan = (hass: Hass, code: string, location_id?: number) =>
     type: "home_inventory/freeze_scan",
     code,
     ...(location_id ? { location_id } : {}),
+  });
+
+/** Level (0..1) of the partly used package of an opened batch; 0 books the package out. */
+export const setRemaining = (
+  hass: Hass,
+  data: { batch_id: number; location_id: number; remaining: number },
+) =>
+  hass.callWS<{ kind: "out"; taken: Taken[] } | { kind: "remaining"; booking_id: number | null }>({
+    type: "home_inventory/remaining",
+    ...data,
   });

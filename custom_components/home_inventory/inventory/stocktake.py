@@ -9,10 +9,11 @@ from __future__ import annotations
 import sqlite3
 from datetime import date, timedelta
 
-from .booking import _stock_of, correct, in_batch
+from .booking import _stock_of, in_batch
 from .canning import charge
 from .codes import _product
 from .common import InventoryError, _exists
+from .corrections import correct
 from .inherit import effective
 from .labels import _label_batch
 

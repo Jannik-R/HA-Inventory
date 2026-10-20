@@ -11,15 +11,17 @@ from homeassistant.util import dt as dt_util
 
 from . import inventory
 from .ws_common import run
-from .ws_validate import ID, NULL_ID, PACKAGES_OR_ZERO
+from .ws_validate import ID, NULL_ID, PACKAGES_OR_ZERO, REMAINING
 
 SERVINGS = vol.All(int, vol.Range(min=1, max=99))
 ITEM = {
     vol.Required("product_id"): ID,
     vol.Optional("batch_id"): NULL_ID,
     vol.Required("packages"): PACKAGES_OR_ZERO,
-    vol.Required("action"): vol.In(["out", "open"]),
+    vol.Required("action"): vol.In(["out", "open", "reduce"]),
     vol.Optional("open", default=0): PACKAGES_OR_ZERO,
+    vol.Optional("used_up", default=0): PACKAGES_OR_ZERO,
+    vol.Optional("remaining"): vol.Any(None, REMAINING),
 }
 IDS = vol.All([ID], vol.Length(max=500))
 
@@ -61,11 +63,14 @@ async def ws_book(hass: HomeAssistant, connection, msg: dict) -> None:
         vol.Required("type"): "home_inventory/cooked_undo",
         vol.Required("out_ids"): IDS,
         vol.Required("open_ids"): IDS,
+        vol.Optional("remaining_ids", default=[]): IDS,
     }
 )
 @websocket_api.async_response
 async def ws_undo(hass: HomeAssistant, connection, msg: dict) -> None:
     """Undo a `cooked_book` by the booking ids it returned (once)."""
-    fn = partial(inventory.undo_cooked, user_id=connection.user.id)
+    fn = partial(
+        inventory.undo_cooked, user_id=connection.user.id, remaining_ids=msg["remaining_ids"]
+    )
     await run(hass, fn, msg["out_ids"], msg["open_ids"])
     connection.send_result(msg["id"])

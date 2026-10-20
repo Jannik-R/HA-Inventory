@@ -24,6 +24,10 @@ def _finite(value: float) -> float:
 POSITIVE = vol.All(vol.Coerce(float), _finite, vol.Range(min=0, min_included=False))
 
 
+# Level of a partly used package: 0 (empty) to 1 (full).
+REMAINING = vol.All(vol.Coerce(float), _finite, vol.Range(min=0, max=1))
+
+
 def text(limit: int) -> vol.All:
     return vol.All(str, vol.Length(max=limit))
 

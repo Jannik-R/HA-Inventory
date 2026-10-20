@@ -38,11 +38,146 @@ def test_existing_opened_package_is_used(conn):
     p = pasta(conn)
     b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
     opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
-    (row,) = rows(conn, [ing(conn, "Nudeln", 200, "g")], cook=2)  # less than a package
+    (row,) = rows(conn, [ing(conn, "Nudeln", 200, "g")], cook=2)  # less than the opened package
     c = row["candidates"][0]
-    assert (c["action"], c["batch_id"], row["checked"]) == ("skip", opened, False)
-    (row,) = rows(conn, [ing(conn, "Nudeln", 600, "g")], cook=2)  # 1 out, the opened one covers 100
-    assert (row["candidates"][0]["packages"], row["candidates"][0]["open"]) == (1, 0)
+    assert (c["action"], c["batch_id"], c["remaining"], row["checked"]) == (
+        "reduce", opened, 0.6, True,
+    )  # fmt: skip
+    (row,) = rows(conn, [ing(conn, "Nudeln", 600, "g")], cook=2)  # opened one out, 100 of a new one
+    c = row["candidates"][0]
+    assert (c["action"], c["packages"], c["open"], c["remaining"]) == ("out", 1, 1, 0.8)
+
+
+def test_open_level_is_at_least_almost_empty(conn):
+    p = pasta(conn)
+    inv.book_in(conn, p, 1, "2027-01-01", loc(conn))
+    (row,) = rows(conn, [ing(conn, "Nudeln", 499.9, "g")], cook=2)  # 0.9998 of a package
+    c = row["candidates"][0]
+    assert (c["action"], c["remaining"]) == ("open", 0.1)  # not rounded to 0 (= empty)
+
+
+def partials(conn, p):
+    """(remaining, batch id) of the partly used packages in stock, lowest level first."""
+    return [
+        (r["remaining"], r["id"])
+        for r in conn.execute(
+            "SELECT id, remaining FROM batch WHERE product_id = ? AND remaining < 1"
+            " AND EXISTS (SELECT 1 FROM stock WHERE batch_id = batch.id) ORDER BY remaining",
+            (p,),
+        )
+    ]
+
+
+def undo(conn, res):
+    inv.undo_cooked(conn, res["out_ids"], res["open_ids"], remaining_ids=res["remaining_ids"])
+
+
+def test_partial_package_is_reduced(conn):
+    p = pasta(conn)
+    b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    inv.set_remaining(conn, opened, 0.8)
+    (row,) = rows(conn, [ing(conn, "Nudeln", 100, "g")], cook=2)  # 0.2 of a package
+    c = row["candidates"][0]
+    assert (c["action"], c["packages"], c["remaining"], row["checked"]) == ("reduce", 0, 0.6, True)
+
+
+def test_two_partial_packages_use_up_one_and_reduce_the_other(conn):
+    p = pasta(conn)
+    b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    inv.open_package(conn, p, b, today=TODAY)
+    inv.set_remaining(conn, opened, 0.25)
+    inv.set_remaining(conn, opened, 0.75)
+    before = stock(conn)
+    (row,) = rows(conn, [ing(conn, "Nudeln", 250, "g")], cook=2)  # half a package
+    c = row["candidates"][0]
+    three_quarters = partials(conn, p)[1][1]
+    assert (c["action"], c["packages"], c["batch_id"], c["remaining"]) == (
+        "reduce", 1, three_quarters, 0.5,
+    )  # fmt: skip
+    item = {k: c[k] for k in ("product_id", "batch_id", "packages", "action", "remaining")}
+    res = inv.book_cooked(conn, [item])
+    assert (len(res["out_ids"]), len(res["remaining_ids"])) == (1, 1)
+    assert [lv for lv, _ in partials(conn, p)] == [0.5]
+    undo(conn, res)
+    assert [lv for lv, _ in partials(conn, p)] == [0.25, 0.75] and stock(conn) == before
+
+
+def two_partials(conn):
+    """Partly used 1/4 and 3/4 (opened, dated 2027-01-01) and 4 unopened packages dated earlier."""
+    p = pasta(conn)
+    where = loc(conn)
+    inv.book_in(conn, p, 4, "2026-12-01", where)
+    b = inv.book_in(conn, p, 2, "2027-01-01", where)
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    inv.open_package(conn, p, b, today=TODAY)
+    inv.set_remaining(conn, opened, 0.25)
+    inv.set_remaining(conn, opened, 0.75)
+    return p
+
+
+def test_used_up_partials_are_booked_by_batch_before_fefo(conn):
+    p = two_partials(conn)
+    old = {i for _, i in partials(conn, p)}
+    (row,) = rows(conn, [ing(conn, "Nudeln", 625, "g")], cook=2)  # 1/4 + 3/4 + 1/4 of a new one
+    c = row["candidates"][0]
+    assert (c["action"], c["packages"], c["used_up"], c["open"], c["batch_id"]) == (
+        "out", 2, 2, 1, None,
+    )  # fmt: skip
+    item = {k: c[k] for k in ("product_id", "batch_id", "packages", "action", "open", "used_up")}
+    res = inv.book_cooked(conn, [item | {"remaining": c["remaining"]}], today=TODAY)
+    assert not old & {i for _, i in partials(conn, p)}  # the earlier unopened ones were not taken
+    assert [lv for lv, _ in partials(conn, p)] == [0.75]
+    undo(conn, res)
+    assert {i for _, i in partials(conn, p)} == old
+
+
+def test_exact_cover_is_out_without_reduce(conn):
+    two_partials(conn)
+    (row,) = rows(conn, [ing(conn, "Nudeln", 500, "g")], cook=2)  # 1/4 + 3/4
+    c = row["candidates"][0]
+    assert (c["action"], c["packages"], c["used_up"], c["open"]) == ("out", 2, 2, 0)
+
+
+def test_reduce_of_a_hand_picked_batch_skips_it_in_the_used_up(conn):
+    p = two_partials(conn)
+    quarter, three = (i for _, i in partials(conn, p))
+    item = {"product_id": p, "batch_id": quarter, "packages": 1, "action": "reduce", "remaining": 0}
+    res = inv.book_cooked(conn, [item])  # the 3/4 goes out, then the picked 1/4 is emptied
+    assert len(res["out_ids"]) == 2 and partials(conn, p) == []
+    undo(conn, res)
+    assert {i for _, i in partials(conn, p)} == {quarter, three}
+    with pytest.raises(InventoryError):  # only one other part
+        inv.book_cooked(conn, [item | {"packages": 2}])
+
+
+def test_out_and_open_at_a_level_and_undo(conn):
+    p = pasta(conn)
+    b = inv.book_in(conn, p, 3, "2027-01-01", loc(conn))
+    inv.open_package(conn, p, b, today=TODAY)
+    before = stock(conn)
+    item = {"product_id": p, "packages": 1, "action": "out", "open": 1, "remaining": 0.8}
+    res = inv.book_cooked(conn, [item], today=TODAY)  # the opened one out, a new one opened at 0.8
+    assert len(res["remaining_ids"]) == 1 and [lv for lv, _ in partials(conn, p)] == [0.8]
+    undo(conn, res)
+    assert stock(conn) == before and partials(conn, p) == []
+
+
+def test_reduce_to_empty_books_out_and_undo_restores(conn):
+    p = pasta(conn)
+    b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    inv.set_remaining(conn, opened, 0.4)
+    before = stock(conn)
+    res = inv.book_cooked(
+        conn, [{"product_id": p, "packages": 0, "action": "reduce", "remaining": 0}]
+    )
+    assert len(res["out_ids"]) == 1 and sum(stock(conn).values()) == sum(before.values()) - 1
+    undo(conn, res)
+    assert stock(conn) == before and partials(conn, p)[0][0] == 0.4
+    with pytest.raises(InventoryError):  # reduce needs a level
+        inv.book_cooked(conn, [{"product_id": p, "packages": 0, "action": "reduce"}])
 
 
 def test_fefo_default_product_and_batch(conn):
@@ -157,7 +292,23 @@ async def test_service_opens_with_todays_date(hass: HomeAssistant, entry) -> Non
     assert [(b["packages"], b["action"]) for b in res["bookings"]] == [(1, "open")]
     (on,) = await db.run(
         lambda c: [
-            r[0] for r in c.execute("SELECT opened_on FROM batch WHERE opened_on IS NOT NULL")
+            r[0]
+            for r in c.execute("SELECT DISTINCT opened_on FROM batch WHERE opened_on IS NOT NULL")
         ]
     )
     assert on == dt_util.now().date().isoformat()
+
+
+async def test_service_reduces_a_partial_package(hass: HomeAssistant, entry) -> None:  # noqa: F811
+    db = entry.runtime_data
+
+    def setup(conn):
+        p = pasta(conn, "Penne")
+        b = inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+        inv.set_remaining(conn, inv.open_package(conn, p, b, today=TODAY)["batch_id"], 0.8)
+        recipe(conn, [ing(conn, "Nudeln", 100, "g")], name="Wenig")
+
+    await db.run(setup)
+    res = await call(hass, "cooked", recipe="wenig")
+    assert [(b["packages"], b["action"]) for b in res["bookings"]] == [(0, "reduce")]
+    assert len(res["remaining_ids"]) == 1

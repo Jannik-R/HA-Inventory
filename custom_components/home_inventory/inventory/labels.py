@@ -82,7 +82,7 @@ def _label_batch(conn: sqlite3.Connection, code: str, unopened: bool = False) ->
     batch = conn.execute(
         f"SELECT b.id FROM batch b WHERE b.product_id = ? AND {where}"
         " ORDER BY NOT EXISTS (SELECT 1 FROM stock s WHERE s.batch_id = b.id),"
-        " b.opened_on IS NULL, b.opened_on LIMIT 1",
+        " b.opened_on IS NULL, b.opened_on, b.remaining LIMIT 1",
         [product["id"], *args],
     ).fetchone()
     if not batch:

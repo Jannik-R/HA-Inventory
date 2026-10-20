@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 import { t } from "./i18n";
-import { icon } from "./ui";
+import { fieldMsg, icon } from "./ui";
 import { formStyles } from "./styles";
 import { doneLine, doneStyles } from "./booking-done";
 import { fmtDate } from "./format";
@@ -208,6 +208,13 @@ export class HomeInventoryStocktake extends LitElement {
     </span>`;
   }
 
+  /** A partly used package is exactly 1 package: more cannot be counted. */
+  private rowError(r: StockRow) {
+    return r.remaining < 1 && (this.counted.get(r.batch_id) ?? 0) > 1
+      ? t("valid.partial_one")
+      : undefined;
+  }
+
   private list() {
     return html`<ul>
       ${this.rows.map((r) => {
@@ -229,6 +236,7 @@ export class HomeInventoryStocktake extends LitElement {
             }
           </span>
           ${this.stepper("stocktake-row", r.name, n, (d) => this.count(r.batch_id, d))}
+          ${fieldMsg(this.rowError(r), "stocktake-row")}
         </li>`;
       })}
     </ul>`;
@@ -316,7 +324,7 @@ export class HomeInventoryStocktake extends LitElement {
                 <button
                   class="primary"
                   data-testid="stocktake-apply"
-                  ?disabled=${!missing && !more}
+                  ?disabled=${(!missing && !more) || this.rows.some((r) => this.rowError(r))}
                   @click=${() => this.apply()}
                 >
                   ${t("stocktake.apply")}
@@ -337,10 +345,14 @@ export class HomeInventoryStocktake extends LitElement {
       }
       li {
         display: flex;
+        flex-wrap: wrap;
         align-items: center;
         gap: 8px;
         padding: 6px 0;
         border-bottom: 1px solid var(--divider-color);
+      }
+      li .field-error {
+        flex-basis: 100%;
       }
       .what {
         flex: 1;

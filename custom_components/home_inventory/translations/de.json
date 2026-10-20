@@ -52,6 +52,9 @@
     "invalid_value": {
       "message": "Ungültiger Wert."
     },
+    "partial_one_package": {
+      "message": "Eine angebrochene Packung mit Füllstand ist immer genau 1 Packung an einem Ort."
+    },
     "invalid_unit": {
       "message": "Ungültige Einheit: Der Faktor muss größer als 0 sein, und eine Basiseinheit kann selbst keine Basiseinheit haben."
     },

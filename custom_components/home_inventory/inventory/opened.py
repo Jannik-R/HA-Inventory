@@ -8,8 +8,9 @@ from __future__ import annotations
 import sqlite3
 from datetime import date
 
-from .booking import _add, _batch, _booking, _stock_of, _take
+from .booking import _add, _batch, _booking, _level_batch, _stock_of, _take, book_out
 from .common import InventoryError, _exists, opened_until
+from .frozen import transfer, undo_frozen
 from .inherit import effective
 
 
@@ -97,3 +98,46 @@ def undo_open(conn: sqlite3.Connection, booking_id: int, user_id: str | None = N
         conn, "open", row["batch_id"], row["location_id"], -1, "undo", user_id,
         reverts_id=booking_id,
     )  # fmt: skip
+
+
+def set_remaining(
+    conn: sqlite3.Connection,
+    batch_id: int,
+    remaining: float,
+    location_id: int | None = None,
+    source: str = "manual",
+    user_id: str | None = None,
+) -> dict:
+    """Set the level (0..1) of one package of an opened or frozen batch.
+
+    The package moves to its own batch of that level (1 = the full batch of the key, merging).
+    0 = empty: books it out ({kind: out, taken}). Else {kind: remaining, booking_id} (None when
+    the level did not change)."""
+    remaining = round(remaining, 3)
+    if not 0 <= remaining <= 1:
+        raise InventoryError("invalid_value")
+    sql = (
+        "SELECT s.location_id, b.product_id, b.remaining FROM stock s JOIN batch b ON b.id = s.batch_id"
+        " WHERE s.batch_id = ? AND (b.opened_on IS NOT NULL OR b.frozen_on IS NOT NULL)"
+    )
+    args: list = [batch_id]
+    if location_id is not None:
+        sql += " AND s.location_id = ?"
+        args.append(location_id)
+    row = conn.execute(sql + " ORDER BY s.location_id LIMIT 1", args).fetchone()
+    if not row:
+        raise InventoryError("not_found")
+    loc = row["location_id"]
+    if remaining == 0:
+        taken = book_out(conn, row["product_id"], 1, batch_id, loc, source, user_id)
+        return {"kind": "out", "taken": taken}
+    if remaining == row["remaining"]:
+        return {"kind": "remaining", "booking_id": None}
+    target = _level_batch(conn, batch_id, remaining)
+    booking_id = transfer(conn, "remaining", batch_id, loc, target, loc, 1, source, user_id)
+    return {"kind": "remaining", "booking_id": booking_id}
+
+
+def undo_remaining(conn: sqlite3.Connection, booking_id: int, user_id: str | None = None) -> None:
+    """Undo a level change (once): the package goes back to its batch."""
+    undo_frozen(conn, booking_id, user_id, ("remaining",))

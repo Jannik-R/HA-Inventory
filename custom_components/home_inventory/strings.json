@@ -52,6 +52,9 @@
     "invalid_value": {
       "message": "Invalid value."
     },
+    "partial_one_package": {
+      "message": "A partly used package is always exactly 1 package at one location."
+    },
     "invalid_unit": {
       "message": "Invalid unit: the factor must be greater than 0 and a base unit cannot have a base unit itself."
     },

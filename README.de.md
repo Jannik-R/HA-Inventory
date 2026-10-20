@@ -229,6 +229,31 @@ actions:
         Abgelaufen: {{ state_attr('sensor.vorrat_abgelaufen', 'items') | map(attribute='name') | join(', ') }}
 ```
 
+## Dashboard
+
+Für ein Küchen-Tablet reichen native Karten: Eine Markdown-Karte listet, was abläuft (aus dem Attribut `items` der beiden Sensoren), die To-do-Liste zeigt die Einkaufsliste, die Kalender-Karte den heutigen Speiseplan. Hinzufügen über *Dashboard bearbeiten › Karte hinzufügen › Manuell* und das YAML einfügen. Die Entitäts-IDs richten sich nach der Sprache von Home Assistant bei der Einrichtung. Das folgende YAML nutzt die deutschen IDs (`sensor.vorrat_abgelaufen`, `sensor.vorrat_lauft_bald_ab`, `todo.vorrat_einkaufsliste`, `calendar.vorrat_speiseplan`). Bei einer englischen Installation heißen sie `sensor.home_inventory_expired`, `sensor.home_inventory_expiring_soon`, `todo.home_inventory_shopping_list` und `calendar.home_inventory_meal_plan`.
+
+```yaml
+type: vertical-stack
+cards:
+  - type: markdown
+    title: Läuft ab
+    content: >-
+      {% set items = (state_attr('sensor.vorrat_abgelaufen', 'items') or [])
+         + (state_attr('sensor.vorrat_lauft_bald_ab', 'items') or []) %}
+      {% for i in items | sort(attribute='days_left') %}
+      - **{{ i.name }}** ({{ i.location }}): {{ 'abgelaufen' if i.days_left < 0 else 'heute' if i.days_left == 0 else 'morgen' if i.days_left == 1 else 'in ' ~ i.days_left ~ ' Tagen' }}
+      {% else %}
+      Nichts läuft bald ab.
+      {% endfor %}
+  - type: todo-list
+    entity: todo.vorrat_einkaufsliste
+  - type: calendar
+    initial_view: dayGridDay
+    entities:
+      - calendar.vorrat_speiseplan
+```
+
 ## Aktionen (Automationen)
 
 Alle liefern eine Antwort (`response_variable` in Skript oder Automation). Fehler (unbekannter

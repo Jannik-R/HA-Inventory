@@ -482,5 +482,21 @@
   "valid.drying_hours": "Please enter 0.5 to 24 hours.",
   "preserve.kind_label": "Kind",
   "preserve.canning": "Canning",
-  "preserve.drying": "Drying"
+  "preserve.drying": "Drying",
+  "stocktake.start": "Stocktaking",
+  "stocktake.location": "Location",
+  "stocktake.choose": "Please choose",
+  "stocktake.hint": "Scan everything stored here (barcode, label or name). Whatever is not scanned counts as missing.",
+  "stocktake.counted": "{n} of {packages} counted",
+  "stocktake.missing": "{n} missing",
+  "stocktake.too_many": "{n} too many",
+  "stocktake.extra": "Not in stock",
+  "stocktake.pick": "Which batch of “{name}”?",
+  "stocktake.less": "One package of “{name}” less",
+  "stocktake.one_more": "One more package of “{name}”",
+  "stocktake.apply": "Book differences",
+  "stocktake.confirm_title": "Book the differences?",
+  "stocktake.confirm_message": "{missing} pkg. missing, {more} pkg. too many. Both are booked as corrections.",
+  "stocktake.done": "{n} corrections booked.",
+  "stocktake.empty": "According to the stock nothing is stored here. Scanned packages show under “Not in stock”."
 }

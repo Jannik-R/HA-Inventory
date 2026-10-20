@@ -1,3 +1,4 @@
+import { pt, type Preserve } from "./preserve";
 import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { chevron, rowActions, todayIso, toggled } from "./ui";
@@ -52,8 +53,8 @@ export class HomeInventoryRecipes extends LitElement {
   declare hass?: Hass;
   /** Route part after `recipes/`: a recipe id opens that recipe (link from the week plan). */
   declare section?: string;
-  /** Einkochen tab: only canning recipes (each makes a product); else only the others. */
-  declare canning?: boolean;
+  /** Tab Haltbarmachen: only process recipes of that kind (each makes a product); else only dishes. */
+  declare canning?: Preserve;
   declare recipes?: Recipe[];
   declare md?: MasterData;
   declare query: string;
@@ -166,7 +167,7 @@ export class HomeInventoryRecipes extends LitElement {
   private edit(r?: Recipe) {
     this.renderRoot
       .querySelector<HomeInventoryRecipeDialog>("home-inventory-recipe-dialog")!
-      .open(this.md!, r, undefined, !!this.canning);
+      .open(this.md!, r, undefined, this.canning);
   }
 
   private importer() {
@@ -180,6 +181,7 @@ export class HomeInventoryRecipes extends LitElement {
     return (this.recipes ?? []).filter(
       (r) =>
         isCanning(r) === !!this.canning &&
+        (!this.canning || r.canning_kind === this.canning) &&
         (!this.onlyExpiring || this.expiring.has(r.id)) &&
         (!q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q))),
     );
@@ -268,7 +270,7 @@ export class HomeInventoryRecipes extends LitElement {
             : nothing
         }
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
-          ${t(this.canning ? "canning.recipe_add" : "recipes.add")}
+          ${this.canning ? pt(this.canning, "recipe_add") : t("recipes.add")}
         </button>
       </div>
       ${
@@ -289,7 +291,7 @@ export class HomeInventoryRecipes extends LitElement {
         @home-inventory-imported=${(e: CustomEvent<RecipeDraft>) =>
           this.renderRoot
             .querySelector<HomeInventoryRecipeDialog>("home-inventory-recipe-dialog")!
-            .open(this.md!, undefined, e.detail, !!this.canning)}
+            .open(this.md!, undefined, e.detail, this.canning)}
       ></home-inventory-recipe-import>
       <home-inventory-shopping-recipe-dialog
         .hass=${this.hass}
@@ -309,7 +311,7 @@ export class HomeInventoryRecipes extends LitElement {
               ${list.map((r) => this.row(r))}
             </ul>`
           : html`<p class="empty">
-              ${t(this.query.trim() ? "recipes.no_hits" : this.canning ? "canning.recipes_empty" : "recipes.empty")}
+              ${this.query.trim() ? t("recipes.no_hits") : this.canning ? pt(this.canning, "recipes_empty") : t("recipes.empty")}
             </p>`
       }`;
   }

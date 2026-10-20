@@ -453,6 +453,35 @@
         }
       }
     },
+    "drying": {
+      "name": "Drying protocol",
+      "description": "Record a drying run from a drying recipe: new charge, the packages are booked in. Returns batch_id (to print labels) and charge.",
+      "fields": {
+        "recipe": {
+          "name": "Drying recipe",
+          "description": "Name of the drying recipe; it sets product, temperature and duration."
+        },
+        "jars": {
+          "name": "Packages",
+          "description": "Empty = the recipe's yield."
+        },
+        "made_on": {
+          "name": "Made on",
+          "description": "Empty = today."
+        },
+        "expires_on": {
+          "name": "Best before",
+          "description": "Empty = made-on date + shelf life."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Name of the location; empty = the product's default location."
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
     "print_recipe": {
       "name": "Print recipe",
       "description": "Print a recipe on the receipt printer: ingredients (scaled to the servings) and numbered steps.",
@@ -510,6 +539,7 @@
         "recipes": "Recipes",
         "plan": "Meal plan (incl. calendar entity)",
         "canning": "Canning",
+        "drying": "Drying",
         "opened": "Opened packages",
         "frozen": "Freezing"
       }

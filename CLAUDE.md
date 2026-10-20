@@ -47,6 +47,7 @@ custom_components/home_inventory/   integration (Python)
   migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
   migration_24.py           migration 24: date kind 'guide' (Richtwert): rebuilds defaults/category/product with the wider CHECK; `set_guide` (fresh produce) also after the seed
   migration_25.py           migration 25: freezing (location.freezer, category.frozen_goods, frozen_days, batch.frozen_on, booking kinds freeze/thaw); `set_frozen` seeds values, also after the seed
+  migration_26.py           migration 26: drying (canning.kind, recipe.canning_kind); `add_dried` seeds the root Gedörrtes, also after the seed
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)
@@ -59,8 +60,8 @@ custom_components/home_inventory/   integration (Python)
   todo.py                   shopping list as todo entity (check; add/delete items by hand)
   calendar.py               read-only meal plan calendar (Speiseplan): all-day event per dish
   backup.py                 locks the DB during HA backups
-  services.py               HA services for automations (booking by code, opening a package, printing, recipe on the shopping list, plan a dish, canning) + services.yaml
-  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning protocol commands; websocket_open.py: open, freeze or thaw a package / undo; websocket_purchase.py: receipt import (read via AI, book); ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
+  services.py               HA services for automations (booking by code, opening, freezing and thawing a package, printing, recipe on the shopping list, plan a dish, canning, drying) + services.yaml
+  websocket.py              websocket commands for the panel: master data, defaults, delete, lookup/search; websocket_stock.py: booking, stock, products, shopping list; websocket_label.py: label, shopping list, recipe and meal plan print, scan commands; websocket_recipe.py: recipe, import and unit commands; websocket_plan.py: meal plan and meal start time commands; websocket_canning.py: canning / drying protocol commands; websocket_open.py: open, freeze or thaw a package / undo; websocket_purchase.py: receipt import (read via AI, book); ws_common.py: shared `db_of` / `run` / `translated` (also used by services, todo); ws_validate.py: shared input validators
   www/                      BUILT frontend bundle `home-inventory-panel.js` + hashed lazy chunks (committed, never edit by hand)
   label.py                  label rendering (Pillow + segno), PNG data urls, raw TCP send to the print server
   receipt.py                receipt printer (ESC/POS): shopping list, recipe or meal plan as raster image, device file or raw TCP

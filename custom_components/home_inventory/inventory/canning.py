@@ -1,4 +1,5 @@
-"""Canning protocols: each one is a charge (made-on date + number of that day) and its own batch."""
+"""Canning and drying protocols (`kind`): each one is a charge (made-on date + number of that day,
+shared by both kinds) and its own batch."""
 
 from __future__ import annotations
 
@@ -60,10 +61,11 @@ def save_canning(
         raise InventoryError("invalid_date")
     _packages(data["jars"])
     recipe = conn.execute(
-        "SELECT canning_product_id FROM recipe WHERE id = ?", (data.get("recipe_id"),)
+        "SELECT canning_product_id, canning_kind FROM recipe WHERE id = ?", (data.get("recipe_id"),)
     ).fetchone()
-    # a canning recipe always makes its product
+    # a canning recipe always makes its product (and is of its kind)
     product_id = (recipe and recipe[0]) or data.get("product_id")
+    kind = recipe[1] if recipe and recipe[0] else data.get("kind", "canning")
     if product_id is None:
         if "product" not in data:  # neither a canning recipe nor a product given
             raise InventoryError("not_found")
@@ -79,7 +81,14 @@ def save_canning(
     canning_id = save(
         conn,
         "canning",
-        {"made_on": made_on, "seq": seq, "product_id": product_id, "jars": data["jars"], **process},
+        {
+            "made_on": made_on,
+            "seq": seq,
+            "product_id": product_id,
+            "jars": data["jars"],
+            "kind": kind,
+            **process,
+        },
     )
     batch_id = conn.execute(
         "INSERT INTO batch (product_id, expires_on, created_at, canning_id) VALUES (?, ?, ?, ?)",

@@ -208,10 +208,11 @@ def async_register(hass: HomeAssistant) -> None:
         end = start + timedelta(days=(call.data.get("days") or 7) - 1)
         return await _run(hass, inventory.plan_to_shopping_list, start, end)
 
-    async def canning(call: ServiceCall) -> ServiceResponse:
+    async def canning(call: ServiceCall, kind: str = "canning") -> ServiceResponse:
         d = call.data
         fn = partial(
             inventory.canning_by_name,
+            kind=kind,
             jars=d.get("jars") or None,
             location=d.get("location") or None,
             expires_on=d.get("expires_on") or None,
@@ -235,6 +236,7 @@ def async_register(hass: HomeAssistant) -> None:
         ("plan_meal", plan_meal, PLAN_MEAL),
         ("plan_to_shopping_list", plan_to_shopping_list, PLAN_SHOP),
         ("canning", canning, CANNING),
+        ("drying", partial(canning, kind="drying"), CANNING),
     ):
         hass.services.async_register(
             DOMAIN, name, handler, schema, supports_response=SupportsResponse.OPTIONAL

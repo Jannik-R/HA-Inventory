@@ -106,6 +106,7 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
             vol.Exclusive("canning_product", "canning_product"): _NEW_PRODUCT,
             vol.Inclusive("canning_temp", "canning"): vol.Any(None, CANNING_TEMP),
             vol.Inclusive("canning_minutes", "canning"): vol.Any(None, CANNING_MINUTES),
+            vol.Optional("canning_kind"): vol.In(("canning", "drying")),
             vol.Required("ingredients"): vol.All([INGREDIENT], vol.Length(max=100)),
         },
     }

@@ -1,4 +1,4 @@
-import { apiPage, openPage, remove, ws } from "./helpers";
+import { apiPage, openPage, panelConfig, remove, ws } from "./helpers";
 import { expect, test } from "./fixtures";
 
 type Md = { categories: { id: number; name: string }[] };
@@ -23,7 +23,7 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
   })) as { product_id: number };
   try {
     // the canning recipe lives in Einkochen › Rezepte and fixes the product
-    await openPage(page, "/home_inventory/canning/recipes", "Einkochen");
+    await openPage(page, "/home_inventory/canning/recipes", "Haltbarmachen");
     await page.getByTestId("recipe-add").click();
     const rd = page.locator("home-inventory-recipe-dialog dialog");
     await rd.getByTestId("recipe-name").fill(`${NAME} Rezept`);
@@ -74,6 +74,61 @@ test("a canning recipe starts a protocol: charge, product, proposed date, edit",
     await openPage(page, "/home_inventory/recipes", "Rezepte");
     await page.getByTestId("recipe-search").fill(NAME);
     await expect(page.getByTestId("recipe-row")).toHaveCount(0);
+  } finally {
+    await remove(api, "product", product_id); // takes the recipe and the protocol along
+    await api.close();
+  }
+});
+
+test("drying: own recipes and protocols, duration in hours", async ({ page }) => {
+  const NAME = `E2E Apfelchips ${Date.now()}`;
+  const api = await apiPage(page.context().browser()!);
+  const md = (await ws(api, { type: "home_inventory/master_data" })) as Md;
+  const category_id = md.categories.find((c) => c.name === "Trockenobst")!.id;
+  const { product_id } = (await ws(api, {
+    type: "home_inventory/book_in",
+    product: { name: NAME, category_id },
+    packages: 1,
+  })) as { product_id: number };
+  try {
+    await openPage(page, "/home_inventory/canning", "Haltbarmachen");
+    // the dev HA may have its modules saved from before drying existed
+    await panelConfig(page, {
+      modules: ["shopping", "recipes", "plan", "canning", "drying", "opened", "frozen"],
+    });
+    await page.getByTestId("canning-view-recipes").click(); // re-renders with the new modules
+    await page.getByTestId("preserve-drying").click();
+    await expect(page).toHaveURL(/\/home_inventory\/canning\/drying-recipes$/);
+    await page.getByTestId("recipe-add").click();
+    const rd = page.locator("home-inventory-recipe-dialog dialog");
+    await rd.getByTestId("recipe-name").fill(`${NAME} Rezept`);
+    await rd.getByTestId("recipe-product").fill(NAME);
+    await rd.getByTestId("recipe-servings-input").fill("2");
+    await rd.getByTestId("recipe-canning_temp").fill("60");
+    await rd.getByTestId("recipe-canning_minutes").fill("7.5");
+    await rd.getByTestId("recipe-save").click();
+    const recipe = page.getByTestId("recipe-row").filter({ hasText: `${NAME} Rezept` });
+    await expect(recipe).toContainText(`ergibt 2 × ${NAME}`);
+    await recipe.getByTestId("recipe-toggle").click();
+    await recipe.getByTestId("recipe-to-canning").click();
+
+    const dialog = page.locator("home-inventory-canning-dialog dialog");
+    await expect(page).toHaveURL(/\/home_inventory\/canning\/drying$/);
+    await expect(dialog.getByTestId("canning-minutes")).toHaveValue("7.5");
+    // Gedörrtes keeps 180 days from the made-on date
+    await expect(dialog.getByTestId("canning-expires_on")).toHaveValue(plusDays(180));
+    await dialog.getByTestId("canning-save").click();
+    await page
+      .locator("home-inventory-label-dialog dialog")
+      .getByRole("button", { name: "Abbrechen" })
+      .click();
+    const row = page.getByTestId("canning-row").filter({ hasText: NAME });
+    await expect(row).toContainText("2 von 2 Packungen da");
+    await expect(row).toContainText("7,5 Std.");
+    // canning shows its own protocols only
+    await page.getByTestId("preserve-canning").click();
+    await expect(page).toHaveURL(/\/home_inventory\/canning$/);
+    await expect(page.getByTestId("canning-row").filter({ hasText: NAME })).toHaveCount(0);
   } finally {
     await remove(api, "product", product_id); // takes the recipe and the protocol along
     await api.close();

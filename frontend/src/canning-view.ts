@@ -21,8 +21,10 @@ import "./label-dialog";
 import "./recipes-view";
 import type { HomeInventoryCanningDialog } from "./canning-dialog";
 import type { HomeInventoryLabelDialog } from "./label-dialog";
+import { fmtDuration, preserveKinds, pt, type Preserve } from "./preserve";
 
-/** Canning protocols, newest first: one row per charge; a new protocol books its jars in. */
+/** Tab *Haltbarmachen*: canning or drying protocols (`kind`), newest first: one row per charge;
+ *  a new protocol books its jars / packages in. */
 export class HomeInventoryCanning extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -33,7 +35,7 @@ export class HomeInventoryCanning extends LitElement {
   };
 
   declare hass?: Hass;
-  /** Route part after `canning/`: "recipes" shows the canning recipes, else the protocols. */
+  /** Route part after `canning/`: "" / "recipes" (canning), "drying" / "drying-recipes". */
   declare section?: string;
   declare rows?: Canning[];
   declare message: string;
@@ -56,6 +58,22 @@ export class HomeInventoryCanning extends LitElement {
     } else if (changed.has("section") && this.started) this.load(); // recipes may be new
   }
 
+  /** Drying by route, or when it is the only kind switched on. */
+  private get kind(): Preserve {
+    const kinds = preserveKinds();
+    return this.section?.startsWith("drying") || !kinds.includes("canning") ? "drying" : "canning";
+  }
+
+  private get recipesShown() {
+    return this.section === "recipes" || this.section === "drying-recipes";
+  }
+
+  /** Route of a kind and view. */
+  private route(kind: Preserve, recipes: boolean) {
+    if (kind === "drying") return recipes ? "canning/drying-recipes" : "canning/drying";
+    return recipes ? "canning/recipes" : "canning";
+  }
+
   private nav(path: string) {
     this.dispatchEvent(
       new CustomEvent("home-inventory-navigate", { detail: path, bubbles: true, composed: true }),
@@ -64,7 +82,7 @@ export class HomeInventoryCanning extends LitElement {
 
   /** "Protokoll anlegen" on a canning recipe: back to the protocols, dialog with that recipe. */
   private async start(e: CustomEvent<number>) {
-    this.nav("canning");
+    this.nav(this.route(this.kind, false));
     await this.load();
     this.edit(undefined, e.detail);
   }
@@ -87,7 +105,7 @@ export class HomeInventoryCanning extends LitElement {
     this.message = "";
     this.renderRoot
       .querySelector<HomeInventoryCanningDialog>("home-inventory-canning-dialog")!
-      .open(this.md!, this.products, this.recipes, c, recipeId);
+      .open(this.md!, this.products, this.recipes, this.kind, c, recipeId);
   }
 
   private async removeCanning(c: Canning) {
@@ -117,10 +135,10 @@ export class HomeInventoryCanning extends LitElement {
 
   private detail(c: Canning) {
     const parts = [
-      t("canning.jars_left", { jars: c.jars, left: c.in_stock }),
+      pt(c.kind, "jars_left", { jars: c.jars, left: c.in_stock }),
       c.expires_on ? t("canning.until", { date: fmtDate(this.hass, c.expires_on) }) : "",
       c.temp != null ? `${c.temp} °C` : "",
-      c.minutes != null ? `${c.minutes} ${t("recipes.minutes_unit")}` : "",
+      c.minutes != null ? fmtDuration(this.hass, c.kind, c.minutes) : "",
       c.recipe ?? "",
     ];
     return parts.filter(Boolean).join(" · ");
@@ -129,6 +147,7 @@ export class HomeInventoryCanning extends LitElement {
   /** The protocol list with its primary action. */
   private protocols() {
     if (!this.rows) return nothing;
+    const rows = this.rows.filter((c) => c.kind === this.kind);
     return html`<div class="bar">
         <button class="primary" data-testid="canning-add" @click=${() => this.edit()}>
           ${t("canning.add")}
@@ -136,9 +155,9 @@ export class HomeInventoryCanning extends LitElement {
       </div>
       ${this.message ? html`<p class="done" role="status" data-testid="canning-done">${this.message}</p>` : nothing}
       ${
-        this.rows.length
+        rows.length
           ? html`<ul>
-              ${this.rows.map(
+              ${rows.map(
                 (c) =>
                   html`<li data-testid="canning-row" data-charge=${c.charge}>
                     <button type="button" class="row" @click=${() => this.edit(c)}>
@@ -155,27 +174,45 @@ export class HomeInventoryCanning extends LitElement {
                   </li>`,
               )}
             </ul>`
-          : html`<p class="empty">${t("canning.empty")}</p>`
+          : html`<p class="empty">${pt(this.kind, "empty")}</p>`
       }`;
   }
 
   render() {
-    const recipes = this.section === "recipes";
+    const recipes = this.recipesShown;
+    const kind = this.kind;
+    const kinds = preserveKinds();
     return html`${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
+      ${
+        kinds.length > 1
+          ? html`<nav aria-label=${t("preserve.kind_label")}>
+              ${kinds.map(
+                (k) =>
+                  html`<button
+                    data-testid=${`preserve-${k}`}
+                    aria-current=${k === kind ? "page" : "false"}
+                    @click=${() => this.nav(this.route(k, recipes))}
+                  >
+                    ${t(`preserve.${k}`)}
+                  </button>`,
+              )}
+            </nav>`
+          : nothing
+      }
       <nav aria-label=${t("canning.view.label")}>
         ${(["protocols", "recipes"] as const).map(
           (v) =>
             html`<button
               data-testid=${`canning-view-${v}`}
               aria-current=${(v === "recipes") === recipes ? "page" : "false"}
-              @click=${() => this.nav(v === "recipes" ? "canning/recipes" : "canning")}
+              @click=${() => this.nav(this.route(kind, v === "recipes"))}
             >
               ${t(`canning.view.${v}`)}
             </button>`,
         )}
       </nav>
       <div @home-inventory-canning-start=${this.start}>
-        ${recipes ? html`<home-inventory-recipes .hass=${this.hass} .canning=${true}></home-inventory-recipes>` : this.protocols()}
+        ${recipes ? html`<home-inventory-recipes .hass=${this.hass} .canning=${kind}></home-inventory-recipes>` : this.protocols()}
       </div>
       <home-inventory-canning-dialog
         .hass=${this.hass}

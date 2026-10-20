@@ -453,6 +453,35 @@
         }
       }
     },
+    "drying": {
+      "name": "Dörrprotokoll",
+      "description": "Einen Dörrvorgang nach einem Dörrrezept erfassen: neue Charge, die Packungen werden eingebucht. Gibt batch_id (für Etiketten drucken) und charge zurück.",
+      "fields": {
+        "recipe": {
+          "name": "Dörrrezept",
+          "description": "Name des Dörrrezepts; es legt Produkt, Temperatur und Dauer fest."
+        },
+        "jars": {
+          "name": "Packungen",
+          "description": "Leer = Ergebnis des Rezepts."
+        },
+        "made_on": {
+          "name": "Hergestellt am",
+          "description": "Leer = heute."
+        },
+        "expires_on": {
+          "name": "Haltbar bis",
+          "description": "Leer = Herstellungsdatum + Haltbarkeit."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Name des Lagerorts; leer = Standard-Lagerort des Produkts."
+        },
+        "notes": {
+          "name": "Notizen"
+        }
+      }
+    },
     "print_recipe": {
       "name": "Rezept drucken",
       "description": "Ein Rezept auf dem Bondrucker drucken: Zutaten (auf die Portionen umgerechnet) und nummerierte Schritte.",
@@ -510,6 +539,7 @@
         "recipes": "Rezepte",
         "plan": "Speiseplan (inkl. Kalender-Entität)",
         "canning": "Einkochen",
+        "drying": "Dörren",
         "opened": "Anbrechen",
         "frozen": "Einfrieren"
       }

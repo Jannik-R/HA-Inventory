@@ -230,3 +230,30 @@ canning:
       selector:
         text:
           multiline: true
+drying:
+  fields:
+    recipe:
+      required: true
+      example: Apfelchips
+      selector:
+        text:
+    jars:
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    made_on:
+      selector:
+        date:
+    expires_on:
+      selector:
+        date:
+    location:
+      example: Keller
+      selector:
+        text:
+    notes:
+      selector:
+        text:
+          multiline: true

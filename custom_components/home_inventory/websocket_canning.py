@@ -41,6 +41,7 @@ async def ws_cannings(hass: HomeAssistant, connection, msg: dict) -> None:
             {
                 vol.Required("made_on"): DAY,
                 vol.Required("jars"): PACKAGES,
+                vol.Optional("kind", default="canning"): vol.In(("canning", "drying")),
                 vol.Optional("location_id"): NULL_ID,
                 vol.Exclusive("product_id", "product"): ID,
                 vol.Exclusive("product", "product"): _NEW_PRODUCT,

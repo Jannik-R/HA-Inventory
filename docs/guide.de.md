@@ -17,7 +17,7 @@ Anleitung. Oben gibt es diese Tabs:
 | **Einkauf** | Einkaufsliste aus Mindestmengen, Rezepten und von Hand ([6](#6-einkaufsliste)) |
 | **Rezepte** | Rezepte mit Vorratsabgleich, Import und Kochmodus ([7](#7-rezepte)) |
 | **Speiseplan** | Gerichte nach Tag und Mahlzeit ([7a](#7a-speiseplan)) |
-| **Einkochen** | Einkochprotokolle und Einkochrezepte ([7b](#7b-einkochen)) |
+| **Haltbarmachen** | Einkoch- und Dörrprotokolle und ihre Rezepte ([7b](#7b-einkochen-und-dörren)) |
 | **Einstellungen** | Nur Admins: Lagerorte, Einheiten, Kategorien, Standards ([1](#1-erste-schritte), [9](#9-kategorien-produktarten-und-vererbung)) |
 
 ## Inhalt
@@ -33,7 +33,7 @@ Anleitung. Oben gibt es diese Tabs:
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
 7a. [Speiseplan](#7a-speiseplan)
-7b. [Einkochen](#7b-einkochen)
+7b. [Einkochen und Dörren](#7b-einkochen-und-dörren)
 8. [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)
 9. [Kategorien, Produktarten und Vererbung](#9-kategorien-produktarten-und-vererbung)
 10. [Tipps und häufige Fragen](#10-tipps-und-häufige-fragen)
@@ -310,7 +310,7 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/recipe-de-dark.png"><img src="images/recipe-de-light.png" alt="Aufgeklapptes Rezept mit Zutatenstatus und Schritten" width="300"></picture></p>
 
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
-[Einkochen](#7b-einkochen), nicht hier). Das Suchfeld findet Name und
+[Einkochen und Dörren](#7b-einkochen-und-dörren), nicht hier). Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, die nummerierten Schritte, Quelle und Bild; **Portionen**
 rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept auf die Liste
 (siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
@@ -462,7 +462,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Kalender**: Der Plan ist zusätzlich ein nur lesbarer Kalender in Home Assistant, Entität *Speiseplan*. Jedes Gericht ist ein ganztägiges Ereignis mit dem Titel „Mahlzeit: Gericht“ (z. B. „Mittag: Spaghetti“); die Beschreibung zeigt die Portionen. Geändert wird der Plan nur in Vorrat.
 
-## 7b. Einkochen
+## 7b. Einkochen und Dörren
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/canning-de-dark.png"><img src="images/canning-de-light.png" alt="Tab Einkochen mit Einkochprotokollen" width="300"></picture></p>
 
@@ -470,14 +470,15 @@ Selbst eingekochte Gläser (Marmelade, Kompott, Eingelegtes …) buchst du über
 ein. Jedes Protokoll bekommt eine Charge. Die Etiketten tragen sie, daher bucht ein Scan genau ein
 Glas dieser Charge aus.
 
-Der Tab **Einkochen** hat oben zwei Knöpfe: **Protokolle** und **Rezepte**.
+Der Tab **Haltbarmachen** hat oben zwei Knöpfe: **Protokolle** und **Rezepte**. Sind Einkochen und Dörren
+beide eingeschaltet, wählst du darüber **Einkochen** oder **Dörren** (siehe unten).
 
 **Protokolle** zeigt die Protokolle, neueste zuerst, mit Charge, Produkt, Gläsern (hergestellt und noch
 vorhanden), Temperatur und Dauer.
 
 **Protokoll anlegen**:
 
-1. Tab **Einkochen**, Ansicht **Protokolle**, Knopf **Protokoll anlegen**.
+1. Tab **Haltbarmachen**, Ansicht **Protokolle**, Knopf **Protokoll anlegen**.
 2. **Einkochrezept** (optional): Mit einem Rezept ist das Produkt festgelegt (es steht als
    **Ergibt: …** da), und **Gläser**, **Temperatur** und **Dauer** werden aus dem Rezept vorausgefüllt.
    Du kannst sie ändern.
@@ -496,7 +497,7 @@ vorhanden), Temperatur und Dauer.
 > [!NOTE]
 > Herstellungsdatum, Produkt und Gläser bleiben, weil die Etiketten sie tragen.
 
-**Rezepte** (Ansicht im Tab **Einkochen**) zeigt nur die Einkochrezepte, mit derselben Liste, Suche,
+**Rezepte** (Ansicht im Tab **Haltbarmachen**) zeigt nur die Einkochrezepte, mit derselben Liste, Suche,
 Import und Bearbeitung wie die Rezeptliste. **Einkochrezept anlegen** öffnet den Rezeptdialog:
 
 - **Name**, **Zubereitung** (Schritte), Quelle und Bild, Zutaten wie bei normalen Rezepten.
@@ -518,6 +519,12 @@ Produkt ein (Kategorie *Eingekochtes*), ohne Charge.
 **Etiketten**: Das Etikett zeigt die Charge in der Markenzeile. Der QR-Code enthält sie, daher bucht ein
 Scan im **Bestand** (Schalter auf Einbuchen oder Auslagern) ein Glas dieser Charge aus.
 
+**Dörren** funktioniert genauso, mit eigenen Protokollen und Rezepten: oben **Dörren** wählen (oder
+nur das Modul Dörren einschalten). Statt Gläsern zählst du **Packungen** (Beutel, Dosen), die
+**Dauer** gibst du in Stunden an (halbe Stunden gehen, z. B. 7,5). Die Charge zählt mit dem Einkochen
+zusammen weiter (`JJJJMMTT-n`). Neue Produkte legst du z. B. unter *Gedörrtes* an (Trockenobst,
+Gemüsechips, Getrocknete Kräuter, Getrocknete Pilze, Jerky; Haltbarkeit 180 Tage als *Richtwert*).
+
 ## 8. Etiketten und Bondrucker
 
 Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. So weißt du bei jeder
@@ -530,7 +537,7 @@ ohne Aufdruck. Ein Scan des Etiketts bucht die Packung aus.
   Mit *Kein Drucker* öffnet sich der Druckdialog des Browsers.
 - **Beim Einbuchen**: Häkchen **Etiketten drucken**, ein Etikett pro Packung (höchstens 20).
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
-- **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen)).
+- **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen-und-dörren)).
 - Bei mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 
 **Bondrucker** (für Einkaufszettel, Rezepte und Speiseplan): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >

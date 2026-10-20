@@ -340,8 +340,11 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
 - Panel: done line with undo and (after freezing) *Etikett drucken*; labels print "ca." for frozen
   batches. Websocket `home_inventory/freeze {thaw, …}`, `home_inventory/frozen_undo`; services
   `home_inventory.freeze_package` / `thaw_package` (code, packages, location, to_location).
-- Not built: a scan mode *Einfrieren* (the services cover NFC / automations), an expiry view filter
-  for frozen batches (their warn days come late anyway).
+- Scan mode *Einfrieren* (route `/home_inventory/freeze`, added 2026-10-20 on request;
+  `codes.freeze_scan`, `home_inventory/freeze_scan`): one package; EAN / name: earliest fresh one, a label:
+  that batch, a frozen batch's label: thaw it. A scanned location label is the target when it is a
+  freezer, else the source. Not built: an expiry view filter for frozen batches (their warn days come
+  late anyway).
 - Module off (decided 2026-10-20): nothing is frozen and no date changes, also not by the freezer rule
   (`db.Connection.freezing`, set from the options at setup; `frozen.frozen_days` returns None).
 

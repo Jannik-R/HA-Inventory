@@ -124,3 +124,19 @@ def test_module_off_changes_no_date(conn) -> None:
     inv.move(conn, fresh, loc(conn), freezer(conn), 1)
     assert stock(conn)[(fresh, freezer(conn))] == 1  # a plain move
     assert err_key(lambda: inv.freeze(conn, meat)) == "not_freezable"
+
+
+def test_freeze_scan(conn) -> None:
+    meat = product(conn, "Rinderhack", "Hackfleisch", ean="4006040053026")
+    fridge = loc(conn)
+    fresh = inv.book_in(conn, meat, 2, "2026-10-22", fridge)
+    res = inv.freeze_scan(conn, "4006040053026", TODAY)  # EAN: earliest fresh one
+    assert (res["thaw"], res["location"]) == (False, "Gefrierschrank")
+    # the frozen batch's label thaws it; a scanned location that is no freezer is the target
+    code = inv.label_info(conn, res["batch_id"])["code"]
+    back = inv.freeze_scan(conn, code, TODAY, location_id=loc(conn, "Vorratsschrank"))
+    assert (back["thaw"], back["location"]) == (True, "Vorratsschrank")
+    # a fresh batch's label freezes that batch
+    again = inv.freeze_scan(conn, inv.label_info(conn, fresh)["code"], TODAY, freezer(conn))
+    assert (again["thaw"], again["location"]) == (False, "Gefrierschrank")
+    assert (fresh, fridge) not in stock(conn)

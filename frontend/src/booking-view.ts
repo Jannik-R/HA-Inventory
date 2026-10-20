@@ -17,7 +17,8 @@ import {
   type StockRow,
   type Location,
 } from "./api";
-import { isLocationCode, locationLine, scannedLocation } from "./location-scan";
+import type { FrozenDone } from "./frozen-action";
+import { locationLine } from "./location-scan";
 import "./booking-scan";
 import type { HomeInventoryBookingScan } from "./booking-scan";
 import { blankProduct } from "./product-fields";
@@ -26,13 +27,12 @@ import { doneStyles } from "./booking-done";
 import { hitList } from "./booking-hits";
 import type { Booked, HomeInventoryBookingForm } from "./booking-form";
 import { modeSwitch, modesStyles, type Mode } from "./booking-modes";
-import { openLabel, openPackage, type Opened } from "./api-open";
-import { afterLine, openWith, scanLabel } from "./booking-after";
+import { openPackage, type Opened, freezeScan } from "./api-open";
+import { afterLine, openWith, frozenWith, scanCode } from "./booking-after";
 
 export type { Mode };
 
 const EAN = /^\d{8,14}$/;
-const LABEL = /^PTRY:/i;
 
 /** The stock view's input (scanner, camera, name): filters the list (`query` event) and, when booking,
  *  opens a dialog with the hits and the booking form. Fires `booked` after each booking. */
@@ -49,6 +49,7 @@ export class HomeInventoryBooking extends LitElement {
     message: { state: true },
     undo: { state: true },
     opened: { state: true },
+    frozen: { state: true },
     error: { state: true },
     busy: { state: true },
   };
@@ -65,6 +66,7 @@ export class HomeInventoryBooking extends LitElement {
   declare undo?: Taken[];
   /** The last package opened ("open" mode); shown with the message as undo and label offer. */
   declare opened?: Opened;
+  declare frozen?: FrozenDone;
   declare error: string;
   declare busy: boolean;
   /** A scanned location label: the location of the following bookings (until another one). */
@@ -99,7 +101,7 @@ export class HomeInventoryBooking extends LitElement {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
-      this.undo = this.opened = undefined;
+      this.undo = this.opened = this.frozen = undefined;
     }
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
@@ -177,24 +179,10 @@ export class HomeInventoryBooking extends LitElement {
     const hass = this.hass;
     const id = ++this.seq;
     this.message = "";
-    this.undo = this.opened = undefined;
+    this.undo = this.opened = this.frozen = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
-    if (isLocationCode(q)) {
-      const at = await this.run(() => scannedLocation(hass, q));
-      if (at === undefined) return; // failed: the error shows
-      this.query = "";
-      if (at) this.at = at;
-      else this.error = t("location_label.unknown");
-      return;
-    }
-    if (LABEL.test(q)) {
-      // A label names its batch: it books out, or opens one package in "open" mode.
-      const code = q.replace(LABEL, "");
-      return this.mode === "open"
-        ? openWith(this, () => openLabel(hass, code))
-        : scanLabel(this, code);
-    }
+    if (await scanCode(this, hass, q)) return;
     if (EAN.test(q)) {
       const res = await this.run(() => lookup(hass, q));
       if (!res || id !== this.seq) return;
@@ -227,6 +215,8 @@ export class HomeInventoryBooking extends LitElement {
     const id = ++this.seq;
     this.hits = undefined;
     if (this.mode !== "in" && !p.id) return void (this.error = t("book.unknown"));
+    if (this.mode === "freeze")
+      return frozenWith(this, () => freezeScan(this.hass!, p.ean ?? p.name, this.at?.id));
     if (this.mode === "open")
       return openWith(this, () =>
         openPackage(this.hass!, { product_id: p.id!, location_id: this.at?.id }),

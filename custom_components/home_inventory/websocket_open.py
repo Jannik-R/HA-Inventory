@@ -16,7 +16,14 @@ from .ws_validate import CODE, ID, PACKAGES
 
 
 def async_register(hass: HomeAssistant) -> None:
-    for command in (ws_open_package, ws_open_label, ws_open_undo, ws_freeze, ws_frozen_undo):
+    for command in (
+        ws_open_package,
+        ws_open_label,
+        ws_open_undo,
+        ws_freeze,
+        ws_freeze_scan,
+        ws_frozen_undo,
+    ):
         websocket_api.async_register_command(hass, command)
 
 
@@ -97,3 +104,22 @@ async def ws_frozen_undo(hass: HomeAssistant, connection, msg: dict) -> None:
     """Undo a freeze / thaw by the booking id it returned (once)."""
     await run(hass, partial(inventory.undo_frozen, user_id=connection.user.id), msg["booking_id"])
     connection.send_result(msg["id"])
+
+
+@websocket_api.websocket_command(
+    {
+        vol.Required("type"): "home_inventory/freeze_scan",
+        vol.Required("code"): CODE,
+        vol.Optional("location_id"): ID,
+    }
+)
+@websocket_api.async_response
+async def ws_freeze_scan(hass: HomeAssistant, connection, msg: dict) -> None:
+    """Scan mode Einfrieren: freeze one package (a frozen batch's label: thaw it)."""
+    fn = partial(
+        inventory.freeze_scan,
+        today=dt_util.now().date(),
+        location_id=msg.get("location_id"),
+        user_id=connection.user.id,
+    )
+    connection.send_result(msg["id"], await run(hass, fn, msg["code"]))

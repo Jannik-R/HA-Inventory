@@ -77,7 +77,14 @@ export class HomeInventoryScanner extends LitElement {
     }
     // One detect() at a time: the next one is armed only after the previous finished.
     const tick = async () => {
-      const [hit] = await detector.detect(video).catch(() => []);
+      let hit;
+      try {
+        [hit] = await detector.detect(video);
+      } catch {
+        this.stop();
+        this.error = t("scan.detector"); // a failing detector never recovers: say so instead of looping
+        return;
+      }
       if (!dlg.open) return;
       if (hit) {
         dlg.close();

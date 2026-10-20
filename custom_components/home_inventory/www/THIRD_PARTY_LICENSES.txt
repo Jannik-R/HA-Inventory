@@ -273,7 +273,7 @@ Apache License
 
 ------------------------------------------------------------------------
 
-barcode-detector 3.2.2 (MIT)
+barcode-detector 3.2.3 (MIT)
 
 MIT License
 
@@ -836,7 +836,7 @@ Apache License
 
 ------------------------------------------------------------------------
 
-zxing-wasm 3.1.5 (MIT)
+zxing-wasm 3.1.6 (MIT)
 
 MIT License
 

@@ -655,6 +655,6 @@ Right after the booking use **Undo**, otherwise fix the batch with the pencil in
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`home_inventory.book_in`, `home_inventory.book_out`), printing (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), the shopping list (`home_inventory.shop_recipe`), the meal plan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) and canning (`home_inventory.canning`) (see [README](../README.md#services-automations)).
+For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`home_inventory.book_in`, `home_inventory.book_out`), printing (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), the shopping list (`home_inventory.shop_recipe`), the meal plan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) freezing (`home_inventory.freeze_package`, `home_inventory.thaw_package`), canning and drying (`home_inventory.canning`, `home_inventory.drying`) (see [README](../README.md#services-automations)). The other way round, the events `home_inventory_booked`, `home_inventory_below_min` and `home_inventory_expired` tell automations about bookings, undercut minimums and expired batches (see [README](../README.md#events)).
 
 </details>

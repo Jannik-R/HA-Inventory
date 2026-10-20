@@ -30,6 +30,7 @@ Vorhanden:
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
 - Nicht-Lebensmittel: Kategorien mit *Kein Lebensmittel* (vererbt) sind nie Rezeptzutaten; vorbelegt *Haushalt & Drogerie*, *Haustechnik* (Batterien, Akkus, Leuchtmittel nach Sockel), *Hausapotheke* (verbrauchen bis, Warnung 30 Tage) und *Tierbedarf*
 - Haltbarkeit (Tage, vererbt wie die Warnung): ein leeres Ablaufdatum beim Einbuchen (Panel, Kassenbon-Import, `home_inventory.book_in`) wird zu heute + Haltbarkeit und steht als *geschätzt* da, bis die Bestandszeile bearbeitet wird; die Option *Geschätztes Ablaufdatum vorausfüllen* schreibt die Schätzung schon ins Datumsfeld; vorbelegt mit üblichen Werten für die Lebensmittel-Kategorien (z. B. *H-Milch* 90, *Brötchen* 2, *Eingekochtes* 365 Tage)
+- HA-Events für Automationen: `home_inventory_booked`, `home_inventory_below_min`, `home_inventory_expired` (siehe [Events](#events))
 - Lagerort-Etiketten: QR `PTRY:L<id>` je Lagerort (Etikett-Symbol unter *Einstellungen → Lagerorte*); im Buchungsfeld gescannt gilt dieser Lagerort für die folgenden Buchungen
 - Inventur je Lagerort (*Inventur* im Bestand): alles scannen, was dort liegt; nicht Gescanntes wird ausgebucht, Gefundenes, das nicht im Bestand war, eingebucht, beides als Korrektur nach einer Rückfrage
 - Datumsarten: Mindesthaltbarkeit, Verbrauchsdatum oder *Richtwert* für alles ohne aufgedrucktes Datum (frisches Obst und Gemüse, vorbelegt auf *Obst & Gemüse*): steht als „ca.“-Datum da (auch auf dem Etikett), immer aus der Haltbarkeit vorausgefüllt; ein abgelaufenes Verbrauchsdatum ist rot, Mindesthaltbarkeit und Richtwert fett orange
@@ -278,6 +279,16 @@ actions:
       batch_id: "{{ booked.batch_id }}"
       count: 2
 ```
+
+### Events
+
+Automationen können auf diese Events am HA-Eventbus reagieren (Auslöser *Event*), ohne Sensoren zu beobachten:
+
+| Event | Wann | Daten |
+|---|---|---|
+| `home_inventory_booked` | nach jeder Buchungszeile (Panel, Aktionen, Kassenbon-Import, Inventur, Rückgängig; Einfrieren und Auftauen schreiben zwei Zeilen: -n auf der alten, +n auf der neuen Charge) | `booking_id`, `kind` (`in`, `out`, `move`, `correct`, `open`, `freeze`, `thaw`), `packages`, `source`, `user_id`, `batch_id`, `product_id`, `name`, `expires_on`, `location`, `to_location` |
+| `home_inventory_below_min` | wenn eine Mindestmenge (Kategorie oder Produkt) neu unterschritten wird; nicht erneut, solange sie unterschritten bleibt | `key` (`p<id>` / `c<id>`), `name`, `product_id`, `category_id`, `packages`, `amount`, `unit` |
+| `home_inventory_expired` | um Mitternacht, einmal je Charge im Bestand, deren Datum gestern war | `batch_id`, `product_id`, `name`, `expires_on`, `expiry_type`, `packages`, `locations` |
 
 ## Entwicklung
 

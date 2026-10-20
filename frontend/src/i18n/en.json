@@ -498,5 +498,10 @@
   "stocktake.confirm_title": "Book the differences?",
   "stocktake.confirm_message": "{missing} pkg. missing, {more} pkg. too many. Both are booked as corrections.",
   "stocktake.done": "{n} corrections booked.",
-  "stocktake.empty": "According to the stock nothing is stored here. Scanned packages show under “Not in stock”."
+  "stocktake.empty": "According to the stock nothing is stored here. Scanned packages show under “Not in stock”.",
+  "location_label.print": "Print a label for “{name}”",
+  "location_label.hint": "Scanned in the booking field, this location applies to the following bookings.",
+  "location_label.active": "Location: {name} (for the following bookings)",
+  "location_label.clear": "Clear",
+  "location_label.unknown": "Unknown location."
 }

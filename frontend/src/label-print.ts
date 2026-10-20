@@ -41,6 +41,8 @@ export async function printLabels(
   hass: Hass,
   batch_id: number,
   count: number,
+  /** Labels of a location (`batch_id` is then its id): code PTRY:L<id>. */
+  location = false,
 ): Promise<number | null> {
   if (count > 2) {
     const ok = await confirmDialog({
@@ -49,7 +51,10 @@ export async function printLabels(
     });
     if (!ok) return null;
   }
-  const res = await printLabelsWs(hass, { batch_id, count });
+  const res = await printLabelsWs(
+    hass,
+    location ? { location_id: batch_id, count } : { batch_id, count },
+  );
   if ("printed" in res) return res.printed;
   printInBrowser(res.image, res.count, res.width_mm, res.height_mm);
   return 0;

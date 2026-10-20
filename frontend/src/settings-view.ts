@@ -6,6 +6,9 @@ import "./settings-dialog";
 import "./defaults-view";
 import "./meal-times-view";
 import "./move-location";
+import "./label-dialog";
+import type { HomeInventoryLabelDialog } from "./label-dialog";
+import { locationLabelButton } from "./location-scan";
 import { SECTIONS, type Section } from "./settings-model";
 import type { HomeInventoryMoveLocation } from "./move-location";
 import type { HomeInventorySettingsDialog } from "./settings-dialog";
@@ -265,9 +268,10 @@ export class HomeInventorySettings extends LitElement {
   private renderLocations() {
     const rows = this.data!.locations;
     return html`<ul>
-        ${rows.map((l) => this.row(l.name, l.freezer ? t("settings.location.freezer") : "", () => this.open("location", l), 0, nothing, this.actions("location", l)))}
+        ${rows.map((l) => this.row(l.name, l.freezer ? t("settings.location.freezer") : "", () => this.open("location", l), 0, nothing, html`${locationLabelButton(l, () => this.renderRoot.querySelector<HomeInventoryLabelDialog>("home-inventory-label-dialog")!.open({ id: l.id, name: l.name, packages: 0, location: true }))}${this.actions("location", l)}`))}
       </ul>
       ${this.empty(rows)}
+      <home-inventory-label-dialog .hass=${this.hass}></home-inventory-label-dialog>
       <home-inventory-move-location
         .hass=${this.hass}
         .locations=${rows}

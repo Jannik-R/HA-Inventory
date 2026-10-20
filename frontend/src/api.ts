@@ -254,8 +254,10 @@ type PrintResult =
   { printed: number } | { image: string; count: number; width_mm: number; height_mm: number };
 export const getLabelConfig = (hass: Hass) =>
   hass.callWS<LabelConfig>({ type: "home_inventory/label_config" });
-export const printLabelsWs = (hass: Hass, data: { batch_id: number; count: number }) =>
-  hass.callWS<PrintResult>({ type: "home_inventory/print_labels", ...data });
+export const printLabelsWs = (
+  hass: Hass,
+  data: { batch_id: number; count: number } | { location_id: number; count: number },
+) => hass.callWS<PrintResult>({ type: "home_inventory/print_labels", ...data });
 export const printShoppingList = (hass: Hass) =>
   hass.callWS<{ printed: number }>({ type: "home_inventory/print_shopping_list" });
 export const printRecipe = (hass: Hass, recipe_id: number, servings: number) =>

@@ -35,7 +35,7 @@ from .expiry_recipes import expiring_recipes
 from .frozen import freeze, thaw, undo_frozen
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
-from .labels import book_out_code, label_info, open_code
+from .labels import book_out_code, label_info, location_label_info, open_code
 from .master import delete, list_rows, master_data, save, save_defaults
 from .meal_plan import (
     MEALS,
@@ -125,6 +125,7 @@ __all__ = [
     "label_info",
     "list_products",
     "list_rows",
+    "location_label_info",
     "master_data",
     "meal_at",
     "meal_times",

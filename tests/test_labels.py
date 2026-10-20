@@ -39,6 +39,15 @@ def test_code_format_and_book_out(conn):
         assert err.value.translation_key == key
 
 
+def test_location_label(conn):
+    fridge = loc(conn)
+    info = inv.location_label_info(conn, fridge)
+    assert (info["code"], info["name"]) == (f"PTRY:L{fridge}", "Kühlschrank")
+    assert label.render(info, 57, 32, 0).size[0] > 0
+    with pytest.raises(InventoryError, match="not_found"):
+        inv.location_label_info(conn, 99999)
+
+
 def test_no_ean_and_no_date(conn):
     p = product(conn, category="Papier")  # no shelf life: no guessed date
     fridge = loc(conn)

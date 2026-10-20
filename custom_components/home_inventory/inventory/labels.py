@@ -16,6 +16,17 @@ from .opened import open_package
 _CODE = re.compile(r"(P?)(\d+):(\d{4}-\d{2}-\d{2})?(?::(\d{4})(\d{2})(\d{2})-(\d+))?")
 
 
+def location_label_info(conn: sqlite3.Connection, location_id: int) -> dict:
+    """Label of a location (shelf, compartment): its name and the code PTRY:L<id>; scanning it in
+    the booking field sets the location of the following bookings (panel)."""
+    row = conn.execute(
+        "SELECT name FROM location WHERE id = ? AND active = 1", (location_id,)
+    ).fetchone()
+    if not row:
+        raise InventoryError("not_found")
+    return {"name": row["name"], "brand": None, "expires_on": None, "code": f"PTRY:L{location_id}"}
+
+
 def label_info(conn: sqlite3.Connection, batch_id: int) -> dict:
     """What the printer needs to draw a label of this batch, incl. the QR payload.
 

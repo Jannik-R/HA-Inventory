@@ -1,11 +1,8 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { formStyles } from "./styles";
-import { mdiReceiptTextOutline } from "@mdi/js";
-import { backdropClick, escGuard, icon } from "./ui";
-import { hasExternal } from "./modules";
-import "./receipt-import";
-import type { HomeInventoryReceiptImport } from "./receipt-import";
+import { backdropClick, escGuard } from "./ui";
+import { receiptEntry } from "./booking-receipt";
 import {
   errorMessage,
   getMasterData,
@@ -18,7 +15,9 @@ import {
   type Product,
   type SearchHit,
   type StockRow,
+  type Location,
 } from "./api";
+import { isLocationCode, locationLine, scannedLocation } from "./location-scan";
 import "./booking-scan";
 import type { HomeInventoryBookingScan } from "./booking-scan";
 import { blankProduct } from "./product-fields";
@@ -39,6 +38,7 @@ const LABEL = /^PTRY:/i;
  *  opens a dialog with the hits and the booking form. Fires `booked` after each booking. */
 export class HomeInventoryBooking extends LitElement {
   static properties = {
+    at: { state: true },
     hass: { attribute: false },
     mode: { attribute: false },
     query: { state: true },
@@ -67,6 +67,8 @@ export class HomeInventoryBooking extends LitElement {
   declare opened?: Opened;
   declare error: string;
   declare busy: boolean;
+  /** A scanned location label: the location of the following bookings (until another one). */
+  declare at?: Location;
 
   private md?: MasterData;
   /** Latest request; slower older answers (and answers after a reset) are dropped. */
@@ -178,6 +180,14 @@ export class HomeInventoryBooking extends LitElement {
     this.undo = this.opened = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
+    if (isLocationCode(q)) {
+      const at = await this.run(() => scannedLocation(hass, q));
+      if (at === undefined) return; // failed: the error shows
+      this.query = "";
+      if (at) this.at = at;
+      else this.error = t("location_label.unknown");
+      return;
+    }
     if (LABEL.test(q)) {
       // A label names its batch: it books out, or opens one package in "open" mode.
       const code = q.replace(LABEL, "");
@@ -218,12 +228,14 @@ export class HomeInventoryBooking extends LitElement {
     this.hits = undefined;
     if (this.mode !== "in" && !p.id) return void (this.error = t("book.unknown"));
     if (this.mode === "open")
-      return openWith(this, () => openPackage(this.hass!, { product_id: p.id! }));
+      return openWith(this, () =>
+        openPackage(this.hass!, { product_id: p.id!, location_id: this.at?.id }),
+      );
     this.product = p;
     if (this.mode === "out") {
       const stock = await this.run(() => getStock(this.hass!, p.id!));
       if (id !== this.seq) return;
-      this.stock = stock;
+      this.stock = this.at ? stock?.filter((r) => r.location_id === this.at!.id) : stock;
     }
     await this.updateComplete;
     const form = this.renderRoot.querySelector<HomeInventoryBookingForm>(
@@ -246,24 +258,9 @@ export class HomeInventoryBooking extends LitElement {
       >
         ${modeSwitch(this.mode, (m) => this.setMode(m))}
       </home-inventory-booking-scan>
-      ${afterLine(this)} ${open ? nothing : error}
-      ${
-        this.mode === "in" && hasExternal("receipt_import")
-          ? html`<button
-              type="button"
-              class="receipt"
-              data-testid="receipt-import"
-              @click=${() => this.renderRoot.querySelector<HomeInventoryReceiptImport>("home-inventory-receipt-import")!.open()}
-            >
-              ${icon(mdiReceiptTextOutline)} ${t("receipt.open")}
-            </button>`
-          : nothing
-      }
-      <home-inventory-receipt-import
-        .hass=${this.hass}
-        .md=${this.md}
-        @booked=${this.receiptBooked}
-      ></home-inventory-receipt-import>
+      ${locationLine(this.at?.name, () => (this.at = undefined))} ${afterLine(this)}
+      ${open ? nothing : error}
+      ${receiptEntry(this.hass, this.md, this.mode === "in", this.receiptBooked)}
       <dialog
         data-testid="booking-dialog"
         @close=${this.closed}
@@ -298,6 +295,7 @@ export class HomeInventoryBooking extends LitElement {
       .product=${this.product}
       .md=${this.md}
       .stock=${this.stock}
+      .at=${this.at?.id}
       .busy=${this.busy}
       .run=${this.run}
       @booked=${this.booked}

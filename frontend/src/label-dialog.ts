@@ -17,7 +17,8 @@ export class HomeInventoryLabelDialog extends LitElement {
   declare hass?: Hass;
   declare count: string;
   declare error: string;
-  declare batch?: { id: number; name: string; packages: number };
+  /** `location`: labels of a location (id = location id), not of a batch. */
+  declare batch?: { id: number; name: string; packages: number; location?: boolean };
 
   constructor() {
     super();
@@ -25,7 +26,7 @@ export class HomeInventoryLabelDialog extends LitElement {
     this.error = "";
   }
 
-  async open(batch: { id: number; name: string; packages: number }, count = 1) {
+  async open(batch: { id: number; name: string; packages: number; location?: boolean }, count = 1) {
     this.batch = batch;
     this.count = String(Math.min(count, MAX_LABELS));
     this.error = "";
@@ -40,7 +41,8 @@ export class HomeInventoryLabelDialog extends LitElement {
     e.preventDefault();
     if (this.invalid()) return;
     try {
-      const n = await printLabels(this.hass!, this.batch!.id, Number(this.count));
+      const b = this.batch!;
+      const n = await printLabels(this.hass!, b.id, Number(this.count), b.location);
       if (n === null) return; // cancelled: stay in the dialog
       this.renderRoot.querySelector("dialog")?.close();
       this.dispatchEvent(
@@ -73,7 +75,9 @@ export class HomeInventoryLabelDialog extends LitElement {
         ${
           bad
             ? fieldMsg(t("valid.label_count", { max: MAX_LABELS }), "label-count")
-            : html`<span class="detail">${t("label.in_stock", { n: b.packages })}</span>`
+            : b.location
+              ? html`<span class="detail">${t("location_label.hint")}</span>`
+              : html`<span class="detail">${t("label.in_stock", { n: b.packages })}</span>`
         }
       </label>`,
       error: this.error,

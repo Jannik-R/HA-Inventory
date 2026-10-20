@@ -550,6 +550,11 @@ Scanning the label books the package out.
 - **Reprint**: tag icon on a batch in Bestand.
 - **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning-and-drying)).
 - Printing more than 2 labels at once asks first.
+- **Location labels** (admin): under *Settings → Locations*, the tag icon on a location (shelf,
+  compartment). Scanned in the booking field (book in, book out, open), that location applies to the
+  following bookings: booking in lands there, booking out and opening take from there. Above the field it
+  says "Location: …"; **Clear** or another location label changes it, so does leaving the stock view.
+  In [stocktaking](#4a-stocktaking) such a scan switches the location.
 
 **Receipt printer** (for the shopping list, recipes and meal plan): *Settings > Devices & services > Home Inventory > Configure >
 Receipt printer (shopping list)*. **Printer** is the device path (USB on the Home Assistant machine, e.g.

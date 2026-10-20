@@ -15,6 +15,7 @@ import {
   type StockRow,
 } from "./api";
 import { stocktakeApply, stocktakeScan, type StocktakeScan } from "./api-stocktake";
+import { isLocationCode, scannedLocation } from "./location-scan";
 import "./booking-scan";
 import type { HomeInventoryBookingScan } from "./booking-scan";
 
@@ -121,6 +122,12 @@ export class HomeInventoryStocktake extends LitElement {
     if (!code.trim() || !this.location) return;
     this.error = this.message = "";
     try {
+      if (isLocationCode(code)) {
+        const at = await scannedLocation(this.hass!, code);
+        this.query = "";
+        if (at) return void this.choose(at.id); // a location label switches the location
+        return void (this.error = t("location_label.unknown"));
+      }
       const s = await stocktakeScan(this.hass!, this.location, code.trim());
       const here = s.batches.filter((b) => this.rows.some((r) => r.batch_id === b.batch_id));
       if (here.length === 1) this.count(here[0].batch_id, 1);

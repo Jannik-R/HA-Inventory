@@ -554,6 +554,11 @@ ohne Aufdruck. Ein Scan des Etiketts bucht die Packung aus.
 - **Nachdrucken**: Etikett-Symbol an einer Charge im Bestand.
 - **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen-und-dörren)).
 - Bei mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
+- **Lagerort-Etiketten** (Admin): unter *Einstellungen → Lagerorte* das Etikett-Symbol am Lagerort
+  (Regal, Fach). Scannst du so ein Etikett im Buchungsfeld (Einbuchen, Auslagern, Anbrechen), gilt dieser
+  Lagerort für die folgenden Buchungen: Einbuchen landet dort, Auslagern und Anbrechen nehmen von dort.
+  Über dem Feld steht „Lagerort: …“; **Aufheben** oder ein anderes Lagerort-Etikett ändert das, das
+  Verlassen des Bestands auch. In der [Inventur](#4a-inventur) wechselt so ein Scan den Lagerort.
 
 **Bondrucker** (für Einkaufszettel, Rezepte und Speiseplan): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.

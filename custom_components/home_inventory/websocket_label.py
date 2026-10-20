@@ -64,18 +64,32 @@ async def ws_label_config(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "home_inventory/print_labels",
-        vol.Required("batch_id"): ID,
+        # a batch's labels, or a location's (code PTRY:L<id>)
+        vol.Exclusive("batch_id", "what"): ID,
+        vol.Exclusive("location_id", "what"): ID,
         vol.Required("count"): vol.All(int, vol.Range(min=1, max=MAX_LABELS)),
     }
 )
 @websocket_api.async_response
 async def ws_print_labels(hass: HomeAssistant, connection, msg: dict) -> None:
     """Print, or return the image for the browser (see async_print_labels)."""
-    connection.send_result(msg["id"], await async_print_labels(hass, msg["batch_id"], msg["count"]))
+    if "batch_id" not in msg and "location_id" not in msg:
+        connection.send_error(
+            msg["id"], websocket_api.ERR_INVALID_FORMAT, "batch_id or location_id"
+        )
+        return
+    result = await async_print_labels(
+        hass, msg.get("batch_id"), msg["count"], location_id=msg.get("location_id")
+    )
+    connection.send_result(msg["id"], result)
 
 
 async def async_print_labels(
-    hass: HomeAssistant, batch_id: int, count: int, browser: bool = True
+    hass: HomeAssistant,
+    batch_id: int | None,
+    count: int,
+    browser: bool = True,
+    location_id: int | None = None,
 ) -> dict:
     """`count` identical labels for a batch: printed, or one image the browser repeats `count` times.
 
@@ -84,7 +98,11 @@ async def async_print_labels(
     w, h, model = cfg["width_mm"], cfg["height_mm"], cfg["model"]
     if not model.network and not browser:
         raise ServiceValidationError(translation_domain=DOMAIN, translation_key="no_label_printer")
-    info = await run(hass, inventory.label_info, batch_id)
+    info = await (
+        run(hass, inventory.location_label_info, location_id)
+        if location_id is not None
+        else run(hass, inventory.label_info, batch_id)
+    )
     if model.network and not cfg["printer"]:
         raise HomeAssistantError(translation_domain=DOMAIN, translation_key="printer_unreachable")
     image = await hass.async_add_executor_job(label.render, info, w, h, model.bottom_reserve_mm)

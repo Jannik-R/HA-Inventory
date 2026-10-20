@@ -57,6 +57,7 @@ export class HomeInventoryBookingForm extends LitElement {
     product: { attribute: false },
     md: { attribute: false },
     stock: { attribute: false },
+    at: { attribute: false },
     busy: { attribute: false },
     run: { attribute: false },
     draft: { state: true },
@@ -70,6 +71,8 @@ export class HomeInventoryBookingForm extends LitElement {
   declare product?: Product;
   declare md?: MasterData;
   declare stock?: StockRow[];
+  /** A scanned location (booking view): preset as this booking's location. */
+  declare at?: number;
   declare busy: boolean;
   /** Parent's backend call wrapper (busy state, translated errors). */
   declare run: <T>(fn: () => Promise<T>) => Promise<T | undefined>;
@@ -98,7 +101,11 @@ export class HomeInventoryBookingForm extends LitElement {
   willUpdate(changed: PropertyValues) {
     if (changed.has("product")) {
       this.draft = this.product;
-      this.f = { ...blankForm(), expires_on: this.prefill() ? this.proposal() : "" };
+      this.f = {
+        ...blankForm(),
+        location_id: this.at ?? null,
+        expires_on: this.prefill() ? this.proposal() : "",
+      };
       this.initial = JSON.stringify(this.f);
       this.ai = { kind: "none" };
       const p = this.product;

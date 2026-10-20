@@ -38,6 +38,7 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
         "drying",
         "opened",
         "frozen",
+        "emergency",
     ]
     assert panel.config["external"]["off_lookup"] is True
 

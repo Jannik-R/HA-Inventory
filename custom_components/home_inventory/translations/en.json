@@ -17,7 +17,8 @@
   "entity": {
     "sensor": {
       "expired": { "name": "Expired", "unit_of_measurement": "packages" },
-      "soon": { "name": "Expiring soon", "unit_of_measurement": "packages" }
+      "soon": { "name": "Expiring soon", "unit_of_measurement": "packages" },
+      "emergency": { "name": "Emergency supply", "unit_of_measurement": "days" }
     },
     "todo": {
       "shopping": { "name": "Shopping list" }
@@ -541,7 +542,8 @@
         "canning": "Canning",
         "drying": "Drying",
         "opened": "Opened packages",
-        "frozen": "Freezing"
+        "frozen": "Freezing",
+        "emergency": "Emergency stock"
       }
     },
     "label_printer": {

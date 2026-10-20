@@ -21,14 +21,19 @@ if TYPE_CHECKING:
 
 @callback
 def module_off(
-    hass: HomeAssistant, entry: HomeInventoryConfigEntry, module: str, platform: str
+    hass: HomeAssistant,
+    entry: HomeInventoryConfigEntry,
+    module: str,
+    platform: str,
+    unique_id: str | None = None,
 ) -> bool:
-    """True when `module` is turned off; then its entities leave the registry (no "unavailable" ghost)."""
+    """True when `module` is turned off; then its entities (only the one `unique_id`, if given) leave
+    the registry (no "unavailable" ghost)."""
     if module in modules_of(entry.options):
         return False
     reg = er.async_get(hass)
     for e in er.async_entries_for_config_entry(reg, entry.entry_id):
-        if e.domain == platform:
+        if e.domain == platform and unique_id in (None, e.unique_id):
             reg.async_remove(e.entity_id)
     return True
 

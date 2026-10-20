@@ -20,6 +20,7 @@ Available:
 - Batches with expiry date, counted per package, spread over multiple storage locations
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
 - Expiry overview with a temporary "expiring soon" threshold and recipe suggestions that use up what expires (recipes ranked by expiring ingredients, then by availability; marked in the recipe list); sensors for expired / expiring packages
+- Emergency stock (module *Emergency stock*): tab *Emergency stock* checks the stock against the BBK recommendation for ten days per person (persons from *Household servings*): one row per food group with target, stock and the days it lasts; categories are assigned to a group; sensor *Emergency supply* (days); see the [guide](docs/guide.en.md#5a-emergency-stock)
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode, label code or product name, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
 - Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites); with an AI set up also posts without recipe data (Instagram, TikTok, YouTube: caption, video, image), pasted text and photos (e.g. a cookbook page)
@@ -198,16 +199,19 @@ This integration, and any export of its data, is meant for private use in your h
 
 ## Sensors
 
-The integration adds a device *Home Inventory* (German: *Vorrat*) with two sensors (packages, no polling, updated after every
-booking and at midnight). Entity names and ids follow the Home Assistant language (German:
-*Abgelaufen*, `sensor.vorrat_abgelaufen`; *Läuft bald ab*, `sensor.vorrat_lauft_bald_ab`):
+The integration adds a device *Home Inventory* (German: *Vorrat*) with two package sensors (no polling, updated after every
+booking and at midnight) and, with the module *Emergency stock*, the emergency supply sensor. Entity names and ids follow the
+Home Assistant language (German: *Abgelaufen*, `sensor.vorrat_abgelaufen`; *Läuft bald ab*, `sensor.vorrat_lauft_bald_ab`;
+*Notvorrat*, `sensor.vorrat_notvorrat`):
 
-| Sensor | Value | Attribute `items` |
+| Sensor | Value | Attribute |
 |---|---|---|
-| *Expired* | packages past their date | name, expires_on, days_left, packages, location per batch |
-| *Expiring soon* | packages within their warning period | same |
+| *Expired* | packages past their date | `items`: name, expires_on, days_left, packages, location per batch |
+| *Expiring soon* | packages within their warning period | `items`: same |
+| *Emergency supply* (module *Emergency stock*) | days the emergency stock lasts (the weakest food group) | `groups`: days per group (`drinks`, `grains`, `vegetables`, `fruit_nuts`, `dairy`, `meat_fish_eggs`, `fats`) |
 
-An opened package counts with its shorter date (opened on + *Keeps after opening*).
+An opened package counts with its shorter date (opened on + *Keeps after opening*). The emergency supply sensor
+exists only while its module is on; there is no service for it.
 
 Example: notify when something has expired.
 

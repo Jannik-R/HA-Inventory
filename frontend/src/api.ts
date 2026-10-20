@@ -64,8 +64,8 @@ export type InheritField =
   | "shelf_days"
   | "opened_days"
   | "frozen_days";
-/** Inherited down the category tree only (null at the root = food, not frozen goods). */
-export type CategoryFlag = "food" | "frozen_goods";
+/** Inherited down the category tree only (null at the root = food, not frozen goods, no emergency group). */
+export type CategoryFlag = "food" | "frozen_goods" | "emergency_group";
 export interface Category {
   id: number;
   parent_id: number | null;
@@ -88,6 +88,8 @@ export interface Category {
   frozen_days: number | null;
   /** 1 = bought frozen (keeps its printed date in the freezer), null = inherit; the root is not. */
   frozen_goods: 0 | 1 | null;
+  /** BBK food group of the emergency stock, "none" = not part of it, null = inherit; the root has none. */
+  emergency_group: string | null;
   effective: Record<InheritField | CategoryFlag, { value: number | string | null; source: Source }>;
 }
 export interface MasterData {

@@ -31,6 +31,7 @@ Anleitung. Oben gibt es diese Tabs:
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
 4a. [Inventur](#4a-inventur)
 5. [Was läuft ab?](#5-was-läuft-ab)
+5a. [Notvorrat](#5a-notvorrat)
 6. [Einkaufsliste](#6-einkaufsliste)
 7. [Rezepte](#7-rezepte)
 7a. [Speiseplan](#7a-speiseplan)
@@ -275,6 +276,34 @@ stehen oben, bei gleicher Zahl das Rezept mit mehr vorhandenen Zutaten. Ein Tipp
 > [!TIP]
 > Für Automationen gibt es die Sensoren *Abgelaufen* und *Läuft bald ab* (siehe [README](../README.de.md#sensoren)), z. B. für
 > eine Benachrichtigung aufs Handy.
+
+## 5a. Notvorrat
+
+Der Tab **Notvorrat** (Modul *Notvorrat*, eingeschaltet unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module*) prüft den Bestand gegen den Notvorrat, den das Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK) empfiehlt: Lebensmittel und Getränke für **zehn Tage**, je Person.
+
+Der Tab hat eine Zeile je Lebensmittelgruppe: **Soll** (was das BBK für den Haushalt empfiehlt), **Ist** (was du hast) und **Reicht für** (wie viele Tage der Bestand reicht). Die Zeile über den Gruppen zeigt den Gesamtvorrat: den kleinsten Wert aller Gruppen, denn die schwächste Gruppe begrenzt den ganzen Vorrat. Die Personenzahl ist die Option *Portionen im Haushalt* (Schritt *Haushalt*); das Soll ist die BBK-Menge je Person mal diese Zahl:
+
+| Gruppe | Je Person für 10 Tage |
+|---|---|
+| Getränke | 20 l |
+| Getreide, Brot, Nudeln, Reis, Kartoffeln | 3,5 kg |
+| Gemüse und Hülsenfrüchte | 4,0 kg |
+| Obst und Nüsse | 2,5 kg |
+| Milch und Milchprodukte | 2,6 kg |
+| Fleisch, Fisch und Eier | 1,5 kg |
+| Fette und Öle | 0,357 kg |
+
+**Was zählt**
+
+- Nur Packungen, die nicht abgelaufen sind. Abgelaufenes zählt nicht zum Vorrat.
+- Der Inhalt der Packung zählt, wenn er in kg oder l angegeben ist: 1 l zählt als 1 kg, also zählen 1,5 l Milch als 1,5 kg.
+- Ein Ei (ein Stück, Einheit *Stück*) zählt 60 g.
+- Eine Packung ohne Inhaltsangabe lässt sich nicht zählen. Die Zeile sagt es, z. B. „2 Packungen ohne Menge“, damit du weißt, was in der Rechnung fehlt.
+- *Reicht für* ist der Bestand der Gruppe geteilt durch das tägliche Soll, auf ganze Tage abgerundet.
+
+**Kategorien zuordnen**
+
+Jede Kategorie hat das Feld **Notvorrat**: die Lebensmittelgruppe, für die sie zählt, oder **Nicht im Notvorrat** für Dinge, die nicht zählen sollen (die vorbelegten *Kaffee*, *Tee* und *Alkohol* sind so eingestellt). Wie die anderen Felder wird es im Kategoriebaum vererbt (siehe [Abschnitt 9](#9-kategorien-produktarten-und-vererbung)), ein Produkt zählt also für die Gruppe seiner Kategorie oder der nächsten Kategorie darüber, die eine hat. Die vorbelegten Kategorien haben ihre Gruppe schon; für eigene Kategorien setzt du das Feld im Kategoriedialog.
 
 ## 6. Einkaufsliste
 

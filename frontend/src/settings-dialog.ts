@@ -1,5 +1,6 @@
 import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { hasModule } from "./modules";
+import { EMERGENCY_GROUPS } from "./api-emergency";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
 import { editDialog, fieldMsg, icon, numOrNull } from "./ui";
@@ -294,6 +295,21 @@ export class HomeInventorySettingsDialog extends LitElement {
                 [0, t("settings.frozen_goods.no")],
                 [1, t("settings.frozen_goods.yes")],
               ])}`
+            : ""
+        }
+        ${
+          hasModule("emergency")
+            ? this.inh(
+                "emergency_group",
+                t("settings.emergency_group.label"),
+                [
+                  ...EMERGENCY_GROUPS.map(
+                    (g) => [g, t(`emergency.group.${g}`)] as [string, string],
+                  ),
+                  ["none", t("settings.emergency_group.none")],
+                ],
+                false,
+              )
             : ""
         }
         ${minFields({ md, d, errs: this.errs, unitId: unit as number | null, set: (k, v) => this.set(k, v) })}

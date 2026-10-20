@@ -396,6 +396,8 @@ Kochmodus offen ist (wenn der Browser es erlaubt).
 > [!WARNING]
 > Die Timer laufen nur in diesem Browserfenster. Schließen fragt nach und beendet sie.
 
+**Gekocht ausbuchen**: Im aufgeklappten Rezept (nicht bei Einkochrezepten) und am Ende des Kochmodus öffnet **Gekocht** einen Vorschlag, welche Zutaten aus dem Vorrat gehen, für die angezeigten Portionen. Je Zeile: Haken, Zutat und Menge, **Produkt**, **Charge** (Ablauf, Lagerort, Packungen, angebrochen), **Aktion** (*Ausbuchen*, *Anbrechen* oder *Überspringen*), **Packungen** und ein Haken „und für den Rest eine weitere Packung anbrechen“. Vorgabe: die Charge mit dem frühesten Ablauf, ganze Packungen; der Rest bricht eine Packung an, wenn nicht schon eine angebrochen ist. Optionale Zutaten und Mengen, die sich nicht umrechnen lassen, sind abgehakt aus; Zutaten ohne Vorrat (z. B. Salz, Wasser) fehlen. Mit **Ausbuchen** werden alle angehakten Zeilen in einem Schritt gebucht; danach bietet das Panel **Rückgängig** an.
+
 Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat
 die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind
 Faustregeln:

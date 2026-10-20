@@ -23,7 +23,7 @@ Vorhanden:
 - Notvorrat (Modul *Notvorrat*): Tab *Notvorrat* prüft den Bestand gegen die BBK-Empfehlung für zehn Tage je Person (Personen aus *Portionen im Haushalt*): eine Zeile je Lebensmittelgruppe mit Soll, Ist und den Tagen, die es reicht; Kategorien werden einer Gruppe zugeordnet; Sensor *Notvorrat* (Tage); siehe [Anleitung](docs/guide.de.md#5a-notvorrat)
 - Etiketten (QR-Code von Produkt und Ablaufdatum) auf einem Etikettendrucker (Dymo LabelWriter 450 hinter einem USB-Druckserver oder per USB am HA-Rechner) oder über den Browser; Etikett scannen bucht aus
 - Aktionen für Automationen (Hardware-Scanner, NFC-Tags, ESPHome, Sprache): per Barcode, Etikett oder Produktname ein- und ausbuchen, Etiketten, Einkaufszettel und Rezepte drucken, ein Rezept auf die Einkaufsliste setzen, ein Gericht planen, ein Einkochprotokoll anlegen
-- Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten); mit eingerichteter KI auch Beiträge ohne Rezeptdaten (Instagram, TikTok, YouTube: Beschreibung, Video, Bild), eingefügter Text und Fotos (z. B. eine Kochbuchseite)
+- Rezeptdatenbank mit Zutaten als Kategorien: sehen, was vorrätig ist, Portionen umrechnen; Import per URL (Chefkoch, Mealie, Tandoor und die meisten Rezeptseiten); mit eingerichteter KI auch Beiträge ohne Rezeptdaten (Instagram, TikTok, YouTube: Beschreibung, Video, Bild), eingefügter Text und Fotos (z. B. eine Kochbuchseite); *Gekocht* bucht aus, was ein Rezept verbraucht hat (Vorschlag je Zutat, eine Bestätigung, rückgängig)
 - Mindestmenge je Kategorie als Menge in beliebiger Einheit (z. B. „2 kg Nudeln“, egal welche Marke) und/oder Packungszahl; Einkaufsliste im Panel und als To-do-Liste in HA; Produkte oder Kategorien von Hand hinzufügen (neue werden gleich angelegt)
 - Einkaufen nach Rezepten: Rezepte für eine Portionszahl auf die Einkaufsliste setzen; die fehlenden Mengen aller Rezepte werden je Kategorie zusammengezählt, Rezept-Einheiten (EL, Tasse, Prise) in ml oder g umgerechnet
 - Einkaufszettel, Rezepte und Speiseplan auf einem ESC/POS-Bondrucker (58 / 80 mm, USB am HA-Rechner oder Netzwerk), mit Abschneider
@@ -278,6 +278,7 @@ Aktion mit einer Meldung fehlschlagen.
 | `home_inventory.shop_recipe` | `recipe` (Name eines Gericht-Rezepts), `servings` (optional; Standard: *Portionen im Haushalt*) | `recipe_id` |
 | `home_inventory.plan_to_shopping_list` | `start` (Datum, Standard heute), `days` (Standard 7, max. 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (Gerichte mit freiem Text) |
 | `home_inventory.plan_meal` | `recipe` (Name) oder `text` (freier Text), `day` (Datum, Standard heute), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; Standard `dinner`), `servings` (optional; Standard: *Portionen im Haushalt*) | `meal_id` |
+| `home_inventory.cooked` | `recipe` (Name, kein Einkochrezept), `servings` (optional; Standard: die Portionen des Rezepts) | `recipe_id`, `bookings` (`product_id`, `name`, `packages`, `action`), `out_ids`, `open_ids` |
 | `home_inventory.canning` | `recipe` (Name eines Einkochrezepts), `jars` (Standard: Ertrag des Rezepts), `made_on` (Datum, Standard heute), `expires_on` (Datum; Standard: Herstellungsdatum + Haltbarkeit), `location` (Name, optional), `notes` | `id`, `batch_id`, `charge` |
 | `home_inventory.drying` | wie `canning`, mit einem Dörrrezept (`jars` = Packungen) | wie `canning` |
 
@@ -288,6 +289,7 @@ Aktion mit einer Meldung fehlschlagen.
 - **shop_recipe** bei einem Rezept, das schon auf der Liste steht, ändert seine Portionen und verwirft im Panel gewählte optionale Zutaten.
 - **plan_to_shopping_list** setzt jedes im Zeitraum geplante Rezept mit den summierten Portionen seiner Mahlzeiten auf die Liste (wie **shop_recipe**, im Panel gewählte optionale Zutaten bleiben; steht ein Rezept schon auf der Liste, bleiben die größeren Portionen, ein zweiter Lauf ändert also nichts). Gerichte mit freiem Text werden übersprungen.
 - **canning** nimmt Produkt, Temperatur und Dauer aus dem Einkochrezept; die Glasetiketten druckt `print_labels` mit der zurückgegebenen `batch_id`.
+- **cooked** bucht die angehakten Zeilen des Vorschlags aus dem Dialog *Gekocht* ohne Rückfrage, mit dessen Vorgaben (frühestes Ablaufdatum zuerst, ganze Packungen, der Rest bricht eine Packung an); alles oder nichts, Quelle `cooked`.
 - Lagerort- und Rezeptnamen werden ohne Groß-/Kleinschreibung verglichen. Buchungen einer Aktion werden mit Quelle `service`
   (Etikettencodes: `label`) und dem aufrufenden Benutzer protokolliert, falls vorhanden.
 

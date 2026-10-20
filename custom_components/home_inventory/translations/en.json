@@ -385,6 +385,20 @@
         }
       }
     },
+    "cooked": {
+      "name": "Book out what a recipe used",
+      "description": "Book out the ingredients of a recipe as proposed in the panel (the product that expires first, whole packages; the remainder opens a package). Optional ingredients and unknown amounts are skipped. Everything or nothing is booked.",
+      "fields": {
+        "recipe": {
+          "name": "Recipe",
+          "description": "Name of the recipe (not a canning recipe)."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "Empty = servings of the recipe."
+        }
+      }
+    },
     "plan_to_shopping_list": {
       "name": "Shopping list from the meal plan",
       "description": "Put the recipes planned in a date range on the shopping list (servings summed; free-text dishes are skipped). Ingredients already in stock are subtracted.",

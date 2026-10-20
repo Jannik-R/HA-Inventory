@@ -410,6 +410,8 @@ and turns red. The screen stays on while the cook mode is open (if the browser a
 > [!WARNING]
 > Timers only run in this browser window. Closing asks first and ends them.
 
+**Book out cooked**: in an open recipe (not for canning recipes) and at the end of the cook mode, **Cooked** opens a proposal of the ingredients to take out of your stock, for the shown servings. Per row: tick box, ingredient and amount, **Product**, **Batch** (expiry, location, packages, opened), **Action** (*Book out*, *Open* or *Skip*), **Packages** and a tick box "and open one more package for the rest". Default: the batch with the earliest expiry, whole packages; the rest opens one package unless one is already opened. Optional ingredients and amounts that cannot be converted are unticked; ingredients not kept in stock (e.g. salt, water) are left out. **Book out** books all ticked rows in one step; afterwards the panel offers **Undo**.
+
 Units marked *Recipes only* (e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb:
 
 | Unit | Size |

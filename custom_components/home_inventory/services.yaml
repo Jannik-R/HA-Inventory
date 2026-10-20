@@ -173,6 +173,19 @@ shop_recipe:
           min: 1
           max: 99
           mode: box
+cooked:
+  fields:
+    recipe:
+      required: true
+      example: Lasagne
+      selector:
+        text:
+    servings:
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
 plan_meal:
   fields:
     recipe:

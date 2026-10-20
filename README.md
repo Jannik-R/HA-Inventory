@@ -23,7 +23,7 @@ Available:
 - Emergency stock (module *Emergency stock*): tab *Emergency stock* checks the stock against the BBK recommendation for ten days per person (persons from *Household servings*): one row per food group with target, stock and the days it lasts; categories are assigned to a group; sensor *Emergency supply* (days); see the [guide](docs/guide.en.md#5a-emergency-stock)
 - Labels (QR code of product + expiry date), printed on a label printer (Dymo LabelWriter 450 behind a USB print server or on USB at the HA host) or through the browser; scan a label to book out
 - Services for automations (hardware scanners, NFC tags, ESPHome, voice): book in / out by barcode, label code or product name, print labels, the shopping list and recipes, a recipe on the shopping list, plan a dish, record a canning run
-- Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites); with an AI set up also posts without recipe data (Instagram, TikTok, YouTube: caption, video, image), pasted text and photos (e.g. a cookbook page)
+- Recipe database with ingredients matched to categories: see what is in stock, scale the servings; import a recipe from a URL (Chefkoch, Mealie, Tandoor and most recipe sites); with an AI set up also posts without recipe data (Instagram, TikTok, YouTube: caption, video, image), pasted text and photos (e.g. a cookbook page); *Cooked* books out what a recipe used (a proposal per ingredient, one confirm, undo)
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
@@ -272,6 +272,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 | `home_inventory.shop_recipe` | `recipe` (name of a dish recipe), `servings` (optional; default: *Household servings*) | `recipe_id` |
 | `home_inventory.plan_to_shopping_list` | `start` (date, default today), `days` (default 7, max 366) | `recipes` (`recipe_id`, `name`, `servings`), `skipped` (free-text dishes) |
 | `home_inventory.plan_meal` | `recipe` (name) or `text` (free text), `day` (date, default today), `meal` (`breakfast`, `lunch`, `coffee`, `dinner`, `snack`; default `dinner`), `servings` (optional; default: *Household servings*) | `meal_id` |
+| `home_inventory.cooked` | `recipe` (name, not a canning recipe), `servings` (optional; default: the recipe's own) | `recipe_id`, `bookings` (`product_id`, `name`, `packages`, `action`), `out_ids`, `open_ids` |
 | `home_inventory.canning` | `recipe` (name of a canning recipe), `jars` (default: the recipe's yield), `made_on` (date, default today), `expires_on` (date; default: made-on date + shelf life), `location` (name, optional), `notes` | `id`, `batch_id`, `charge` |
 | `home_inventory.drying` | like `canning`, with a drying recipe (`jars` = packages) | like `canning` |
 
@@ -283,6 +284,7 @@ barcode, recipe or location, not enough stock, printer not reachable) make the a
 - **shop_recipe** on a recipe already on the list changes its servings and drops optional ingredients chosen in the panel.
 - **plan_to_shopping_list** puts every recipe planned in the range on the list with the summed servings of its meals (like **shop_recipe**, keeps optional ingredients chosen in the panel; a recipe already on the list keeps the larger servings, so running it twice changes nothing). Free-text dishes are skipped.
 - **canning** takes product, temperature and minutes from the canning recipe; print the jar labels with `print_labels` and the returned `batch_id`.
+- **cooked** books the checked rows of the default proposal of the *Cooked* dialog without asking (earliest expiry first, whole packages, the remainder opens one package); everything or nothing is booked, with source `cooked`.
 - Location and recipe names are matched ignoring case. Bookings made by a service are logged with source `service`
   (label codes: `label`) and the calling user, if any.
 

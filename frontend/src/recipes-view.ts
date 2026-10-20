@@ -27,6 +27,8 @@ import "./shopping-recipe-dialog";
 import { DINNER } from "./plan-dates";
 import "./meal-dialog";
 import "./cook-mode";
+import "./cooked-dialog";
+import type { HomeInventoryCookedDialog } from "./cooked-dialog";
 import type { HomeInventoryCookMode } from "./cook-mode";
 import type { HomeInventoryMealDialog } from "./meal-dialog";
 import type { HomeInventoryShoppingRecipeDialog } from "./shopping-recipe-dialog";
@@ -238,6 +240,13 @@ export class HomeInventoryRecipes extends LitElement {
                   : this.renderRoot
                       .querySelector<HomeInventoryMealDialog>("home-inventory-meal-dialog")!
                       .open(todayIso(), DINNER, this.recipes!, n, undefined, r.name),
+              onCooked: () => {
+                const d = this.renderRoot.querySelector<HomeInventoryCookedDialog>(
+                  "home-inventory-cooked-dialog",
+                )!;
+                d.hass = this.hass;
+                void d.open(r, n);
+              },
               onCook: () =>
                 this.renderRoot
                   .querySelector<HomeInventoryCookMode>("home-inventory-cook-mode")!
@@ -299,6 +308,7 @@ export class HomeInventoryRecipes extends LitElement {
       ></home-inventory-shopping-recipe-dialog>
       <home-inventory-meal-dialog .hass=${this.hass}></home-inventory-meal-dialog>
       <home-inventory-cook-mode></home-inventory-cook-mode>
+      <home-inventory-cooked-dialog></home-inventory-cooked-dialog>
       <home-inventory-recipe-dialog
         .hass=${this.hass}
         @home-inventory-saved=${() => this.load()}

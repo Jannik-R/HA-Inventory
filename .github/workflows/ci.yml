@@ -1,9 +1,10 @@
 name: CI
 
+# PRs run only what they touch; a manual run (Actions > CI > Run workflow) and the
+# release skill run everything.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
 
 # Read-only token: CI only checks, it never writes to the repo.
 permissions:
@@ -16,6 +17,49 @@ concurrency:
 
 # Third-party actions are pinned by commit SHA (tag in the comment).
 jobs:
+  # Decides which jobs and test files a PR needs. Skipped jobs count as passed for the
+  # required checks, so job names must stay as they are (no workflow-level paths filter).
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.diff.outputs.backend }}
+      frontend: ${{ steps.diff.outputs.frontend }}
+      full: ${{ steps.diff.outputs.full }}
+      tests: ${{ steps.diff.outputs.tests }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          full=false backend=false frontend=false tests=
+          # No base (manual run): everything.
+          if [ -n "$BASE" ]; then files=$(git diff --name-only "$BASE" HEAD); else files=; full=true; fi
+          has() { echo "$files" | grep -qE "$1"; }
+          echo "$files" | grep -vE '^custom_components/home_inventory/www/' | grep -qE '^(custom_components/|tests/|requirements_test\.txt$|pyproject\.toml$)' && backend=true
+          has '^(frontend/|custom_components/home_inventory/www/)' && frontend=true
+          # Shared basics and the workflow itself: run the whole suite.
+          has '^(\.github/workflows/|tests/conftest\.py$|requirements_test\.txt$|pyproject\.toml$|custom_components/home_inventory/(db\.py|migrations\.py|migration_.*|seed.*|manifest\.json)$)' && full=true
+          # Test files: changed ones that still exist, plus tests/test_<module>.py per changed module.
+          for f in $files; do
+            case $f in
+              tests/test_*.py) t=$f ;;
+              custom_components/*.py) t=tests/test_$(basename "$f" .py).py ;;
+              *) continue ;;
+            esac
+            [ -f "$t" ] && tests="$tests $t"
+          done
+          tests=$(printf '%s\n' $tests | sort -u | xargs)
+          # Backend changed but no matching test file: run everything rather than nothing.
+          [ "$backend" = true ] && [ -z "$tests" ] && full=true
+          echo "backend=$backend frontend=$frontend full=$full tests=$tests"
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+
   hassfest:
     runs-on: ubuntu-latest
     steps:
@@ -34,6 +78,9 @@ jobs:
           ignore: brands description topics
 
   tests:
+    needs: changes
+    # A failed changes job must not skip the checks (skipped counts as passed): run them all then.
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.backend == 'true' || needs.changes.outputs.full == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -48,9 +95,15 @@ jobs:
       - run: uv pip install -r requirements_test.txt
       - run: ruff check .
       - run: ruff format --check .
-      - run: pytest -q -n auto
+      - env:
+          FULL: ${{ needs.changes.outputs.full }}
+          TESTS: ${{ needs.changes.outputs.tests }}
+        run: |
+          if [ "$FULL" = true ]; then pytest -q -n auto; else pytest -q -n auto $TESTS; fi
 
   frontend:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.full == 'true') }}
     runs-on: ubuntu-latest
     defaults:
       run:

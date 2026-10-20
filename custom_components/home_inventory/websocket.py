@@ -25,7 +25,7 @@ MASTER_SCHEMAS = {
             vol.Optional("is_count"): vol.All(vol.Coerce(int), vol.In((0, 1))),
             vol.Optional("recipe_only"): vol.All(vol.Coerce(int), vol.In((0, 1))),
         },
-        "location": {},
+        "location": {vol.Optional("freezer"): vol.All(vol.Coerce(int), vol.In((0, 1)))},
         "category": {
             vol.Optional("parent_id"): NULL_ID,
             vol.Optional("unit_id"): NULL_ID,
@@ -35,6 +35,8 @@ MASTER_SCHEMAS = {
             vol.Optional("shelf_days"): SHELF_DAYS,
             vol.Optional("opened_days"): SHELF_DAYS,
             vol.Optional("food"): vol.Any(None, vol.In((0, 1))),
+            vol.Optional("frozen_goods"): vol.Any(None, vol.In((0, 1))),
+            vol.Optional("frozen_days"): SHELF_DAYS,
             # amount and its unit only together (DB CHECK as well)
             vol.Inclusive("min_stock", "min_stock"): vol.Any(None, POSITIVE),
             vol.Inclusive("min_stock_unit_id", "min_stock"): NULL_ID,
@@ -96,6 +98,7 @@ async def ws_save(hass: HomeAssistant, connection, msg: dict) -> None:
             vol.Required("warn_days"): DAYS,
             vol.Required("shelf_days"): SHELF_DAYS,
             vol.Required("opened_days"): SHELF_DAYS,
+            vol.Required("frozen_days"): SHELF_DAYS,
         },
     }
 )

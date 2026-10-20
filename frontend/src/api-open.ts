@@ -21,3 +21,18 @@ export const openLabel = (hass: Hass, code: string) =>
   hass.callWS<Opened>({ type: "home_inventory/open_label", code });
 export const undoOpen = (hass: Hass, booking_id: number) =>
   hass.callWS<null>({ type: "home_inventory/open_undo", booking_id });
+
+/** Freeze (thaw: false) or thaw packages of a batch; result like opening (the target batch). */
+export const freezePackages = (
+  hass: Hass,
+  data: {
+    thaw: boolean;
+    product_id: number;
+    packages: number;
+    batch_id: number;
+    location_id: number;
+    to_location_id?: number;
+  },
+) => hass.callWS<Opened>({ type: "home_inventory/freeze", ...data });
+export const undoFrozen = (hass: Hass, booking_id: number) =>
+  hass.callWS<null>({ type: "home_inventory/frozen_undo", booking_id });

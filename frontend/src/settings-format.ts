@@ -1,6 +1,6 @@
 import { t } from "./i18n";
 import { fmtDays } from "./format";
-import type { Hass, InheritField, MasterData, Source } from "./api";
+import type { CategoryFlag, Hass, InheritField, MasterData, Source } from "./api";
 
 export function catName(md: MasterData, id: number) {
   return md.categories.find((c) => c.id === id)?.name ?? "";
@@ -15,21 +15,27 @@ export function sourceLabel(md: MasterData, s: Source) {
 /** Value a category inherits from the (draft) parent, or from the defaults. */
 export function inherited(
   md: MasterData,
-  field: InheritField | "food",
+  field: InheritField | CategoryFlag,
   parentId: number | null,
 ): { value: number | string | null; source: Source } {
   const p = md.categories.find((c) => c.id === parentId);
-  if (!p) return { value: field === "food" ? null : md.defaults[field], source: "default" };
+  if (!p)
+    return {
+      value: field === "food" || field === "frozen_goods" ? null : md.defaults[field],
+      source: "default",
+    };
   return p[field] != null ? { value: p[field], source: p.id } : p.effective[field];
 }
 
 export function fmt(
   md: MasterData,
   hass: Hass | undefined,
-  field: InheritField | "food",
+  field: InheritField | CategoryFlag,
   v: number | string | null,
 ): string {
   if (field === "food") return t(v === 0 ? "settings.food.no" : "settings.food.yes"); // null: root = food
+  if (field === "frozen_goods")
+    return t(v === 1 ? "settings.frozen_goods.yes" : "settings.frozen_goods.no");
   if (v == null) return t("common.none_dash");
   const { units, locations } = md;
   if (field === "unit_id") {

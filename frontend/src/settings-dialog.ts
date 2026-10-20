@@ -10,6 +10,7 @@ import {
   saveRow,
   stockUnits,
   type Hass,
+  type CategoryFlag,
   type InheritField,
   type MasterData,
   type Table,
@@ -20,7 +21,7 @@ import { minErrors, minFields } from "./min-stock";
 import { ADD, COLUMNS, type Draft, type Opts } from "./settings-model";
 
 /** Inherited day counts: number inputs with "Tage". */
-const DAYS = ["warn_days", "shelf_days", "opened_days"];
+const DAYS = ["warn_days", "shelf_days", "opened_days", "frozen_days"];
 
 /** Add/edit dialog for one master-data row. Call `open()`; fires `home-inventory-saved` after a successful save. */
 export class HomeInventorySettingsDialog extends LitElement {
@@ -101,6 +102,8 @@ export class HomeInventorySettingsDialog extends LitElement {
         e.shelf_days = t("valid.shelf_days");
       if (d.opened_days != null && !(Number.isInteger(d.opened_days) && d.opened_days >= 1))
         e.opened_days = t("valid.shelf_days");
+      if (d.frozen_days != null && !(Number.isInteger(d.frozen_days) && d.frozen_days >= 1))
+        e.frozen_days = t("valid.shelf_days");
       Object.assign(e, minErrors(d));
     }
     return e;
@@ -186,7 +189,7 @@ export class HomeInventorySettingsDialog extends LitElement {
         </button>`;
   }
 
-  private inh(field: InheritField | "food", label: string, options: Opts, numeric = true) {
+  private inh(field: InheritField | CategoryFlag, label: string, options: Opts, numeric = true) {
     const md = this.data!;
     const inh = inherited(md, field, this.edit!.d.parent_id);
     const value = fmt(md, this.hass, field, inh.value);
@@ -211,7 +214,16 @@ export class HomeInventorySettingsDialog extends LitElement {
     const { units, locations } = md;
     let fields: unknown;
     if (table === "location") {
-      fields = this.field(t("common.name"), this.text("name"));
+      fields = html`${this.field(t("common.name"), this.text("name"))}
+        <label class="check"
+          ><input
+            type="checkbox"
+            data-testid="location-freezer"
+            .checked=${!!d.freezer}
+            @change=${(ev: Event) => this.set("freezer", (ev.target as HTMLInputElement).checked ? 1 : 0)}
+          />${t("settings.location.freezer")}</label
+        >
+        ${fieldMsg(t("settings.location.freezer_hint"), "location-freezer", true)}`;
     } else if (table === "unit") {
       const bases: Opts = stockUnits(units, d.base_unit_id)
         .filter((u) => u.base_unit_id == null && u.id !== d.id)
@@ -275,6 +287,15 @@ export class HomeInventorySettingsDialog extends LitElement {
           [1, t("settings.food.yes")],
           [0, t("settings.food.no")],
         ])}
+        ${
+          hasModule("frozen")
+            ? html`${this.inh("frozen_days", t("settings.category.frozen_days"), [])}
+              ${this.inh("frozen_goods", t("settings.frozen_goods.label"), [
+                [0, t("settings.frozen_goods.no")],
+                [1, t("settings.frozen_goods.yes")],
+              ])}`
+            : ""
+        }
         ${minFields({ md, d, errs: this.errs, unitId: unit as number | null, set: (k, v) => this.set(k, v) })}
         ${tags.length ? html`<p class="detail">${t("settings.category.off_tags", { tags: tags.join(", ") })}</p>` : nothing}`;
     }

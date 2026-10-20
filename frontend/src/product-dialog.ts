@@ -28,6 +28,7 @@ const COLUMNS = [
   "warn_days",
   "shelf_days",
   "opened_days",
+  "frozen_days",
   "min_packages",
 ] as const;
 
@@ -79,6 +80,8 @@ export class HomeInventoryProductDialog extends LitElement {
       e.shelf_days = t("valid.shelf_days");
     if (p.opened_days != null && !(Number.isInteger(p.opened_days) && p.opened_days >= 1))
       e.opened_days = t("valid.shelf_days");
+    if (p.frozen_days != null && !(Number.isInteger(p.frozen_days) && p.frozen_days >= 1))
+      e.frozen_days = t("valid.shelf_days");
     return e;
   }
 
@@ -104,7 +107,13 @@ export class HomeInventoryProductDialog extends LitElement {
     if (!p) return html`<dialog></dialog>`;
     const err = this.errors(p);
     const dflt = (
-      field: "default_location_id" | "expiry_type" | "warn_days" | "shelf_days" | "opened_days",
+      field:
+        | "default_location_id"
+        | "expiry_type"
+        | "warn_days"
+        | "shelf_days"
+        | "opened_days"
+        | "frozen_days",
     ) => categoryDefault(this.md, p.category_id, field);
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
     return editDialog({
@@ -190,6 +199,25 @@ export class HomeInventoryProductDialog extends LitElement {
                   onChange: (v) => this.set("opened_days", v),
                 })}
                 ${fieldMsg(err.opened_days, "opened-days")}
+              </label>`
+            : ""
+        }
+        ${
+          hasModule("frozen")
+            ? html`<label>
+                <span class="lbl" title=${t("tip.frozen_days")}
+                  >${t("settings.category.frozen_days")}</span
+                >
+                ${inheritNumber({
+                  testid: "frozen-days",
+                  own: p.frozen_days,
+                  dflt: dflt("frozen_days"),
+                  format: (v) => fmtDays(this.hass, v),
+                  suffix: t("common.days_unit"),
+                  invalid: !!err.frozen_days,
+                  onChange: (v) => this.set("frozen_days", v),
+                })}
+                ${fieldMsg(err.frozen_days, "frozen-days")}
               </label>`
             : ""
         }`,

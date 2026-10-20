@@ -9,6 +9,7 @@ from functools import partial
 from .migration_15 import SCHEMA_15
 from .migration_20 import SCHEMA_20
 from .migration_24 import guide_kind
+from .migration_25 import freezing
 from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -444,4 +445,7 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     # 24: date kind 'guide' (Richtwert) for things without a printed date; fresh produce uses it
     # (see migration_24).
     guide_kind,
+    # 25: freezing fresh products: location.freezer, category.frozen_goods, frozen_days,
+    # batch.frozen_on, booking kinds 'freeze' / 'thaw' (see migration_25).
+    freezing,
 ]

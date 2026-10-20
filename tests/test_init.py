@@ -30,7 +30,7 @@ async def test_flow_setup_and_unload(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
     assert DOMAIN in hass.data["frontend_panels"]
     panel = hass.data["frontend_panels"][DOMAIN]
-    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning", "opened"]
+    assert panel.config["modules"] == ["shopping", "recipes", "plan", "canning", "opened", "frozen"]
     assert panel.config["external"]["off_lookup"] is True
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]

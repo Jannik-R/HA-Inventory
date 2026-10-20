@@ -57,22 +57,24 @@ the `inventory` package (public API in its `__init__`, one submodule per concern
 unit       (id, name UNIQUE, symbol, base_unit_id NULL → unit, factor > 0,
             is_count 0|1, recipe_only 0|1)   -- is_count 1 = counts packages (Stück, Packung, Dose ...); recipe_only 1 = only offered in recipe ingredients (migration 13)
            -- seeded: Stück, Packung, g, kg (=1000 g), ml, l (=1000 ml); user can add (Dose, Glas, Bund ...)
-location   (id, name UNIQUE, sort, active 0|1)   -- never deleted: "delete" deactivates (must be empty),
+location   (id, name UNIQUE, sort, active 0|1, freezer 0|1)   -- freezer: migration 25; never deleted: "delete" deactivates (must be empty),
            -- so bookings keep a valid FK; adding the same name again reactivates it
-defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days, shelf_days NULL, opened_days NULL)
+defaults   (id = 1, unit_id → unit, default_location_id NULL → location, expiry_type, warn_days, shelf_days NULL, opened_days NULL, frozen_days NULL)
            -- expiry_type: best_before | use_by | guide (Richtwert, migration 24)
            -- one row: root of inheritance, editable in Einstellungen › Standards
 category   (id, parent_id NULL → category, name, sort,
             unit_id, default_location_id, expiry_type, warn_days, shelf_days, opened_days,   -- inheritable, NULL = inherit (opened_days: migration 20)
             food NULL 0|1,                                           -- 0 = not a food: no recipe ingredient; NULL = inherit, root = food (migration 15)
+            frozen_days NULL, frozen_goods NULL 0|1,                   -- days frozen (inheritable); bought frozen (tree only, root = no) (migration 25)
             min_stock NULL, min_stock_amount_id NULL → unit,           -- amount with its own unit (both or none, CHECK); NOT inherited
             min_packages NULL)                                       -- package count (> 0); NOT inherited (migration 4)
 product    (id, ean UNIQUE NULL, name, brand, category_id → category,
             content_amount, content_unit_id,                         -- e.g. 500 g per package; both or none (CHECK)
-            default_location_id, expiry_type, warn_days, shelf_days, opened_days,  -- overrides, NULL = inherit
+            default_location_id, expiry_type, warn_days, shelf_days, opened_days, frozen_days,  -- overrides, NULL = inherit
             image_url, off_json, updated_at,
             min_packages NULL)                                        -- own minimum in packages (migration 11)
-batch      (id, product_id, expires_on DATE, created_at, canning_id NULL → canning (cascade), opened_on DATE NULL)
+batch      (id, product_id, expires_on DATE, created_at, canning_id NULL → canning (cascade), opened_on DATE NULL,
+            frozen_on DATE NULL)   -- frozen_on: home-frozen batch, part of the unique key (migration 25)
            -- unique (product_id, expires_on, canning_id, opened_on) (expression index, migrations 15/20): a canning charge is its own batch,
            -- an opened package too (same product, date and charge, opened_on set; canning_id no longer UNIQUE since migration 20)
            -- date type is a product property (own or inherited), never per batch (migration 2)
@@ -315,29 +317,33 @@ backend refuses them (`not_food`). Everything else (stock, expiry, min stock, sh
 - Schema: only the CHECK of `expiry_type` on `defaults`, `category`, `product`: each table is rebuilt
   from its stored SQL with the wider CHECK (ids and indexes kept).
 
-**Freezing** (proposal, phase 21d, own module `frozen`):
+**Freezing** (phase 21d, module `frozen`, migration 25 `migration_25.py`, `inventory/frozen.py`):
 - Freezing a fresh product (meat, bread, berries, leftovers) replaces its date: frozen food keeps for
   months, the original MHD no longer matters. Frozen goods bought frozen keep their printed date: they
   are recognized by the category (inheritable flag `category.frozen_goods`, *Tiefkühlware*, like `food`;
-  seeded on *Tiefkühlkost*).
-- Rule: a batch of a non-frozen-goods food product at a freezer location is frozen. So booking in or
-  moving such a batch to a freezer location freezes it too, not only the button.
-- Like *Anbrechen*: action *Einfrieren* on a batch row / booking mode moves n packages (default 1, editable) to the batch with
-  the same product, date and charge and `batch.frozen_on` = today, at a freezer location (default: the
-  first location flagged `location.freezer` (checkbox *Gefrierort* in the location dialog; the migration
-  sets it on the seeded *Gefrierschrank*), editable in the dialog). Booking kind `freeze`, undo once.
-- New inheritable `frozen_days` (*Haltbar eingefroren*; seed: defaults 90, Fleisch 180, Hackfleisch 90,
-  Fisch 120, Brot & Backwaren 90, Obst 300, Gemüse 300; NULL = inherit). Non-food is never frozen. Effective expiry of a frozen batch =
-  frozen_on + frozen_days, date kind shown as *Richtwert* (computed on read like opened packages, so a
-  changed `frozen_days` applies to frozen stock too).
-- *Auftauen*: moves packages to a batch with `opened_on` = today and `frozen_on` cleared, so
-  `opened_days` gives the short life after thawing (thawed = opened; no extra value). Without
-  `opened_days`: expiry = today + 1 day.
-- Labels: printed date = effective one plus "eingefr. <Datum>"; offered after freezing like after opening.
-- Service `home_inventory.freeze_package` (EAN or label code, location by name), thawing too
-  (`thaw_package`), both automations/NFC friendly.
-- Expiry view: frozen batches get their own filter (they would flood the list otherwise, warn days are
-  months away anyway).
+  seeded on *Tiefkühlkost*). Non-food is never frozen.
+- Rule: a batch of a freezable product (food, not frozen goods, `frozen_days` set) at a freezer location
+  (`location.freezer`, checkbox *Gefrierort*; seeded on *Gefrierschrank*) is frozen: `book_in` there
+  books into a frozen batch, `move` into a freezer freezes, out of it thaws (`frozen.on_move`).
+- A frozen batch is its own batch (`batch.frozen_on`, part of the unique key) dated
+  frozen_on + `frozen_days`, **stored** (not computed on read like opened packages), so FEFO, sensors,
+  expiry view and labels work unchanged; a later change of `frozen_days` does not move it (edit the
+  date). Its date kind is shown as *Richtwert* ("ca.", `stock_list` sets `expiry_type` guide).
+- `frozen_days` inheritable (*Haltbar eingefroren*; seed: defaults 90, Fleisch 180, Hackfleisch 90,
+  Fisch 120, Brot & Backwaren 90, Obst 300, Gemüse 300; NULL = inherit).
+- *Einfrieren* on a batch row: dialog with packages (default 1) and target freezer (default: first
+  freezer by sort). *Auftauen* on a frozen row: target default the product's location; thawed = a batch
+  with `opened_on` = today dated today + `opened_days` (1 day without). Opening a frozen package is
+  refused (`frozen`).
+- Bookings: kinds `freeze` / `thaw`, two rows each (-n on the source batch, +n on the target);
+  `undo_frozen` reverses both once (the -n row is the id before the +n row).
+- Panel: done line with undo and (after freezing) *Etikett drucken*; labels print "ca." for frozen
+  batches. Websocket `home_inventory/freeze {thaw, …}`, `home_inventory/frozen_undo`; services
+  `home_inventory.freeze_package` / `thaw_package` (code, packages, location, to_location).
+- Not built: a scan mode *Einfrieren* (the services cover NFC / automations), an expiry view filter
+  for frozen batches (their warn days come late anyway).
+- `shortcut: module off hides buttons and fields only; a location marked Gefrierort still freezes on
+  book-in / move. Gate the rule on the module if that surprises anyone.`
 
 **Drying** (proposal, phase 21e, module `drying`):
 - Same as canning, one table: `canning` gets `kind` (`canning` | `drying`); everything else (protocol,
@@ -555,7 +561,7 @@ Each phase ends with: tests green, README updated, checked in dev HA.
 | 21 | Modules | done | options `modules` (`const.MODULES`: shopping, recipes, plan, canning, opened; unset = all; `opened` hides the *Anbrechen* button, booking mode and the *Haltbar nach Anbruch* fields), chosen in the config flow user step and the options step *Module*; `OptionsFlowWithReload` reloads the entry on save. Panel gets the list as `panel.config.modules` (`frontend/src/modules.ts` `hasModule`) and hides tabs, recipe buttons (to shopping list / to plan) and the settings section *Mahlzeiten*. `coordinator.module_off`: todo (shopping) / calendar (plan) add no entity and drop it from the registry. Core (stock, booking, expiry, settings, sensors) always on. Data, websocket commands and services are not gated |
 | 21b | External services | done | every way data leaves HA is one entry in `const.EXTERNAL` (key -> default) with its own switch in the options step *Externe Dienste* and a gate `external_on(hass, key)` where the data would go out; the panel gets them resolved as `panel.config.external` (`hasExternal`). Keys: `off_lookup`, `recipe_url`, `ai_recipe_check`, `ai_product_check`, `ai_import`, `ai_video` (default off; yt-dlp is not in the manifest, `async_process_requirements` installs it on first use), `receipt_import`. The panel loads no library from a CDN (OCR files ship in `www/vendor/`). AI keys also need the AI Task entity. README section *Privacy* lists each. A new external service: new entry, gate, README row; the user decides its default. Third-party licenses of the bundle: `www/THIRD_PARTY_LICENSES.txt`, written by the build (`frontend/licenses.ts`) |
 | 21c | Date kind *Richtwert* | done | third `expiry_type` `guide` for things without a printed date (fresh produce, dried, frozen, leftovers): "ca." date from the shelf life, warning colour when past (use_by keeps the error colour). Details: section 3 *Date kinds*. Decided 2026-10-20: name *Richtwert*; existing DBs: *Obst & Gemüse* always switched to it |
-| 21d | Freezing | proposal | *Einfrieren* / *Auftauen* for fresh products like *Anbrechen*: `batch.frozen_on`, inheritable `frozen_days`, `location.freezer`, thawed = opened. Details: section 3 *Freezing*. Decided 2026-10-20: own module `frozen`, freezer by the flag `location.freezer`. Seeded `frozen_days` decided (section 3) |
+| 21d | Freezing | done | *Einfrieren* / *Auftauen* for fresh products like *Anbrechen*: `batch.frozen_on`, inheritable `frozen_days`, `location.freezer`, thawed = opened. Details: section 3 *Freezing*. Decided 2026-10-20: own module `frozen`, freezer by the flag `location.freezer`. Seeded `frozen_days` decided (section 3) |
 | 21e | Drying | proposal | module `drying`: the canning protocol and recipe with `canning.kind` = `drying`, seeded root *Gedörrtes*. Details: section 3 *Drying*. Decided 2026-10-20: one tab *Haltbarmachen* (shown when canning or drying is on) with *Einkochen* / *Dörren* inside; duration stored in minutes, shown in hours |
 | 22 | Stocktaking | open | *Inventur* mode per location: scan everything there, then the differences (missing / too many per batch) become correction bookings after one confirm. Decided 2026-10-20: not scanned = *fehlt* (booked out as correction after the confirm); scanned but not there = *zu viel* with a date field (prefilled from the shelf life), booked in as correction; an EAN with several batches at the location asks which batch (a `PTRY:` label names its batch) |
 | 23 | Location labels | open | QR `PTRY:L<id>` per location (shelf, compartment), printed with the existing label printing; scanning it in the booking field sets the location for the following bookings. Decided 2026-10-20: it stays until another location is scanned or the booking view is left; the active location is shown |

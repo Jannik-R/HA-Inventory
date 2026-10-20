@@ -8,24 +8,26 @@ from datetime import UTC, date, datetime, timedelta
 
 INHERITED = (
     "unit_id", "default_location_id", "expiry_type", "warn_days", "shelf_days", "opened_days",
+    "frozen_days",
 )  # fmt: skip
-# Inherited down the category tree only (no product or defaults column); NULL at the root = food.
-CATEGORY_INHERITED = ("food",)
+# Inherited down the category tree only (no product or defaults column); NULL at the root = food,
+# not frozen goods.
+CATEGORY_INHERITED = ("food", "frozen_goods")
 
 
 # Column whitelist per table (id and product.updated_at are handled by save()).
 COLUMNS = {
     "unit": ("name", "symbol", "base_unit_id", "factor", "is_count", "recipe_only"),
-    "location": ("name", "sort"),
+    "location": ("name", "sort", "freezer"),
     "category": (
         "parent_id", "name", "sort", "unit_id", "default_location_id",
         "expiry_type", "warn_days", "min_stock", "min_stock_unit_id", "min_packages",
-        "shelf_days", "food", "opened_days",
+        "shelf_days", "food", "opened_days", "frozen_goods", "frozen_days",
     ),
     "product": (
         "ean", "name", "brand", "category_id", "content_amount", "content_unit_id",
         "default_location_id", "expiry_type", "warn_days", "image_url", "off_json", "min_packages",
-        "shelf_days", "opened_days",
+        "shelf_days", "opened_days", "frozen_days",
     ),
     "recipe": (
         "name", "servings", "instructions", "source_url", "image_url", "canning_product_id",

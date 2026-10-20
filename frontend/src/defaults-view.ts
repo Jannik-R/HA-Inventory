@@ -1,5 +1,5 @@
 import { LitElement, html } from "lit";
-import { hasModule } from "./modules";
+import { hasModule, type Module } from "./modules";
 import { t } from "./i18n";
 import { editDialog, fieldMsg, numOrNull, rowActions } from "./ui";
 import { formStyles } from "./styles";
@@ -21,7 +21,15 @@ const FIELDS: [InheritField, string][] = [
   ["warn_days", "settings.category.warn_days"],
   ["shelf_days", "settings.category.shelf_days"],
   ["opened_days", "settings.category.opened_days"],
+  ["frozen_days", "settings.category.frozen_days"],
 ];
+type Optional = "shelf_days" | "opened_days" | "frozen_days";
+/** Fields of a module: hidden while it is off. */
+const MODULE_OF: Partial<Record<InheritField, Module>> = {
+  opened_days: "opened",
+  frozen_days: "frozen",
+};
+const shown = (f: InheritField) => !MODULE_OF[f] || hasModule(MODULE_OF[f]);
 type Draft = Record<InheritField, number | string | null>;
 
 /** Integration-wide defaults (root of inheritance): list of the values, one edit dialog. */
@@ -63,7 +71,7 @@ export class HomeInventoryDefaults extends LitElement {
   }
 
   /** Shelf life (empty: no date proposal) and shelf life after opening (empty: no change) are optional. */
-  private shelfError(d: Draft, field: "shelf_days" | "opened_days" = "shelf_days") {
+  private shelfError(d: Draft, field: Optional = "shelf_days") {
     const v = d[field];
     return v !== null && !(Number.isInteger(v) && (v as number) >= 1)
       ? t("valid.shelf_days")
@@ -73,7 +81,13 @@ export class HomeInventoryDefaults extends LitElement {
   private async save(e: Event) {
     e.preventDefault();
     const d = this.d!;
-    if (this.warnError(d) || this.shelfError(d) || this.shelfError(d, "opened_days")) return;
+    if (
+      this.warnError(d) ||
+      this.shelfError(d) ||
+      this.shelfError(d, "opened_days") ||
+      this.shelfError(d, "frozen_days")
+    )
+      return;
     try {
       await saveDefaults(this.hass!, this.d!);
       this.renderRoot.querySelector("dialog")?.close();
@@ -90,7 +104,7 @@ export class HomeInventoryDefaults extends LitElement {
     if (!md) return html``;
     return html`<p class="detail intro">${t("settings.defaults.hint")}</p>
       <ul>
-        ${FIELDS.filter(([f]) => f !== "opened_days" || hasModule("opened")).map(
+        ${FIELDS.filter(([f]) => shown(f)).map(
           ([f, label]) =>
             html`<li>
               <button class="row" data-testid="default-row" @click=${this.open}>
@@ -125,6 +139,7 @@ export class HomeInventoryDefaults extends LitElement {
     const err = this.warnError(d);
     const shelfErr = this.shelfError(d);
     const openedErr = this.shelfError(d, "opened_days");
+    const frozenErr = this.shelfError(d, "frozen_days");
     return editDialog({
       title: t("settings.defaults.edit"),
       body: html`<label>
@@ -173,16 +188,17 @@ export class HomeInventoryDefaults extends LitElement {
           ${fieldMsg(err, "default-warn_days")}
         </label>
         ${this.optionalDays(d, "shelf_days", shelfErr)}
-        ${hasModule("opened") ? this.optionalDays(d, "opened_days", openedErr) : ""}`,
+        ${hasModule("opened") ? this.optionalDays(d, "opened_days", openedErr) : ""}
+        ${hasModule("frozen") ? this.optionalDays(d, "frozen_days", frozenErr) : ""}`,
       error: this.error,
-      invalid: !!err || !!shelfErr || !!openedErr,
+      invalid: !!err || !!shelfErr || !!openedErr || !!frozenErr,
       dirty: () => FIELDS.some(([f]) => d[f] !== this.orig?.[f]),
       onSubmit: (e) => this.save(e),
       onClosed: () => (this.d = undefined),
     });
   }
 
-  private optionalDays(d: Draft, field: "shelf_days" | "opened_days", error?: string) {
+  private optionalDays(d: Draft, field: Optional, error?: string) {
     return html`<label>
       <span class="lbl" title=${t(`tip.${field}`)}>${t(`settings.category.${field}`)}</span>
       <span class="num">

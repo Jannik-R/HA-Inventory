@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, opened, assist, ai_import, purchase).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, opened, frozen, assist, ai_import, purchase).
 """
 
 from .ai_check import changes as ai_changes
@@ -24,6 +24,7 @@ from .codes import (
     book_in_by_code,
     book_out_by_code,
     canning_by_name,
+    frozen_by_code,
     open_by_code,
     plan_meal_by_name,
     recipe_by_name,
@@ -31,6 +32,7 @@ from .codes import (
 )
 from .common import InventoryError, check_ean
 from .expiry_recipes import expiring_recipes
+from .frozen import freeze, thaw, undo_frozen
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info, open_code
@@ -116,6 +118,8 @@ __all__ = [
     "expiring_recipes",
     "find_ean",
     "force_delete",
+    "freeze",
+    "frozen_by_code",
     "keyword_score",
     "label_info",
     "list_products",
@@ -163,6 +167,8 @@ __all__ = [
     "suggest",
     "suggest_by_keywords",
     "suggest_category",
+    "thaw",
+    "undo_frozen",
     "undo_open",
     "unit_add",
     "update_shopping_item",

@@ -48,6 +48,50 @@ open_package:
       example: Kühlschrank
       selector:
         text:
+freeze_package:
+  fields:
+    code:
+      required: true
+      example: "4006040053026"
+      selector:
+        text:
+    packages:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    location:
+      example: Kühlschrank
+      selector:
+        text:
+    to_location:
+      example: Gefrierschrank
+      selector:
+        text:
+thaw_package:
+  fields:
+    code:
+      required: true
+      example: "4006040053026"
+      selector:
+        text:
+    packages:
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+    location:
+      example: Gefrierschrank
+      selector:
+        text:
+    to_location:
+      example: Kühlschrank
+      selector:
+        text:
 print_labels:
   fields:
     batch_id:

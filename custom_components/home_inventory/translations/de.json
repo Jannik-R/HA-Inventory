@@ -63,6 +63,15 @@
     "location_required": {
       "message": "Bitte einen Lagerort wählen."
     },
+    "not_freezable": {
+      "message": "Dieses Produkt wird nicht eingefroren (kein Lebensmittel, Tiefkühlware oder keine Haltbarkeit eingefroren)."
+    },
+    "no_freezer": {
+      "message": "Kein Gefrierort: markiere in den Einstellungen einen Lagerort als Gefrierort."
+    },
+    "frozen": {
+      "message": "Diese Packung ist eingefroren; taue sie zuerst auf."
+    },
     "already_opened": {
       "message": "Diese Packung ist schon angebrochen."
     },
@@ -299,6 +308,50 @@
         }
       }
     },
+    "freeze_package": {
+      "name": "Packung einfrieren",
+      "description": "Packungen eines frischen Produkts (keine Tiefkühlware) per Barcode, Name (frühestes Datum zuerst) oder Etikett-Code (diese Charge) einfrieren. Sie kommen an einen Gefrierort und bekommen das Datum heute + Haltbar eingefroren (Richtwert).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN, Etikett-Code PTRY:… oder Produktname"
+        },
+        "packages": {
+          "name": "Packungen",
+          "description": "Wie viele Packungen (Standard 1)."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Nur von diesem Lagerort (nicht mit Etikett-Code)."
+        },
+        "to_location": {
+          "name": "Ziel-Lagerort",
+          "description": "Gefrierort, an den sie kommen (Standard: der erste Gefrierort)."
+        }
+      }
+    },
+    "thaw_package": {
+      "name": "Packung auftauen",
+      "description": "Eingefrorene Packungen per Barcode, Name (frühestes Datum zuerst) oder Etikett-Code (diese Charge) auftauen. Sie gelten ab heute als angebrochen und halten so lange wie nach Anbruch (ohne Angabe 1 Tag).",
+      "fields": {
+        "code": {
+          "name": "Code",
+          "description": "EAN, Etikett-Code PTRY:… oder Produktname"
+        },
+        "packages": {
+          "name": "Packungen",
+          "description": "Wie viele Packungen (Standard 1)."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Nur von diesem Gefrierort (nicht mit Etikett-Code)."
+        },
+        "to_location": {
+          "name": "Ziel-Lagerort",
+          "description": "Wohin sie kommen (Standard: der Lagerort des Produkts)."
+        }
+      }
+    },
     "print_labels": {
       "name": "Etiketten drucken",
       "description": "Etiketten einer Charge auf dem Etikettendrucker drucken.",
@@ -457,7 +510,8 @@
         "recipes": "Rezepte",
         "plan": "Speiseplan (inkl. Kalender-Entität)",
         "canning": "Einkochen",
-        "opened": "Anbrechen"
+        "opened": "Anbrechen",
+        "frozen": "Einfrieren"
       }
     },
     "label_printer": {

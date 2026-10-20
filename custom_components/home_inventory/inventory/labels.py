@@ -21,7 +21,7 @@ def label_info(conn: sqlite3.Connection, batch_id: int) -> dict:
 
     An opened batch prints its effective expiry; the code keeps the batch key (product, date, charge)."""
     row = conn.execute(
-        "SELECT p.id, p.name, p.brand, p.ean, b.expires_on, b.opened_on, c.made_on, c.seq"
+        "SELECT p.id, p.name, p.brand, p.ean, b.expires_on, b.opened_on, b.frozen_on, c.made_on, c.seq"
         " FROM batch b JOIN product p ON p.id = b.product_id LEFT JOIN canning c ON c.id = b.canning_id"
         " WHERE b.id = ?",
         (batch_id,),
@@ -37,7 +37,7 @@ def label_info(conn: sqlite3.Connection, batch_id: int) -> dict:
         brand = " · ".join(filter(None, (brand, lot)))
     eff = effective(conn, row["id"])
     expires_on = opened_until(row["expires_on"], row["opened_on"], eff["opened_days"]["value"])
-    approx = eff["expiry_type"]["value"] == "guide"  # printed as "ca." date
+    approx = bool(row["frozen_on"]) or eff["expiry_type"]["value"] == "guide"  # "ca." date
     return {
         "name": row["name"],
         "brand": brand,

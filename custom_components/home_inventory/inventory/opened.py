@@ -30,17 +30,20 @@ def open_package(
     _exists(conn, "location", location_id)
     if batch_id is not None:
         row = conn.execute(
-            "SELECT opened_on FROM batch WHERE id = ? AND product_id = ?", (batch_id, product_id)
+            "SELECT opened_on, frozen_on FROM batch WHERE id = ? AND product_id = ?",
+            (batch_id, product_id),
         ).fetchone()
         if not row:
             raise InventoryError("not_found")
         if row["opened_on"]:
             raise InventoryError("already_opened")
+        if row["frozen_on"]:
+            raise InventoryError("frozen")
     sql = (
         "SELECT s.batch_id, s.location_id, b.expires_on, b.canning_id, b.expiry_guessed,"
         " l.name AS location"
         " FROM stock s JOIN batch b ON b.id = s.batch_id JOIN location l ON l.id = s.location_id"
-        " WHERE b.product_id = ? AND b.opened_on IS NULL"
+        " WHERE b.product_id = ? AND b.opened_on IS NULL AND b.frozen_on IS NULL"
     )
     args: list = [product_id]
     if batch_id is not None:

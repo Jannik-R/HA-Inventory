@@ -1,4 +1,4 @@
-pytest-homeassistant-custom-component==0.13.372
+pytest-homeassistant-custom-component==0.13.373
 ruff==0.17.1
 pytest-xdist==3.8.0
 # Requirements of the integration (manifest.json) and of the HA components its tests set up

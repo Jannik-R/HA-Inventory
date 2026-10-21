@@ -7,7 +7,7 @@ Integration für Home Assistant: per Barcode oder Name ein- und ausbuchen, Charg
 Mindesthaltbarkeits- oder Verbrauchsdatum je Lagerort verwalten, sehen, was bald abläuft, und eine
 markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 
-> Status: frühe Entwicklung, erste Version 0.1.0. Änderungen: [CHANGELOG.md](CHANGELOG.md).
+> Status: frühe Entwicklung, aktuelle Version 0.2.0. Änderungen: [CHANGELOG.md](CHANGELOG.md).
 > Planung: [docs/PLAN.md](docs/PLAN.md) (englisch).
 
 ## Funktionen

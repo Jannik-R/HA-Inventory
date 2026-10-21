@@ -6,7 +6,7 @@
 
 - **Breaking**: the domain is now `home_inventory` (was `pantry`). Remove the old integration and set it up again; the data of `pantry.db` is not taken over.
 - The database migrates automatically on start to schema version 28, from any earlier version. The steps that change existing data: migration 20 rebuilds `batch` and `booking` (ids kept, no data removed); migration 24 rebuilds `defaults`, `category` and `product` and sets *Richtwert* on *Obst & Gemüse*; migration 28 adds `batch.remaining`. Existing stock stays full; a partly used package becomes its own batch once a level is set. Migrations 25 and 27 seed the freezer and emergency group values.
-- Since 0.x, breaking changes come as a minor version (SemVer rule in the release skill).
+- While the version is 0.x, breaking changes come with a minor version (0.2.0), not a major one.
 
 ### Added
 

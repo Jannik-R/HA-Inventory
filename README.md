@@ -7,7 +7,7 @@ custom integration: book items in and out by barcode or name, track batches with
 dates per storage location, see what expires soon, and get a brand-independent shopping list from
 minimum stock levels.
 
-> Status: early development, first release 0.1.0. Changes: [CHANGELOG.md](CHANGELOG.md).
+> Status: early development, current release 0.2.0. Changes: [CHANGELOG.md](CHANGELOG.md).
 > Plan: [docs/PLAN.md](docs/PLAN.md).
 
 ## Features

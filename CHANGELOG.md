@@ -1,18 +1,26 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-10-21
 
-### Changed
+### Upgrade notes
 
-- Recipe import: links into the local network (e.g. a Mealie on the NAS) only for admins.
-- **Breaking**: the domain is now `home_inventory` (was `pantry`): folder `custom_components/home_inventory`, actions `home_inventory.*`, websocket `home_inventory/*`, panel URL `/home_inventory`, database `home_inventory.db`, LLM API `home_inventory`, entity ids (set up anew, named after the HA language). Remove the old integration and set it up again; data of `pantry.db` is not taken over.
-- Opening packages is a module (*Anbrechen*, on by default).
-- Privacy: new options step *Externe Dienste* with one switch per service that sends data out (Open Food Facts, recipe links, AI recipe check, AI product check, AI recipe reading, video download, receipt import); see the README section *Privacy*. `yt-dlp` is no longer a requirement; it is installed on first use when video download is turned on (default off).
-- The panel bundle ships `THIRD_PARTY_LICENSES.txt`.
-- Receipt import: OpenCV.js, tesseract.js and the German OCR data ship with the integration (`www/vendor/`, about 16 MB) instead of loading from the jsDelivr CDN.
+- **Breaking**: the domain is now `home_inventory` (was `pantry`). Remove the old integration and set it up again; the data of `pantry.db` is not taken over.
+- The database migrates automatically on start to schema version 28, from any earlier version. The steps that change existing data: migration 20 rebuilds `batch` and `booking` (ids kept, no data removed); migration 24 rebuilds `defaults`, `category` and `product` and sets *Richtwert* on *Obst & Gemüse*; migration 28 adds `batch.remaining`. Existing stock stays full; a partly used package becomes its own batch once a level is set. Migrations 25 and 27 seed the freezer and emergency group values.
+- Since 0.x, breaking changes come as a minor version (SemVer rule in the release skill).
 
 ### Added
 
+- Remaining amount of opened packages (*Füllstand*): a level on an opened or frozen row (full, ¾, ½, ¼, almost empty, empty), shown as "ca. ½"; a partly used package is its own batch and never merges with others (`home_inventory/remaining`; database migration 28, runs automatically)
+- Cooked book-out (*Gekocht ausbuchen*): the recipe view and the end of cook mode book out the ingredients scaled to the servings, one row per ingredient (batch, book out or open, packages), one confirm with undo; action `home_inventory.cooked`
+- Emergency stock check (*Notvorrat*, optional module): stock compared with the BBK emergency checklist (7 food groups, 10 days per person, household servings); tab *Notvorrat* and a sensor for the supply (database migration 27, runs automatically; categories get their group by name)
+- Dashboard example in the README (*Dashboard*): native Home Assistant cards for a kitchen tablet (expired and expiring items, shopping list, today's meal plan), no custom card
+- Scan mode *Einfrieren* (snowflake in the booking switch, optional module): one package per scan; an item label targets its batch, a scanned frozen package thaws one package, a freezer location label is the target
+- Home Assistant events for automations: `home_inventory_booked` (every new booking), `home_inventory_below_min` (only minimums that were just undercut) and `home_inventory_expired` (once per batch, after midnight)
+- Location labels: a label with a location's QR code (tag icon in the settings) sets the booking location until another location label, *Aufheben* or leaving the view; book in, book out and *Anbrechen* use it
+- Stocktaking per location: *Inventur* beside the location filter; scan everything in a location, then *Differenzen buchen* books out missing and books in found packages in one step (source `stocktake`)
+- Drying (*Dörren*) beside canning in the tab *Haltbarmachen*: drying protocols with charges and labels, drying recipes, duration in hours; action `home_inventory.drying`
+- Freezing and thawing (optional module *Einfrieren*): a product booked into or moved to a freezer location is frozen and gets a frozen date (shown as "ca."); moved out, it is thawed; actions `home_inventory.freeze_package` and `home_inventory.thaw_package`; days per category are inherited (default 90)
+- Date kind *Richtwert* ("ca." date) for food without a printed date, e.g. fresh produce; prefilled at book-in, labels print "ca." (database migration 24, runs automatically)
 - Panel in English (PLAN 37): it follows each user's Home Assistant language (German or English, others get English); sidebar title and device name follow the system language; the AI's reasons come in the panel language. The English guide uses the English labels and its own screenshots.
 - Opened packages: *Anbrechen* on a batch row, in the booking switch (label scan, barcode, name) and as action `home_inventory.open_package` marks one package as opened; it becomes its own stock row and expires after the new inherited field *Haltbar nach Anbruch* (never later than its date). Undo, and a new label is offered. Migration 20 rebuilds `batch` and `booking` (ids kept, no data removed).
 - Meal plan on the receipt printer: *Drucken* in the day and week view, action `home_inventory.print_plan` (day or week). Action `home_inventory.print_planned` prints the recipes planned for a meal (default: today, the current meal by the new start times under *Einstellungen > Mahlzeiten*; database migration 19, runs automatically)
@@ -38,8 +46,26 @@
 - Recipe ingredients: optional *Hinweis* (e.g. "fein gewürfelt"); any user can add a new product type while editing a recipe
 - Recipes (tab *Rezepte*): ingredients by product type or category, availability from stock per ingredient, servings scaling, search by name and ingredient (database migration 7, runs automatically)
 
+### Changed
+
+- Recipe import: links into the local network (e.g. a Mealie on the NAS) only for admins.
+- **Breaking**: the domain is now `home_inventory` (was `pantry`): folder `custom_components/home_inventory`, actions `home_inventory.*`, websocket `home_inventory/*`, panel URL `/home_inventory`, database `home_inventory.db`, LLM API `home_inventory`, entity ids (set up anew, named after the HA language). Remove the old integration and set it up again; data of `pantry.db` is not taken over.
+- Opening packages is a module (*Anbrechen*, on by default).
+- Privacy: new options step *Externe Dienste* with one switch per service that sends data out (Open Food Facts, recipe links, AI recipe check, AI product check, AI recipe reading, video download, receipt import); see the README section *Privacy*. `yt-dlp` is no longer a requirement; it is installed on first use when video download is turned on (default off).
+- The panel bundle ships `THIRD_PARTY_LICENSES.txt`.
+- Receipt import: OpenCV.js, tesseract.js and the German OCR data ship with the integration (`www/vendor/`, about 16 MB) instead of loading from the jsDelivr CDN.
+- Labels: at most 20 per print (was 99); booking in prints at most 20 as well
+- Open Food Facts online searches are spaced 6 s apart (their limit is 10 per minute and IP)
+- Shopping list entity: item texts follow the Home Assistant language (German or English), a product's brand in brackets
+- Recipe images are loaded without sending the referrer
+- Recipe units: Bund, Prise, Messerspitze, EL, TL (EL/TL convert to ml), Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher; a count unit that does not convert counts packages ("1 TL Salz" = any salt in stock)
+- Seeded categories get fitting default units (Milch l, Käse g, Fleisch g, Sahne ml, Gewürze g, ...); existing databases get them only where a category has no own unit.
+- A count unit (Stück) uses the package content when it is known: a 10-pack of eggs counts as 10 Stück, also for minimum stock. Checked shopping list items in Stück may come back once.
+
 ### Fixed
 
+- Freezing: with the module *Einfrieren* off, no date changes; booking in at or moving to a freezer is a plain booking, freeze and thaw are refused
+- Barcode scanning in Firefox works again with the camera; a detector error is shown instead of retrying silently
 - Printer settings: after a failed test print, *Testdruck* stays ticked, so trying again tests again instead of saving untested
 - Action forms: *Packages* of `home_inventory.book_in` allowed up to 9999 again (was 2099), *Count* of `home_inventory.print_labels` up to 20
 - Booking in: *Zurücksetzen* of the location now shows the default again (selects in other dialogs had the same issue)
@@ -51,17 +77,6 @@
 - Recipes: a Produktart or unit created in a cancelled recipe dialog now shows up right away
 - Tree arrows in *Bestand*, *Einstellungen* and the category picker are aligned and without a frame
 - Open Food Facts image links other than http(s) are dropped (booking in such a product failed)
-
-### Changed
-
-- Labels: at most 20 per print (was 99); booking in prints at most 20 as well
-- Open Food Facts online searches are spaced 6 s apart (their limit is 10 per minute and IP)
-- Shopping list entity: item texts follow the Home Assistant language (German or English), a product's brand in brackets
-- Recipe images are loaded without sending the referrer
-
-- Recipe units: Bund, Prise, Messerspitze, EL, TL (EL/TL convert to ml), Zehe, Scheibe, Stange, Blatt, Dose, Glas, Becher; a count unit that does not convert counts packages ("1 TL Salz" = any salt in stock)
-- Seeded categories get fitting default units (Milch l, Käse g, Fleisch g, Sahne ml, Gewürze g, ...); existing databases get them only where a category has no own unit.
-- A count unit (Stück) uses the package content when it is known: a 10-pack of eggs counts as 10 Stück, also for minimum stock. Checked shopping list items in Stück may come back once.
 
 ## 0.1.0 - 2026-10-16
 

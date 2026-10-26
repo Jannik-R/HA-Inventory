@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiUndo } from "@mdi/js";
 import { t } from "./i18n";
-import { icon } from "./ui";
+import { fieldMsg, icon } from "./ui";
 import { formStyles } from "./styles";
 import { fmtDateTime, fmtNumber } from "./format";
 import { confirmDialog } from "./confirm-dialog";
@@ -54,7 +54,12 @@ export class HomeInventoryHistory extends LitElement {
     }
   }
 
+  private get rangeError() {
+    return this.from && this.to && this.from > this.to ? t("history.range_error") : undefined;
+  }
+
   private async load() {
+    if (this.rangeError) return; // live error under the field; no load until fixed
     try {
       this.data = await getHistory(this.hass!, {
         name: this.name,
@@ -98,6 +103,7 @@ export class HomeInventoryHistory extends LitElement {
       message: t("history.undo_message"),
       body: html`<ul class="impact">
         ${a.rows.filter((r) => !r.undone_at).map((r) => html`<li>${this.line(r)}</li>`)}
+        ${a.more_rows ? html`<li>${t("history.more_rows", { n: a.more_rows })}</li>` : nothing}
       </ul>`,
       action: t("stock.undo"),
     });
@@ -146,6 +152,13 @@ export class HomeInventoryHistory extends LitElement {
             ${this.line(r)}
           </div>`,
       )}
+      ${
+        a.more_rows
+          ? html`<div class="when" data-testid="history-more-rows">
+              ${t("history.more_rows", { n: a.more_rows })}
+            </div>`
+          : nothing
+      }
       ${note ? html`<div class="when" data-testid="history-undone">${note}</div>` : nothing}
     </li>`;
   }
@@ -187,6 +200,7 @@ export class HomeInventoryHistory extends LitElement {
         </label>
         ${this.field(t("history.from"), "history-from", this.from, (v) => (this.from = v), "date")}
         ${this.field(t("history.to"), "history-to", this.to, (v) => (this.to = v), "date")}
+        ${fieldMsg(this.rangeError, "history-range")}
       </div>
       ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
       ${d && !d.actions.length ? html`<p class="empty">${t("history.empty")}</p>` : nothing}
@@ -215,6 +229,9 @@ export class HomeInventoryHistory extends LitElement {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 8px;
         margin-bottom: 8px;
+      }
+      .filters .field-error {
+        grid-column: 1 / -1;
       }
       ul {
         list-style: none;

@@ -42,6 +42,8 @@ def connect(path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(path, check_same_thread=False, factory=Connection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
+    # SQLite lower()/LIKE fold ASCII only; the history filter needs "äpfel" = "Äpfel"
+    conn.create_function("fold", 1, lambda s: s.casefold() if s else s, deterministic=True)
     return conn
 
 

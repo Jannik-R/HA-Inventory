@@ -18,7 +18,9 @@ export interface HistoryAction {
   ts: string;
   user_id: string | null;
   source: string;
+  /** The first rows only; the rest is counted in `more_rows` (undo takes all). */
   rows: HistoryRow[];
+  more_rows: number;
   /** Set when every row is undone. */
   undone_at: string | null;
   undone_by: string | null;

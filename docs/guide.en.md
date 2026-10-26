@@ -275,7 +275,8 @@ Who booked what, and when? **Stock > History** lists every booking, newest first
 3. **Undo** (arrow at the entry) books back the whole action after a question that lists what is booked
    back. If the stock changed since (e.g. the packages are already used), nothing is booked back and the
    product is named.
-4. Undone entries stay in the history, struck through, with "Undone on ...". An action undone only in
+4. Actions booked before this version of the history show one entry per booking.
+5. Undone entries stay in the history, struck through, with "Undone on ...". An action undone only in
    part (e.g. one package put back by hand) shows "Partly undone"; undo takes back the rest.
 
 ## 5. What expires soon?

@@ -173,3 +173,66 @@ async def test_websocket(ws) -> None:  # noqa: F811
     assert stock == []
     res = (await ws.call({"type": "home_inventory/history", "date_from": "2020-01-01"}))["result"]
     assert res["actions"][0]["undone_at"]
+
+
+def _in(conn, p, fridge, shelf):
+    act(conn, inv.book_in, p, 2, "2027-01-01", fridge)
+
+
+def _move(conn, p, fridge, shelf):
+    b = inv.book_in(conn, p, 2, "2027-01-01", shelf)
+    act(conn, inv.move, b, shelf, fridge, 1)
+    conn.execute("UPDATE location SET active = 0 WHERE id = ?", (shelf,))
+    conn.commit()
+
+
+def _correct_down(conn, p, fridge, shelf):
+    b = inv.book_in(conn, p, 3, "2027-01-01", fridge)
+    act(conn, inv.correct, b, fridge, 1)  # signed difference -2
+
+
+def _open(conn, p, fridge, shelf):
+    inv.book_in(conn, p, 2, "2027-01-01", fridge)
+    act(conn, inv.open_package, p, today=TODAY)
+
+
+def _freeze(conn, p, fridge, shelf):
+    inv.book_in(conn, p, 2, "2027-01-01", fridge)
+    act(conn, inv.freeze, p, today=TODAY)
+
+
+def _thaw(conn, p, fridge, shelf):
+    inv.book_in(conn, p, 2, "2027-01-01", fridge)
+    inv.freeze(conn, p, today=TODAY)
+    act(conn, inv.thaw, p, today=TODAY)
+
+
+def _remaining(conn, p, fridge, shelf):
+    b = inv.book_in(conn, p, 2, "2027-01-01", fridge)
+    opened = inv.open_package(conn, p, b, today=TODAY)["batch_id"]
+    act(conn, inv.set_remaining, opened, 0.5)
+
+
+@pytest.mark.parametrize("scenario", [_in, _move, _correct_down, _open, _freeze, _thaw, _remaining])
+def test_undo_action_each_kind(conn, scenario) -> None:
+    p = product(conn)
+    fridge, shelf = loc(conn), loc(conn, "Vorratsschrank")
+    scenario(conn, p, fridge, shelf)
+    after = stock(conn)
+    act(conn, inv.undo_action, actions(conn)[0]["action_id"])
+    assert stock(conn) != after
+    assert actions(conn)[0]["undone_at"]
+    if scenario is _move:
+        assert conn.execute("SELECT active FROM location WHERE id = ?", (shelf,)).fetchone()[0]
+
+
+def test_umlaut_filter_and_row_cap(conn) -> None:
+    apple = product(conn, "Äpfel", "Obst")
+    act(conn, inv.book_in, apple, 1, None, loc(conn))
+    assert len(actions(conn, name="äpfel")) == 1 and actions(conn, name="50%") == []
+    big = lambda c: [inv.book_in(c, apple, 1, f"2030-01-{i + 1:02d}", loc(c)) for i in range(25)]  # noqa: E731
+    act(conn, big)
+    a = actions(conn)[0]
+    assert (len(a["rows"]), a["more_rows"]) == (20, 5)
+    act(conn, inv.undo_action, a["action_id"])  # undo takes all rows
+    assert actions(conn)[0]["undone_at"]

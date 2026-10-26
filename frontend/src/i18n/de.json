@@ -556,6 +556,8 @@
   "history.newer": "Neuere",
   "history.older": "Ältere",
   "history.empty": "Keine Buchungen gefunden.",
+  "history.more_rows": "+{n} weitere",
+  "history.range_error": "„Von“ liegt nach „Bis“.",
   "stocktake.pick": "Welche Charge von „{name}“?",
   "stocktake.less": "Eine Packung „{name}“ weniger",
   "stocktake.one_more": "Eine Packung „{name}“ mehr",

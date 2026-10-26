@@ -556,6 +556,8 @@
   "history.newer": "Newer",
   "history.older": "Older",
   "history.empty": "No bookings found.",
+  "history.more_rows": "+{n} more",
+  "history.range_error": "“From” is after “To”.",
   "stocktake.pick": "Which batch of “{name}”?",
   "stocktake.less": "One package of “{name}” less",
   "stocktake.one_more": "One more package of “{name}”",

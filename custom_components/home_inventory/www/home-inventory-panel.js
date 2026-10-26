@@ -1084,6 +1084,8 @@ var Je = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"history.newer": "Neuere",
 	"history.older": "Ältere",
 	"history.empty": "Keine Buchungen gefunden.",
+	"history.more_rows": "+{n} weitere",
+	"history.range_error": "„Von“ liegt nach „Bis“.",
 	"stocktake.pick": "Welche Charge von „{name}“?",
 	"stocktake.less": "Eine Packung „{name}“ weniger",
 	"stocktake.one_more": "Eine Packung „{name}“ mehr",
@@ -1785,6 +1787,8 @@ var Je = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"history.newer": "Newer",
 	"history.older": "Older",
 	"history.empty": "No bookings found.",
+	"history.more_rows": "+{n} more",
+	"history.range_error": "“From” is after “To”.",
 	"stocktake.pick": "Which batch of “{name}”?",
 	"stocktake.less": "One package of “{name}” less",
 	"stocktake.one_more": "One more package of “{name}”",
@@ -12230,8 +12234,11 @@ var Ac = (e, t) => e.callWS({
 	willUpdate() {
 		this.hass && !this.started && (this.started = !0, this.load().then(() => this.renderRoot.querySelector("[data-testid=history-name]")?.focus()));
 	}
+	get rangeError() {
+		return this.from && this.to && this.from > this.to ? S("history.range_error") : void 0;
+	}
 	async load() {
-		try {
+		if (!this.rangeError) try {
 			this.data = await Ac(this.hass, {
 				name: this.name,
 				user_id: this.user,
@@ -12263,6 +12270,7 @@ var Ac = (e, t) => e.callWS({
 			message: S("history.undo_message"),
 			body: g`<ul class="impact">
         ${e.rows.filter((e) => !e.undone_at).map((e) => g`<li>${this.line(e)}</li>`)}
+        ${e.more_rows ? g`<li>${S("history.more_rows", { n: e.more_rows })}</li>` : v}
       </ul>`,
 			action: S("stock.undo")
 		})) {
@@ -12302,6 +12310,9 @@ var Ac = (e, t) => e.callWS({
       ${e.rows.map((t) => g`<div data-testid="history-row" class=${e.undone_at || t.undone_at ? "struck" : ""}>
             ${this.line(t)}
           </div>`)}
+      ${e.more_rows ? g`<div class="when" data-testid="history-more-rows">
+              ${S("history.more_rows", { n: e.more_rows })}
+            </div>` : v}
       ${n ? g`<div class="when" data-testid="history-undone">${n}</div>` : v}
     </li>`;
 	}
@@ -12332,6 +12343,7 @@ var Ac = (e, t) => e.callWS({
         </label>
         ${this.field(S("history.from"), "history-from", this.from, (e) => this.from = e, "date")}
         ${this.field(S("history.to"), "history-to", this.to, (e) => this.to = e, "date")}
+        ${O(this.rangeError, "history-range")}
       </div>
       ${this.error ? g`<p class="error" role="alert">${this.error}</p>` : v}
       ${e && !e.actions.length ? g`<p class="empty">${S("history.empty")}</p>` : v}
@@ -12358,6 +12370,9 @@ var Ac = (e, t) => e.callWS({
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 8px;
         margin-bottom: 8px;
+      }
+      .filters .field-error {
+        grid-column: 1 / -1;
       }
       ul {
         list-style: none;

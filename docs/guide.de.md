@@ -276,7 +276,8 @@ Wer hat wann was gebucht? **Bestand > Verlauf** listet jede Buchung, die neueste
 3. **Rückgängig** (Pfeil am Eintrag) bucht die ganze Aktion zurück, nach einer Rückfrage, die auflistet,
    was zurückgebucht wird. Hat sich der Bestand seitdem geändert (z. B. sind die Packungen schon
    verbraucht), wird nichts zurückgebucht und das Produkt genannt.
-4. Rückgängig gemachte Einträge bleiben im Verlauf, durchgestrichen, mit „Rückgängig gemacht am ...“. Eine
+4. Aktionen, die vor dieser Version des Verlaufs gebucht wurden, zeigen einen Eintrag je Buchung.
+5. Rückgängig gemachte Einträge bleiben im Verlauf, durchgestrichen, mit „Rückgängig gemacht am ...“. Eine
    nur teilweise rückgängig gemachte Aktion (z. B. eine Packung von Hand zurückgelegt) zeigt „Teilweise
    rückgängig gemacht“; Rückgängig bucht den Rest zurück.
 

@@ -11,11 +11,20 @@ from .frozen import undo_frozen
 from .opened import undo_open
 
 PAGE = 100
+ROWS = 20
 # Hidden: undo rows and the -n half of a transfer pair (freeze, thaw, level change show once).
 _VISIBLE = (
     "k.reverts_id IS NULL AND NOT (k.kind IN ('freeze', 'thaw', 'remaining') AND k.packages < 0)"
 )
 _ACTION = "coalesce(k.action_id, k.id)"
+
+
+def _in_action(n: int) -> str:
+    """Rows of n actions, written so the booking_action index is used (NULL = its own action)."""
+    q = ",".join("?" * n)
+    return f"(k.action_id IN ({q}) OR (k.action_id IS NULL AND k.id IN ({q})))"
+
+
 _JOINS = "FROM booking k JOIN batch b ON b.id = k.batch_id JOIN product p ON p.id = b.product_id"
 
 
@@ -30,7 +39,7 @@ def history(
     """Newest actions first: {actions: [...], more}. Filters pick the actions; each shows all its rows."""
     where, args = [_VISIBLE], []
     for sql, value in (
-        ("p.name LIKE ?", f"%{name}%" if name else None),
+        ("instr(fold(p.name), fold(?)) > 0", name or None),
         ("k.user_id = ?", user_id),
         ("k.ts >= ?", ts_from),
         ("k.ts < ?", ts_to),
@@ -59,35 +68,37 @@ def history(
         " LEFT JOIN location l ON l.id = coalesce(m.location_id, k.location_id)"
         " LEFT JOIN location t ON t.id = CASE WHEN m.id IS NULL THEN k.to_location_id ELSE k.location_id END"
         " LEFT JOIN booking u ON u.reverts_id = k.id"
-        f" WHERE {_VISIBLE} AND {_ACTION} IN ({','.join('?' * len(ids))}) ORDER BY k.id",
-        ids,
+        f" WHERE {_VISIBLE} AND {_in_action(len(ids))} ORDER BY k.id",
+        ids * 2,
     ).fetchall()
-    actions: dict[int, dict] = {}
+    groups: dict[int, list[sqlite3.Row]] = {}
     for r in rows:
-        a = actions.setdefault(
-            r["action_id"],
-            {"action_id": r["action_id"], "ts": r["ts"], "user_id": r["user_id"],
-             "source": r["source"], "rows": []},
-        )  # fmt: skip
-        to = r["to_location"] if r["to_location"] != r["location"] else None
-        a["rows"].append(
+        groups.setdefault(r["action_id"], []).append(r)
+    out = []
+    for aid in sorted(groups, reverse=True):
+        rs = groups[aid]
+        undone = [r for r in rs if r["undone_at"]]
+        last = max(undone, key=lambda r: r["undone_at"], default=None)
+        full = len(undone) == len(rs)
+        # shortcut: a big action (import, stocktake) shows its first ROWS rows; undo still takes all
+        out.append(
             {
-                "id": r["id"], "kind": r["kind"], "packages": r["packages"],
-                "product_id": r["product_id"], "name": r["name"], "location": r["location"],
-                "to_location": to, "undone_at": r["undone_at"], "_by": r["undone_by"],
+                "action_id": aid, "ts": rs[0]["ts"], "user_id": rs[0]["user_id"],
+                "source": rs[0]["source"], "more_rows": max(0, len(rs) - ROWS),
+                "undone_at": last["undone_at"] if full else None,
+                "undone_by": last["undone_by"] if full else None,
+                "partly": bool(undone) and not full,
+                "rows": [
+                    {
+                        "id": r["id"], "kind": r["kind"], "packages": r["packages"],
+                        "product_id": r["product_id"], "name": r["name"],
+                        "location": r["location"], "undone_at": r["undone_at"],
+                        "to_location": r["to_location"] if r["to_location"] != r["location"] else None,
+                    }
+                    for r in rs[:ROWS]
+                ],
             }
         )  # fmt: skip
-    out = []
-    for a in sorted(actions.values(), key=lambda a: -a["action_id"]):
-        undone = [x for x in a["rows"] if x["undone_at"]]
-        last = max(undone, key=lambda x: x["undone_at"], default=None)
-        full = len(undone) == len(a["rows"])
-        a["undone_at"] = last["undone_at"] if full else None
-        a["undone_by"] = last["_by"] if full else None
-        a["partly"] = bool(undone) and not full
-        for x in a["rows"]:
-            del x["_by"]
-        out.append(a)
     return {"actions": out, "more": more}
 
 
@@ -136,14 +147,14 @@ def _undo_row(conn: sqlite3.Connection, booking_id: int, user_id: str | None) ->
 
 def undo_action(conn: sqlite3.Connection, action_id: int, user_id: str | None = None) -> None:
     """Undo every not yet undone row of an action, newest first; all or nothing (the caller rolls back)."""
-    where = f"{_VISIBLE} AND {_ACTION} = ?"
+    where = f"{_VISIBLE} AND {_in_action(1)}"
     rows = conn.execute(
         f"SELECT k.id, p.name {_JOINS} WHERE {where}"
         " AND NOT EXISTS (SELECT 1 FROM booking u WHERE u.reverts_id = k.id) ORDER BY k.id DESC",
-        (action_id,),
+        (action_id, action_id),
     ).fetchall()
     if not rows:
-        known = conn.execute(f"SELECT 1 {_JOINS} WHERE {where}", (action_id,)).fetchone()
+        known = conn.execute(f"SELECT 1 {_JOINS} WHERE {where}", (action_id, action_id)).fetchone()
         raise InventoryError("already_undone" if known else "not_found")
     for r in rows:
         try:

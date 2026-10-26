@@ -15,6 +15,7 @@ from .migration_27 import emergency_stock
 from .migration_28 import remaining_amount
 from .migration_29 import leftovers
 from .migration_30 import allergens_diet
+from .migration_32 import seed_lang
 from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -473,4 +474,7 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     UPDATE booking SET action_id = id;
     CREATE INDEX booking_action ON booking (action_id);
     """,
+    # 32: defaults.seed_lang, the language of the seeded names; existing DBs are German
+    # (see migration_32 / seed_en).
+    seed_lang,
 ]

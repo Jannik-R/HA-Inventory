@@ -8,6 +8,7 @@ import re
 import sqlite3
 from collections.abc import Iterator
 
+from ..seed_en import seeded
 from .common import InventoryError
 from .ingredient_line import parse_ingredient, unit_lookup
 from .inherit import is_food
@@ -98,7 +99,7 @@ def recipe_draft(conn: sqlite3.Connection, recipe: dict, url: str | None) -> dic
     """schema.org Recipe dict (JSON-LD or the AI's answer) -> draft {name, servings, steps,
     source_url, image_url, ingredients}; nothing is saved."""
     units = unit_lookup(conn)
-    piece = conn.execute("SELECT id FROM unit WHERE name = 'Stück'").fetchone()
+    piece = conn.execute("SELECT id FROM unit WHERE name = ?", (seeded(conn, "Stück"),)).fetchone()
     lines = recipe.get("recipeIngredient") or recipe.get("ingredients") or []
     ingredients = []
     for line in [x for x in lines if isinstance(x, str) and x.strip()][:100]:

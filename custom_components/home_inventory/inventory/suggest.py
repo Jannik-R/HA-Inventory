@@ -6,6 +6,8 @@ import re
 import sqlite3
 
 from ..keywords import KEYWORDS
+from ..keywords_en import KEYWORDS_EN
+from ..seed_en import lang
 from .common import unit_key
 from .inherit import _categories, _chain, category_tags, is_type
 from .learned import learned
@@ -31,6 +33,7 @@ _ENDINGS = ("", "e", "n", "en", "s", "er", "es")
 
 
 _KEYWORDS = [(kw, tag) for tag, kws in KEYWORDS.items() for kw in kws]
+_KEYWORDS_EN = [(kw, tag) for tag, kws in KEYWORDS_EN.items() for kw in kws]
 
 
 _MIN_SCORE = 5
@@ -79,9 +82,11 @@ def suggest_type(conn: sqlite3.Connection, name: str) -> int | None:
 
 
 def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
-    """Category from name keywords (keywords.py). The first name word with a match decides
-    (German names put the product before the variety: "Joghurt Erdbeere", "Tomatensauce
-    Basilikum"); within it the best score wins, then the deeper category."""
+    """Category from name keywords (keywords.py). German: the first name word with a match
+    decides (names put the product before the variety: "Joghurt Erdbeere", "Tomatensauce
+    Basilikum"); within it the best score wins, then the deeper category. English (head noun
+    last: "Strawberry yogurt" is a yogurt): the first position where a product type matches,
+    else the last word with a match."""
     cats = _categories(conn)
     # Single-word product types (third level) match by their own name, e.g. "Tomatenmark".
     types = [
@@ -93,13 +98,14 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
     for cid, tags in category_tags(conn).items():
         for tag in tags:
             tag_cats.setdefault(tag, []).append(cid)
-    stems, phrases = [unit_key(w) for w in _words(name)], _type_stems(cats)
-    for i, word in enumerate(_words(name)):
-        if exact := _type_at(phrases, stems, i):
-            return exact
+    words = _words(name)
+    stems, phrases = [unit_key(w) for w in words], _type_stems(cats)
+    keywords = _KEYWORDS_EN if lang(conn) == "en" else _KEYWORDS
+
+    def best(word: str) -> int | None:
         found = [
             (score, len(_chain(cats, cid)), cid)
-            for kw, tag in _KEYWORDS
+            for kw, tag in keywords
             if (score := keyword_score(word, kw)) is not None and score >= _MIN_SCORE
             for cid in tag_cats.get(tag, [])
         ] + [
@@ -107,8 +113,16 @@ def suggest_by_keywords(conn: sqlite3.Connection, name: str) -> int | None:
             for kw, cid in types
             if (score := keyword_score(word, kw)) is not None and score >= _MIN_SCORE
         ]
-        if found:
-            return max(found)[2]
+        return max(found)[2] if found else None
+
+    if keywords is _KEYWORDS_EN:
+        exact = (_type_at(phrases, stems, i) for i in range(len(words)))
+        return next(filter(None, exact), None) or next(filter(None, map(best, words[::-1])), None)
+    for i, word in enumerate(words):
+        if exact := _type_at(phrases, stems, i):
+            return exact
+        if found := best(word):
+            return found
     return None
 
 

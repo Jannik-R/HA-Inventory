@@ -2,7 +2,7 @@
 
 - canning.kind 'leftover' (same charge numbering, batch, labels; 1 package = 1 serving).
 - Seeded root Reste (food, guide date, 3 days, fridge); the products "Reste: <dish>" are created
-  on first use by inventory/leftovers.py. Both names stay German (data, like the other seeds).
+  on first use by inventory/leftovers.py. Names via `seeded` (English in an English DB: "Leftovers: <dish>").
 """
 
 from __future__ import annotations
@@ -10,10 +10,10 @@ from __future__ import annotations
 import sqlite3
 
 from .migration_24 import widen_check
+from .seed_en import seeded
 from .seed_general import _id
 
 ROOT = "Reste"
-PREFIX = "Reste: "
 
 
 def add_leftovers(conn: sqlite3.Connection) -> None:
@@ -24,7 +24,7 @@ def add_leftovers(conn: sqlite3.Connection) -> None:
     if not row or "'leftover'" not in row[0]:
         return  # a DB seeded at an older version (upgrade tests): migration 29 calls it later
     if conn.execute(
-        "SELECT 1 FROM category WHERE parent_id IS NULL AND name = ?", (ROOT,)
+        "SELECT 1 FROM category WHERE parent_id IS NULL AND name = ?", (seeded(conn, ROOT),)
     ).fetchone():
         return
     sort = conn.execute(
@@ -33,7 +33,7 @@ def add_leftovers(conn: sqlite3.Connection) -> None:
     conn.execute(
         "INSERT INTO category (name, sort, default_location_id, expiry_type, warn_days, shelf_days,"
         " emergency_group) VALUES (?, ?, ?, 'guide', 1, 3, 'none')",
-        (ROOT, sort, _id(conn, "location", "Kühlschrank")),
+        (seeded(conn, ROOT), sort, _id(conn, "location", seeded(conn, "Kühlschrank"))),
     )
 
 

@@ -21,6 +21,7 @@ from .migration_30 import set_diet
 from .migrations import MIGRATIONS
 from .seed import seed
 from .seed_days import fill_days
+from .seed_en import to_english
 from .seed_general import add_general
 from .seed_types import mark_recipe_only
 
@@ -47,8 +48,15 @@ def connect(path: str) -> sqlite3.Connection:
     return conn
 
 
-def migrate(conn: sqlite3.Connection) -> None:
+def seed_lang(hass: HomeAssistant) -> str:
+    """Language of the seeded names of a new DB: German if HA's system language is German."""
+    return "de" if hass.config.language.split("-")[0] == "de" else "en"
+
+
+def migrate(conn: sqlite3.Connection, lang: str = "de") -> None:
     """Apply missing steps, one transaction each; seed while there are no units.
+
+    `lang` is the seed language of a new DB (an existing one keeps its names).
 
     Foreign keys are off during a step (SQLite's way to rebuild a referenced table) and
     checked before its commit; a violation rolls the step back.
@@ -81,6 +89,8 @@ def migrate(conn: sqlite3.Connection) -> None:
         set_emergency(conn)  # same
         add_leftovers(conn)  # same
         set_diet(conn)  # same
+        if lang == "en":
+            to_english(conn)
         conn.commit()
 
 
@@ -100,7 +110,7 @@ class Database:
     def _open(self) -> sqlite3.Connection:
         conn = connect(self._path)
         try:
-            migrate(conn)
+            migrate(conn, seed_lang(self._hass))
         except BaseException:
             conn.close()
             raise

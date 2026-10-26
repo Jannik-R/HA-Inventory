@@ -405,3 +405,5 @@ export const checkProduct = (hass: Hass, draft: Record<string, unknown>) =>
   });
 export const addUnit = (hass: Hass, name: string, symbol?: string) =>
   hass.callWS<{ id: number }>({ type: "home_inventory/unit_add", name, symbol });
+export const exportRecipes = (hass: Hass, recipe_id?: number) =>
+  hass.callWS<object>({ type: "home_inventory/recipe_export", recipe_id });

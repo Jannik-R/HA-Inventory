@@ -1,11 +1,13 @@
 import { LitElement, html, nothing } from "lit";
+import { mdiPrinterPos } from "@mdi/js";
 import { t } from "./i18n";
+import { icon } from "./ui";
 import { errorMessage, getLabelConfig, type Hass } from "./api";
 
 /** One question per page load: is a receipt printer set up? (options change → reload) */
 let hasReceipt: Promise<boolean> | undefined;
 
-/** "Drucken" on the receipt printer (recipe, meal plan): runs `print`, then shows `done` or the
+/** "Bon drucken" on the receipt printer (recipe, meal plan): runs `print`, then shows `done` or the
  * error next to it. Renders nothing without a receipt printer. Light DOM: the host's styles apply. */
 export class HomeInventoryReceiptButton extends LitElement {
   static properties = {
@@ -65,7 +67,7 @@ export class HomeInventoryReceiptButton extends LitElement {
         ?disabled=${this.busy}
         @click=${() => this.run()}
       >
-        ${t("common.print")}
+        ${icon(mdiPrinterPos)} ${t("common.print")}
       </button>
       ${
         this.note

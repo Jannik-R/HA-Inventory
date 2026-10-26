@@ -5,6 +5,7 @@ import { fmtAmount, fmtNumber, fmtPortions } from "./format";
 import { stepList } from "./recipe-steps";
 import { hasModule } from "./modules";
 import "./receipt-button";
+import { recipeOutputButtons } from "./recipe-output";
 import {
   isCanning,
   printRecipe,
@@ -64,8 +65,19 @@ export const recipeDetail = (o: {
   onPlan: () => void;
   onCook: () => void;
   onCooked: () => void;
+  onError: (message: string) => void;
 }) => {
   const r = o.recipe;
+  const lines = o.ingredients.map((i) =>
+    [
+      amountText(o.hass, o.md, i, o.servings / r.servings),
+      o.md.categories.find((c) => c.id === i.category_id)?.name ?? i.text,
+      i.note ? `(${i.note})` : "",
+      i.optional ? `(${t("recipes.optional")})` : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
   return html`<div class="detail-box">
     <label class="servings">
       <span class="lbl"
@@ -131,6 +143,7 @@ export const recipeDetail = (o: {
               ${t("cooked.open")}
             </button>`
       }
+      ${recipeOutputButtons({ hass: o.hass, recipe: r, servings: o.servings, ingredients: lines, onError: o.onError })}
       <home-inventory-receipt-button
         .hass=${o.hass}
         .print=${() => printRecipe(o.hass, r.id, o.servings)}

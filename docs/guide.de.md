@@ -384,9 +384,20 @@ rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept 
 > Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
 > Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
 
-**Drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
+**Bon drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
 die Zutaten zum Abhaken (Mengen für die angezeigten Portionen) und die nummerierten Schritte. Der
 Knopf erscheint nur, wenn ein Bondrucker eingerichtet ist.
+
+**Drucken / PDF**: öffnet den Druckdialog deines Browsers mit dem aufgeklappten Rezept (Name,
+angezeigte Portionen, Zutaten, Schritte, Quelle), schwarz auf weiß und ohne das Home-Assistant-Menü.
+Dort wählst du einen Papierdrucker oder „Als PDF speichern“. Das ist nicht der Bondrucker: **Bon
+drucken** sendet an den Bondrucker, **Drucken / PDF** an das, was der Browser anbietet.
+
+**JSON herunterladen**: speichert das aufgeklappte Rezept als Datei (schema.org Recipe), z. B. zum
+Umzug nach Mealie oder Tandoor oder als Sicherung. **Alle Rezepte exportieren** (über der Liste)
+speichert alle in einer Datei `rezepte.json` (ohne Einkoch- und Dörrrezepte). Der **Import** liest
+solche Inhalte wieder, wenn sie auf einer Seite stehen; die Datei selbst lässt sich noch nicht
+importieren.
 
 **Kochmodus**: Im aufgeklappten Rezept öffnet **Kochmodus** Zutaten (für die angezeigten Portionen)
 und Schritte im Vollbild. Ein Tipp auf einen Schritt hakt ihn ab (wird nicht gespeichert). Steht in
@@ -507,7 +518,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Ab hier um einen Tag verschieben**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, auf den jeweils nächsten Tag. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
 
-**Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
+**Bon drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
 
 **Einkaufsliste**: Dieser Knopf öffnet einen Dialog mit **Von** und **Bis**, vorbelegt mit heute bis sechs Tage später. **Auf die Liste** setzt jedes in diesem Zeitraum geplante Rezept mit den addierten Portionen all seiner Mahlzeiten auf die Einkaufsliste; was im Vorrat ist, wird abgezogen, wie bei [Rezepten auf der Einkaufsliste](#6-einkaufsliste). Gerichte mit freiem Text werden übersprungen, und ein Rezept, das schon auf der Liste steht, behält die größeren Portionen. **Bis** darf nicht vor **Von** liegen (höchstens 366 Tage). Eine Zeile über dem Plan nennt, was hinzugekommen ist. Eine Verbrauchsprognose gibt es noch nicht.
 

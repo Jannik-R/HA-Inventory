@@ -41,6 +41,7 @@ custom_components/home_inventory/   integration (Python)
   db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities and fires home_inventory_booked after writes
   migrations.py             MIGRATIONS: the schema steps (SQL scripts or callables), one per schema version
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
+  seed_en.py                English seed: `to_english` renames a fresh German-seeded DB by dictionary, `seeded()` / `lang()`; seed_en_names.py / seed_en_more.py: the dictionaries (data only); keywords_en.py: English name keywords
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of migrations.py for size
@@ -53,6 +54,7 @@ custom_components/home_inventory/   integration (Python)
   migration_29.py           migration 29: canning.kind 'leftover' (table rebuilt); root category Reste (`add_leftovers`)
   migration_30.py           migration 30: allergens and diet (category / product `diet`, `allergens`); `set_diet` seeds by name, also after the seed
   off_diet.py, websocket_diet.py  admin reload of allergens / diet from Open Food Facts, one small throttled chunk per call
+  migration_32.py           migration 32: defaults.seed_lang (language of the seeded names, see seed_en.py); repairs the Holunderbeeren unit
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)

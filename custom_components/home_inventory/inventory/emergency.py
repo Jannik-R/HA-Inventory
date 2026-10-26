@@ -6,6 +6,7 @@ import sqlite3
 from datetime import date
 from math import ceil, floor
 
+from ..seed_en import seeded
 from .amounts import _amount, _units
 from .inherit import _categories, _resolve, defaults
 from .queries import stock_list
@@ -30,7 +31,11 @@ def supply(conn: sqlite3.Connection, persons: int, today: date) -> dict:
     persons = max(1, persons)
     units = _units(conn)
     by_name = {u["name"]: u["id"] for u in units.values()}  # shortcut: kg / l / Stück found by name
-    kg, litre, piece = by_name.get("kg"), by_name.get("l"), by_name.get("Stück")  # None: renamed
+    kg, litre, piece = (
+        by_name.get("kg"),
+        by_name.get("l"),
+        by_name.get(seeded(conn, "Stück")),
+    )  # None: renamed
     cats, dflt = _categories(conn), defaults(conn)
     products = {r["id"]: r for r in conn.execute("SELECT * FROM product")}
     packages: dict[int, float] = {}  # a partly used package counts by its level (frozen too)

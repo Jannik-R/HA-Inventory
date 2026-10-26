@@ -22,3 +22,9 @@ def conn():
     c = db.connect(":memory:")
     db.migrate(c)
     return c
+
+
+@pytest.fixture(autouse=True)
+def german_seed(monkeypatch):
+    """pytest-HA's language is English; test DBs stay German unless a test asks for English."""
+    monkeypatch.setattr(db, "seed_lang", lambda hass: "de")

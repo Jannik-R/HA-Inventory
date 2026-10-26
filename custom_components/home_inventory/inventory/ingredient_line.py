@@ -7,6 +7,8 @@ import re
 import sqlite3
 from fractions import Fraction
 
+from ..seed_en import lang
+from ..seed_en_names import EN_UNITS
 from .common import _SUFFIX, InventoryError, unit_key
 
 _PLURAL_SUFFIX = re.compile(r"(?<=\w)\((?:e|n|en|s|se|er|nen)\)")  # Zwiebel(n), Ei(er): no note
@@ -27,8 +29,12 @@ _ALIASES = {
     "päckchen": "Packung", "packung": "Packung", "gramm": "g", "kilogramm": "kg", "kilo": "kg",
     "liter": "l", "milliliter": "ml", "gläser": "Glas", "blätter": "Blatt", "bünde": "Bund",
     "msp": "Messerspitze", "tüte": "Packung", "tüten": "Packung", "stängel": "Stiel",
-    "fläschchen": "Flasche",
+    "fläschchen": "Flasche", "el": "Esslöffel", "tl": "Teelöffel",
+    "pcs": "piece", "pack": "package", "packet": "package", "gram": "g", "kilogram": "kg",
+    "litre": "l", "millilitre": "ml", "lbs": "pound", "tbs": "tablespoon", "tbl": "tablespoon",
+    "leaves": "leaf", "floz": "fluid ounce",
 }  # fmt: skip
+_FL_OZ = re.compile(r"\bfl(?:uid)?\.?\s*(?:oz|ounces?)\b\.?", re.I)  # "fl oz" -> one word
 _FRACTIONS = {"½": " 1/2", "¼": " 1/4", "¾": " 3/4", "⅓": " 1/3", "⅔": " 2/3", "⅛": " 1/8"}
 _NUM = r"\d+/\d+|\d+(?:[.,]\d+)?(?:\s+\d+/\d+)?"
 _AMOUNT = re.compile(rf"(?:ca\.\s*)?({_NUM})(?:\s*[-–]\s*({_NUM}))?", re.I)
@@ -59,9 +65,16 @@ def unit_lookup(conn: sqlite3.Connection) -> dict[str, int]:
     """unit_key of every unit name and symbol (plus aliases for existing units) -> unit id."""
     rows = conn.execute("SELECT id, name, symbol FROM unit").fetchall()
     keys = {unit_key(v): r["id"] for r in rows for v in (r["name"], r["symbol"])}
+    english = lang(conn) == "en"
+    for r in rows if english else ():  # plurals the German stripping does not reach: cloves
+        for v in (r["name"], r["symbol"]):
+            for plural in (v + "s", v + "es") if len(v) > 2 else ():
+                keys.setdefault(unit_key(plural), r["id"])
     ids = {r["name"]: r["id"] for r in rows}
-    for alias, target in _ALIASES.items():
-        if target in ids:
+    # The AI prompts are German: in an English DB the German unit words stay valid aliases.
+    de = {k: v[0] for k, v in EN_UNITS.items()} if english else {}
+    for alias, target in [*_ALIASES.items(), *zip(de, de, strict=True)]:
+        if (target := de.get(target, target)) in ids:
             keys.setdefault(unit_key(alias), ids[target])
     return keys
 
@@ -97,6 +110,7 @@ def parse_ingredient(line: str, units: dict[str, int], piece_id: int | None) -> 
     original = line.strip()[:200]
     for char, repl in _FRACTIONS.items():
         line = line.replace(char, repl)
+    line = _FL_OZ.sub("floz", line)
     rest = _PLURAL_SUFFIX.sub("", " ".join(html.unescape(line).split()))
     notes: list[str] = []
     optional = bool(m := _OPTIONAL.match(rest))

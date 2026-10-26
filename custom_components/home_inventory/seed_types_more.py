@@ -338,7 +338,7 @@ MORE_UNITS: dict[str, str] = {
             "Johannisbeeren",
             "Stachelbeeren",
             "Cranberrys",
-            "Holundeebeeren",
+            "Holunderbeeren",
             "Sanddorn",
             "Möhren",
             "Pastinaken",

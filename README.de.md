@@ -75,6 +75,20 @@ Alle Optionen stehen unter *Einstellungen > Geräte & Dienste > Home Inventory >
 Module, Etikettendrucker, Bondrucker, Haushalt (Portionen, geschätztes Ablaufdatum), KI und Externe
 Dienste (siehe [Datenschutz](#datenschutz)).
 
+### Sprache der Vorbelegung
+
+Die vorbelegten Kategorien, Produktarten, Einheiten und Lagerorte sind deutsch, wenn die
+Systemsprache von Home Assistant beim Anlegen der Datenbank Deutsch ist, sonst englisch. Vorhandene
+Daten werden nie übersetzt, und eine spätere Änderung der Home-Assistant-Sprache ändert nichts. Um
+die andere Sprache zu bekommen:
+
+1. Home Assistant beenden.
+2. Die Sprache unter *Einstellungen > System > Allgemein* setzen (dafür Home Assistant starten und wieder beenden, oder vor der Installation setzen).
+3. Im Konfigurationsordner von Home Assistant `home_inventory.db` löschen (und `home_inventory.db-wal` / `home_inventory.db-shm`, falls vorhanden). Alle Vorratsdaten gehen verloren.
+4. Home Assistant starten. Die Vorbelegung nutzt die Sprache, die beim Anlegen der Datenbank gesetzt ist.
+
+Die KI-Prompts (Rezeptimport, Kassenbon, Produktprüfung) sind noch deutsch, deshalb kann die KI in einer englischen Datenbank deutsche Namen vorschlagen.
+
 ### Etikettendrucker
 
 Jedes Etikett zeigt einen QR-Code (`PTRY:<EAN>:<Datum>`, ohne EAN `PTRY:P<Produkt-ID>:<Datum>`;

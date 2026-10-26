@@ -6,7 +6,8 @@ from __future__ import annotations
 import sqlite3
 from datetime import date, timedelta
 
-from ..migration_29 import PREFIX, ROOT, add_leftovers
+from ..migration_29 import ROOT, add_leftovers
+from ..seed_en import seeded
 from .canning import save_canning
 from .codes import _location, _recipe
 from .common import InventoryError, _exists
@@ -18,7 +19,7 @@ from .products import add_product
 def leftover_category(conn: sqlite3.Connection) -> int | None:
     """The root category Reste (None if deleted; storing creates it again, this never does)."""
     sql = "SELECT id FROM category WHERE parent_id IS NULL AND name = ?"
-    return (row := conn.execute(sql, (ROOT,)).fetchone()) and row[0]
+    return (row := conn.execute(sql, (seeded(conn, ROOT),)).fetchone()) and row[0]
 
 
 def store_leftovers(
@@ -48,7 +49,7 @@ def store_leftovers(
     if not dish:
         raise InventoryError("invalid_value")
     _exists(conn, "location", location_id)
-    name = PREFIX + dish
+    name = f"{seeded(conn, ROOT)}: {dish}"
     found = conn.execute(
         "SELECT id FROM product WHERE name = ? ORDER BY id LIMIT 1", (name,)
     ).fetchone()

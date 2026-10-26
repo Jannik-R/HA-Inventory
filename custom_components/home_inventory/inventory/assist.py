@@ -39,6 +39,20 @@ def expiring_stock(conn: sqlite3.Connection, today: date, days: int | None = Non
     ][:MAX_ROWS]
 
 
+def _diet(r: dict) -> dict:
+    """Diet fields of a recipe row (none while the module diet is off)."""
+    d = r.get("diet")
+    return (
+        {
+            "diet": d["diet"],
+            "allergens_known": d["allergens_known"],
+            "contains_allergens": d["contains"],
+        }
+        if d
+        else {}
+    )
+
+
 def recipe_list(conn: sqlite3.Connection, search: str | None = None) -> list[dict]:
     """Recipes by name with how many required ingredients are in stock."""
     needle = (search or "").strip().casefold()
@@ -50,9 +64,7 @@ def recipe_list(conn: sqlite3.Connection, search: str | None = None) -> list[dic
             "ingredients_in_stock": r["summary"]["available"],
             "ingredients_required": r["summary"]["total"],
             "on_shopping_list": r["shopping_servings"] is not None,
-            "diet": r["diet"]["diet"],
-            "allergens_known": r["diet"]["allergens_known"],
-            "contains_allergens": r["diet"]["contains"],
+            **_diet(r),
         }
         for r in recipes(conn)
         if needle in r["name"].casefold()

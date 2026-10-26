@@ -210,7 +210,8 @@ def recipe_availability(conn: sqlite3.Connection, recipe_id: int, servings: int)
 def recipes(conn: sqlite3.Connection) -> list[dict]:
     """All recipes by name with ingredients, availability at their own servings and a summary
     (available / total over the ingredients that are neither optional nor skipped)."""
-    out, ctx, steps, value = [], _ctx(conn), _steps(conn), diet_index(conn)
+    out, ctx, steps = [], _ctx(conn), _steps(conn)
+    value = diet_index(conn) if getattr(conn, "diet", True) else None
     # shortcut: instructions travel with the list; split into a detail call if the list gets slow
     for r in map(
         dict,
@@ -224,7 +225,8 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
         required = [i for i in ingredients if not i["optional"] and not i["skip_stock"]]
         r["ingredients"] = ingredients
         r["steps"] = steps.get(r["id"], [])
-        r["diet"] = recipe_diet(value, ingredients)
+        if value:
+            r["diet"] = recipe_diet(value, ingredients)
         r["summary"] = {
             "available": sum(i["status"] == "available" for i in required),
             "total": len(required),

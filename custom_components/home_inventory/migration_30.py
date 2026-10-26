@@ -20,7 +20,6 @@ _SEEDED = {
     **dict.fromkeys(["Obst", "Gemüse", "Kräuter", "Kartoffeln"], (None, "")),
     **dict.fromkeys(["Sellerie", "Staudensellerie", "Schnittsellerie", "Suppengrün"], (None, "celery")),
     **dict.fromkeys(["Sojabohnenkeimlinge", "Sojasprossen"], (None, "soybeans")),
-    **dict.fromkeys(["Kartoffelklöße", "Kartoffelknödel"], ("vegetarian", "eggs,gluten")),
     "Milchprodukte & Eier": ("vegetarian", None),
     "Honig": ("vegetarian", ""),
     "Eier": (None, "eggs"),

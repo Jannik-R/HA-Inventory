@@ -55,6 +55,10 @@ export class HomeInventoryDietReload extends LitElement {
         this.checked += r.checked;
         this.filled += r.filled;
         after = r.last;
+        if (r.error) {
+          this.error = t("diet.reload.error");
+          break;
+        }
         if (r.done) {
           this.finished = true;
           break;

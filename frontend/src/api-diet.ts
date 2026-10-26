@@ -8,6 +8,8 @@ export interface DietReload {
   checked: number;
   filled: number;
   last: number;
+  /** OFF refused or was unreachable: the run stopped after `checked`, try again later. */
+  error: boolean;
 }
 export const reloadDiet = (hass: Hass, after: number) =>
   hass.callWS<DietReload>({ type: "home_inventory/diet_reload", after });

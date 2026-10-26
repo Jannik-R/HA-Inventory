@@ -687,18 +687,20 @@ inherited like the shelf life. Empty means opening does not change the date.
 days) and whether a category is bought frozen (keeps its date in the freezer), both inherited.
 
 **Allergens and diet** (module *Allergens & diet*, off by default; turn it on under *Configure > Modules*): categories
-and products have the fields *Diet* (Vegan, Vegetarisch, Nicht vegetarisch, or unknown) and *Allergens* (which of the 14 EU
+and products have the fields *Diet* (Vegan, Vegetarian, Not vegetarian, or Unknown) and *Allergens* (which of the 14 EU
 major allergens they contain). The value of the product itself wins, else the nearest category above, shown grey as
-"Geerbt: Milch (von Käse)". *Eigene Angabe* sets an own allergen list (tick the allergens; nothing ticked means none of the 14),
+"Inherited: Milk (from Cheese)". *Set own value* sets an own allergen list (tick the allergens; nothing ticked means none of the 14),
 *Reset* returns to the inherited value. Products from Open Food Facts get both fields at book-in; Open Food Facts is the
-source and can be wrong, so check the package. For products you already have, an admin can press *Allergene von
-Open Food Facts nachladen* in the settings (section *Categories*): it fetches about one product per second, shows the progress, can be
-stopped, and only fills empty fields of products with an EAN. Traces ("may contain") are not considered. In the recipe list
+source and can be wrong, so check the package. For products you already have, an admin can press *Reload allergens from
+Open Food Facts* in the settings (section *Categories*): it fetches about one product per second, shows the progress, can be
+stopped, and only fills empty fields of products with an EAN (non-food products and products Open Food Facts has already answered
+for are skipped; if it stops with an error, continue later with the same button). Traces ("may contain") are not considered. In the recipe list
 (module *Recipes* too), each recipe shows its diet and allergens, taken from its ingredients (a category counts by all its products,
-or by its own value when it has none). The filter *Ernährung* shows only vegan or vegetarian recipes and, under *Ohne*,
+or by its own value when it has none). The filter *Diet* shows only vegan or vegetarian recipes and, under *Without*,
 only recipes free of the ticked allergens. The filter is strict: if any required ingredient lacks information the recipe is
-hidden, and the recipe line says "Angaben fehlen bei: ...". Optional ingredients do not count, but are marked ("nicht vegetarisch",
-"enthält Milch") and noted on the recipe line. This is a help, not medical advice: with a serious allergy always read the package.
+hidden, and the recipe line says "Information missing for: ...". Optional ingredients do not count, but are marked ("not vegetarian",
+"Contains: Milk") and noted on the recipe line ("Optional: Bacon (not vegetarian)"); that works only when the recipe's own diet is
+known, so a recipe with missing information shows no marks. This is a help, not medical advice: with a serious allergy always read the package.
 
 **Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). Deleting a location with stock asks where its packages should go.

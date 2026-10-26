@@ -1144,7 +1144,8 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"diet.reload.result": "{n} von {m} Produkten ergänzt",
 	"diet.reload.hint": "Holt Allergene und Ernährung für Produkte mit EAN. Open Food Facts begrenzt die Anfragen, darum etwa ein Produkt pro Sekunde.",
 	"tip.diet": "Vegan, vegetarisch oder nicht vegetarisch. Ein leeres Feld erbt von der Kategorie darüber; ganz oben heißt es unbekannt.",
-	"tip.allergens": "Die enthaltenen der 14 Hauptallergene (Spuren zählen nicht). Ohne eigene Angabe erbt das Feld von der Kategorie darüber."
+	"tip.allergens": "Die enthaltenen der 14 Hauptallergene (Spuren zählen nicht). Ohne eigene Angabe erbt das Feld von der Kategorie darüber.",
+	"diet.reload.error": "Open Food Facts antwortet gerade nicht oder bremst. Später mit dem Knopf weitermachen, schon geprüfte Produkte werden nicht noch einmal gefragt."
 }, kt = {
 	"panel.title": "Home Inventory",
 	"panel.help": "User guide",
@@ -1763,7 +1764,8 @@ var qe = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"diet.reload.result": "{n} of {m} products filled",
 	"diet.reload.hint": "Fetches allergens and diet for products with an EAN. Open Food Facts limits requests, so about one product per second.",
 	"tip.diet": "Vegan, vegetarian or not vegetarian. Empty inherits from the category above; at the top it means unknown.",
-	"tip.allergens": "Which of the 14 major allergens it contains (traces do not count). Without an own value it inherits from the category above."
+	"tip.allergens": "Which of the 14 major allergens it contains (traces do not count). Without an own value it inherits from the category above.",
+	"diet.reload.error": "Open Food Facts is not answering or is limiting requests. Continue later with the button; products already checked are not asked again."
 }, At = {
 	de: Ot,
 	en: kt
@@ -3207,7 +3209,11 @@ var nr = (e, t) => e.callWS({
 		try {
 			for (; !this.stopped;) {
 				let t = await nr(this.hass, e);
-				if (this.checked === 0 && (this.total = t.total), this.checked += t.checked, this.filled += t.filled, e = t.last, t.done) {
+				if (this.checked === 0 && (this.total = t.total), this.checked += t.checked, this.filled += t.filled, e = t.last, t.error) {
+					this.error = C("diet.reload.error");
+					break;
+				}
+				if (t.done) {
 					this.finished = !0;
 					break;
 				}
@@ -7819,7 +7825,7 @@ var po = (e) => _`<label>
 	without: []
 }), To = (e) => +!!e.diet + e.without.length, Eo = (e, t) => {
 	let n = e.diet;
-	return t.diet && !(n.diet === "vegan" || t.diet === "vegetarian" && n.diet === "vegetarian") ? !1 : t.without.every((e) => n.allergens_known && !n.contains.includes(e));
+	return n ? t.diet && !(n.diet === "vegan" || t.diet === "vegetarian" && n.diet === "vegetarian") ? !1 : t.without.every((e) => n.allergens_known && !n.contains.includes(e)) : !0;
 }, Do = (e, t) => t != null && (e == null || Kt.indexOf(e) > Kt.indexOf(t)), Oo = (e, t) => {
 	let n = e.optional.find((e) => e.text === t);
 	return n ? [Do(n.diet, e.diet) ? n.diet == null ? C("diet.missing") : C(n.diet === "none" ? "diet.not_vegetarian" : "diet.not_vegan") : "", n.contains.length ? C("allergens.contains", { list: zn(n.contains.join(",")) }) : ""].filter(Boolean).join(", ") : "";

@@ -616,5 +616,6 @@
   "diet.reload.result": "{n} von {m} Produkten ergänzt",
   "diet.reload.hint": "Holt Allergene und Ernährung für Produkte mit EAN. Open Food Facts begrenzt die Anfragen, darum etwa ein Produkt pro Sekunde.",
   "tip.diet": "Vegan, vegetarisch oder nicht vegetarisch. Ein leeres Feld erbt von der Kategorie darüber; ganz oben heißt es unbekannt.",
-  "tip.allergens": "Die enthaltenen der 14 Hauptallergene (Spuren zählen nicht). Ohne eigene Angabe erbt das Feld von der Kategorie darüber."
+  "tip.allergens": "Die enthaltenen der 14 Hauptallergene (Spuren zählen nicht). Ohne eigene Angabe erbt das Feld von der Kategorie darüber.",
+  "diet.reload.error": "Open Food Facts antwortet gerade nicht oder bremst. Später mit dem Knopf weitermachen, schon geprüfte Produkte werden nicht noch einmal gefragt."
 }

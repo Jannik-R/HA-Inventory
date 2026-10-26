@@ -14,6 +14,7 @@ export const dietFilterCount = (f: DietFilter) => (f.diet ? 1 : 0) + f.without.l
 /** Strict: a recipe with missing information fails the filter. */
 export const matchesDiet = (r: Recipe, f: DietFilter) => {
   const d = r.diet;
+  if (!d) return true; // module off: no diet in the list
   if (f.diet && !(d.diet === "vegan" || (f.diet === "vegetarian" && d.diet === "vegetarian")))
     return false;
   return f.without.every((k) => d.allergens_known && !d.contains.includes(k));

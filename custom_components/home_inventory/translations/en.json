@@ -118,6 +118,9 @@
     "nothing_to_print": {
       "message": "The shopping list has no open items to print."
     },
+    "diet_reload_busy": {
+      "message": "Another reload from Open Food Facts is already running."
+    },
     "not_food": {
       "message": "This category is not a food and cannot be a recipe ingredient."
     },

@@ -170,6 +170,12 @@ async def test_ws_reload_chunk(ws, hass, hass_admin_user):  # noqa: F811
         ]
 
     ids = await hass.async_add_executor_job(seed)
+    await hass.async_add_executor_job(
+        lambda: db_._conn.execute(  # a non-food product is never asked
+            "INSERT INTO product (name, category_id, ean, updated_at) VALUES"
+            " ('Pflaster', (SELECT id FROM category WHERE name = 'Hausapotheke'), '12345679', 'x')"
+        )
+    )
     served = {"12345670": {"status": 1, "product": {"code": "x", "allergens_tags": ["en:milk"]}}}
 
     async def fake(hass_, path, params, base=None):
@@ -178,8 +184,26 @@ async def test_ws_reload_chunk(ws, hass, hass_admin_user):  # noqa: F811
     msg = {"type": "home_inventory/diet_reload", "after": 0}
     with patch.object(off_diet, "DELAY", 0), patch.object(off_diet, "_get", fake):
         r = (await ws.call(msg))["result"]
-        assert r == {"done": True, "total": 3, "checked": 3, "filled": 1, "last": ids[3]}
-        assert (await ws.call({**msg, "after": ids[3]}))["result"]["checked"] == 0
+        want = {"done": True, "total": 3, "checked": 3, "filled": 1, "last": ids[3], "error": False}
+        assert r == want
+        again = (await ws.call(msg))[
+            "result"
+        ]  # answered products (also not found) are not asked again
+        assert (again["checked"], again["total"]) == (0, 0)
+        # an OFF failure keeps the partial result and stops the run
+        await hass.async_add_executor_job(
+            lambda: db_._conn.execute("UPDATE product SET off_json = NULL WHERE id = ?", (ids[1],))
+        )
+
+        async def down(*_a, **_k):
+            raise inv.InventoryError("off_unavailable")
+
+        with patch.object(off_diet, "_get", down):
+            r = (await ws.call(msg))["result"]
+        assert (r["error"], r["done"], r["checked"]) == (True, False, 0)
+        with patch.object(off_diet, "_LOCK") as lock:  # a second run at the same time
+            lock.locked.return_value = True
+            assert not (await ws.call(msg))["success"]
         hass_admin_user.groups = []
         assert not (await ws.call(msg))["success"]
 
@@ -189,3 +213,11 @@ async def test_ws_reload_chunk(ws, hass, hass_admin_user):  # noqa: F811
 
     row = await hass.async_add_executor_job(read)
     assert row[0] == "milk" and row[1] is None and "allergens_tags" in row[2]
+
+
+def test_module_off_builds_no_diet(conn):
+    inv.save_recipe(conn, {"name": "R", "servings": 1, "ingredients": [{"text": "x"}]})
+    assert "diet" in inv.assist_recipes(conn)[0] and conn.diet
+    conn.diet = False
+    assert "diet" not in inv.assist_recipes(conn)[0]
+    assert "diet" not in inv.recipes(conn)[0]

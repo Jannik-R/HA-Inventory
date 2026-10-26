@@ -616,5 +616,6 @@
   "diet.reload.result": "{n} of {m} products filled",
   "diet.reload.hint": "Fetches allergens and diet for products with an EAN. Open Food Facts limits requests, so about one product per second.",
   "tip.diet": "Vegan, vegetarian or not vegetarian. Empty inherits from the category above; at the top it means unknown.",
-  "tip.allergens": "Which of the 14 major allergens it contains (traces do not count). Without an own value it inherits from the category above."
+  "tip.allergens": "Which of the 14 major allergens it contains (traces do not count). Without an own value it inherits from the category above.",
+  "diet.reload.error": "Open Food Facts is not answering or is limiting requests. Continue later with the button; products already checked are not asked again."
 }

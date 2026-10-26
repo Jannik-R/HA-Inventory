@@ -500,6 +500,31 @@
         }
       }
     },
+    "store_leftovers": {
+      "name": "Reste einlagern",
+      "description": "Reste eines gekochten Gerichts als neue Charge einlagern (eine Packung pro Portion, haltbar bis = Herstellungsdatum + 3 Tage, eingefroren länger). Gibt id, batch_id (für Etiketten drucken), charge, name und expires_on zurück.",
+      "fields": {
+        "recipe": {
+          "name": "Gerichtsrezept",
+          "description": "Name des Gerichtsrezepts."
+        },
+        "servings": {
+          "name": "Portionen",
+          "description": "Anzahl der Portionen."
+        },
+        "made_on": {
+          "name": "Hergestellt am",
+          "description": "Leer = heute."
+        },
+        "location": {
+          "name": "Lagerort",
+          "description": "Name des Lagerorts; leer = Standard-Lagerort der Reste."
+        },
+        "notes": {
+          "name": "Notizen"
+        }
+      }
+    },
     "print_recipe": {
       "name": "Rezept drucken",
       "description": "Ein Rezept auf dem Bondrucker drucken: Zutaten (auf die Portionen umgerechnet) und nummerierte Schritte.",
@@ -560,7 +585,8 @@
         "drying": "Dörren",
         "opened": "Anbrechen",
         "frozen": "Einfrieren",
-        "emergency": "Notvorrat"
+        "emergency": "Notvorrat",
+        "leftovers": "Reste"
       }
     },
     "label_printer": {

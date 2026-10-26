@@ -270,3 +270,27 @@ drying:
       selector:
         text:
           multiline: true
+store_leftovers:
+  fields:
+    recipe:
+      required: true
+      example: Linsensuppe
+      selector:
+        text:
+    servings:
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box
+    made_on:
+      selector:
+        date:
+    location:
+      example: Kühlschrank
+      selector:
+        text:
+    notes:
+      selector:
+        text:
+          multiline: true

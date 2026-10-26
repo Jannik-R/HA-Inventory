@@ -66,7 +66,13 @@ def async_register(hass: HomeAssistant) -> None:
 @websocket_api.websocket_command({vol.Required("type"): "home_inventory/master_data"})
 @websocket_api.async_response
 async def ws_master_data(hass: HomeAssistant, connection, msg: dict) -> None:
-    connection.send_result(msg["id"], await run(hass, inventory.master_data))
+    def data(conn):
+        return {
+            **inventory.master_data(conn),
+            "leftover_category_id": inventory.leftover_category(conn),
+        }
+
+    connection.send_result(msg["id"], await run(hass, data))
 
 
 @websocket_api.websocket_command(

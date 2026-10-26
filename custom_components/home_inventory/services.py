@@ -86,6 +86,15 @@ CANNING = vol.Schema(
         vol.Optional("notes"): vol.Any(None, vol.All(cv.string, vol.Length(max=2000))),
     }
 )
+LEFTOVERS = vol.Schema(
+    {
+        vol.Required("recipe"): NAME,
+        vol.Optional("servings", default=1): _SERVINGS,
+        vol.Optional("location"): _LOCATION,
+        vol.Optional("made_on"): _DATE,
+        vol.Optional("notes"): vol.Any(None, vol.All(cv.string, vol.Length(max=2000))),
+    }
+)
 PRINT_RECIPE = vol.Schema({vol.Required("recipe"): NAME, vol.Optional("servings"): _SERVINGS})
 PRINT_PLANNED = vol.Schema({vol.Optional("day"): _DATE, vol.Optional("meal"): vol.In(MEALS)})
 PRINT_PLAN = vol.Schema(
@@ -228,6 +237,18 @@ def async_register(hass: HomeAssistant) -> None:
         )
         return await _run(hass, fn, d["recipe"], d.get("made_on") or dt_util.now().date())
 
+    async def store_leftovers(call: ServiceCall) -> ServiceResponse:
+        d = call.data
+        fn = partial(
+            inventory.leftovers_by_name,
+            location=d.get("location") or None,
+            notes=d.get("notes"),
+            user_id=call.context.user_id,
+        )
+        return await _run(
+            hass, fn, d["recipe"], d["servings"], d.get("made_on") or dt_util.now().date()
+        )
+
     for name, handler, schema in (
         ("book_in", book_in, BOOK_IN),
         ("book_out", book_out, BOOK_OUT),
@@ -245,6 +266,7 @@ def async_register(hass: HomeAssistant) -> None:
         ("plan_to_shopping_list", plan_to_shopping_list, PLAN_SHOP),
         ("canning", canning, CANNING),
         ("drying", partial(canning, kind="drying"), CANNING),
+        ("store_leftovers", store_leftovers, LEFTOVERS),
     ):
         hass.services.async_register(
             DOMAIN, name, handler, schema, supports_response=SupportsResponse.OPTIONAL

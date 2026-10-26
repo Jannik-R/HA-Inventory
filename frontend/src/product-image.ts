@@ -2,13 +2,35 @@ import { css, html, nothing } from "lit";
 import { hasExternal } from "./modules";
 
 /** Small product picture (Open Food Facts image server). Nothing when the service is off (no request
- *  leaves the browser), the product has none, or the link is not https (trust boundary). */
+ *  leaves the browser), the product has none, or the link is not https on an Open * Facts host. */
+const HOSTS = [
+  "openfoodfacts.org",
+  "openbeautyfacts.org",
+  "openpetfoodfacts.org",
+  "openproductsfacts.org",
+];
+
+/** https and a host of the Open * Facts family (the sister databases' pictures are stored too). */
+function allowed(url: string) {
+  try {
+    const u = new URL(url);
+    return (
+      u.protocol === "https:" && HOSTS.some((h) => u.hostname === h || u.hostname.endsWith(`.${h}`))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const productImage = (url?: string | null) =>
-  url && url.startsWith("https://") && hasExternal("off_images")
+  url && hasExternal("off_images") && allowed(url)
     ? html`<img
         class="pimg"
         src=${url}
         alt=""
+        width="40"
+        height="40"
+        @error=${(e: Event) => ((e.target as HTMLElement).hidden = true)}
         loading="lazy"
         referrerpolicy="no-referrer"
         data-testid="product-image"
@@ -16,6 +38,9 @@ export const productImage = (url?: string | null) =>
     : nothing;
 
 export const imageStyles = css`
+  .pimg[hidden] {
+    display: none;
+  }
   .pimg {
     flex: none;
     width: 40px;

@@ -47,9 +47,23 @@ test("stock row shows the product image, and none when the service is off", asyn
   await expect(img).toHaveAttribute("src", IMAGE);
   await expect(img).toHaveAttribute("alt", "");
 
+  const before = requests;
   await panelConfig(page, { external: { off_images: false } });
   await page.getByTestId("code-input").fill(`${NAME} `);
   await expect(page.getByTestId("stock-product")).toHaveCount(1);
   await expect(page.getByTestId("product-image")).toHaveCount(0);
   expect(requests).toBeGreaterThan(0);
+  expect(requests).toBe(before);
+});
+
+test("an image link on a foreign host renders no img", async ({ page }) => {
+  await openPage(page, "/home_inventory/stock", "Bestand");
+  await ws(page, {
+    type: "home_inventory/product_save",
+    data: { id: productId, image_url: "https://evil.example/openfoodfacts.org/x.png" },
+  });
+  await page.reload();
+  await page.getByTestId("code-input").fill(NAME);
+  await expect(page.getByTestId("stock-product")).toHaveCount(1);
+  await expect(page.getByTestId("product-image")).toHaveCount(0);
 });

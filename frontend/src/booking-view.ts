@@ -105,7 +105,7 @@ export class HomeInventoryBooking extends LitElement {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
-      this.undo = this.opened = this.frozen = undefined;
+      this.undo = this.opened = this.frozen = this.image = undefined;
     }
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
@@ -183,7 +183,7 @@ export class HomeInventoryBooking extends LitElement {
     const hass = this.hass;
     const id = ++this.seq;
     this.message = "";
-    this.undo = this.opened = this.frozen = undefined;
+    this.undo = this.opened = this.frozen = this.image = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
     if (await scanCode(this, hass, q)) return;
@@ -301,7 +301,7 @@ export class HomeInventoryBooking extends LitElement {
   private receiptBooked = (e: CustomEvent<number>) => {
     this.reset();
     this.message = t("receipt.done", { count: String(e.detail) });
-    this.undo = undefined;
+    this.undo = this.image = undefined;
     this.dispatchEvent(new CustomEvent("booked"));
   };
 

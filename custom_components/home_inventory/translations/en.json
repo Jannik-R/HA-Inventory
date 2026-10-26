@@ -103,6 +103,9 @@
     "already_undone": {
       "message": "This booking was already undone."
     },
+    "undo_blocked": {
+      "message": "“{name}” cannot be booked back: the stock has changed since."
+    },
     "not_enough_stock": {
       "message": "Not enough stock (available: {available})."
     },

@@ -30,6 +30,7 @@ Anleitung. Oben gibt es diese Tabs:
 3b. [Einfrieren und auftauen](#3b-einfrieren-und-auftauen)
 4. [Bestand ansehen und korrigieren](#4-bestand-ansehen-und-korrigieren)
 4a. [Inventur](#4a-inventur)
+4b. [Verlauf](#4b-verlauf)
 5. [Was läuft ab?](#5-was-läuft-ab)
 5a. [Notvorrat](#5a-notvorrat)
 6. [Einkaufsliste](#6-einkaufsliste)
@@ -262,6 +263,23 @@ Stimmt der Bestand eines Schranks nicht mehr? Zähle ihn mit der Inventur nach.
    einem Datumsfeld (vorbelegt heute + Haltbarkeit).
 4. **Differenzen buchen**: Nach einer Rückfrage („N Pkg. fehlen, M Pkg. sind zu viel“) bucht Vorrat
    alles als Korrektur: Nicht Gescanntes wird ausgebucht, Gefundenes eingebucht.
+
+## 4b. Verlauf
+
+Wer hat wann was gebucht? **Bestand > Verlauf** listet jede Buchung, die neueste zuerst.
+
+1. Ein Eintrag ist eine **Aktion**: Alles, was auf einmal gebucht wurde (ein gekochtes Gericht, eine
+   Inventur, ein Kassenbon- oder CSV-Import, eine Bestandskorrektur), ist ein Eintrag mit einer Zeile je
+   Produkt. Die Kopfzeile zeigt Datum, Uhrzeit und Benutzer.
+2. Filtere nach **Produkt** (Teil des Namens), **Benutzer** und **Von** / **Bis** (Zeitraum). Unter der
+   Liste blättern **Neuere** / **Ältere** durch je 100 Einträge.
+3. **Rückgängig** (Pfeil am Eintrag) bucht die ganze Aktion zurück, nach einer Rückfrage, die auflistet,
+   was zurückgebucht wird. Hat sich der Bestand seitdem geändert (z. B. sind die Packungen schon
+   verbraucht), wird nichts zurückgebucht und das Produkt genannt.
+4. Aktionen, die vor dieser Version des Verlaufs gebucht wurden, zeigen einen Eintrag je Buchung.
+5. Rückgängig gemachte Einträge bleiben im Verlauf, durchgestrichen, mit „Rückgängig gemacht am ...“. Eine
+   nur teilweise rückgängig gemachte Aktion (z. B. eine Packung von Hand zurückgelegt) zeigt „Teilweise
+   rückgängig gemacht“; Rückgängig bucht den Rest zurück.
 
 ## 5. Was läuft ab?
 

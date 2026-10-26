@@ -42,6 +42,8 @@ def connect(path: str) -> sqlite3.Connection:
     conn = sqlite3.connect(path, check_same_thread=False, factory=Connection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys=ON")
+    # SQLite lower()/LIKE fold ASCII only; the history filter needs "äpfel" = "Äpfel"
+    conn.create_function("fold", 1, lambda s: s.casefold() if s else s, deterministic=True)
     return conn
 
 
@@ -115,6 +117,12 @@ class Database:
             last = last_booking(self._conn)
             try:
                 result = fn(self._conn, *args)
+                # one action = everything this call booked, named by its first row
+                self._conn.execute(
+                    "UPDATE booking SET action_id = (SELECT min(id) FROM booking WHERE id > ?)"
+                    " WHERE id > ? AND action_id IS NULL",
+                    (last, last),
+                )
                 self._conn.commit()
             except BaseException:
                 self._conn.rollback()

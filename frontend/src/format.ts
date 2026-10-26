@@ -35,3 +35,9 @@ export const fmtAmount = (hass: Hass | undefined, n: number, unit: string | null
 /** "1 Portion" / "4 Portionen". */
 export const fmtPortions = (hass: Hass | undefined, n: number) =>
   plural(hass, n, "recipes.portion", "recipes.portions");
+
+/** Short date and time of an ISO timestamp (shown in the viewer's time zone). */
+export const fmtDateTime = (hass: Hass | undefined, ts: string) =>
+  new Intl.DateTimeFormat(lang(hass), { dateStyle: "short", timeStyle: "short" }).format(
+    new Date(ts),
+  );

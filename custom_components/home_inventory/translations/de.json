@@ -103,6 +103,9 @@
     "already_undone": {
       "message": "Bereits rückgängig gemacht."
     },
+    "undo_blocked": {
+      "message": "„{name}“ kann nicht zurückgebucht werden: Der Bestand hat sich seitdem geändert."
+    },
     "not_enough_stock": {
       "message": "Nicht genug Bestand (verfügbar: {available})."
     },

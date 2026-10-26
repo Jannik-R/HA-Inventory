@@ -1,5 +1,5 @@
 import { css, html } from "lit";
-import { mdiClipboardCheckOutline } from "@mdi/js";
+import { mdiClipboardCheckOutline, mdiHistory } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
 import type { MasterData } from "./api";
@@ -10,6 +10,11 @@ interface StockFilterHost {
   location: number | null;
   withEmpty: boolean;
 }
+
+const go = (e: Event, detail: string) =>
+  e.target!.dispatchEvent(
+    new CustomEvent("home-inventory-navigate", { detail, bubbles: true, composed: true }),
+  );
 
 /** Location filter and "also products without stock" (the text filter is the booking input). */
 export const stockFilters = (h: StockFilterHost) =>
@@ -27,16 +32,12 @@ export const stockFilters = (h: StockFilterHost) =>
       <button
         type="button"
         data-testid="stocktake-start"
-        @click=${(e: Event) =>
-          e.target!.dispatchEvent(
-            new CustomEvent("home-inventory-navigate", {
-              detail: "stocktake",
-              bubbles: true,
-              composed: true,
-            }),
-          )}
+        @click=${(e: Event) => go(e, "stocktake")}
       >
         ${icon(mdiClipboardCheckOutline)}${t("stocktake.start")}
+      </button>
+      <button type="button" data-testid="history-start" @click=${(e: Event) => go(e, "history")}>
+        ${icon(mdiHistory)}${t("history.start")}
       </button>
     </div>
     <label class="check">

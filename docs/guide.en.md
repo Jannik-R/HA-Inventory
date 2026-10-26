@@ -595,7 +595,7 @@ Pilze, Jerky; shelf life 180 days as a *Guide value*).
 
 Print labels as for jars; scanning one books out one serving.
 
-**Freezer**: in a location of the freezer kind (module *Freezing* on), leftovers are frozen at once; their date becomes the frozen date + 90 days ("ca."). The same now applies to new canning and drying protocols there.
+**Freezer**: in a location of the freezer kind (module *Freezing* on), leftovers are frozen at once; their date becomes the frozen date + 90 days ("ca.") unless you type one, which is kept. Canning and drying protocols are not frozen automatically there.
 
 **Changing**: editing a protocol changes only its notes and best-before date; dish, date and servings stay, since the labels carry them. Deleting (admins only) removes the protocol and its batch. Leftovers have no **Undo**; change the stock under **Stock**.
 

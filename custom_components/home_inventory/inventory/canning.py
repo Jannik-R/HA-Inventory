@@ -4,7 +4,7 @@ shared by both kinds) and its own batch."""
 from __future__ import annotations
 
 import sqlite3
-from datetime import date
+from datetime import date, timedelta
 
 from .booking import _add, _booking, _iso
 from .common import InventoryError, _exists, _now, _packages
@@ -92,15 +92,22 @@ def save_canning(
             **process,
         },
     )
-    from .frozen import frozen_batch, frozen_days, is_freezer  # frozen imports booking
+    from .frozen import frozen_days, is_freezer  # frozen imports booking
 
-    if is_freezer(conn, location_id) and (days := frozen_days(conn, product_id)):  # as book_in
-        batch_id = frozen_batch(conn, product_id, canning_id, days, date.fromisoformat(made_on))
-    else:
-        batch_id = conn.execute(
-            "INSERT INTO batch (product_id, expires_on, created_at, canning_id) VALUES (?, ?, ?, ?)",
-            (product_id, expires_on, _now(), canning_id),
-        ).lastrowid
+    # only leftovers are frozen at once at a freezer; a given date is kept
+    frozen_on = None
+    if (
+        kind == "leftover"
+        and is_freezer(conn, location_id)
+        and (days := frozen_days(conn, product_id))
+    ):
+        frozen_on = made_on
+        expires_on = expires_on or _iso(date.fromisoformat(made_on) + timedelta(days=days))
+    batch_id = conn.execute(
+        "INSERT INTO batch (product_id, expires_on, created_at, canning_id, frozen_on)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (product_id, expires_on, _now(), canning_id, frozen_on),
+    ).lastrowid
     _add(conn, batch_id, location_id, data["jars"])
     _booking(conn, "in", batch_id, location_id, data["jars"], source, user_id)
     return {"id": canning_id, "batch_id": batch_id, "charge": charge(made_on, seq)}

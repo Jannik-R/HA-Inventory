@@ -6,6 +6,7 @@ import { formStyles } from "./styles";
 import { errorMessage, isCanning, type Hass, type MasterData, type Recipe } from "./api";
 import { saveCanning, storeLeftovers, type Canning } from "./api-canning";
 import { categoryDefault, inheritSelect } from "./inherit";
+import { hasModule } from "./modules";
 import { plusDays } from "./plan-dates";
 
 interface Draft {
@@ -15,7 +16,8 @@ interface Draft {
   location_id: number | null;
   expires_on: string;
   notes: string;
-  dateBad: boolean;
+  madeBad: boolean;
+  expiresBad: boolean;
 }
 
 /** Store leftovers of a dish (a new charge, one package per serving) or edit the date and notes of
@@ -52,7 +54,8 @@ export class HomeInventoryLeftoverDialog extends LitElement {
       location_id: null,
       expires_on: "",
       notes: "",
-      dateBad: false,
+      madeBad: false,
+      expiresBad: false,
     };
   }
 
@@ -79,12 +82,19 @@ export class HomeInventoryLeftoverDialog extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("dialog input, dialog select")?.focus();
   }
 
-  private cat = (field: "default_location_id" | "shelf_days") =>
+  private cat = (field: "default_location_id" | "shelf_days" | "frozen_days") =>
     categoryDefault(this.md, this.md?.leftover_category_id, field);
 
-  /** Best before proposed from the category's shelf life: made on + days. */
+  /** Days the date is proposed from: frozen days at a freezer (module on), else the shelf life. */
+  private days(d: Draft) {
+    const place = d.location_id ?? Number(this.cat("default_location_id")?.value);
+    const frozen = hasModule("frozen") && this.md?.locations.find((l) => l.id === place)?.freezer;
+    return this.cat(frozen ? "frozen_days" : "shelf_days");
+  }
+
+  /** Best before proposed from those days: made on + days. */
   private proposal(d: Draft) {
-    const shelf = this.cat("shelf_days");
+    const shelf = this.days(d);
     return shelf && d.made_on ? plusDays(d.made_on, Number(shelf.value)) : "";
   }
 
@@ -103,8 +113,9 @@ export class HomeInventoryLeftoverDialog extends LitElement {
   private errors() {
     const d = this.draft;
     const e: Record<string, string> = {};
+    if (dateInvalid(d.expiresBad, d.expires_on)) e.expires_on = t("valid.date");
     if (!this.canning) {
-      if (!d.made_on || dateInvalid(d.dateBad, d.made_on)) e.made_on = t("valid.date");
+      if (!d.made_on || dateInvalid(d.madeBad, d.made_on)) e.made_on = t("valid.date");
       if (!d.dish.trim()) e.dish = t("valid.required");
       if (d.servings == null || !Number.isInteger(d.servings) || d.servings < 1 || d.servings > 99)
         e.servings = t("valid.packages");
@@ -178,7 +189,7 @@ export class HomeInventoryLeftoverDialog extends LitElement {
         label: t("canning.made_on"),
         value: d.made_on,
         err: e.made_on,
-        onChange: (v, bad) => this.set({ made_on: v, dateBad: bad }),
+        onChange: (v, bad) => this.set({ made_on: v, madeBad: bad }),
       })}
       ${numField({
         testid: "leftover-servings",
@@ -207,8 +218,7 @@ export class HomeInventoryLeftoverDialog extends LitElement {
     if (!this.active) return html`<dialog></dialog>`;
     const e = this.errors();
     const d = this.draft;
-    const shelf =
-      d.expires_on && d.expires_on === this.proposal(d) ? this.cat("shelf_days") : undefined;
+    const shelf = d.expires_on && d.expires_on === this.proposal(d) ? this.days(d) : undefined;
     return editDialog({
       title: this.canning
         ? t("common.edit_name", { name: this.canning.charge })
@@ -218,7 +228,8 @@ export class HomeInventoryLeftoverDialog extends LitElement {
           testid: "leftover-expires_on",
           label: t("canning.expires_on"),
           value: d.expires_on,
-          onChange: (v, bad) => this.set({ expires_on: v, dateBad: bad }),
+          err: e.expires_on,
+          onChange: (v, bad) => this.set({ expires_on: v, expiresBad: bad }),
         })}
         ${shelf ? html`<span class="detail">${t("book.shelf_hint", { days: String(shelf.value), source: shelf.source })}</span>` : nothing}
         <label>

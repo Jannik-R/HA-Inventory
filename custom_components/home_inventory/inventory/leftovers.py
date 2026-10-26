@@ -10,18 +10,15 @@ from ..migration_29 import PREFIX, ROOT, add_leftovers
 from .canning import save_canning
 from .codes import _location, _recipe
 from .common import InventoryError, _exists
+from .frozen import frozen_days, is_freezer
 from .inherit import effective
 from .products import add_product
 
 
-def _root(conn: sqlite3.Connection) -> int | None:
+def leftover_category(conn: sqlite3.Connection) -> int | None:
+    """The root category Reste (None if deleted; storing creates it again, this never does)."""
     sql = "SELECT id FROM category WHERE parent_id IS NULL AND name = ?"
     return (row := conn.execute(sql, (ROOT,)).fetchone()) and row[0]
-
-
-def leftover_category(conn: sqlite3.Connection) -> int | None:
-    """The root category of the leftovers (None if it was deleted; the next use creates it)."""
-    return _root(conn)
 
 
 def store_leftovers(
@@ -58,13 +55,16 @@ def store_leftovers(
     if found:
         product_id = found[0]
     else:
-        if _root(conn) is None:
+        if leftover_category(conn) is None:
             add_leftovers(
                 conn
             )  # shortcut: found by name; a renamed root is created again on next use
-        product_id = add_product(conn, {"name": name, "category_id": _root(conn)})
-    if expires_on is None and (days := effective(conn, product_id)["shelf_days"]["value"]):
-        expires_on = made_on + timedelta(days=days)
+        product_id = add_product(conn, {"name": name, "category_id": leftover_category(conn)})
+    if expires_on is None:  # frozen days at a freezer, else the shelf life
+        place = location_id or effective(conn, product_id)["default_location_id"]["value"]
+        frozen = place and is_freezer(conn, place) and frozen_days(conn, product_id)
+        if days := frozen or effective(conn, product_id)["shelf_days"]["value"]:
+            expires_on = made_on + timedelta(days=days)
     result = save_canning(
         conn,
         {

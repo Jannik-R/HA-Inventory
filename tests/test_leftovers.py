@@ -1,5 +1,6 @@
 """Leftovers as a charge (migration 29, inventory/leftovers.py)."""
 
+import sqlite3
 from datetime import date
 
 import pytest
@@ -36,6 +37,30 @@ def test_root_and_upgrade(conn, monkeypatch):
     assert inv.store_leftovers(old, 1, DAY, dish=" X ")["name"] == "Reste: X"
 
 
+def test_migration_29_keeps_canning(monkeypatch):
+    old = db.connect(":memory:")
+    with monkeypatch.context() as m:
+        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:28])
+        db.migrate(old)
+    cat = old.execute("SELECT id FROM category LIMIT 1").fetchone()[0]
+    old.executescript(
+        f"INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'Jam', {cat}, 't');"
+        "INSERT INTO canning (id, made_on, seq, product_id, jars) VALUES (7, '2026-10-01', 1, 1, 2);"
+        "INSERT INTO batch (id, product_id, canning_id, created_at) VALUES (5, 1, 7, 't');"
+        "INSERT INTO stock (batch_id, location_id, packages) VALUES (5, 1, 2);"
+    )
+    db.migrate(old)
+    # canning has only the UNIQUE (made_on, seq) constraint, no named index
+    with pytest.raises(sqlite3.IntegrityError):
+        old.execute(
+            "INSERT INTO canning (made_on, seq, product_id, jars) VALUES ('2026-10-01', 1, 1, 1)"
+        )
+    assert old.execute("SELECT 1 FROM sqlite_master WHERE name = 'batch_key'").fetchone()
+    assert old.execute("SELECT id, kind FROM canning").fetchone()[:] == (7, "canning")
+    assert old.execute("SELECT canning_id FROM batch WHERE id = 5").fetchone()[0] == 7
+    assert old.execute("PRAGMA foreign_key_check").fetchall() == []
+
+
 def test_store(conn):
     rid = dish(conn)
     first = inv.store_leftovers(conn, 2, DAY, recipe_id=rid)
@@ -61,14 +86,32 @@ def test_store(conn):
 
 
 def test_freezer_rule(conn):
-    frozen = inv.store_leftovers(conn, 1, DAY, dish="A", location_id=loc(conn, "Gefrierschrank"))
+    freezer = loc(conn, "Gefrierschrank")
+    frozen = inv.store_leftovers(conn, 1, DAY, dish="A", location_id=freezer)
     assert frozen["expires_on"] == "2027-01-18"  # made-on + 90 days
-    b = conn.execute("SELECT frozen_on FROM batch WHERE id = ?", (frozen["batch_id"],)).fetchone()
-    assert b[0] == "2026-10-20"
+    sql = "SELECT frozen_on FROM batch WHERE id = ?"
+    assert conn.execute(sql, (frozen["batch_id"],)).fetchone()[0] == "2026-10-20"
+    typed = inv.store_leftovers(
+        conn, 1, DAY, dish="A2", location_id=freezer, expires_on="2026-12-01"
+    )
+    assert typed["expires_on"] == "2026-12-01"  # a typed date is kept
+    assert conn.execute(sql, (typed["batch_id"],)).fetchone()[0] == "2026-10-20"
+    # canning is not frozen at a freezer
+    canned = inv.save_canning(
+        conn,
+        {
+            "made_on": DAY,
+            "jars": 1,
+            "location_id": freezer,
+            "expires_on": "2027-01-01",
+            "product": {"name": "Eis", "category_id": inv.leftover_category(conn)},
+        },
+    )
+    assert conn.execute(sql, (canned["batch_id"],)).fetchone()[0] is None
     conn.freezing = False
-    plain = inv.store_leftovers(conn, 1, DAY, dish="B", location_id=loc(conn, "Gefrierschrank"))
-    b = conn.execute("SELECT frozen_on FROM batch WHERE id = ?", (plain["batch_id"],)).fetchone()
-    assert (b[0], plain["expires_on"]) == (None, "2026-10-23")
+    plain = inv.store_leftovers(conn, 1, DAY, dish="B", location_id=freezer)
+    assert conn.execute(sql, (plain["batch_id"],)).fetchone()[0] is None
+    assert plain["expires_on"] == "2026-10-23"
 
 
 def test_refused_and_recreated(conn):

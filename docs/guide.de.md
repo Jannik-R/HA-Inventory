@@ -587,7 +587,7 @@ Gemüsechips, Getrocknete Kräuter, Getrocknete Pilze, Jerky; Haltbarkeit 180 Ta
 
 Etiketten drucken wie bei Einkochgläsern; ein Scan bucht eine Portion aus.
 
-**Gefrierort**: Ist das Modul *Einfrieren* an und der Lagerort ein Gefrierort, werden die Reste sofort eingefroren; das Datum wird Einfrier-Datum + 90 Tage („ca.“). Das gilt jetzt auch für neue Einkoch- und Dörrprotokolle an einem Gefrierort.
+**Gefrierort**: Ist das Modul *Einfrieren* an und der Lagerort ein Gefrierort, werden die Reste sofort eingefroren; das Datum wird Einfrier-Datum + 90 Tage („ca.“), außer du trägst selbst eins ein; das bleibt. Einkoch- und Dörrprotokolle werden an einem Gefrierort nicht automatisch eingefroren.
 
 **Ändern**: Das Protokoll bearbeiten ändert nur Notizen und *Haltbar bis*; Gericht, Datum und Portionen bleiben, sie stehen auf den Etiketten. Löschen (nur Admins) entfernt das Protokoll mit seiner Charge. Für Reste gibt es kein **Rückgängig**; den Bestand änderst du unter **Bestand**.
 

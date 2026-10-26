@@ -110,6 +110,7 @@ export class HomeInventoryLeftoverStore extends LitElement {
             data-testid="leftover-servings"
             aria-invalid=${!!err}
             .value=${String(this.servings ?? "")}
+            @keydown=${(e: KeyboardEvent) => e.key === "Enter" && this.store()}
             @input=${(e: Event) => {
               const v = (e.target as HTMLInputElement).value;
               this.servings = v === "" ? null : Number(v);

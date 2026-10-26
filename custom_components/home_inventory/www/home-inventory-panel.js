@@ -9221,6 +9221,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), Vo =
             data-testid="leftover-servings"
             aria-invalid=${!!t}
             .value=${String(this.servings ?? "")}
+            @keydown=${(e) => e.key === "Enter" && this.store()}
             @input=${(e) => {
 			let t = e.target.value;
 			this.servings = t === "" ? null : Number(t);
@@ -10771,7 +10772,8 @@ var Ms = class extends S {
 			location_id: null,
 			expires_on: "",
 			notes: "",
-			dateBad: !1
+			madeBad: !1,
+			expiresBad: !1
 		};
 	}
 	async open(e, t, n) {
@@ -10784,8 +10786,12 @@ var Ms = class extends S {
 			notes: n.notes
 		} : this.blank(), n || (this.draft.expires_on = this.proposal(this.draft)), this.initial = JSON.stringify(this.draft), this.error = "", this.active = !0, await this.updateComplete, this.renderRoot.querySelector("dialog").showModal(), this.renderRoot.querySelector("dialog input, dialog select")?.focus();
 	}
+	days(e) {
+		let t = e.location_id ?? Number(this.cat("default_location_id")?.value), n = L("frozen") && this.md?.locations.find((e) => e.id === t)?.freezer;
+		return this.cat(n ? "frozen_days" : "shelf_days");
+	}
 	proposal(e) {
-		let t = this.cat("shelf_days");
+		let t = this.days(e);
 		return t && e.made_on ? ci(e.made_on, Number(t.value)) : "";
 	}
 	set(e) {
@@ -10797,7 +10803,7 @@ var Ms = class extends S {
 	}
 	errors() {
 		let e = this.draft, t = {};
-		return this.canning || ((!e.made_on || j(e.dateBad, e.made_on)) && (t.made_on = C("valid.date")), e.dish.trim() || (t.dish = C("valid.required")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = C("valid.packages")), !this.cat("default_location_id") && e.location_id == null && (t.location = C("valid.location"))), t;
+		return j(e.expiresBad, e.expires_on) && (t.expires_on = C("valid.date")), this.canning || ((!e.made_on || j(e.madeBad, e.made_on)) && (t.made_on = C("valid.date")), e.dish.trim() || (t.dish = C("valid.required")), (e.servings == null || !Number.isInteger(e.servings) || e.servings < 1 || e.servings > 99) && (t.servings = C("valid.packages")), !this.cat("default_location_id") && e.location_id == null && (t.location = C("valid.location"))), t;
 	}
 	async save(e) {
 		if (e.preventDefault(), Object.keys(this.errors()).length) return;
@@ -10857,7 +10863,7 @@ var Ms = class extends S {
 			err: e.made_on,
 			onChange: (e, t) => this.set({
 				made_on: e,
-				dateBad: t
+				madeBad: t
 			})
 		})}
       ${Za({
@@ -10884,7 +10890,7 @@ var Ms = class extends S {
 	}
 	render() {
 		if (!this.active) return _`<dialog></dialog>`;
-		let e = this.errors(), t = this.draft, n = t.expires_on && t.expires_on === this.proposal(t) ? this.cat("shelf_days") : void 0;
+		let e = this.errors(), t = this.draft, n = t.expires_on && t.expires_on === this.proposal(t) ? this.days(t) : void 0;
 		return D({
 			title: this.canning ? C("common.edit_name", { name: this.canning.charge }) : C("leftovers.add_title"),
 			body: _`${this.newFields(e)}
@@ -10892,9 +10898,10 @@ var Ms = class extends S {
 				testid: "leftover-expires_on",
 				label: C("canning.expires_on"),
 				value: t.expires_on,
+				err: e.expires_on,
 				onChange: (e, t) => this.set({
 					expires_on: e,
-					dateBad: t
+					expiresBad: t
 				})
 			})}
         ${n ? _`<span class="detail">${C("book.shelf_hint", {

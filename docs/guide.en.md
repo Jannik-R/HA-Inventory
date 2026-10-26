@@ -21,7 +21,7 @@ opens this guide. These are the tabs:
 | **Shopping** | Shopping list from minimum stock, recipes and by hand ([6](#6-shopping-list)) |
 | **Recipes** | Recipes checked against stock, import and cook mode ([7](#7-recipes)) |
 | **Meal plan** | Dishes by day and meal ([7a](#7a-meal-plan)) |
-| **Preserving** | Canning and drying protocols and their recipes ([7b](#7b-canning-and-drying)) |
+| **Preserving** | Canning, drying and leftover protocols and their recipes ([7b](#7b-canning-and-drying)) |
 | **Settings** | Admins only: locations, units, categories, defaults ([1](#1-getting-started), [9](#9-categories-product-types-and-inheritance)) |
 
 ## Contents
@@ -63,7 +63,7 @@ Admins should take a quick look at **Settings** first:
 3. **Units**: the checkbox **Recipes only** hides a unit (e.g. EL, tablespoon) for products, minimum stock and defaults. It stays available for recipe ingredients.
 4. **Categories**: give categories a default location (e.g. Milchprodukte & Eier → fridge), so booking in rarely
    needs a location choice.
-5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Modules* you turn shopping list, recipes, meal plan, canning, opened packages and freezing off one by one (also offered during setup). The tab or button disappears, the data is kept.
+5. Optional: don't need everything? Under *Settings → Devices & services → Home Inventory → Configure → Modules* you turn shopping list, recipes, meal plan, canning, leftovers, opened packages and freezing off one by one (also offered during setup). The tab or button disappears, the data is kept.
 6. Optional: set up a label or receipt printer (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 ## 2. Booking in your shopping
@@ -414,6 +414,8 @@ and turns red. The screen stays on while the cook mode is open (if the browser a
 
 **Book out cooked**: in an open recipe (not for canning recipes) and at the end of the cook mode, **Cooked** opens a proposal of the ingredients to take out of your stock, for the shown servings. Per row: tick box, ingredient and amount, **Product**, **Batch** (expiry, location, packages, opened), **Action** (*Book out*, *Open*, *Reduce remainder* or *Skip*), **Packages** and a tick box "and open one more package for the rest". Default: the partly used packages first (earliest date, then the smallest remainder), then the batch with the earliest expiry, whole packages. If the partly used packages cover the amount, the action is **Reduce remainder**: it first books out the partly used packages that are used up completely (the **Packages** count), then only lowers the level of the next one; **Left afterwards** sets that level (also to *empty*, which books the package out). Otherwise the partly used packages go out first and the rest opens a new package; **Left afterwards** sets that package's level. Optional ingredients and amounts that cannot be converted are unticked; ingredients not kept in stock (e.g. salt, water) are left out. **Book out** books all ticked rows in one step; afterwards the panel offers **Undo**.
 
+**Store leftovers** (same dialog, after booking out): enter **Servings** and **Location**, then tap **Store leftovers**. The panel shows the charge ("Leftovers stored: batch …") and offers **Print labels**. From then on the booking has no **Undo**; correct the leftovers under the **Preserving** tab (see [Canning and drying](#7b-canning-and-drying)).
+
 Units marked *Recipes only* (e.g. EL, TL, Tasse, Prise) are offered only here. If the unit has a base amount, the recipe shows it too: "3 EL (≈ 45 ml)". Sizes are rules of thumb:
 
 | Unit | Size |
@@ -586,6 +588,17 @@ in hours (half hours work, e.g. 7.5). The charge numbering is shared with cannin
 New products go e.g. under *Gedörrtes* (Trockenobst, Gemüsechips, Getrocknete Kräuter, Getrocknete
 Pilze, Jerky; shelf life 180 days as a *Guide value*).
 
+**Leftovers** (module *Leftovers*, view **Leftovers** in the **Preserving** tab): the leftovers of a dish are a charge too, with one package per serving. The product is called "Reste: <dish>" (e.g. "Reste: Linsensuppe") and is created the first time under the main category *Reste* (best-before guide, 3 days, fridge). There are two ways to store them:
+
+1. After cooking: open the recipe, tap **Cooked** and then **Store leftovers** (see [Recipes](#7-recipes)).
+2. By hand: in the **Preserving** tab, view **Leftovers**, tap **Store leftovers**. Fill in **Dish** (a recipe name or any text), **Made on** (today), **Servings**, **Location** and **Notes**; **Best before** is proposed (made on + 3 days) and can be changed.
+
+Print labels as for jars; scanning one books out one serving.
+
+**Freezer**: in a location of the freezer kind (module *Freezing* on), leftovers are frozen at once; their date becomes the frozen date + 90 days ("ca."). The same now applies to new canning and drying protocols there.
+
+**Changing**: editing a protocol changes only its notes and best-before date; dish, date and servings stay, since the labels carry them. Deleting (admins only) removes the protocol and its batch. Leftovers have no **Undo**; change the stock under **Stock**.
+
 ## 8. Labels and receipt printer
 
 A label shows product, brand, expiry date and a QR code of the batch, so every package says what is
@@ -705,6 +718,6 @@ Right after the booking use **Undo**, otherwise fix the batch with the pencil in
 <details>
 <summary><b>Automations</b></summary>
 
-For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`home_inventory.book_in`, `home_inventory.book_out`), printing (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), the shopping list (`home_inventory.shop_recipe`), the meal plan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) freezing (`home_inventory.freeze_package`, `home_inventory.thaw_package`), canning and drying (`home_inventory.canning`, `home_inventory.drying`) (see [README](../README.md#services-automations)). The other way round, the events `home_inventory_booked`, `home_inventory_below_min` and `home_inventory_expired` tell automations about bookings, undercut minimums and expired batches (see [README](../README.md#events)).
+For scanners on ESPHome, NFC tags, voice commands etc. there are actions for booking (`home_inventory.book_in`, `home_inventory.book_out`), printing (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), the shopping list (`home_inventory.shop_recipe`), the meal plan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) freezing (`home_inventory.freeze_package`, `home_inventory.thaw_package`), canning, drying and leftovers (`home_inventory.canning`, `home_inventory.drying`, `home_inventory.store_leftovers`) (see [README](../README.md#services-automations)). The other way round, the events `home_inventory_booked`, `home_inventory_below_min` and `home_inventory_expired` tell automations about bookings, undercut minimums and expired batches (see [README](../README.md#events)).
 
 </details>

@@ -17,7 +17,7 @@ Anleitung. Oben gibt es diese Tabs:
 | **Einkauf** | Einkaufsliste aus Mindestmengen, Rezepten und von Hand ([6](#6-einkaufsliste)) |
 | **Rezepte** | Rezepte mit Vorratsabgleich, Import und Kochmodus ([7](#7-rezepte)) |
 | **Speiseplan** | Gerichte nach Tag und Mahlzeit ([7a](#7a-speiseplan)) |
-| **Haltbarmachen** | Einkoch- und Dörrprotokolle und ihre Rezepte ([7b](#7b-einkochen-und-dörren)) |
+| **Haltbarmachen** | Einkoch- und Dörrprotokolle, Reste und ihre Rezepte ([7b](#7b-einkochen-und-dörren)) |
 | **Einstellungen** | Nur Admins: Lagerorte, Einheiten, Kategorien, Standards ([1](#1-erste-schritte), [9](#9-kategorien-produktarten-und-vererbung)) |
 
 ## Inhalt
@@ -59,7 +59,7 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 3. **Einheiten**: Mit dem Häkchen **Nur für Rezepte** blendest du eine Einheit (z. B. EL) bei Produkten, Mindestmengen und Standards aus. Für Rezeptzutaten bleibt sie wählbar.
 4. **Kategorien**: Gib Kategorien einen Standard-Lagerort (z. B. Milchprodukte & Eier → Kühlschrank).
    Dann musst du beim Einbuchen seltener einen Lagerort wählen.
-5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan, Einkochen, Anbrechen und Einfrieren einzeln ab (auch schon beim Einrichten wählbar). Der Tab oder Knopf verschwindet, die Daten bleiben erhalten.
+5. Optional: Brauchst du nicht alles? Unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module* schaltest du Einkaufsliste, Rezepte, Speiseplan, Einkochen, Reste, Anbrechen und Einfrieren einzeln ab (auch schon beim Einrichten wählbar). Der Tab oder Knopf verschwindet, die Daten bleiben erhalten.
 6. Optional: Richte einen Etikettendrucker oder Bondrucker ein (siehe [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)).
 
 ## 2. Einkäufe einbuchen
@@ -400,6 +400,8 @@ Kochmodus offen ist (wenn der Browser es erlaubt).
 
 **Gekocht ausbuchen**: Im aufgeklappten Rezept (nicht bei Einkochrezepten) und am Ende des Kochmodus öffnet **Gekocht** einen Vorschlag, welche Zutaten aus dem Vorrat gehen, für die angezeigten Portionen. Je Zeile: Haken, Zutat und Menge, **Produkt**, **Charge** (Ablauf, Lagerort, Packungen, angebrochen), **Aktion** (*Ausbuchen*, *Anbrechen*, *Rest verringern* oder *Überspringen*), **Packungen** und ein Haken „und für den Rest eine weitere Packung anbrechen“. Vorgabe: zuerst die angebrochenen Teilpackungen (frühestes Ablaufdatum, dann kleinster Rest), dann die Charge mit dem frühesten Ablauf, ganze Packungen. Reichen die Teilpackungen für die Menge, lautet die Aktion **Rest verringern**: sie bucht zuerst die Teilpackungen aus, die ganz aufgebraucht werden (Feld **Packungen**), und senkt dann nur den Füllstand der nächsten; **Rest danach** stellt ihn ein (auch auf *leer*; dann wird die Packung ausgebucht). Sonst gehen die Teilpackungen zuerst aus, und der Rest bricht eine neue Packung an; deren Füllstand stellt **Rest danach** ein. Optionale Zutaten und Mengen, die sich nicht umrechnen lassen, sind abgehakt aus; Zutaten ohne Vorrat (z. B. Salz, Wasser) fehlen. Mit **Ausbuchen** werden alle angehakten Zeilen in einem Schritt gebucht; danach bietet das Panel **Rückgängig** an.
 
+**Reste einlagern** (im selben Dialog, nach dem Ausbuchen): Portionen und Lagerort eintragen, dann **Reste einlagern**. Das Panel zeigt die Charge („Reste eingelagert: Charge …“) und bietet **Etiketten drucken** an. Danach gibt es für das Ausbuchen kein **Rückgängig** mehr; Reste korrigierst du im Tab *Haltbarmachen* (siehe [Einkochen und Dörren](#7b-einkochen-und-dörren)).
+
 Einheiten mit Häkchen *Nur für Rezepte* (z. B. EL, TL, Tasse, Prise) stehen nur hier zur Wahl. Hat
 die Einheit eine Umrechnung, zeigt das Rezept die Menge dazu: „3 EL (≈ 45 ml)“. Die Größen sind
 Faustregeln:
@@ -578,6 +580,17 @@ nur das Modul Dörren einschalten). Statt Gläsern zählst du **Packungen** (Beu
 zusammen weiter (`JJJJMMTT-n`). Neue Produkte legst du z. B. unter *Gedörrtes* an (Trockenobst,
 Gemüsechips, Getrocknete Kräuter, Getrocknete Pilze, Jerky; Haltbarkeit 180 Tage als *Richtwert*).
 
+**Reste** (Modul *Reste*, Ansicht **Reste** im Tab **Haltbarmachen**): Die Reste eines Gerichts sind auch eine Charge, mit einer Packung je Portion. Das Produkt heißt „Reste: <Gericht>“ (z. B. „Reste: Linsensuppe“) und entsteht beim ersten Mal unter der Hauptkategorie *Reste* (Richtwert, 3 Tage, Kühlschrank). Es gibt zwei Wege:
+
+1. Nach dem Kochen: Rezept öffnen, **Gekocht** und dann **Reste einlagern** (siehe [Rezepte](#7-rezepte)).
+2. Von Hand: Tab **Haltbarmachen**, Ansicht **Reste**, **Reste einlagern**. Trage **Gericht** (Rezeptname oder freier Text), **Hergestellt am** (heute), **Portionen**, **Lagerort**, **Haltbar bis** (vorgeschlagen: Herstellung + 3 Tage, änderbar) und **Notizen** ein.
+
+Etiketten drucken wie bei Einkochgläsern; ein Scan bucht eine Portion aus.
+
+**Gefrierort**: Ist das Modul *Einfrieren* an und der Lagerort ein Gefrierort, werden die Reste sofort eingefroren; das Datum wird Einfrier-Datum + 90 Tage („ca.“). Das gilt jetzt auch für neue Einkoch- und Dörrprotokolle an einem Gefrierort.
+
+**Ändern**: Das Protokoll bearbeiten ändert nur Notizen und *Haltbar bis*; Gericht, Datum und Portionen bleiben, sie stehen auf den Etiketten. Löschen (nur Admins) entfernt das Protokoll mit seiner Charge. Für Reste gibt es kein **Rückgängig**; den Bestand änderst du unter **Bestand**.
+
 ## 8. Etiketten und Bondrucker
 
 Ein Etikett zeigt Produkt, Marke, Ablaufdatum und einen QR-Code der Charge. So weißt du bei jeder
@@ -699,6 +712,6 @@ Direkt nach der Buchung **Rückgängig**, sonst die Charge im Bestand mit dem St
 <details>
 <summary><b>Automationen</b></summary>
 
-Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`home_inventory.book_in`, `home_inventory.book_out`), zum Drucken (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), für die Einkaufsliste (`home_inventory.shop_recipe`), den Speiseplan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) das Einfrieren (`home_inventory.freeze_package`, `home_inventory.thaw_package`), das Einkochen und Dörren (`home_inventory.canning`, `home_inventory.drying`) (siehe [README](../README.de.md#aktionen-automationen)). Umgekehrt melden die Events `home_inventory_booked`, `home_inventory_below_min` und `home_inventory_expired` Buchungen, unterschrittene Mindestmengen und Abgelaufenes an Automationen (siehe [README](../README.de.md#events)).
+Für Scanner an ESPHome, NFC-Tags, Sprachbefehle usw. gibt es Aktionen zum Ein- und Auslagern (`home_inventory.book_in`, `home_inventory.book_out`), zum Drucken (`home_inventory.print_labels`, `home_inventory.print_shopping_list`, `home_inventory.print_recipe`, `home_inventory.print_plan`, `home_inventory.print_planned`), für die Einkaufsliste (`home_inventory.shop_recipe`), den Speiseplan (`home_inventory.plan_meal`, `home_inventory.plan_to_shopping_list`) das Einfrieren (`home_inventory.freeze_package`, `home_inventory.thaw_package`), das Einkochen, Dörren und die Reste (`home_inventory.canning`, `home_inventory.drying`, `home_inventory.store_leftovers`) (siehe [README](../README.de.md#aktionen-automationen)). Umgekehrt melden die Events `home_inventory_booked`, `home_inventory_below_min` und `home_inventory_expired` Buchungen, unterschrittene Mindestmengen und Abgelaufenes an Automationen (siehe [README](../README.de.md#events)).
 
 </details>

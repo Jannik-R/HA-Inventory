@@ -42,6 +42,7 @@ Available:
 - Freezing: *Freeze* / *Thaw* on a batch row (count, target location), scan mode *Freeze* (a frozen batch's label thaws it), or book in / move fresh food to a location marked *Freezer*; the frozen package gets its own row dated today + *Keeps frozen* (inherited, default 90 days, e.g. meat 180) as a guide value; thawed = opened today; frozen goods (category flag *Frozen goods*, seeded on *Tiefkühlkost*) keep their printed date; actions `home_inventory.freeze_package` / `thaw_package`
 - Canning and drying (tab *Preserving*): protocols with a charge per batch of jars (YYYYMMDD-n); labels carry the charge and scanning one books out a jar of that charge; canning recipes (each makes a product, optional temperature and duration) live in the tab's own *Recipes* view, not in the recipe tab or the meal plan; drying works the same (own recipes and protocols, packages instead of jars, duration in hours, action `home_inventory.drying`, seeded root *Gedörrtes* with a guide date)
 - Leftovers (module *Leftovers*, tab *Preserving*): the leftovers of a dish are stored as a charge, one package per serving; the product "Reste: <dish>" is created on first use under the seeded root *Reste* (guide date, 3 days, fridge); in a freezer location they are frozen at once; stored after *Cooked* or by hand in the tab's view *Reste*; action `home_inventory.store_leftovers`, see the [guide](docs/guide.en.md#7b-canning-and-drying)
+- Allergens and diet (module *Allergens & diet*, off by default): the 14 EU major allergens and vegan / vegetarian per category and product, filled from Open Food Facts (also for existing products: admin button *Allergene von Open Food Facts nachladen* in the settings, about one product per second, only with *Look up products in Open Food Facts* on) and inherited down the category tree; recipes show their diet and allergens from their ingredients (optional ones do not count but are marked) and the recipe list filters strictly by *Diet* and *Without* allergens; traces are not considered; see the [guide](docs/guide.en.md#9-categories-product-types-and-inheritance)
 - AI assistants: the LLM API *Home Inventory* for Assist agents and Home Assistant's MCP Server (stock, expiring, recipes, shopping list, meal plan; what they may change is set in the options)
 
 Roadmap: [docs/PLAN.md](docs/PLAN.md) section 6.
@@ -58,7 +59,7 @@ Python packages (installed by Home Assistant): `segno` (QR codes on labels). `yt
 
 Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel appears in the sidebar as *Home Inventory* (with Home Assistant in German: *Vorrat*).
 
-**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default: *Shopping list* (tab *Shopping* and the shopping list to-do entity), *Recipes* (tab *Recipes*), *Meal plan* (tab *Meal plan*, the meal plan calendar entity and the settings section *Meals*), *Canning*, *Drying* and *Leftovers* (tab *Preserving*, shown while one of them is on, with a switch between them when several are on), *Opened packages* (button *Open* on batch rows, booking mode *Open* and the field *Keeps after opening*), *Freezing* (buttons *Freeze* / *Thaw* and the fields *Keeps frozen*, *Frozen goods*; turned off, nothing is frozen and no date changes, also not at a location marked *Freezer*). Change them later under *Configure > Modules*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *On the shopping list* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
+**Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default except *Allergens & diet*: *Shopping list* (tab *Shopping* and the shopping list to-do entity), *Recipes* (tab *Recipes*), *Meal plan* (tab *Meal plan*, the meal plan calendar entity and the settings section *Meals*), *Canning*, *Drying* and *Leftovers* (tab *Preserving*, shown while one of them is on, with a switch between them when several are on), *Opened packages* (button *Open* on batch rows, booking mode *Open* and the field *Keeps after opening*), *Freezing* (buttons *Freeze* / *Thaw* and the fields *Keeps frozen*, *Frozen goods*; turned off, nothing is frozen and no date changes, also not at a location marked *Freezer*). Off by default: *Allergens & diet* (fields *Diet* and *Allergens* on categories and products, diet line and filter in the recipe list). Change them later under *Configure > Modules*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *On the shopping list* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 
 ## Usage
 
@@ -171,7 +172,7 @@ decides what they may do:
 
 | Level | Tools |
 |---|---|
-| *Read only (stock, expiring, recipes, shopping list, meal plan)* | `get_stock`, `get_expiring`, `get_recipes`, `get_recipe` (with stock status), `get_shopping_list`, `get_meal_plan` |
+| *Read only (stock, expiring, recipes, shopping list, meal plan)* | `get_stock`, `get_expiring`, `get_recipes` (with diet and allergens, where known), `get_recipe` (with stock status), `get_shopping_list`, `get_meal_plan` |
 | *Read, shopping list and meal plan* (default) | plus `add_to_shopping_list` (product or category by name), `add_recipe_to_shopping_list`, `plan_meal` |
 | *Everything, including booking in and out and opening packages* | plus `book_in`, `book_out`, `open_package` (product by name or EAN) |
 
@@ -186,7 +187,7 @@ it only through the services below. Each one has its own switch under *Configure
 
 | Service (switch) | What is sent, to whom | When | Default |
 |---|---|---|---|
-| *Look up products in Open Food Facts* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Search online* | on |
+| *Look up products in Open Food Facts* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Search online*; the admin button *Allergene von Open Food Facts nachladen* sends the barcodes of products without allergen data, about one per second | on |
 | *Show product pictures* | your browser requests the small product picture from images.openfoodfacts.org, so that server sees your IP address and which product | stock list and booking result show a product with a picture | on |
 | *Import recipes from links* | a request for the linked page to that site (from Home Assistant) | *Import* with a link | on |
 | *AI checks recipe imports* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |

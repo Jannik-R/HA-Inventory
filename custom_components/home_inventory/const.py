@@ -29,6 +29,7 @@ CONF_AI_TASK = "ai_task_entity"  # AI Task entity that checks recipe imports; un
 # is one entry here, gated with `external()`; the user decides the default of a new one (CLAUDE.md).
 EXTERNAL = {
     "off_lookup": True,  # Open Food Facts: unknown EAN, online search
+    "off_images": True,  # the browser loads product pictures from images.openfoodfacts.org
     "recipe_url": True,  # recipe import loads the page of a link
     "ai_recipe_check": True,  # AI checks every recipe import
     "ai_product_check": True,  # AI checks a new product from Open Food Facts

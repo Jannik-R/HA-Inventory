@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.3.0 - 2026-10-26
+
+### Upgrade notes
+
+- Make a backup before updating. The database migrates automatically on start to schema version 32: migration 29 rebuilds `canning` (ids kept) and seeds the root category *Reste*; migration 30 adds diet and allergen columns to categories and products; migration 31 adds `booking.action_id` (older bookings each count as their own action in the history); migration 32 adds the seed language (`de` for existing databases) and repairs the unit of *Holunderbeeren*.
+- New module *Allergene & Ernährung* is off by default: switch it on under *Konfigurieren > Module*. The new module *Reste* is on for new installs; an install with a saved module list gets it off until ticked there.
+- New external service *Produktbilder* (`off_images`, on by default): the browser loads product pictures from Open Food Facts' image server. Switch it off under *Konfigurieren > Externe Dienste*.
+- The receipt printer button in recipes and the meal plan is now *Bon drucken*; *Drucken / PDF* is the new browser print.
+
+### Added
+
+- Leftovers as a charge (module *Reste*): *Reste einlagern* after *Gekocht ausbuchen* or by hand in *Haltbarmachen > Reste*; a product "Reste: <Gericht>" with its own charge, date (3 days, frozen at a freezer location) and labels, one package per serving; action `home_inventory.store_leftovers`
+- Recipe export: *JSON herunterladen* (schema.org `Recipe` JSON-LD) per recipe and *Alle Rezepte exportieren*; *Drucken / PDF* prints a recipe through the browser's print dialog
+- Allergens and diet (module *Allergene & Ernährung*): the 14 EU major allergens and vegan / vegetarian on categories and products (inherited, filled from Open Food Facts), recipe filter *Ernährung* (strict; optional ingredients do not count but are marked), *Allergene von Open Food Facts nachladen* for existing products (throttled); `get_recipes` for AI agents carries diet and allergens
+- Product pictures from Open Food Facts in the stock list and the booking result (external service *Produktbilder*)
+- CSV import / export (*Einstellungen > Import / Export*, admins): products and stock as CSV with a preview of every change; import from Grocy's JSON files; import never deletes and never books out, a re-import changes nothing; import bookings fire no `home_inventory_booked` events
+- Booking history (*Bestand > Verlauf*): every booking grouped by action, filters by product, user and period; undo a whole action (all or nothing), undone entries stay struck through with the undo date and user
+- English seed: a new install whose Home Assistant system language is not German gets English categories, product types, units (plus oz, lb, fl oz) and locations; the ingredient parser understands English units
+
+### Changed
+
+- Bundled OpenCV.js 5 for the receipt scan
+- Shop order (planned phase 32) dropped
+
+### Fixed
+
+- A partly frozen canning charge showed twice in the protocol list
+- The unit of the seeded product type *Holunderbeeren* was never set (typo in the seed)
+
 ## 0.2.0 - 2026-10-21
 
 ### Upgrade notes

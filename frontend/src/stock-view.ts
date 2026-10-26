@@ -24,6 +24,7 @@ import type { HomeInventoryProductDialog } from "./product-dialog";
 import type { HomeInventoryBatchDialog } from "./batch-dialog";
 import { stockFilterStyles, stockFilters } from "./stock-filters";
 import { stockStyles } from "./stock-styles";
+import { productImage } from "./product-image";
 import { deleteMasterRow } from "./delete-flow";
 import type { HomeInventoryLabelDialog } from "./label-dialog";
 import { frozenLine, undoFrozenDone, type FrozenDone } from "./frozen-action";
@@ -286,6 +287,7 @@ export class HomeInventoryStock extends LitElement {
             ${first ? html` · <span class=${this.status(first)}>${this.date(first)}</span>` : nothing}
           </span>
         </button>
+        ${productImage(this.products.get(p.id)?.image_url)}
         ${rowActions({
           testid: "product",
           name: p.name,

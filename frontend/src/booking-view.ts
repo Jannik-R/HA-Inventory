@@ -47,6 +47,7 @@ export class HomeInventoryBooking extends LitElement {
     product: { state: true },
     stock: { state: true },
     message: { state: true },
+    image: { state: true },
     undo: { state: true },
     opened: { state: true },
     frozen: { state: true },
@@ -62,6 +63,8 @@ export class HomeInventoryBooking extends LitElement {
   declare product?: Product;
   declare stock?: StockRow[];
   declare message: string;
+  /** Picture link of the product just booked; shown with the message. */
+  declare image?: string | null;
   /** What the last book-out took; shown with the message as undo. */
   declare undo?: Taken[];
   /** The last package opened ("open" mode); shown with the message as undo and label offer. */
@@ -93,6 +96,7 @@ export class HomeInventoryBooking extends LitElement {
     this.product = undefined;
     this.stock = undefined;
     this.error = "";
+    this.image = undefined;
   }
 
   private started = false;
@@ -307,6 +311,7 @@ export class HomeInventoryBooking extends LitElement {
     this.error = error;
     this.message = e.detail.message;
     this.undo = e.detail.taken;
+    this.image = e.detail.image;
     this.dispatchEvent(new CustomEvent("booked"));
     this.focusInput();
   }

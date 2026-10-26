@@ -4,6 +4,7 @@ shared by both kinds) and its own batch."""
 from __future__ import annotations
 
 import sqlite3
+from datetime import date
 
 from .booking import _add, _booking, _iso
 from .common import InventoryError, _exists, _now, _packages
@@ -24,7 +25,7 @@ def cannings(conn: sqlite3.Connection) -> list[dict]:
         " (SELECT ifnull(sum(s.packages), 0) FROM stock s JOIN batch x ON x.id = s.batch_id"
         "  WHERE x.canning_id = c.id) AS in_stock"
         " FROM canning c JOIN product p ON p.id = c.product_id LEFT JOIN recipe r ON r.id = c.recipe_id"
-        " LEFT JOIN batch b ON b.canning_id = c.id AND b.opened_on IS NULL"
+        " LEFT JOIN batch b ON b.id = (SELECT min(id) FROM batch WHERE canning_id = c.id)"
         " ORDER BY c.made_on DESC, c.seq DESC"
     )
     return [{**dict(r), "charge": charge(r["made_on"], r["seq"])} for r in rows]
@@ -51,8 +52,9 @@ def save_canning(
             "UPDATE batch SET expires_on = ? WHERE canning_id = ?", (expires_on, canning_id)
         )
         row = conn.execute(
-            "SELECT c.made_on, c.seq, b.id FROM canning c JOIN batch b ON b.canning_id = c.id"
-            " WHERE c.id = ? AND b.opened_on IS NULL",
+            "SELECT c.made_on, c.seq, b.id FROM canning c"
+            " JOIN batch b ON b.id = (SELECT min(id) FROM batch WHERE canning_id = c.id)"
+            " WHERE c.id = ?",
             (canning_id,),
         ).fetchone()
         return {"id": canning_id, "batch_id": row["id"], "charge": charge(row[0], row[1])}
@@ -90,10 +92,15 @@ def save_canning(
             **process,
         },
     )
-    batch_id = conn.execute(
-        "INSERT INTO batch (product_id, expires_on, created_at, canning_id) VALUES (?, ?, ?, ?)",
-        (product_id, expires_on, _now(), canning_id),
-    ).lastrowid
+    from .frozen import frozen_batch, frozen_days, is_freezer  # frozen imports booking
+
+    if is_freezer(conn, location_id) and (days := frozen_days(conn, product_id)):  # as book_in
+        batch_id = frozen_batch(conn, product_id, canning_id, days, date.fromisoformat(made_on))
+    else:
+        batch_id = conn.execute(
+            "INSERT INTO batch (product_id, expires_on, created_at, canning_id) VALUES (?, ?, ?, ?)",
+            (product_id, expires_on, _now(), canning_id),
+        ).lastrowid
     _add(conn, batch_id, location_id, data["jars"])
     _booking(conn, "in", batch_id, location_id, data["jars"], source, user_id)
     return {"id": canning_id, "batch_id": batch_id, "charge": charge(made_on, seq)}

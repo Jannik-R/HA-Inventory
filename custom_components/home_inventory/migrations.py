@@ -13,6 +13,7 @@ from .migration_25 import freezing
 from .migration_26 import drying
 from .migration_27 import emergency_stock
 from .migration_28 import remaining_amount
+from .migration_29 import leftovers
 from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -459,4 +460,6 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     # 28: remaining amount of opened packages: batch.remaining, batch_key only for full batches,
     # booking kind 'remaining' (see migration_28).
     remaining_amount,
+    # 29: leftovers: canning.kind 'leftover', seeded root Reste (see migration_29).
+    leftovers,
 ]

@@ -20,6 +20,7 @@ import {
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
 import { recipeDetail } from "./recipe-detail";
+import { downloadRecipes } from "./recipe-output";
 import { fmtPortions, includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
@@ -225,6 +226,7 @@ export class HomeInventoryRecipes extends LitElement {
               recipe: r,
               ingredients: this.scaled.get(r.id) ?? r.ingredients,
               servings: n,
+              onError: (m) => (this.error = m),
               onServings: (v) => this.setServings(r, v),
               onShopping: () => this.toShopping(r),
               // a canning recipe starts a protocol (handled by the Einkochen tab)
@@ -278,6 +280,12 @@ export class HomeInventoryRecipes extends LitElement {
               </button>`
             : nothing
         }
+        <button
+          data-testid="recipe-export-all"
+          @click=${() => downloadRecipes(this.hass!, (m) => (this.error = m))}
+        >
+          ${t("recipes.export_all")}
+        </button>
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
           ${this.canning ? pt(this.canning, "recipe_add") : t("recipes.add")}
         </button>

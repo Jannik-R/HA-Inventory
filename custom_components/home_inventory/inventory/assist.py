@@ -50,6 +50,9 @@ def recipe_list(conn: sqlite3.Connection, search: str | None = None) -> list[dic
             "ingredients_in_stock": r["summary"]["available"],
             "ingredients_required": r["summary"]["total"],
             "on_shopping_list": r["shopping_servings"] is not None,
+            "diet": r["diet"]["diet"],
+            "allergens_known": r["diet"]["allergens_known"],
+            "contains_allergens": r["diet"]["contains"],
         }
         for r in recipes(conn)
         if needle in r["name"].casefold()

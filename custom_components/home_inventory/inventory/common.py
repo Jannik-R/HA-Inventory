@@ -12,7 +12,7 @@ INHERITED = (
 )  # fmt: skip
 # Inherited down the category tree only (no product or defaults column); NULL at the root = food,
 # not frozen goods, no emergency group.
-CATEGORY_INHERITED = ("food", "frozen_goods", "emergency_group")
+CATEGORY_INHERITED = ("food", "frozen_goods", "emergency_group", "diet", "allergens")
 
 
 # Column whitelist per table (id and product.updated_at are handled by save()).
@@ -23,12 +23,12 @@ COLUMNS = {
         "parent_id", "name", "sort", "unit_id", "default_location_id",
         "expiry_type", "warn_days", "min_stock", "min_stock_unit_id", "min_packages",
         "shelf_days", "food", "opened_days", "frozen_goods", "frozen_days",
-        "emergency_group",
+        "emergency_group", "diet", "allergens",
     ),
     "product": (
         "ean", "name", "brand", "category_id", "content_amount", "content_unit_id",
         "default_location_id", "expiry_type", "warn_days", "image_url", "off_json", "min_packages",
-        "shelf_days", "opened_days", "frozen_days",
+        "shelf_days", "opened_days", "frozen_days", "diet", "allergens",
     ),
     "recipe": (
         "name", "servings", "instructions", "source_url", "image_url", "canning_product_id",

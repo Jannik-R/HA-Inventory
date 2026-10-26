@@ -588,7 +588,8 @@
         "opened": "Anbrechen",
         "frozen": "Einfrieren",
         "emergency": "Notvorrat",
-        "leftovers": "Reste"
+        "leftovers": "Reste",
+        "diet": "Allergene & Ernährung"
       }
     },
     "label_printer": {

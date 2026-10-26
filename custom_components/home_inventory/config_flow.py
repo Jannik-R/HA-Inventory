@@ -39,6 +39,7 @@ from .const import (
     CONF_RECEIPT_PRINTER,
     CONF_RECEIPT_WIDTH,
     DEFAULT_LLM_ACCESS,
+    DEFAULT_MODULES,
     DEFAULT_SERVINGS,
     DOMAIN,
     EXTERNAL,
@@ -83,7 +84,9 @@ class HomeInventoryConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Choose the modules and create the entry."""
         if user_input is None:
-            return self.async_show_form(step_id="user", data_schema=_modules_schema(MODULES))
+            return self.async_show_form(
+                step_id="user", data_schema=_modules_schema(DEFAULT_MODULES)
+            )
         return self.async_create_entry(
             title="Home Inventory",
             data={},

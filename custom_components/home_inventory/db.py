@@ -17,6 +17,7 @@ from .migration_25 import set_frozen
 from .migration_26 import add_dried
 from .migration_27 import set_emergency
 from .migration_29 import add_leftovers
+from .migration_30 import set_diet
 from .migrations import MIGRATIONS
 from .seed import seed
 from .seed_days import fill_days
@@ -75,6 +76,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         add_dried(conn)  # same
         set_emergency(conn)  # same
         add_leftovers(conn)  # same
+        set_diet(conn)  # same
         conn.commit()
 
 

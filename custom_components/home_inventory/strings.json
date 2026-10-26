@@ -588,7 +588,8 @@
         "opened": "Opened packages",
         "frozen": "Freezing",
         "emergency": "Emergency stock",
-        "leftovers": "Leftovers"
+        "leftovers": "Leftovers",
+        "diet": "Allergens & diet"
       }
     },
     "label_printer": {

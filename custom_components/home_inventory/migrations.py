@@ -14,6 +14,7 @@ from .migration_26 import drying
 from .migration_27 import emergency_stock
 from .migration_28 import remaining_amount
 from .migration_29 import leftovers
+from .migration_30 import allergens_diet
 from .seed_days import fill_days
 from .seed_general import add_general
 from .seed_types import NEW_IN_9, add_seed_extras, mark_recipe_only
@@ -462,4 +463,6 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     remaining_amount,
     # 29: leftovers: canning.kind 'leftover', seeded root Reste (see migration_29).
     leftovers,
+    # 30: allergens and diet: diet / allergens on category and product (see migration_30).
+    allergens_diet,
 ]

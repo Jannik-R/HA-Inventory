@@ -31,7 +31,8 @@ SITES = {
 _OTHER_TYPE = re.compile(r"different product type: (\w+)")
 FIELDS = (
     "code,product_name,product_name_{lang},generic_name_{lang},brands,categories_tags,"
-    "product_quantity,product_quantity_unit,quantity,image_front_small_url"
+    "product_quantity,product_quantity_unit,quantity,image_front_small_url,"
+    "allergens_tags,ingredients_analysis_tags"
 )
 SEARCH_FIELDS = "code,product_name,product_name_{lang},brands,quantity"
 TIMEOUT = aiohttp.ClientTimeout(total=10)

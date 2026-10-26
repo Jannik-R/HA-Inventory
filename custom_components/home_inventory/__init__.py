@@ -17,6 +17,7 @@ from . import (
     websocket,
     websocket_canning,
     websocket_cooked,
+    websocket_diet,
     websocket_emergency,
     websocket_label,
     websocket_open,
@@ -48,6 +49,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_emergency.async_register(hass)
     websocket_canning.async_register(hass)
     websocket_cooked.async_register(hass)
+    websocket_diet.async_register(hass)
     websocket_stocktake.async_register(hass)
     websocket_open.async_register(hass)
     websocket_purchase.async_register(hass)

@@ -189,3 +189,25 @@ async def test_import_fires_no_booked_events(hass: HomeAssistant, ws, hass_admin
     hass_admin_user.groups = []
     denied = await ws.call({"type": "home_inventory/export_csv", "kind": "products"})
     assert denied["error"]["code"] == "unauthorized"
+
+
+def test_formula_guard_and_bad_csv(conn) -> None:
+    run(conn, "products", HEAD + "'=SUM(A1);;Nudeln;;;;;;\r\n")
+    assert conn.execute("SELECT name FROM product").fetchone()[0] == "=SUM(A1)"
+    exported = inv.export_products(conn)
+    assert "\r\n'=SUM(A1);" in exported  # guarded for spreadsheets
+    assert run(conn, "products", exported)["rows"] == []  # and read back unchanged
+    with pytest.raises(InventoryError, match="invalid_value"):
+        parse_csv("name\r\n" + "x" * 200_000, ("name",))
+
+
+def test_location_created_only_when_booked(conn) -> None:
+    product(conn, "Reis", "Reis")
+    head = "name;location;packages\r\n"
+    skipped = run(conn, "stock", head + "Reis;Neuer Ort;0\r\n")
+    assert (
+        skipped["rows"] == []
+        and not conn.execute("SELECT 1 FROM location WHERE name = 'Neuer Ort'").fetchone()
+    )
+    done = run(conn, "stock", head + "Reis;Neuer Ort;1\r\n")
+    assert [r["kind"] for r in done["rows"]] == ["location", "stock"]

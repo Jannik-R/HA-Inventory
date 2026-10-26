@@ -150,8 +150,9 @@ def _collect(ctx: Ctx, row: dict, groups: dict) -> None:
     if row.get("charge") or (level is not None and level < 1):
         ctx.add("skip", "stock", label, reason=skip)
         return
-    if place := row.get("location"):
-        location_id = ctx.location(place, bool(row.get("_freezer")))
+    place = row.get("location")
+    if place:  # an unknown location is created only when the group is booked (_book)
+        location_id = ctx.find_location(place) or place.casefold()
     elif (
         location_id := effective(ctx.conn, product["id"])["default_location_id"]["value"]
     ) is None:
@@ -163,12 +164,21 @@ def _collect(ctx: Ctx, row: dict, groups: dict) -> None:
         day(row.get("opened_on")),
         day(row.get("frozen_on")),
     )
-    groups.setdefault(key, [ctx.line, label, 0])[2] += int(n)
+    group = groups.setdefault(key, [ctx.line, label, 0, place, bool(row.get("_freezer"))])
+    group[2] += int(n)
 
 
 def _book(ctx: Ctx, key: tuple, group: list) -> None:
-    (product_id, location_id, expires, opened, frozen), (_, label, target) = key, group
+    (product_id, location_id, expires, opened, frozen), (_, label, target, place, freezer) = (
+        key,
+        group,
+    )
     conn = ctx.conn
+    if isinstance(location_id, str):
+        if target == 0:
+            ctx.quiet += 1
+            return
+        location_id = ctx.location(place, freezer)
     have = conn.execute(
         "SELECT coalesce(sum(s.packages), 0) FROM stock s JOIN batch b ON b.id = s.batch_id"
         " WHERE b.product_id = ? AND b.expires_on IS ? AND b.opened_on IS ? AND b.frozen_on IS ?"

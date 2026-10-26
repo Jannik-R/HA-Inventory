@@ -140,7 +140,7 @@ for f in products product_groups locations quantity_units product_barcodes stock
 done
 ```
 
-`products.json` is required; without `quantity_units.json` amounts in grams count as packages.
+`products.json` is required; every stock entry counts as one package, except where `quantity_units.json` shows a count unit (then the amount, rounded up).
 
 ### AI
 

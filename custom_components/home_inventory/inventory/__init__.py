@@ -1,8 +1,11 @@
 """All business logic. Plain sync functions on a sqlite3 connection (no HA imports).
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
-(common, transfer_csv, transfer_ctx, transfer_apply, grocy, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
+(common, transfer_csv, transfer_ctx, transfer_apply, grocy, master, inherit, products, suggest,
+booking, labels, codes, queries, amounts, shopping, recipes, expiry_recipes, shopping_recipes,
+removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps,
+learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen,
+stocktake, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
 """
 
 from .ai_check import changes as ai_changes

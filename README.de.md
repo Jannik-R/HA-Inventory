@@ -142,7 +142,7 @@ for f in products product_groups locations quantity_units product_barcodes stock
 done
 ```
 
-`products.json` ist Pflicht; ohne `quantity_units.json` zählen Mengen in Gramm als Packungen.
+`products.json` ist Pflicht; jeder Bestandseintrag zählt als eine Packung, außer `quantity_units.json` zeigt eine Zähleinheit (dann die Menge, aufgerundet).
 
 ### KI
 

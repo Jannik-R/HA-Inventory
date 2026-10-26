@@ -69,9 +69,19 @@ class HomeInventoryTransfer extends LitElement {
       });
       if (!ok) return;
       const { csv } = await exportCsv(this.hass!, kind);
-      const day = new Date().toISOString().slice(0, 10);
-      saveCsv(csv, `vorrat-${kind === "products" ? "produkte" : "bestand"}-${day}.csv`);
+      saveCsv(csv, `${t(`transfer.file_name.${kind}`)}-${this.today()}.csv`);
     });
+  }
+
+  /** Local date as YYYY-MM-DD (digits per locale), safe in file names. */
+  private today() {
+    const parts = new Intl.DateTimeFormat(this.hass!.locale?.language ?? this.hass!.language, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date());
+    const get = (type: string) => parts.find((p) => p.type === type)!.value;
+    return `${get("year")}-${get("month")}-${get("day")}`;
   }
 
   private run(files: string[], apply: boolean): Promise<TransferReport> {

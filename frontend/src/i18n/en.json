@@ -673,5 +673,7 @@
   "transfer.reason.invalid_ean": "Invalid EAN.",
   "transfer.reason.invalid_value": "Invalid value.",
   "transfer.reason.invalid_date": "Invalid date.",
-  "transfer.reason.other": "Not possible ({key})."
+  "transfer.reason.other": "Not possible ({key}).",
+  "transfer.file_name.products": "inventory-products",
+  "transfer.file_name.stock": "inventory-stock"
 }

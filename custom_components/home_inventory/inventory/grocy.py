@@ -12,7 +12,7 @@ import sqlite3
 from .common import InventoryError, check_ean, unit_key
 from .ingredient_line import unit_lookup
 from .transfer_apply import import_rows
-from .transfer_csv import num
+from .transfer_csv import MAX_ROWS, num
 
 _NEVER = "2999-12-31"  # Grocy's "does not expire"
 
@@ -29,7 +29,7 @@ def _kind(item: dict) -> str:
             return kind
     if "stock_id" in item and "best_before_date" in item:
         return "stock"
-    if "name" in item:
+    if "id" in item and "name" in item:
         return "groups"
     raise InventoryError("grocy_file")
 
@@ -55,6 +55,8 @@ def _read(files: list[str]) -> dict[str, list[dict]]:
             data[_kind(items[0])] = items
     if "products" not in data:
         raise InventoryError("grocy_products")
+    if len(data["products"]) > MAX_ROWS or len(data.get("stock", ())) > MAX_ROWS:
+        raise InventoryError("csv_rows", max=MAX_ROWS)
     return data
 
 
@@ -72,15 +74,15 @@ def _ean(codes: list[dict], product_id: object) -> str:
 def grocy_rows(conn: sqlite3.Connection, files: list[str]) -> tuple[list[dict], list[dict]]:
     """JSON file contents -> (product rows, stock rows)."""
     data = _read(files)
-    groups = {str(g["id"]): g.get("name", "") for g in data.get("groups", [])}
-    places = {str(p["id"]): p for p in data.get("locations", [])}
+    groups = {str(g.get("id")): g.get("name", "") for g in data.get("groups", [])}
+    places = {str(p.get("id")): p for p in data.get("locations", [])}
     ours = {r["id"]: r["is_count"] for r in conn.execute("SELECT id, is_count FROM unit")}
     lookup = unit_lookup(conn)
     units = {}  # Grocy unit id -> our unit id
     for u in data.get("units", []):
         for name in (u.get("name"), u.get("name_plural")):
             if name and (hit := lookup.get(unit_key(name))):
-                units[str(u["id"])] = hit
+                units[str(u.get("id"))] = hit
                 break
 
     def place(location_id: object) -> tuple[str, bool]:
@@ -108,11 +110,11 @@ def grocy_rows(conn: sqlite3.Connection, files: list[str]) -> tuple[list[dict], 
         if _n(p.get("min_stock_amount")) > 0 and unit and ours[unit]:
             row["min_packages"] = str(math.ceil(_n(p["min_stock_amount"])))
         products.append(row)
-        by_id[str(p.get("id"))] = (row, unit is not None and not ours[unit])
+        by_id[str(p.get("id"))] = (row, unit is not None and bool(ours[unit]))
 
     stock = []
     for i, e in enumerate(data.get("stock", []), 1):
-        row, measured = by_id.get(
+        row, counted = by_id.get(
             str(e.get("product_id")), ({"name": f"#{e.get('product_id')}"}, False)
         )
         name, freezer = (
@@ -125,7 +127,8 @@ def grocy_rows(conn: sqlite3.Connection, files: list[str]) -> tuple[list[dict], 
             {
                 "_line": i,
                 "name": row["name"],
-                "packages": str(1 if measured else max(math.ceil(_n(e.get("amount"))), 0)),
+                # one package per entry, unless the unit is a known count unit
+                "packages": str(max(math.ceil(_n(e.get("amount"))), 0) if counted else 1),
                 "expires_on": "" if best == _NEVER else best,
                 "opened_on": str(e.get("opened_date") or "")[:10]
                 if str(e.get("open")) == "1"

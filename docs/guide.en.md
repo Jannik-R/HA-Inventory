@@ -733,7 +733,9 @@ left out, the others still apply. Importing the same file again changes nothing.
   (source *import*). If more is there already the line is skipped; nothing is ever booked out. Lines for partly used
   packages (`remaining` below 1) and canning charges (`charge`) are skipped. Without a location the product's location is used.
 - **Grocy**: download the JSON files as described in the README (setup), pick them all at once. Products come first, then the stock.
-  A product in grams or millilitres counts each Grocy stock entry as one package.
+  Each Grocy stock entry counts as one package; only when the product's unit is a known count unit (e.g. Stück) is it the amount, rounded up.
+- Text cells that start with `=`, `+`, `-` or `@` get a leading `'` in the export (so Excel does not run them as a formula); the import removes it again.
+- A category name must not contain ` > `, because that separates the levels of a path.
 - Imports fire **no** `home_inventory_booked` events (so automations do not react to hundreds of bookings); the bookings are in the log.
 
 ## 10. Tips and FAQ

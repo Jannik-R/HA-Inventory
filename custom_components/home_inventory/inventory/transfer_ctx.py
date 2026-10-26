@@ -58,12 +58,21 @@ class Ctx:
     def category_path(self, category_id: int) -> str:
         return " > ".join(_path(_categories(self.conn), category_id))
 
+    def find_location(self, name: str) -> int | None:
+        """Id of the active location with this name."""
+        for r in self.conn.execute("SELECT id, name FROM location WHERE active"):
+            if _eq(r["name"], name):
+                return r["id"]
+        return None
+
     def location(self, name: str, freezer: bool = False) -> int:
         """Active location by name; an unknown or deactivated one is created / brought back."""
-        rows = self.conn.execute("SELECT id, name, active FROM location").fetchall()
-        if hit := next((r for r in rows if r["active"] and _eq(r["name"], name)), None):
-            return hit["id"]
-        old = next((r for r in rows if _eq(r["name"], name)), None)
+        if (found := self.find_location(name)) is not None:
+            return found
+        old = next(
+            (r for r in self.conn.execute("SELECT name FROM location") if _eq(r["name"], name)),
+            None,
+        )
         data = {"name": old["name"] if old else name, **({"freezer": 1} if freezer else {})}
         self.add("create", "location", name)
         return save(self.conn, "location", data)

@@ -728,7 +728,9 @@ Fehler bleiben draußen, die anderen werden trotzdem übernommen. Dieselbe Datei
   (Quelle *import*). Ist schon mehr da, wird die Zeile übersprungen; es wird nie ausgebucht. Zeilen für angebrochene
   Packungen (`remaining` unter 1) und Einkoch-Chargen (`charge`) werden übersprungen. Ohne Lagerort gilt der des Produkts.
 - **Grocy**: JSON-Dateien wie in der README (Einrichtung) beschrieben herunterladen und alle auf einmal wählen. Erst kommen die Produkte, dann der Bestand.
-  Bei einem Produkt in Gramm oder Millilitern zählt jeder Grocy-Bestandseintrag als eine Packung.
+  Jeder Grocy-Bestandseintrag zählt als eine Packung; nur wenn die Einheit des Produkts eine bekannte Zähleinheit ist (z. B. Stück), ist es die Menge, aufgerundet.
+- Textzellen, die mit `=`, `+`, `-` oder `@` beginnen, bekommen im Export ein führendes `'` (damit Excel sie nicht als Formel ausführt); der Import entfernt es wieder.
+- Ein Kategoriename darf kein ` > ` enthalten, weil das die Ebenen eines Pfads trennt.
 - Importe lösen **keine** `home_inventory_booked`-Events aus (Automationen reagieren so nicht auf Hunderte Buchungen); die Buchungen stehen im Protokoll.
 
 ## 10. Tipps und häufige Fragen

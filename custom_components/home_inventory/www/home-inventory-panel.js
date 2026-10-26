@@ -1201,7 +1201,9 @@ var Je = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"transfer.reason.invalid_ean": "Ungültige EAN.",
 	"transfer.reason.invalid_value": "Ungültiger Wert.",
 	"transfer.reason.invalid_date": "Ungültiges Datum.",
-	"transfer.reason.other": "Nicht möglich ({key})."
+	"transfer.reason.other": "Nicht möglich ({key}).",
+	"transfer.file_name.products": "vorrat-produkte",
+	"transfer.file_name.stock": "vorrat-bestand"
 }, At = {
 	"panel.title": "Home Inventory",
 	"panel.help": "User guide",
@@ -1877,7 +1879,9 @@ var Je = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"transfer.reason.invalid_ean": "Invalid EAN.",
 	"transfer.reason.invalid_value": "Invalid value.",
 	"transfer.reason.invalid_date": "Invalid date.",
-	"transfer.reason.other": "Not possible ({key})."
+	"transfer.reason.other": "Not possible ({key}).",
+	"transfer.file_name.products": "inventory-products",
+	"transfer.file_name.stock": "inventory-stock"
 }, jt = {
 	de: kt,
 	en: At
@@ -3366,9 +3370,17 @@ var rr = (e, t) => e.callWS({
 				message: S("transfer.export.notice"),
 				action: S("transfer.export.action")
 			})) return;
-			let { csv: t } = await rr(this.hass, e), n = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-			cr(t, `vorrat-${e === "products" ? "produkte" : "bestand"}-${n}.csv`);
+			let { csv: t } = await rr(this.hass, e);
+			cr(t, `${S(`transfer.file_name.${e}`)}-${this.today()}.csv`);
 		});
+	}
+	today() {
+		let e = new Intl.DateTimeFormat(this.hass.locale?.language ?? this.hass.language, {
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit"
+		}).formatToParts(/* @__PURE__ */ new Date()), t = (t) => e.find((e) => e.type === t).value;
+		return `${t("year")}-${t("month")}-${t("day")}`;
 	}
 	run(e, t) {
 		return this.source === "grocy" ? ar(this.hass, e, t) : ir(this.hass, this.source, e[0], t);

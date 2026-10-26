@@ -65,3 +65,15 @@ def test_files(conn) -> None:
         inv.import_grocy(conn, ["not json"], False)
     # only the products file: names and shelf life, no stock
     assert inv.import_grocy(conn, [*files("products"), "[]"], False)["counts"]["create"] >= 3
+
+
+def test_unknown_unit_is_one_package_per_entry(conn) -> None:
+    # without quantity_units.json the unit of "Spaghetti" is unknown: 3 + 1 entries = 2 packages
+    inv.import_grocy(conn, files("products", "product_groups", "locations", "stock"), True)
+    n = conn.execute(
+        "SELECT sum(s.packages) FROM stock s JOIN batch b ON b.id = s.batch_id"
+        " JOIN product p ON p.id = b.product_id WHERE p.name = 'Spaghetti'"
+    ).fetchone()[0]
+    assert n == 2
+    with pytest.raises(InventoryError, match="grocy_file"):
+        inv.import_grocy(conn, [*files("products"), '[{"name": "no id"}]'], False)

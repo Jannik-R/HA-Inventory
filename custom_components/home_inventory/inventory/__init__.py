@@ -1,7 +1,7 @@
 """All business logic. Plain sync functions on a sqlite3 connection (no HA imports).
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
-(common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
+(common, transfer_csv, transfer_ctx, transfer_apply, grocy, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
 recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
 """
 
@@ -39,6 +39,7 @@ from .emergency import GROUPS as EMERGENCY_GROUPS
 from .emergency import supply as emergency_supply
 from .expiry_recipes import expiring_recipes
 from .frozen import freeze, thaw, undo_frozen
+from .grocy import import_grocy
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info, location_label_info, open_code
@@ -85,6 +86,8 @@ from .shopping_recipes import (
 )
 from .stocktake import stocktake_apply, stocktake_scan
 from .suggest import keyword_score, suggest, suggest_by_keywords, suggest_category
+from .transfer_apply import import_csv
+from .transfer_csv import export_products, export_stock
 
 __all__ = [
     "EMERGENCY_GROUPS",
@@ -134,11 +137,15 @@ __all__ = [
     "expired_on",
     "expiring",
     "expiring_recipes",
+    "export_products",
+    "export_stock",
     "find_ean",
     "force_delete",
     "freeze",
     "freeze_scan",
     "frozen_by_code",
+    "import_csv",
+    "import_grocy",
     "keyword_score",
     "label_info",
     "last_booking",

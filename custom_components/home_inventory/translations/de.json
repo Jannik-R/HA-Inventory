@@ -64,6 +64,27 @@
     "invalid_date": {
       "message": "Ungültiges Datum."
     },
+    "csv_header": {
+      "message": "Die Spalte {column} fehlt in der Datei."
+    },
+    "csv_rows": {
+      "message": "Die Datei hat mehr als {max} Zeilen."
+    },
+    "grocy_file": {
+      "message": "Das ist keine Grocy-Datei (products, product_groups, locations, quantity_units, product_barcodes oder stock als JSON)."
+    },
+    "grocy_products": {
+      "message": "Die Grocy-Produktdatei (products.json) fehlt."
+    },
+    "ambiguous": {
+      "message": "Mehrere Einträge passen zu diesem Namen."
+    },
+    "category_required": {
+      "message": "Keine Kategorie gefunden: bitte in der Spalte category eintragen."
+    },
+    "unknown_unit": {
+      "message": "Diese Einheit gibt es nicht."
+    },
     "location_required": {
       "message": "Bitte einen Lagerort wählen."
     },

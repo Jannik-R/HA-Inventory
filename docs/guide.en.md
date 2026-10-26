@@ -34,6 +34,7 @@ opens this guide. These are the tabs:
 3b. [Freezing and thawing](#3b-freezing-and-thawing)
 4. [Viewing and fixing the stock](#4-viewing-and-fixing-the-stock)
 4a. [Stocktaking](#4a-stocktaking)
+4b. [History](#4b-history)
 5. [What expires soon?](#5-what-expires-soon)
 5a. [Emergency stock](#5a-emergency-stock)
 6. [Shopping list](#6-shopping-list)
@@ -262,6 +263,20 @@ Does the stock of a cupboard no longer match? Count it again with a stocktaking.
    date field (prefilled with today + shelf life).
 4. **Book differences**: after a question ("N pkg. missing, M pkg. too many") everything is booked as a
    correction: what was not scanned is booked out, what was found is booked in.
+
+## 4b. History
+
+Who booked what, and when? **Stock > History** lists every booking, newest first.
+
+1. One entry is one **action**: everything booked at once (a cooked dish, a stocktaking, a receipt or CSV
+   import, a stock edit) is one entry with a line per product. The header shows date, time and user.
+2. Filter by **Product** (part of the name), **User** and **From** / **To** (period). Below the list,
+   **Newer** / **Older** page through 100 entries each.
+3. **Undo** (arrow at the entry) books back the whole action after a question that lists what is booked
+   back. If the stock changed since (e.g. the packages are already used), nothing is booked back and the
+   product is named.
+4. Undone entries stay in the history, struck through, with "Undone on ...". An action undone only in
+   part (e.g. one package put back by hand) shows "Partly undone"; undo takes back the rest.
 
 ## 5. What expires soon?
 

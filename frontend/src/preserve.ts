@@ -5,15 +5,21 @@ import { fmtNumber } from "./format";
 import type { Hass } from "./api";
 
 /** Canning and drying share protocols, charges and process recipes; `kind` tells them apart. */
-export type Preserve = "canning" | "drying";
+export type Preserve = "canning" | "drying" | "leftover";
 
-/** UI text of that kind: `canning.<key>` or `drying.<key>` (same placeholders). */
+/** UI text of that kind: `canning.<key>`, `drying.<key>` or `leftovers.<key>` (same placeholders). */
 export const pt = (kind: Preserve, key: string, vars?: Record<string, string | number>) =>
-  kind === "drying" ? t(`drying.${key}`, vars) : t(`canning.${key}`, vars);
+  kind === "drying"
+    ? t(`drying.${key}`, vars)
+    : kind === "leftover"
+      ? t(`leftovers.${key}`, vars)
+      : t(`canning.${key}`, vars);
 
 /** The kinds whose module is on (tab *Haltbarmachen* shows when one is). */
 export const preserveKinds = (): Preserve[] =>
-  (["canning", "drying"] as const).filter((k) => hasModule(k));
+  (["canning", "drying", "leftover"] as const).filter((k) =>
+    hasModule(k === "leftover" ? "leftovers" : k),
+  );
 
 /** Duration as text: minutes for canning, hours for drying (stored in minutes either way). */
 export const fmtDuration = (hass: Hass | undefined, kind: Preserve, minutes: number) =>

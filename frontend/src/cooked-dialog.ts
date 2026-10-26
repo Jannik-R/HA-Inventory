@@ -4,6 +4,8 @@ import { editDialog } from "./ui";
 import { formStyles } from "./styles";
 import { candidate, cookedRow, cookedRowStyles, defaults, rowError, type Row } from "./cooked-row";
 import { doneLine, doneStyles } from "./booking-done";
+import { hasModule } from "./modules";
+import "./leftover-store";
 import { errorMessage, type Hass, type Recipe } from "./api";
 import {
   cookedBook,
@@ -24,6 +26,7 @@ export class HomeInventoryCookedDialog extends LitElement {
     recipe: { state: true },
     rows: { state: true },
     result: { state: true },
+    stored: { state: true },
     active: { state: true },
     error: { state: true },
   };
@@ -32,6 +35,8 @@ export class HomeInventoryCookedDialog extends LitElement {
   declare recipe?: Recipe;
   declare rows: Row[];
   declare result?: CookedResult;
+  /** Leftovers were stored: the cooked booking can no longer be undone. */
+  declare stored: boolean;
   declare active: boolean;
   declare error: string;
   private dirty = false;
@@ -39,6 +44,7 @@ export class HomeInventoryCookedDialog extends LitElement {
   constructor() {
     super();
     this.rows = [];
+    this.stored = false;
     this.active = false;
     this.error = "";
   }
@@ -46,6 +52,7 @@ export class HomeInventoryCookedDialog extends LitElement {
   async open(recipe: Recipe, servings: number) {
     this.error = "";
     this.result = undefined;
+    this.stored = false;
     this.dirty = false;
     try {
       const rows = await cookedProposal(this.hass!, recipe.id, servings);
@@ -145,7 +152,20 @@ export class HomeInventoryCookedDialog extends LitElement {
     return editDialog({
       title: t("cooked.title", { name: this.recipe.name }),
       body: booked
-        ? doneLine(t("cooked.done", { what: this.summary() }), () => this.undo(), "cooked")
+        ? html`${doneLine(
+            t("cooked.done", { what: this.summary() }),
+            this.stored ? undefined : () => this.undo(),
+            "cooked",
+          )}
+          ${
+            hasModule("leftovers")
+              ? html`<home-inventory-leftover-store
+                  .hass=${this.hass}
+                  .recipe=${this.recipe}
+                  @home-inventory-leftovers-stored=${() => (this.stored = true)}
+                ></home-inventory-leftover-store>`
+              : nothing
+          }`
         : this.rows.length
           ? html`<p class="detail">${t("cooked.hint")}</p>
               <ul>

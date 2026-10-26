@@ -97,6 +97,8 @@ export interface MasterData {
   locations: Location[];
   categories: Category[];
   defaults: Record<InheritField, number | string | null>;
+  /** Root category Reste (null if deleted; the next storing creates it again). */
+  leftover_category_id: number | null;
 }
 export type Table = "unit" | "location" | "category";
 /** What `home_inventory/delete` accepts: master data plus products, recipes and canning protocols. */

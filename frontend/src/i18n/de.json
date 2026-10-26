@@ -564,5 +564,14 @@
   "emergency.group.fats": "Fette und Öle",
   "settings.emergency_group.label": "Notvorrat",
   "settings.emergency_group.none": "Nicht im Notvorrat",
-  "tip.emergency_group": "Zu welcher Lebensmittelgruppe des Notvorrats diese Kategorie und alles darunter zählt. „Nicht im Notvorrat“ nimmt sie heraus (z. B. Kaffee)."
+  "tip.emergency_group": "Zu welcher Lebensmittelgruppe des Notvorrats diese Kategorie und alles darunter zählt. „Nicht im Notvorrat“ nimmt sie heraus (z. B. Kaffee).",
+  "preserve.leftover": "Reste",
+  "leftovers.add_title": "Reste einlagern",
+  "leftovers.dish": "Gericht",
+  "leftovers.jars": "Portionen",
+  "leftovers.jars_left": "{jars} Portionen, {left} vorrätig",
+  "leftovers.empty": "Noch keine Reste eingelagert.",
+  "leftovers.fixed": "Charge {charge}: {name}, {jars} Portionen. Herstellungsdatum, Gericht und Portionen stehen auf den Etiketten und bleiben fest; den Bestand änderst du unter „Bestand“.",
+  "leftovers.store": "Reste einlagern",
+  "leftovers.stored": "Reste eingelagert: Charge {charge}"
 }

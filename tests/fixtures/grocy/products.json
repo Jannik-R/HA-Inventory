@@ -1,0 +1,6 @@
+[
+  {"id": "1", "name": "Spaghetti", "product_group_id": "1", "location_id": "2", "qu_id_stock": "1", "min_stock_amount": "2", "default_best_before_days": "365", "default_best_before_days_after_open": "5", "default_best_before_days_after_freezing": "0"},
+  {"id": "2", "name": "Mehl", "product_group_id": "2", "location_id": "1", "qu_id_stock": "2", "min_stock_amount": "1000", "default_best_before_days": "-1", "default_best_before_days_after_freezing": "180"},
+  {"id": "3", "name": "Reis", "product_group_id": "3", "location_id": "2", "qu_id_stock": "1", "min_stock_amount": "0", "default_best_before_days": "0"},
+  {"id": "4", "name": "Quatsch", "product_group_id": null, "location_id": "2", "qu_id_stock": "1", "min_stock_amount": "0"}
+]

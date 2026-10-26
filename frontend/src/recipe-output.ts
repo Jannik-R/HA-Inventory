@@ -2,19 +2,8 @@ import { html } from "lit";
 import { mdiDownload, mdiPrinter } from "@mdi/js";
 import { t } from "./i18n";
 import { errorMessage, exportRecipes, type Hass, type Recipe } from "./api";
+import { saveJson } from "./download";
 import { icon } from "./ui";
-
-/** Save `data` as a .json file (Blob + link; no server round trip for the file). */
-const saveJson = (data: object, filename: string) => {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
-  );
-  const a = Object.assign(document.createElement("a"), { href: url, download: filename });
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
 
 const fileName = (name: string) =>
   `${name.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "recipe"}.json`;

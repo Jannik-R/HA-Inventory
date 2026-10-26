@@ -122,17 +122,19 @@ class Database:
             changed = self._conn.total_changes != before
             return result, changed, bookings_since(self._conn, last) if changed else []
 
-    async def run(self, fn: Callable[..., Any], *args: Any, write: bool = True) -> Any:
+    async def run(
+        self, fn: Callable[..., Any], *args: Any, write: bool = True, events: bool = True
+    ) -> Any:
         """Run an inventory function in the executor; commit on success, roll back on error.
 
         Any write sends SIGNAL_CHANGED, so entities refresh whatever the entry point was
         (`write=False`: a dry run that is rolled back, nothing to announce). Each new booking row
-        fires EVENT_BOOKED on the HA event bus.
+        fires EVENT_BOOKED on the HA event bus (`events=False`: not for a bulk import).
         """
         async with self.gate:
             result, changed, booked = await self._hass.async_add_executor_job(self._run, fn, args)
         if changed and write:
-            for row in booked:
+            for row in booked if events else ():
                 self._hass.bus.async_fire(EVENT_BOOKED, row)
             async_dispatcher_send(self._hass, SIGNAL_CHANGED)
         return result

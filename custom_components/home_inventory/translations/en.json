@@ -64,6 +64,27 @@
     "invalid_date": {
       "message": "Invalid date."
     },
+    "csv_header": {
+      "message": "The file has no column {column}."
+    },
+    "csv_rows": {
+      "message": "The file has more than {max} rows."
+    },
+    "grocy_file": {
+      "message": "This is not a Grocy file (products, product_groups, locations, quantity_units, product_barcodes or stock as JSON)."
+    },
+    "grocy_products": {
+      "message": "The Grocy products file (products.json) is missing."
+    },
+    "ambiguous": {
+      "message": "Several entries match this name."
+    },
+    "category_required": {
+      "message": "No category found for this product: enter one in the category column."
+    },
+    "unknown_unit": {
+      "message": "This unit does not exist."
+    },
     "location_required": {
       "message": "Please choose a storage location."
     },

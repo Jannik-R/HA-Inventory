@@ -38,6 +38,7 @@ Anleitung. Oben gibt es diese Tabs:
 7b. [Einkochen und Dörren](#7b-einkochen-und-dörren)
 8. [Etiketten und Bondrucker](#8-etiketten-und-bondrucker)
 9. [Kategorien, Produktarten und Vererbung](#9-kategorien-produktarten-und-vererbung)
+9a. [Import und Export](#9a-import-und-export)
 10. [Tipps und häufige Fragen](#10-tipps-und-häufige-fragen)
 
 ## 1. Erste Schritte
@@ -699,6 +700,38 @@ Rezepts selbst bekannt ist, bei fehlenden Angaben gibt es keine Markierungen. Da
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
 Produkte, Bestand, Rezeptzutaten …). Löschst du einen Lagerort mit Bestand, wählst du, wohin die
 Packungen kommen.
+
+## 9a. Import und Export
+
+*Einstellungen > Import / Export* (nur Admins).
+
+**Export**: *Produkte exportieren* und *Bestand exportieren* speichern eine CSV-Datei (mit `;`, UTF-8, Dezimalkomma), die sich in
+Excel oder LibreOffice öffnet. Die Datei ist für den privaten Gebrauch: Produktdaten können von Open Food Facts stammen (ODbL), und der Dialog weist darauf hin.
+Die Produktdatei enthält nur die **eigenen** Werte eines Produkts (eine leere Zelle ist geerbt); eine Kategorie steht als ganzer Pfad
+(`Nudeln, Reis & Getreide > Nudeln`).
+
+**Import**: *Produkte (CSV)*, *Bestand (CSV)* oder *Grocy* wählen, dann die Datei. Noch ändert sich nichts: *Import prüfen* listet,
+was neu angelegt, geändert, übersprungen oder falsch wäre (mit Zeilennummer), und erst *Übernehmen* schreibt es. Zeilen mit
+Fehler bleiben draußen, die anderen werden trotzdem übernommen. Dieselbe Datei noch einmal zu importieren ändert nichts.
+
+| Datei | Spalten (Kopfzeile, Groß-/Kleinschreibung egal; weitere werden ignoriert) |
+|---|---|
+| Produkte | `name` (Pflicht), `brand`, `category`, `ean`, `content_amount`, `content_unit`, `location`, `expiry_type` (`best_before`, `use_by`, `guide`), `warn_days`, `shelf_days`, `opened_days`, `frozen_days`, `min_packages`, `diet` (`vegan`, `vegetarian`, `none`), `allergens` (Kommaliste der Schlüssel, `none` = keines der 14) |
+| Bestand | `name` (Pflicht), `brand`, `location`, `packages` (Pflicht), `expires_on`, `opened_on`, `frozen_on`, `remaining`, `charge` |
+
+- Trennzeichen (`;`, `,` oder Tab), Dezimalkomma oder -punkt und Daten als `2026-12-24` oder `24.12.2026` sind alle in Ordnung; höchstens 5000 Zeilen.
+- **Produkte** werden über `name` (und `brand`, wenn die Datei die Spalte hat) zugeordnet. Ein Treffer wird aktualisiert: nur gefüllte Zellen,
+  die abweichen, ändern etwas, eine leere Zelle behält den Wert. Kein Treffer: neues Produkt. Eine Kategorie, die es nicht gibt,
+  wird aus ihrem Pfad angelegt; ein einzelner Name steht für die eine Kategorie dieses Namens; bei leerer Zelle wird die Kategorie
+  aus dem Namen geraten oder die Zeile ist ein Fehler. Ein unbekannter Lagerort wird angelegt; eine unbekannte Einheit ist ein Fehler.
+- **Bestand**-Zeilen sind *Soll*-Mengen je Produkt, Ort und Datum: Nur die fehlende Differenz wird eingebucht
+  (Quelle *import*). Ist schon mehr da, wird die Zeile übersprungen; es wird nie ausgebucht. Zeilen für angebrochene
+  Packungen (`remaining` unter 1) und Einkoch-Chargen (`charge`) werden übersprungen. Ohne Lagerort gilt der des Produkts.
+- **Grocy**: JSON-Dateien wie in der README (Einrichtung) beschrieben herunterladen und alle auf einmal wählen. Erst kommen die Produkte, dann der Bestand.
+  Jeder Grocy-Bestandseintrag zählt als eine Packung; nur wenn die Einheit des Produkts eine bekannte Zähleinheit ist (z. B. Stück), ist es die Menge, aufgerundet.
+- Textzellen, die mit `=`, `+`, `-` oder `@` beginnen, bekommen im Export ein führendes `'` (damit Excel sie nicht als Formel ausführt); der Import entfernt es wieder.
+- Ein Kategoriename darf kein ` > ` enthalten, weil das die Ebenen eines Pfads trennt.
+- Importe lösen **keine** `home_inventory_booked`-Events aus (Automationen reagieren so nicht auf Hunderte Buchungen); die Buchungen stehen im Protokoll.
 
 ## 10. Tipps und häufige Fragen
 

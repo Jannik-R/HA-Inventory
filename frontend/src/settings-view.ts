@@ -4,6 +4,7 @@ import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
+import "./transfer-view";
 import "./diet-reload";
 import "./meal-times-view";
 import "./move-location";
@@ -60,7 +61,10 @@ export class HomeInventorySettings extends LitElement {
 
   /** Meal start times belong to the meal plan module. */
   private get sections(): Section[] {
-    return (Object.keys(SECTIONS) as Section[]).filter((s) => s !== "meals" || hasModule("plan"));
+    return (Object.keys(SECTIONS) as Section[]).filter(
+      (s) =>
+        (s !== "meals" || hasModule("plan")) && (s !== "transfer" || !!this.hass?.user?.is_admin),
+    );
   }
 
   private get sec(): Section {
@@ -195,11 +199,13 @@ export class HomeInventorySettings extends LitElement {
                 ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
             : sec === "meals"
               ? html`<home-inventory-meal-times .hass=${this.hass}></home-inventory-meal-times>`
-              : html`<home-inventory-defaults
-                  .hass=${this.hass}
-                  .data=${this.data}
-                  @home-inventory-saved=${this.load}
-                ></home-inventory-defaults>`
+              : sec === "transfer"
+                ? html`<home-inventory-transfer .hass=${this.hass}></home-inventory-transfer>`
+                : html`<home-inventory-defaults
+                    .hass=${this.hass}
+                    .data=${this.data}
+                    @home-inventory-saved=${this.load}
+                  ></home-inventory-defaults>`
           : nothing
       }
       <home-inventory-settings-dialog

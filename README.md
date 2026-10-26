@@ -28,6 +28,7 @@ Available:
 - Minimum stock per category as an amount in any unit (e.g. "2 kg Nudeln", any brand) and/or a package count; shopping list in the panel and as an HA to-do list; add products or categories by hand (new ones are created on the spot)
 - Shopping by recipes: put recipes on the shopping list for a number of servings; the missing amounts of all of them are added up per category; amounts in recipe-only units (EL, Tasse, Prise) convert to ml or g when the category fits (volume or weight), otherwise to their base unit (2 EL Kapern → 30 ml); only Scheibe stays as written ("2 Scheiben"); an ingredient without an amount shows 1 Pkg.
 - Recipe export: one recipe or all as schema.org `Recipe` JSON-LD (file download; the import reads JSON-LD on web pages, not the file itself; canning and drying recipes are not in the all-recipes file); *Print / PDF* prints a recipe through the browser's print dialog
+- CSV import / export (admins, *Settings > Import / Export*): products and stock as CSV, import adds or updates by name after a preview of every change and never books out or deletes; import from Grocy (its JSON files); imports fire no `home_inventory_booked` events
 - Shopping list, recipes and meal plan on an ESC/POS receipt printer (58 / 80 mm, USB on the HA host or network), with cutter
 - Shopping list from the meal plan: the recipes planned in a date range (button *Shopping list* in the meal plan, action `home_inventory.plan_to_shopping_list`) go on the list minus stock; no consumption forecast yet
 - Week planner: views day, week and month (Monday first); each dish has a meal slot (breakfast, lunch, coffee, dinner, snack) and comes from a recipe or free text; moving a meal shifts it over the following days; servings default to the household size; read-only calendar entity *Meal plan*
@@ -119,6 +120,27 @@ the end. Setup for a USB printer on the machine that runs Home Assistant in Dock
 4. "The printer is not reachable.": the Home Assistant log names the reason (e.g. busy: another
    service such as CUPS holds the printer; offline: paper out or cover open). Garbled characters on a
    serial printer: wrong baud rate; try the others.
+
+### Import (CSV, Grocy)
+
+*Settings > Import / Export* (admins only). The guide describes the columns and the preview; this is
+what you need to prepare.
+
+- **Export** (*Export products*, *Export stock*): `;`-separated CSV, UTF-8 with BOM, decimal comma.
+  The export is for private use: product data can come from Open Food Facts (ODbL), so name the
+  source and keep the licence if you pass the file on.
+- **CSV import**: columns are fixed English names; `name` is required (stock also `packages`).
+- **Grocy**: download the JSON files of your Grocy (API key under *Manage API keys* in Grocy), then
+  pick them all at once in the import. Nothing is sent to Grocy, and Home Inventory never learns the key.
+
+```bash
+G=https://<grocy>/api/objects
+for f in products product_groups locations quantity_units product_barcodes stock; do
+  curl -H "GROCY-API-KEY: <key>" "$G/$f" -o "$f.json"
+done
+```
+
+`products.json` is required; every stock entry counts as one package, except where `quantity_units.json` shows a count unit (then the amount, rounded up).
 
 ### AI
 

@@ -1,0 +1,7 @@
+[
+  {"id": "1", "product_id": "1", "amount": "3", "best_before_date": "2027-01-01", "stock_id": "a", "open": "0", "opened_date": null, "location_id": "2"},
+  {"id": "2", "product_id": "1", "amount": "1", "best_before_date": "2027-01-01", "stock_id": "b", "open": "0", "opened_date": null, "location_id": "2"},
+  {"id": "3", "product_id": "2", "amount": "500", "best_before_date": "2999-12-31", "stock_id": "c", "open": "0", "opened_date": null, "location_id": "1"},
+  {"id": "4", "product_id": "2", "amount": "500", "best_before_date": "2999-12-31", "stock_id": "d", "open": "0", "opened_date": null, "location_id": "1"},
+  {"id": "5", "product_id": "3", "amount": "1", "best_before_date": "2027-05-05", "stock_id": "e", "open": "1", "opened_date": "2026-10-01 10:00:00", "location_id": null}
+]

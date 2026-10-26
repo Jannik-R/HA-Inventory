@@ -28,6 +28,7 @@ Vorhanden:
 - Mindestmenge je Kategorie als Menge in beliebiger Einheit (z. B. „2 kg Nudeln“, egal welche Marke) und/oder Packungszahl; Einkaufsliste im Panel und als To-do-Liste in HA; Produkte oder Kategorien von Hand hinzufügen (neue werden gleich angelegt)
 - Einkaufen nach Rezepten: Rezepte für eine Portionszahl auf die Einkaufsliste setzen; die fehlenden Mengen aller Rezepte werden je Kategorie zusammengezählt, Rezept-Einheiten (EL, Tasse, Prise) in ml oder g umgerechnet
 - Rezeptexport: ein Rezept oder alle als schema.org-`Recipe`-JSON-LD (Dateidownload; der Import liest JSON-LD auf Webseiten, nicht die Datei selbst; Einkoch- und Dörrrezepte sind nicht in der Datei mit allen Rezepten); *Drucken / PDF* druckt ein Rezept über den Druckdialog des Browsers
+- CSV-Import / -Export (Admins, *Einstellungen > Import / Export*): Produkte und Bestand als CSV, der Import legt Produkte an oder aktualisiert sie nach Name, zeigt vorher jede Änderung und bucht nie aus oder löscht; Import aus Grocy (seine JSON-Dateien); Importe lösen keine `home_inventory_booked`-Events aus
 - Einkaufszettel, Rezepte und Speiseplan auf einem ESC/POS-Bondrucker (58 / 80 mm, USB am HA-Rechner oder Netzwerk), mit Abschneider
 - Einkaufsliste aus dem Speiseplan: Die im Zeitraum geplanten Rezepte (Knopf *Einkaufsliste* im Speiseplan, Aktion `home_inventory.plan_to_shopping_list`) kommen abzüglich Vorrat auf die Liste; noch keine Verbrauchsprognose
 - Speiseplan: Ansichten Tag, Woche und Monat (ab Montag); jedes Gericht hat eine Mahlzeit (Frühstück, Mittag, Kaffee, Abendessen, Snack) und ist ein Rezept oder freier Text; Umplanen verschiebt über die folgenden Tage; Portionen nach Haushaltsgröße; nur lesbare Kalender-Entität *Speiseplan*
@@ -121,6 +122,27 @@ läuft (z. B. ein Raspberry Pi):
 4. „Der Drucker ist nicht erreichbar“: Das Home-Assistant-Log nennt den Grund (z. B. belegt: ein
    anderer Dienst wie CUPS hält den Drucker; offline: Papier leer oder Deckel offen). Wirre Zeichen bei
    einem seriellen Drucker: falsche Baudrate, die anderen probieren.
+
+### Import (CSV, Grocy)
+
+*Einstellungen > Import / Export* (nur Admins). Die Anleitung beschreibt die Spalten und die Vorschau; hier steht,
+was du vorbereiten musst.
+
+- **Export** (*Produkte exportieren*, *Bestand exportieren*): CSV mit `;`, UTF-8 mit BOM, Dezimalkomma.
+  Der Export ist für den privaten Gebrauch: Produktdaten können von Open Food Facts stammen (ODbL); gibst du die Datei weiter,
+  nenne die Quelle und behalte die Lizenz bei.
+- **CSV-Import**: Die Spaltennamen sind feste englische Namen; `name` ist Pflicht (beim Bestand auch `packages`).
+- **Grocy**: Lade die JSON-Dateien deines Grocy herunter (API-Schlüssel unter *API-Schlüssel verwalten* in Grocy) und
+  wähle sie im Import alle auf einmal. Es wird nichts an Grocy gesendet, und Vorrat erfährt den Schlüssel nie.
+
+```bash
+G=https://<grocy>/api/objects
+for f in products product_groups locations quantity_units product_barcodes stock; do
+  curl -H "GROCY-API-KEY: <key>" "$G/$f" -o "$f.json"
+done
+```
+
+`products.json` ist Pflicht; jeder Bestandseintrag zählt als eine Packung, außer `quantity_units.json` zeigt eine Zähleinheit (dann die Menge, aufgerundet).
 
 ### KI
 

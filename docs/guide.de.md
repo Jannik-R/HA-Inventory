@@ -384,9 +384,20 @@ rechnet die Mengen um (nur Anzeige). **Auf die Einkaufsliste** setzt das Rezept 
 > Ältere Rezepte haben noch einen einzigen Anleitungstext. Beim nächsten Bearbeiten steht er an
 > Leerzeilen in Schritte geteilt im Dialog; mit dem Speichern wird daraus die Schrittliste.
 
-**Drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
+**Bon drucken**: Mit einem Bondrucker druckt dieser Knopf im aufgeklappten Rezept Name, Portionen,
 die Zutaten zum Abhaken (Mengen für die angezeigten Portionen) und die nummerierten Schritte. Der
 Knopf erscheint nur, wenn ein Bondrucker eingerichtet ist.
+
+**Drucken / PDF**: öffnet den Druckdialog deines Browsers mit dem aufgeklappten Rezept (Name,
+angezeigte Portionen, Zutaten, Schritte, Quelle), schwarz auf weiß und ohne das Home-Assistant-Menü.
+Dort wählst du einen Papierdrucker oder „Als PDF speichern“. Das ist nicht der Bondrucker: **Bon
+drucken** sendet an den Bondrucker, **Drucken / PDF** an das, was der Browser anbietet.
+
+**JSON herunterladen**: speichert das aufgeklappte Rezept als Datei (schema.org Recipe), z. B. zum
+Umzug nach Mealie oder Tandoor oder als Sicherung. **Alle Rezepte exportieren** (über der Liste)
+speichert alle in einer Datei `rezepte.json` (ohne Einkoch- und Dörrrezepte). Der **Import** liest
+solche Inhalte wieder, wenn sie auf einer Seite stehen; die Datei selbst lässt sich noch nicht
+importieren.
 
 **Kochmodus**: Im aufgeklappten Rezept öffnet **Kochmodus** Zutaten (für die angezeigten Portionen)
 und Schritte im Vollbild. Ein Tipp auf einen Schritt hakt ihn ab (wird nicht gespeichert). Steht in

@@ -399,9 +399,19 @@ Canning recipes are not listed here; they are in the **Preserving** tab, view **
 > Older recipes still have a single instructions text. The next time you edit one, the dialog shows
 > it split into steps at blank lines; saving turns it into the step list.
 
-**Print**: with a receipt printer this button in an open recipe prints name, servings,
+**Print receipt**: with a receipt printer this button in an open recipe prints name, servings,
 the ingredients to tick off (amounts for the shown servings) and the numbered steps. It only shows
 when a receipt printer is set up.
+
+**Print / PDF**: opens your browser's print dialog with the open recipe (name, shown servings,
+ingredients, steps, source), black on white, without the Home Assistant menu. Choose a paper
+printer there, or "Save as PDF". This is not the receipt printer: **Print receipt** sends to the
+receipt printer, **Print / PDF** to whatever the browser offers.
+
+**Download JSON**: saves the open recipe as a file (schema.org Recipe), e.g. to move it to
+Mealie or Tandoor or to back it up. **Export all recipes** (above the list) saves all of them in
+one file `recipes.json` (not the canning and drying recipes). **Import** reads such a file's
+content again when it is on a page; the file itself is not imported yet.
 
 **Cook mode**: in an open recipe, **Cook mode** shows the ingredients (for the shown
 servings) and the steps full screen. A tap ticks a step off (not saved). A step that mentions a time

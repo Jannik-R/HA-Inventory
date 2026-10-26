@@ -21,6 +21,8 @@ import {
 import { deleteMasterRow } from "./delete-flow";
 import { recipeDetail } from "./recipe-detail";
 import { exportAllButton } from "./recipe-output";
+import { hasModule } from "./modules";
+import { dietFilter, dietLine, matchesDiet, noDietFilter, type DietFilter } from "./recipe-diet";
 import { fmtPortions, includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
@@ -47,6 +49,7 @@ export class HomeInventoryRecipes extends LitElement {
     query: { state: true },
     expiring: { state: true },
     onlyExpiring: { state: true },
+    diet: { state: true },
     open: { state: true },
     servings: { state: true },
     scaled: { state: true },
@@ -64,6 +67,7 @@ export class HomeInventoryRecipes extends LitElement {
   /** Recipe id -> expiring ingredients it uses up; `onlyExpiring` hides the others. */
   declare expiring: Map<number, number>;
   declare onlyExpiring: boolean;
+  declare diet: DietFilter;
   declare open: Set<number>;
   /** Servings shown per recipe (this session only) and the ingredients computed for them. */
   declare servings: Map<number, number>;
@@ -75,6 +79,7 @@ export class HomeInventoryRecipes extends LitElement {
     this.query = "";
     this.expiring = new Map();
     this.onlyExpiring = false;
+    this.diet = noDietFilter();
     this.open = new Set();
     this.servings = new Map();
     this.scaled = new Map();
@@ -186,6 +191,7 @@ export class HomeInventoryRecipes extends LitElement {
         isCanning(r) === !!this.canning &&
         (!this.canning || r.canning_kind === this.canning) &&
         (!this.onlyExpiring || this.expiring.has(r.id)) &&
+        matchesDiet(r, this.diet) &&
         (!q || includesCI(r.name, q) || r.ingredients.some((i) => includesCI(i.text, q))),
     );
   }
@@ -210,6 +216,7 @@ export class HomeInventoryRecipes extends LitElement {
                 : nothing
             }</span
           >
+          ${hasModule("diet") && !isCanning(r) ? html`<span>${dietLine(r)}</span>` : nothing}
         </button>
         ${rowActions({
           testid: "recipe",
@@ -297,6 +304,9 @@ export class HomeInventoryRecipes extends LitElement {
               ${t("recipes.expiring_only")}
             </label>`
           : nothing
+      }
+      ${
+        hasModule("diet") && !this.canning ? dietFilter(this.diet, (f) => (this.diet = f)) : nothing
       }
       <home-inventory-recipe-import
         .hass=${this.hass}

@@ -4,6 +4,7 @@ import { chevron, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
+import "./diet-reload";
 import "./meal-times-view";
 import "./move-location";
 import "./label-dialog";
@@ -190,6 +191,7 @@ export class HomeInventorySettings extends LitElement {
                     ${t(ADD[table])}
                   </button>
                 </div>
+                ${sec === "categories" ? html`<home-inventory-diet-reload .hass=${this.hass}></home-inventory-diet-reload>` : nothing}
                 ${sec === "categories" ? this.renderCategories() : sec === "locations" ? this.renderLocations() : this.renderUnits()}`
             : sec === "meals"
               ? html`<home-inventory-meal-times .hass=${this.hass}></home-inventory-meal-times>`

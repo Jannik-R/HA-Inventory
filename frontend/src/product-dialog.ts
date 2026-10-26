@@ -14,6 +14,7 @@ import {
 import { categoryDefault, inheritNumber, inheritSelect } from "./inherit";
 import { productErrors, productFields, type Errors } from "./product-fields";
 import { fmtDays } from "./format";
+import { dietFields } from "./diet-fields";
 
 // Columns sent on save (packages is derived, image/off data are not edited here).
 const COLUMNS = [
@@ -29,6 +30,8 @@ const COLUMNS = [
   "shelf_days",
   "opened_days",
   "frozen_days",
+  "diet",
+  "allergens",
   "min_packages",
 ] as const;
 
@@ -113,7 +116,9 @@ export class HomeInventoryProductDialog extends LitElement {
         | "warn_days"
         | "shelf_days"
         | "opened_days"
-        | "frozen_days",
+        | "frozen_days"
+        | "diet"
+        | "allergens",
     ) => categoryDefault(this.md, p.category_id, field);
     const dirty = () => COLUMNS.some((k) => (p[k] ?? null) !== (this.orig?.[k] ?? null));
     return editDialog({
@@ -219,6 +224,18 @@ export class HomeInventoryProductDialog extends LitElement {
                 })}
                 ${fieldMsg(err.frozen_days, "frozen-days")}
               </label>`
+            : ""
+        }
+        ${
+          hasModule("diet")
+            ? dietFields({
+                diet: p.diet,
+                allergens: p.allergens,
+                dietDflt: dflt("diet"),
+                allergensDflt: dflt("allergens"),
+                onDiet: (v) => this.set("diet", v),
+                onAllergens: (v) => this.set("allergens", v),
+              })
             : ""
         }`,
       error: this.error,

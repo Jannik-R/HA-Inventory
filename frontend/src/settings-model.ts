@@ -34,6 +34,8 @@ export const COLUMNS: Record<Table, string[]> = {
     "frozen_days",
     "frozen_goods",
     "emergency_group",
+    "diet",
+    "allergens",
   ],
 };
 export const ADD: Record<Table, string> = {

@@ -4,6 +4,7 @@ import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
 import { stepList } from "./recipe-steps";
 import { hasModule } from "./modules";
+import { optionalMark } from "./recipe-diet";
 import "./receipt-button";
 import { recipeOutputButtons } from "./recipe-output";
 import {
@@ -112,6 +113,13 @@ export const recipeDetail = (o: {
                 .join(" ")}
               ${i.note ? html`<span class="detail">${i.note}</span>` : nothing}
               ${i.optional ? html`<span class="detail">${t("recipes.optional")}</span>` : nothing}
+              ${
+                i.optional && hasModule("diet") && optionalMark(r.diet, i.text)
+                  ? html`<span class="detail" data-testid="ingredient-diet"
+                      >${optionalMark(r.diet, i.text)}</span
+                    >`
+                  : nothing
+              }
             </span>
             <span class="st ${i.status}" data-testid="ingredient-status">${status(o.hass, i)}</span>
           </li>`,

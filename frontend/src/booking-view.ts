@@ -47,6 +47,7 @@ export class HomeInventoryBooking extends LitElement {
     product: { state: true },
     stock: { state: true },
     message: { state: true },
+    image: { state: true },
     undo: { state: true },
     opened: { state: true },
     frozen: { state: true },
@@ -62,6 +63,8 @@ export class HomeInventoryBooking extends LitElement {
   declare product?: Product;
   declare stock?: StockRow[];
   declare message: string;
+  /** Picture link of the product just booked; shown with the message. */
+  declare image?: string | null;
   /** What the last book-out took; shown with the message as undo. */
   declare undo?: Taken[];
   /** The last package opened ("open" mode); shown with the message as undo and label offer. */
@@ -93,6 +96,7 @@ export class HomeInventoryBooking extends LitElement {
     this.product = undefined;
     this.stock = undefined;
     this.error = "";
+    this.image = undefined;
   }
 
   private started = false;
@@ -101,7 +105,7 @@ export class HomeInventoryBooking extends LitElement {
     if (changed.has("mode") && changed.get("mode")) {
       this.reset();
       this.message = "";
-      this.undo = this.opened = this.frozen = undefined;
+      this.undo = this.opened = this.frozen = this.image = undefined;
     }
     if (changed.has("hass") && this.hass && !this.started) {
       this.started = true; // once: `hass` changes on every state event
@@ -179,7 +183,7 @@ export class HomeInventoryBooking extends LitElement {
     const hass = this.hass;
     const id = ++this.seq;
     this.message = "";
-    this.undo = this.opened = this.frozen = undefined;
+    this.undo = this.opened = this.frozen = this.image = undefined;
     this.product = this.stock = this.hits = undefined;
     this.online = false;
     if (await scanCode(this, hass, q)) return;
@@ -297,7 +301,7 @@ export class HomeInventoryBooking extends LitElement {
   private receiptBooked = (e: CustomEvent<number>) => {
     this.reset();
     this.message = t("receipt.done", { count: String(e.detail) });
-    this.undo = undefined;
+    this.undo = this.image = undefined;
     this.dispatchEvent(new CustomEvent("booked"));
   };
 
@@ -307,6 +311,7 @@ export class HomeInventoryBooking extends LitElement {
     this.error = error;
     this.message = e.detail.message;
     this.undo = e.detail.taken;
+    this.image = e.detail.image;
     this.dispatchEvent(new CustomEvent("booked"));
     this.focusInput();
   }

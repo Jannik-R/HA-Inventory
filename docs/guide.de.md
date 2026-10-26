@@ -233,6 +233,7 @@ Welche Lagerorte Gefrierorte sind, legst du unter *Einstellungen → Lagerorte* 
 **Bestand** zeigt den Kategoriebaum mit allem, was da ist, mit Anzahl und frühestem Datum.
 
 - Eine Zeile antippen klappt sie auf. Ein Produkt zeigt seine Chargen (Datum, Lagerort, Packungen).
+- Hat ein Produkt ein Bild (von Open Food Facts), erscheint es klein rechts in der Zeile und in der Meldung nach dem Buchen. Dein Browser lädt es direkt von images.openfoodfacts.org. Abschalten: Einstellungen des Dienstes > *Konfigurieren* > *Externe Dienste* > *Produktbilder anzeigen*.
 - Das Eingabefeld filtert die Liste beim Tippen nach Name, Marke, Barcode, Kategorie und Lagerort.
   Steht der Schalter auf der **Lupe** (Suchen), öffnet <kbd>Enter</kbd> kein Fenster. So findest du ein Produkt auch mit dem
   Scanner, um es zu bearbeiten, ohne etwas zu buchen.

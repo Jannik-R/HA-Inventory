@@ -16,6 +16,7 @@ Vorhanden:
 
 - Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts, bei Non-Food von Open Beauty Facts, Open Pet Food Facts und Open Products Facts
 - Kassenbon-Import (*Kassenbon importieren*, braucht eine KI): Dokumentenscan des Bons (Live-Umriss, Ecken, Schwarz-Weiß), Texterkennung im Browser, die KI liest die Artikel, du prüfst Produkt, Packungen und Datum je Zeile in einem Dialog und buchst alles ein; merkt sich je Händler, welches Produkt zu einer Bonzeile gehört
+- Kleine Produktbilder (von Open Food Facts) in der Bestandsliste und im Buchungsergebnis; unter *Externe Dienste* abschaltbar
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte
 - Bestandsübersicht mit Suche, Auslagern und Korrektur von Chargen; ein ganzer Lagerort lässt sich in den Einstellungen auf einen anderen umlagern (nur im Panel, kein Service: es ist eine Bestandskorrektur)
@@ -193,6 +194,7 @@ schickt nichts.
 | Dienst (Schalter) | Was geht an wen | Wann | Standard |
 |---|---|---|---|
 | *Produkte in Open Food Facts nachschlagen* | Barcode oder Suchtext an openfoodfacts.org (und die Schwester-Datenbanken) | unbekannter Barcode beim Einbuchen, *Online suchen* | an |
+| *Produktbilder anzeigen* | dein Browser fragt das kleine Produktbild bei images.openfoodfacts.org an, dieser Server sieht also deine IP-Adresse und welches Produkt | Bestandsliste und Buchungsergebnis zeigen ein Produkt mit Bild | an |
 | *Rezepte aus Links importieren* | eine Anfrage nach der verlinkten Seite an diese Website (von Home Assistant aus) | *Importieren* mit Link | an |
 | *KI prüft Rezeptimporte* | Rezept, Baum der Lebensmittel-Kategorien und Einheiten an die gewählte KI | jeder Rezeptimport | an (mit KI) |
 | *Neue Produkte prüfen* | die Open-Food-Facts-Daten des Produkts, Kategoriebaum und Einheiten an die KI | neues Produkt beim Einbuchen | an (mit KI) |

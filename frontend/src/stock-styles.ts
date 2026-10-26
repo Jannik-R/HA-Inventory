@@ -11,6 +11,7 @@ export const stockStyles = css`
     align-items: center;
   }
   .head .row {
+    min-width: 0; /* long names wrap next to the picture */
     padding-left: 0;
   }
   /* On a phone the row actions wrap to their own line, right-aligned. */

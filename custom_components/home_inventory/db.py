@@ -115,6 +115,12 @@ class Database:
             last = last_booking(self._conn)
             try:
                 result = fn(self._conn, *args)
+                # one action = everything this call booked, named by its first row
+                self._conn.execute(
+                    "UPDATE booking SET action_id = (SELECT min(id) FROM booking WHERE id > ?)"
+                    " WHERE id > ? AND action_id IS NULL",
+                    (last, last),
+                )
                 self._conn.commit()
             except BaseException:
                 self._conn.rollback()

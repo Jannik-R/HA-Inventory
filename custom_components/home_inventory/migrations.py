@@ -465,4 +465,12 @@ MIGRATIONS: list[str | Callable[[sqlite3.Connection], None]] = [
     leftovers,
     # 30: allergens and diet: diet / allergens on category and product (see migration_30).
     allergens_diet,
+    # 31: booking history: action_id groups the rows one write call booked (the id of the first
+    # row); old rows are their own action. Rows written outside Database.run stay NULL
+    # (queries use coalesce(action_id, id)).
+    """
+    ALTER TABLE booking ADD COLUMN action_id INTEGER;
+    UPDATE booking SET action_id = id;
+    CREATE INDEX booking_action ON booking (action_id);
+    """,
 ]

@@ -5,7 +5,7 @@ Callers use `inventory.<name>`; the submodules are an implementation detail
 booking, labels, codes, queries, amounts, shopping, recipes, expiry_recipes, shopping_recipes,
 removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps,
 learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen,
-stocktake, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
+stocktake, history, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
 """
 
 from .ai_check import changes as ai_changes
@@ -43,6 +43,7 @@ from .emergency import supply as emergency_supply
 from .expiry_recipes import expiring_recipes
 from .frozen import freeze, thaw, undo_frozen
 from .grocy import import_grocy
+from .history import history, undo_action
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info, location_label_info, open_code
@@ -147,6 +148,7 @@ __all__ = [
     "freeze",
     "freeze_scan",
     "frozen_by_code",
+    "history",
     "import_csv",
     "import_grocy",
     "keyword_score",
@@ -209,6 +211,7 @@ __all__ = [
     "suggest_by_keywords",
     "suggest_category",
     "thaw",
+    "undo_action",
     "undo_cooked",
     "undo_frozen",
     "undo_open",

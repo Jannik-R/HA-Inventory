@@ -20,7 +20,7 @@ import {
 } from "./api";
 import { deleteMasterRow } from "./delete-flow";
 import { recipeDetail } from "./recipe-detail";
-import { downloadRecipes } from "./recipe-output";
+import { exportAllButton } from "./recipe-output";
 import { fmtPortions, includesCI } from "./format";
 import "./recipe-dialog";
 import "./recipe-import";
@@ -280,12 +280,7 @@ export class HomeInventoryRecipes extends LitElement {
               </button>`
             : nothing
         }
-        <button
-          data-testid="recipe-export-all"
-          @click=${() => downloadRecipes(this.hass!, (m) => (this.error = m))}
-        >
-          ${t("recipes.export_all")}
-        </button>
+        ${exportAllButton(this.hass!, (m) => (this.error = m))}
         <button class="primary" data-testid="recipe-add" @click=${() => this.edit()}>
           ${this.canning ? pt(this.canning, "recipe_add") : t("recipes.add")}
         </button>

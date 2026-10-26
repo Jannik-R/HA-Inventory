@@ -31,7 +31,7 @@ def test_export_fields_and_round_trip(conn):
     ld = inv.recipe_jsonld(conn, _make(conn))
     assert ld["@type"] == "Recipe" and ld["name"] == "Pasta" and ld["recipeYield"] == "2"
     assert ld["isBasedOn"] == "https://example.com/pasta"
-    assert ld["recipeIngredient"] == ["250 g Nudeln (dünne)", "Salz (optional)"]
+    assert ld["recipeIngredient"] == ["250 g Nudeln (dünne)", "Salz"]
     assert [s["@type"] for s in ld["recipeInstructions"]] == ["HowToStep", "HowToSection"]
     assert len(ld["recipeInstructions"][1]["itemListElement"]) == 2
     page = f'<script type="application/ld+json">{json.dumps(ld)}</script>'
@@ -42,6 +42,7 @@ def test_export_fields_and_round_trip(conn):
     ]  # fmt: skip
     first = draft["ingredients"][0]
     assert first["amount"] == 250 and first["note"] == "dünne"
+    assert [i["text"] for i in draft["ingredients"]] == ["Nudeln", "Salz"]
 
 
 def test_legacy_instructions_and_all(conn):

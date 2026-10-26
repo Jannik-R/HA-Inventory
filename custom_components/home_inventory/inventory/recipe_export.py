@@ -10,8 +10,8 @@ from .recipe_print import recipe_sheet
 def _line(i: dict) -> str:
     amount = f"{i['amount']:g}" if i["amount"] is not None else ""
     what = " ".join(p for p in (amount, i["unit"] if amount else "", i["name"]) if p)
-    note = ", ".join(x for x in (i["note"], "optional" if i["optional"] else None) if x)
-    return f"{what} ({note})" if note else what
+    # shortcut: schema.org has no optional flag, so it is not exported; upgrade = a language marker
+    return f"{what} ({i['note']})" if i["note"] else what
 
 
 def _instructions(steps: list[dict], legacy: str | None) -> list[dict]:

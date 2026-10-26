@@ -10,8 +10,10 @@ const saveJson = (data: object, filename: string) => {
     new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }),
   );
   const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 const fileName = (name: string) =>
@@ -46,6 +48,7 @@ export const printRecipeSheet = (r: Recipe, servings: number, ingredients: strin
     parent?.appendChild(e);
     return e;
   };
+  document.getElementById("hi-print")?.remove();
   const root = el("div");
   root.id = "hi-print";
   el("style", PRINT_STYLE, root);
@@ -77,8 +80,18 @@ export const printRecipeSheet = (r: Recipe, servings: number, ingredients: strin
   if (r.source_url) el("p", `${t("recipes.source")}: ${r.source_url}`, root);
   document.body.appendChild(root);
   window.addEventListener("afterprint", () => root.remove(), { once: true });
-  window.print();
+  try {
+    window.print();
+  } finally {
+    root.remove(); // print() blocks until the dialog closes in most browsers
+  }
 };
+
+/** "Alle Rezepte exportieren": a secondary button in the list bar. */
+export const exportAllButton = (hass: Hass, onError: (m: string) => void) =>
+  html`<button data-testid="recipe-export-all" @click=${() => downloadRecipes(hass, onError)}>
+    ${t("recipes.export_all")}
+  </button>`;
 
 /** "JSON herunterladen" and "Drucken / PDF" for one recipe; both differ from the receipt printer. */
 export const recipeOutputButtons = (o: {

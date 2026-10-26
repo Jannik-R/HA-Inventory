@@ -50,10 +50,11 @@ test("Drucken / PDF prints only the recipe; the receipt button is a different on
   await page.getByTestId("recipe-toggle").click();
   await page.evaluate(() => {
     (window as unknown as { printed: string[] }).printed = [];
-    window.print = () =>
-      (window as unknown as { printed: string[] }).printed.push(
-        (document.querySelector("#hi-print") as HTMLElement).textContent ?? "",
-      );
+    window.print = () => {
+      const block = document.querySelector("#hi-print") as HTMLElement;
+      (window as unknown as { printed: string[] }).printed.push(block.textContent ?? "");
+      document.body.appendChild(block.cloneNode(true)); // the real one is removed after print()
+    };
   });
   await expect(page.getByTestId("recipe-print-browser")).toContainText("Drucken / PDF");
   await page.getByTestId("recipe-print-browser").click();

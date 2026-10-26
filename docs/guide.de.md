@@ -518,7 +518,7 @@ Ein Tipp auf den Namen öffnet das Rezept (bei freiem Text den Bearbeiten-Dialog
 
 **Ab hier um einen Tag verschieben**: Das Pfeil-Symbol bei einem Gericht verschiebt dessen Mahlzeit an diesem Tag und an jedem direkt folgenden Tag, an dem dieselbe Mahlzeit geplant ist, auf den jeweils nächsten Tag. Die Verschiebung stoppt am ersten Tag ohne diese Mahlzeit (die Lücke). Andere Mahlzeiten bleiben stehen. Eine Bestätigung listet jedes Gericht mit altem und neuem Datum; erst **Verschieben** wendet es an.
 
-**Drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
+**Bon drucken**: In **Tag** und **Woche** druckt dieser Knopf den Tag bzw. die Woche (Montag bis Sonntag) auf dem Bondrucker, pro Tag mit allen Gerichten. Der Knopf erscheint nur mit Bondrucker; der Monat passt nicht auf einen Bon.
 
 **Einkaufsliste**: Dieser Knopf öffnet einen Dialog mit **Von** und **Bis**, vorbelegt mit heute bis sechs Tage später. **Auf die Liste** setzt jedes in diesem Zeitraum geplante Rezept mit den addierten Portionen all seiner Mahlzeiten auf die Einkaufsliste; was im Vorrat ist, wird abgezogen, wie bei [Rezepten auf der Einkaufsliste](#6-einkaufsliste). Gerichte mit freiem Text werden übersprungen, und ein Rezept, das schon auf der Liste steht, behält die größeren Portionen. **Bis** darf nicht vor **Von** liegen (höchstens 366 Tage). Eine Zeile über dem Plan nennt, was hinzugekommen ist. Eine Verbrauchsprognose gibt es noch nicht.
 

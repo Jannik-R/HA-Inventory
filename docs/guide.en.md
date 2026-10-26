@@ -528,7 +528,7 @@ Tapping the name opens the recipe (free text: the edit dialog). The pencil chang
 
 **Move by one day from here**: the arrow icon on a dish moves that dish's meal on this day and on every directly following day that has the same meal planned, one day later. The shift stops at the first day without that meal (the gap). Other meals stay where they are. A confirmation lists every dish with its old and new date; only **Move** applies it.
 
-**Print**: in **Day** and **Week** this button prints the day or the week (Monday to Sunday) on the receipt printer, each day with all its dishes. It only shows with a receipt printer; the month does not fit a receipt.
+**Print receipt**: in **Day** and **Week** this button prints the day or the week (Monday to Sunday) on the receipt printer, each day with all its dishes. It only shows with a receipt printer; the month does not fit a receipt.
 
 **Shopping list**: this button opens a dialog with **From** and **To**, by default today to six days later. **Onto the list** puts every recipe planned in that range on the shopping list with the servings of all its meals added up; what is in stock is subtracted, as for [recipes on the list](#6-shopping-list). Free-text dishes are skipped, and a recipe already on the list keeps the larger servings. **To** may not be before **From** (at most 366 days). A line above the plan names what was added. There is no consumption forecast yet.
 

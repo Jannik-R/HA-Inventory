@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers).
 """
 
 from .ai_check import changes as ai_changes
@@ -62,6 +62,7 @@ from .purchase import analyze as receipt_items
 from .purchase import book_receipt
 from .purchase import prompt as receipt_prompt
 from .queries import expiring, stock_list
+from .recipe_export import recipe_jsonld, recipes_jsonld
 from .recipe_import import recipe_draft, recipe_import
 from .recipe_print import recipe_sheet
 from .recipes import recipe_availability, recipes, save_recipe
@@ -167,8 +168,10 @@ __all__ = [
     "recipe_draft",
     "recipe_import",
     "recipe_items",
+    "recipe_jsonld",
     "recipe_sheet",
     "recipes",
+    "recipes_jsonld",
     "remove_shopping_recipe",
     "save",
     "save_canning",

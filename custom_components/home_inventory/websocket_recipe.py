@@ -49,6 +49,7 @@ def async_register(hass: HomeAssistant) -> None:
         ws_recipe_availability,
         ws_recipe_save,
         ws_recipe_import,
+        ws_recipe_export,
         ws_recipe_ai_check,
         ws_product_ai_check,
         ws_shopping_recipes,
@@ -114,6 +115,19 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
 @websocket_api.async_response
 async def ws_recipe_save(hass: HomeAssistant, connection, msg: dict) -> None:
     connection.send_result(msg["id"], {"id": await run(hass, inventory.save_recipe, msg["data"])})
+
+
+@websocket_api.websocket_command(
+    {vol.Required("type"): "home_inventory/recipe_export", vol.Optional("recipe_id"): ID}
+)
+@websocket_api.async_response
+async def ws_recipe_export(hass: HomeAssistant, connection, msg: dict) -> None:
+    """schema.org Recipe JSON-LD: one recipe, or a list of all."""
+    if "recipe_id" in msg:
+        result = await run(hass, inventory.recipe_jsonld, msg["recipe_id"])
+    else:
+        result = await run(hass, inventory.recipes_jsonld)
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command({vol.Required("type"): "home_inventory/shopping_recipes"})

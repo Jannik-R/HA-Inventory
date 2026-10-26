@@ -54,6 +54,7 @@ custom_components/home_inventory/   integration (Python)
   migration_29.py           migration 29: canning.kind 'leftover' (table rebuilt); root category Reste (`add_leftovers`)
   migration_30.py           migration 30: allergens and diet (category / product `diet`, `allergens`); `set_diet` seeds by name, also after the seed
   off_diet.py, websocket_diet.py  admin reload of allergens / diet from Open Food Facts, one small throttled chunk per call
+  migration_32.py           migration 32: defaults.seed_lang (language of the seeded names, see seed_en.py); repairs the Holunderbeeren unit
   seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)

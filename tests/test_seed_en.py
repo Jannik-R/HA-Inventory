@@ -115,7 +115,7 @@ def test_seed_lang_of_hass(monkeypatch):
     def of(code):
         return db.seed_lang(SimpleNamespace(config=SimpleNamespace(language=code)))
 
-    assert (of("de"), of("de-CH"), of("en-GB"), of("fr")) == ("de", "de", "en", "en")
+    assert [of(c) for c in ("de", "de-CH", "de-AT", "en-GB", "fr", "")] == ["de"] * 3 + ["en"] * 3
 
 
 @pytest.mark.parametrize(
@@ -129,6 +129,10 @@ def test_seed_lang_of_hass(monkeypatch):
         ("2 lbs beef", 2, "pound", "beef"),
         ("4 fl oz milk", 4, "fluid ounce", "milk"),
         ("2 eggs", 2, "piece", "eggs"),
+        ("2 EL Mehl", 2, "tablespoon", "Mehl"),  # the AI prompts are German
+        ("1 Prise Salz", 1, "pinch", "Salz"),
+        ("1 Dose Mais", 1, "can", "Mais"),
+        ("3 Zehen Knoblauch", 3, "clove", "Knoblauch"),
     ],
 )
 def test_parse_english(pair, line, amount, unit, text):

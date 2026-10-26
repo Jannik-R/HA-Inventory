@@ -36,7 +36,7 @@ _SERVINGS = probatio.Optional("servings", description="Servings; default the hou
 _PRODUCT = probatio.Required(
     "product", description="Product name as get_stock returns it, or its EAN barcode"
 )
-_LOCATION = probatio.Optional("location", description="Location name, e.g. Kühlschrank")
+_LOCATION = probatio.Optional("location", description="Location name as shown in the panel")
 _PACKAGES = probatio.Optional("packages", description="Number of packages; default 1")
 _MEAL = probatio.Optional("meal", description="Meal; default dinner")
 

@@ -654,7 +654,7 @@ Der Kategoriebaum hat drei Ebenen: **Hauptkategorie → Kategorie → Produktart
 *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Produkte hängen meist an einer Produktart.
 Rezepte und Mindestmengen arbeiten mit Kategorien und Produktarten, nicht mit Marken.
 
-**Sprache der Vorbelegung**: Die vorbelegten Kategorien, Produktarten, Einheiten und Lagerorte sind deutsch, wenn die Systemsprache von Home Assistant beim ersten Einrichten Deutsch ist, sonst englisch. Vorhandene Daten werden nie übersetzt, und eine spätere Änderung der Home-Assistant-Sprache ändert nichts. Um die andere Sprache zu bekommen, `home_inventory.db` vor dem ersten Start löschen (dabei gehen alle Daten verloren).
+**Sprache der Vorbelegung**: Die vorbelegten Kategorien, Produktarten, Einheiten und Lagerorte sind deutsch, wenn die Systemsprache von Home Assistant beim Anlegen der Datenbank Deutsch ist, sonst englisch. Vorhandene Daten werden nie übersetzt, und eine spätere Änderung der Home-Assistant-Sprache ändert nichts. Um die andere Sprache zu bekommen: Home Assistant beenden, die Sprache unter *Einstellungen > System > Allgemein* setzen, im Konfigurationsordner von Home Assistant `home_inventory.db` (und `home_inventory.db-wal` / `home_inventory.db-shm`, falls vorhanden) löschen (alle Vorratsdaten gehen verloren) und Home Assistant starten.
 
 **Lebensmittel**: Jede Kategorie hat das Feld *Lebensmittel* mit den Werten „Lebensmittel“ oder
 „Kein Lebensmittel“. Der Wert wird vererbt. Nicht-Lebensmittel werden nie als Rezeptzutat angeboten.

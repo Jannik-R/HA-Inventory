@@ -79,10 +79,15 @@ printer, receipt printer, household (servings, expiry guess), AI and external se
 ### Language of the seeded data
 
 The seeded categories, product types, units and locations are German when Home Assistant's system
-language is German at the first setup, otherwise English. Existing data is never translated and
-changing Home Assistant's language later changes nothing. To get the other language, delete
-`home_inventory.db` in the Home Assistant config folder before the first start (this loses all
-data).
+language is German at the moment the database is created, otherwise English. Existing data is never
+translated and changing Home Assistant's language later changes nothing. To get the other language:
+
+1. Stop Home Assistant.
+2. Set the language under *Settings > System > General* (start Home Assistant for this and stop it again, or set it before installing).
+3. In the Home Assistant config folder delete `home_inventory.db` (and `home_inventory.db-wal` / `home_inventory.db-shm` if present). All inventory data is lost.
+4. Start Home Assistant. The seed uses the language set when the database is created.
+
+The AI prompts (recipe import, receipt, product check) are still German, so in an English database the AI may suggest German names.
 
 ### Label printer
 

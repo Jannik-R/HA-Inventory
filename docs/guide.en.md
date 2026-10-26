@@ -659,7 +659,7 @@ The category tree has three levels: **main category → category → product typ
 e.g. *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Products usually belong to a product type.
 Recipes and minimum stock work with categories and product types, not with brands.
 
-**Language of the preset data**: the preset categories, product types, units and locations are German when Home Assistant's system language is German at the first setup, otherwise English. Existing data is never translated, and changing Home Assistant's language later changes nothing. To get the other language, delete `home_inventory.db` before the first start (this loses all data).
+**Language of the preset data**: the preset categories, product types, units and locations are German when Home Assistant's system language is German at the moment the database is created, otherwise English. Existing data is never translated, and changing Home Assistant's language later changes nothing. To get the other language: stop Home Assistant, set the language under *Settings > System > General*, delete `home_inventory.db` (and `home_inventory.db-wal` / `home_inventory.db-shm` if present) in the Home Assistant config folder (all inventory data is lost), then start Home Assistant.
 
 **Food or not** (*Food*): every category has this field, either "Food" or "Not food". It is inherited. Non-food is never offered as a recipe ingredient.
 

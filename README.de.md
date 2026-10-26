@@ -78,10 +78,16 @@ Dienste (siehe [Datenschutz](#datenschutz)).
 ### Sprache der Vorbelegung
 
 Die vorbelegten Kategorien, Produktarten, Einheiten und Lagerorte sind deutsch, wenn die
-Systemsprache von Home Assistant beim ersten Einrichten Deutsch ist, sonst englisch. Vorhandene
+Systemsprache von Home Assistant beim Anlegen der Datenbank Deutsch ist, sonst englisch. Vorhandene
 Daten werden nie übersetzt, und eine spätere Änderung der Home-Assistant-Sprache ändert nichts. Um
-die andere Sprache zu bekommen, `home_inventory.db` im Konfigurationsordner von Home Assistant vor
-dem ersten Start löschen (dabei gehen alle Daten verloren).
+die andere Sprache zu bekommen:
+
+1. Home Assistant beenden.
+2. Die Sprache unter *Einstellungen > System > Allgemein* setzen (dafür Home Assistant starten und wieder beenden, oder vor der Installation setzen).
+3. Im Konfigurationsordner von Home Assistant `home_inventory.db` löschen (und `home_inventory.db-wal` / `home_inventory.db-shm`, falls vorhanden). Alle Vorratsdaten gehen verloren.
+4. Home Assistant starten. Die Vorbelegung nutzt die Sprache, die beim Anlegen der Datenbank gesetzt ist.
+
+Die KI-Prompts (Rezeptimport, Kassenbon, Produktprüfung) sind noch deutsch, deshalb kann die KI in einer englischen Datenbank deutsche Namen vorschlagen.
 
 ### Etikettendrucker
 

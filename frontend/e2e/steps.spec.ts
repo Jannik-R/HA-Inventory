@@ -52,7 +52,7 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer, 
   await expect(row.locator("ol.steps").nth(1)).toHaveAttribute("start", "2");
 
   await row.getByTestId("recipe-cook").click();
-  const cook = page.locator("home-inventory-cook-mode dialog");
+  const cook = page.locator("home-inventory-cook-mode dialog").first(); // the cooked dialog inside has its own
   await cook.getByTestId("cook-step").first().click();
   await expect(cook.getByTestId("cook-step").first()).toHaveAttribute("aria-pressed", "true");
   await cook.getByTestId("cook-timer-start").click();

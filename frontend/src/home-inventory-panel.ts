@@ -30,7 +30,7 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number];
 
-// canning: tab *Haltbarmachen*, shown with module canning or drying (preserveKinds)
+// canning: tab *Haltbarmachen*, shown with module canning, drying or leftovers (preserveKinds)
 const MODULE_TABS: readonly string[] = ["shopping", "recipes", "plan", "emergency"];
 
 export class HomeInventoryPanel extends LitElement {

@@ -500,6 +500,31 @@
         }
       }
     },
+    "store_leftovers": {
+      "name": "Store leftovers",
+      "description": "Store leftovers of a cooked dish as a new charge (one package per serving, best before = made-on date + 3 days unless frozen). Returns id, batch_id (to print labels), charge, name and expires_on.",
+      "fields": {
+        "recipe": {
+          "name": "Dish recipe",
+          "description": "Name of the dish recipe."
+        },
+        "servings": {
+          "name": "Servings",
+          "description": "Number of servings to store."
+        },
+        "made_on": {
+          "name": "Made on",
+          "description": "Empty = today."
+        },
+        "location": {
+          "name": "Storage location",
+          "description": "Name of the location; empty = the default location of the leftovers."
+        },
+        "notes": {
+          "name": "Notes"
+        }
+      }
+    },
     "print_recipe": {
       "name": "Print recipe",
       "description": "Print a recipe on the receipt printer: ingredients (scaled to the servings) and numbered steps.",
@@ -560,7 +585,8 @@
         "drying": "Drying",
         "opened": "Opened packages",
         "frozen": "Freezing",
-        "emergency": "Emergency stock"
+        "emergency": "Emergency stock",
+        "leftovers": "Leftovers"
       }
     },
     "label_printer": {

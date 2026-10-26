@@ -1,6 +1,14 @@
 /** Optional modules chosen in the integration options; the panel gets them via `panel.config`. */
 export type Module =
-  "shopping" | "recipes" | "plan" | "canning" | "drying" | "opened" | "frozen" | "emergency";
+  | "shopping"
+  | "recipes"
+  | "plan"
+  | "canning"
+  | "drying"
+  | "opened"
+  | "frozen"
+  | "emergency"
+  | "leftovers";
 
 let active: readonly string[] | undefined;
 

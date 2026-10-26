@@ -564,5 +564,14 @@
   "emergency.group.fats": "Fats and oils",
   "settings.emergency_group.label": "Emergency stock",
   "settings.emergency_group.none": "Not in the emergency stock",
-  "tip.emergency_group": "Which food group of the emergency stock this category and everything below it counts for. “Not in the emergency stock” excludes it (e.g. coffee)."
+  "tip.emergency_group": "Which food group of the emergency stock this category and everything below it counts for. “Not in the emergency stock” excludes it (e.g. coffee).",
+  "preserve.leftover": "Leftovers",
+  "leftovers.add_title": "Store leftovers",
+  "leftovers.dish": "Dish",
+  "leftovers.jars": "Servings",
+  "leftovers.jars_left": "{jars} servings, {left} in stock",
+  "leftovers.empty": "No leftovers stored yet.",
+  "leftovers.fixed": "Batch {charge}: {name}, {jars} servings. Made-on date, dish and servings are on the labels and stay fixed; change the stock under \"Stock\".",
+  "leftovers.store": "Store leftovers",
+  "leftovers.stored": "Leftovers stored: batch {charge}"
 }

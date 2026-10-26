@@ -43,7 +43,17 @@ LLM_ACCESS = ["read", "plan", "all"]
 DEFAULT_LLM_ACCESS = "plan"
 # Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all.
 CONF_MODULES = "modules"
-MODULES = ["shopping", "recipes", "plan", "canning", "drying", "opened", "frozen", "emergency"]
+MODULES = [
+    "shopping",
+    "recipes",
+    "plan",
+    "canning",
+    "drying",
+    "opened",
+    "frozen",
+    "emergency",
+    "leftovers",
+]
 
 
 def modules_of(options) -> list[str]:

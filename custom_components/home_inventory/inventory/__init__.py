@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers).
 """
 
 from .ai_check import changes as ai_changes
@@ -41,6 +41,7 @@ from .frozen import freeze, thaw, undo_frozen
 from .ingredient_line import parse_ingredient, unit_add
 from .inherit import defaults, effective
 from .labels import book_out_code, label_info, location_label_info, open_code
+from .leftovers import leftover_category, leftovers_by_name, store_leftovers
 from .master import delete, list_rows, master_data, save, save_defaults
 from .meal_plan import (
     MEALS,
@@ -139,6 +140,8 @@ __all__ = [
     "keyword_score",
     "label_info",
     "last_booking",
+    "leftover_category",
+    "leftovers_by_name",
     "list_products",
     "list_rows",
     "location_label_info",
@@ -185,6 +188,7 @@ __all__ = [
     "stock_list",
     "stocktake_apply",
     "stocktake_scan",
+    "store_leftovers",
     "suggest",
     "suggest_by_keywords",
     "suggest_category",

@@ -7,6 +7,7 @@ export const SECTIONS = {
   units: "unit",
   defaults: null,
   meals: null,
+  transfer: null,
 } as const;
 export type Section = keyof typeof SECTIONS;
 

@@ -76,6 +76,14 @@ All options are under *Settings > Devices & services > Home Inventory > Configur
 printer, receipt printer, household (servings, expiry guess), AI and external services (see
 [Privacy](#privacy)).
 
+### Language of the seeded data
+
+The seeded categories, product types, units and locations are German when Home Assistant's system
+language is German at the first setup, otherwise English. Existing data is never translated and
+changing Home Assistant's language later changes nothing. To get the other language, delete
+`home_inventory.db` in the Home Assistant config folder before the first start (this loses all
+data).
+
 ### Label printer
 
 Each label shows a QR code (`PTRY:<EAN>:<date>`, or `PTRY:P<product id>:<date>` without EAN; canning

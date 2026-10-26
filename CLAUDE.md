@@ -41,6 +41,7 @@ custom_components/home_inventory/   integration (Python)
   db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities and fires home_inventory_booked after writes
   migrations.py             MIGRATIONS: the schema steps (SQL scripts or callables), one per schema version
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
+  seed_en.py                English seed: `to_english` renames a fresh German-seeded DB by dictionary, `seeded()` / `lang()`; seed_en_names.py / seed_en_more.py: the dictionaries (data only); keywords_en.py: English name keywords
   seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
   seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
   migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of migrations.py for size

@@ -10,8 +10,8 @@ export type Pt = { x: number; y: number };
 
 let loading: Promise<{ cv: Cv }> | undefined;
 
-/** Load OpenCV.js once; it is ready when `cv.Mat` exists (the wasm starts after the script).
- *  Wrapped in an object: the module has its own `then`, so resolving with it never settles. */
+/** Load OpenCV.js once. Since 5.0 `window.cv` is a promise of the module, settled when the wasm
+ *  has started. Returned wrapped in an object, as callers destructure it. */
 export function loadCv(): Promise<{ cv: Cv }> {
   loading ??= new Promise<{ cv: Cv }>((resolve, reject) => {
     const script = document.createElement("script");
@@ -22,14 +22,10 @@ export function loadCv(): Promise<{ cv: Cv }> {
       reject(new Error("opencv"));
     };
     script.onload = () => {
-      const started = Date.now();
-      const wait = () => {
-        const cv = (window as unknown as { cv?: Cv }).cv;
-        if (cv?.Mat) resolve({ cv });
-        else if (Date.now() - started > 60_000) reject(new Error("opencv"));
-        else setTimeout(wait, 100);
-      };
-      wait();
+      Promise.resolve((window as unknown as { cv?: Cv }).cv).then(
+        (cv) => (cv?.Mat ? resolve({ cv }) : script.onerror?.(new Event("error"))),
+        () => script.onerror?.(new Event("error")),
+      );
     };
     document.head.append(script);
   });

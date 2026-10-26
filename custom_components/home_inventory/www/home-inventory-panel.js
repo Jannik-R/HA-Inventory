@@ -4593,11 +4593,7 @@ function Ci() {
 		n.src = xi, n.async = !0, n.onerror = () => {
 			Si = void 0, t(/* @__PURE__ */ Error("opencv"));
 		}, n.onload = () => {
-			let n = Date.now(), r = () => {
-				let i = window.cv;
-				i?.Mat ? e({ cv: i }) : Date.now() - n > 6e4 ? t(/* @__PURE__ */ Error("opencv")) : setTimeout(r, 100);
-			};
-			r();
+			Promise.resolve(window.cv).then((t) => t?.Mat ? e({ cv: t }) : n.onerror?.(new Event("error")), () => n.onerror?.(new Event("error")));
 		}, document.head.append(n);
 	}), Si;
 }

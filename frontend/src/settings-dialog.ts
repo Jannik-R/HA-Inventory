@@ -6,6 +6,7 @@ import { t } from "./i18n";
 import { editDialog, fieldMsg, icon, numOrNull } from "./ui";
 import { formStyles } from "./styles";
 import "./category-picker";
+import { dietFields } from "./diet-fields";
 import {
   errorMessage,
   saveRow,
@@ -206,6 +207,24 @@ export class HomeInventorySettingsDialog extends LitElement {
     );
   }
 
+  /** Diet and allergens of a category; what it would inherit comes from the (draft) parent. */
+  private diet(d: Draft) {
+    const dflt = (field: "diet" | "allergens") => {
+      const inh = inherited(this.data!, field, d.parent_id);
+      return inh.value == null
+        ? undefined
+        : { value: inh.value, source: sourceLabel(this.data!, inh.source) };
+    };
+    return dietFields({
+      diet: d.diet,
+      allergens: d.allergens,
+      dietDflt: dflt("diet"),
+      allergensDflt: dflt("allergens"),
+      onDiet: (v) => this.set("diet", v),
+      onAllergens: (v) => this.set("allergens", v),
+    });
+  }
+
   render() {
     const e = this.edit;
     if (!e || !this.data) return html`<dialog></dialog>`;
@@ -312,6 +331,7 @@ export class HomeInventorySettingsDialog extends LitElement {
               )
             : ""
         }
+        ${hasModule("diet") ? this.diet(d) : ""}
         ${minFields({ md, d, errs: this.errs, unitId: unit as number | null, set: (k, v) => this.set(k, v) })}
         ${tags.length ? html`<p class="detail">${t("settings.category.off_tags", { tags: tags.join(", ") })}</p>` : nothing}`;
     }

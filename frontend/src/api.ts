@@ -10,6 +10,7 @@ export interface Hass {
 }
 
 /** Date kinds: printed best before / use by, or a guide value from the shelf life ("ca."). */
+export const DIETS = ["vegan", "vegetarian", "none"] as const;
 export const EXPIRY_TYPES = ["best_before", "use_by", "guide"] as const;
 export type ExpiryType = (typeof EXPIRY_TYPES)[number];
 
@@ -65,7 +66,9 @@ export type InheritField =
   | "opened_days"
   | "frozen_days";
 /** Inherited down the category tree only (null at the root = food, not frozen goods, no emergency group). */
-export type CategoryFlag = "food" | "frozen_goods" | "emergency_group";
+export type CategoryFlag = "food" | "frozen_goods" | "emergency_group" | "diet" | "allergens";
+/** Diet of a food (module diet); "none" reads "Nicht vegetarisch". */
+export type Diet = "vegan" | "vegetarian" | "none";
 export interface Category {
   id: number;
   parent_id: number | null;
@@ -90,6 +93,10 @@ export interface Category {
   frozen_goods: 0 | 1 | null;
   /** BBK food group of the emergency stock, "none" = not part of it, null = inherit; the root has none. */
   emergency_group: string | null;
+  /** Diet, null = inherit (unknown at the root). */
+  diet: Diet | null;
+  /** Contained major allergens (comma list of keys), "" = none of the 14, null = inherit. */
+  allergens: string | null;
   effective: Record<InheritField | CategoryFlag, { value: number | string | null; source: Source }>;
 }
 export interface MasterData {
@@ -149,6 +156,9 @@ export interface Product {
   shelf_days?: number | null;
   opened_days?: number | null;
   frozen_days?: number | null;
+  /** Own diet / allergens, null = inherit from the category. */
+  diet?: Diet | null;
+  allergens?: string | null;
   /** Below this many packages the product goes on the shopping list. */
   min_packages?: number | null;
   /** Packages in stock (product list only). */
@@ -334,6 +344,17 @@ export interface Recipe {
   summary: { available: number; total: number };
   /** Servings on the shopping list, null when the recipe is not on it. */
   shopping_servings: number | null;
+  /** Diet and allergens from the ingredients (optional ones do not count, see `optional`). */
+  diet: RecipeDiet;
+}
+export interface RecipeDiet {
+  diet: Diet | null;
+  contains: string[];
+  allergens_known: boolean;
+  /** Required ingredients without (complete) information. */
+  unknown: string[];
+  /** Optional ingredients that are worse than the recipe. */
+  optional: { text: string; diet: Diet | null; contains: string[] }[];
 }
 export const getRecipes = (hass: Hass) => hass.callWS<Recipe[]>({ type: "home_inventory/recipes" });
 /** A recipe that uses up expiring stock, best first (`used` ingredients; `products` are the expiring ones). */
@@ -354,7 +375,7 @@ export const getRecipeAvailability = (hass: Hass, recipe_id: number, servings: n
   hass.callWS<Ingredient[]>({ type: "home_inventory/recipe_availability", recipe_id, servings });
 export const saveRecipe = (hass: Hass, data: Record<string, unknown>) =>
   hass.callWS<{ id: number }>({ type: "home_inventory/recipe_save", data });
-export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings">;
+export type RecipeDraft = Omit<Recipe, "id" | "summary" | "shopping_servings" | "diet">;
 /** Canning recipes live in the Einkochen tab, the others in Rezepte and the meal plan. */
 export const isCanning = (r: Recipe) => r.canning_product_id != null;
 /** One source: a page (schema.org data, else the AI reads it), pasted text or a photo (data URL; both need the AI). */

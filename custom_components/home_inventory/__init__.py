@@ -17,6 +17,7 @@ from . import (
     websocket,
     websocket_canning,
     websocket_cooked,
+    websocket_diet,
     websocket_emergency,
     websocket_label,
     websocket_open,
@@ -48,6 +49,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     websocket_emergency.async_register(hass)
     websocket_canning.async_register(hass)
     websocket_cooked.async_register(hass)
+    websocket_diet.async_register(hass)
     websocket_stocktake.async_register(hass)
     websocket_open.async_register(hass)
     websocket_purchase.async_register(hass)
@@ -58,7 +60,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: HomeInventoryConfigEntry) -> bool:
     """Open the database and add the sidebar panel."""
     db = entry.runtime_data = Database(hass, hass.config.path("home_inventory.db"))
-    await db.async_open(freezing="frozen" in modules_of(entry.options))
+    modules = modules_of(entry.options)
+    await db.async_open(freezing="frozen" in modules, diet="diet" in modules)
     try:
         # Bundle mtime, not the integration version: every build must bust the browser cache.
         bundle = Path(__file__).parent / "www" / "home-inventory-panel.js"

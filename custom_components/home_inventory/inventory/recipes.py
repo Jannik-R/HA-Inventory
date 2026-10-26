@@ -7,7 +7,9 @@ import sqlite3
 
 from .amounts import _demand, _have, _stock_amount, _stock_by_category, _units, egg_part
 from .common import InventoryError, _exists
+from .diet import diet_index, recipe_diet
 from .inherit import _categories, _resolve, children, defaults, food_named, is_food
+from .inherit import subtree as _subtree  # alias: other modules import it from here
 from .learned import learn
 from .master import save
 from .products import add_product
@@ -130,16 +132,6 @@ def _steps(conn: sqlite3.Connection) -> dict[int, list[dict]]:
     return out
 
 
-def _subtree(kids: dict, category_id: int) -> set[int]:
-    """The node and all its descendants."""
-    out, todo = set(), [category_id]
-    while todo:
-        cid = todo.pop()
-        out.add(cid)
-        todo += kids.get(cid, [])
-    return out
-
-
 def _ctx(conn: sqlite3.Connection) -> tuple:
     cats = _categories(conn)
     return cats, _units(conn), _stock_by_category(conn), children(cats), defaults(conn)
@@ -219,6 +211,7 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
     """All recipes by name with ingredients, availability at their own servings and a summary
     (available / total over the ingredients that are neither optional nor skipped)."""
     out, ctx, steps = [], _ctx(conn), _steps(conn)
+    value = diet_index(conn) if getattr(conn, "diet", True) else None
     # shortcut: instructions travel with the list; split into a detail call if the list gets slow
     for r in map(
         dict,
@@ -232,6 +225,8 @@ def recipes(conn: sqlite3.Connection) -> list[dict]:
         required = [i for i in ingredients if not i["optional"] and not i["skip_stock"]]
         r["ingredients"] = ingredients
         r["steps"] = steps.get(r["id"], [])
+        if value:
+            r["diet"] = recipe_diet(value, ingredients)
         r["summary"] = {
             "available": sum(i["status"] == "available" for i in required),
             "total": len(required),

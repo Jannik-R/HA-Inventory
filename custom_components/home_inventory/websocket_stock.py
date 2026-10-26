@@ -13,7 +13,9 @@ from homeassistant.util import dt as dt_util
 from . import inventory
 from .ws_common import run
 from .ws_validate import (
+    ALLERGEN_SET,
     DAYS,
+    DIET,
     EAN,
     HTTP_URL,
     ID,
@@ -54,6 +56,8 @@ _PRODUCT = vol.Schema(
         vol.Optional("shelf_days"): SHELF_DAYS,
         vol.Optional("opened_days"): SHELF_DAYS,
         vol.Optional("frozen_days"): SHELF_DAYS,
+        vol.Optional("diet"): DIET,
+        vol.Optional("allergens"): ALLERGEN_SET,
     }
 )
 

@@ -111,3 +111,13 @@ def is_type(cats: dict, category_id: int) -> bool:
 
 def _path(cats: dict, category_id: int) -> list[str]:
     return [cats[c]["name"] for c in _chain(cats, category_id)]
+
+
+def subtree(kids: dict, category_id: int) -> set[int]:
+    """The node and all its descendants."""
+    out, todo = set(), [category_id]
+    while todo:
+        cid = todo.pop()
+        out.add(cid)
+        todo += kids.get(cid, [])
+    return out

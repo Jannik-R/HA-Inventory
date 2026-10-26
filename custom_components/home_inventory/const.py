@@ -42,7 +42,7 @@ _NEEDS_AI = {"ai_recipe_check", "ai_product_check", "ai_import", "ai_video", "re
 CONF_LLM_ACCESS = "llm_access"
 LLM_ACCESS = ["read", "plan", "all"]
 DEFAULT_LLM_ACCESS = "plan"
-# Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all.
+# Optional panel parts (tabs, and the todo/calendar entity of shopping/plan); unset = all but DEFAULT_OFF.
 CONF_MODULES = "modules"
 MODULES = [
     "shopping",
@@ -54,11 +54,14 @@ MODULES = [
     "frozen",
     "emergency",
     "leftovers",
+    "diet",
 ]
+DEFAULT_OFF = ["diet"]  # modules a new install (or an entry without a saved list) starts without
+DEFAULT_MODULES = [m for m in MODULES if m not in DEFAULT_OFF]
 
 
 def modules_of(options) -> list[str]:
-    return options.get(CONF_MODULES, MODULES)
+    return options.get(CONF_MODULES, DEFAULT_MODULES)
 
 
 def external(options, key: str) -> bool:

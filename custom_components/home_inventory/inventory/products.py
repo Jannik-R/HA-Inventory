@@ -7,6 +7,7 @@ import sqlite3
 from itertools import islice
 
 from .common import COLUMNS, unit_key
+from .diet import off_diet
 from .ingredient_line import unit_lookup
 from .inherit import category_tags, set_tags
 from .learned import learn
@@ -64,9 +65,12 @@ def add_product(conn: sqlite3.Connection, data: dict) -> int:
     the most specific tag so the next similar product is assigned automatically; if the user
     changed the suggested category, remember that choice for the tag (learned.py)."""
     try:
-        tags = json.loads(data.get("off_json") or "{}").get("categories_tags")
+        off = json.loads(data.get("off_json") or "{}")
+        tags = off.get("categories_tags")
     except (ValueError, AttributeError):
-        tags = None
+        off, tags = None, None
+    diet, allergens = off_diet(off)  # fills only: own data wins
+    data = {**data, "diet": data.get("diet", diet), "allergens": data.get("allergens", allergens)}
     chosen = data.get("category_id")
     suggested = suggest_category(conn, tags) if isinstance(tags, list) and tags else False
     product_id = save(conn, "product", data)

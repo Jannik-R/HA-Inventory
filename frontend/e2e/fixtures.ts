@@ -6,7 +6,12 @@ export type { Browser, Page } from "@playwright/test";
 // Every print command (labels, shopping list, recipe, meal plan, and any added later).
 const isPrint = (type: unknown) =>
   typeof type === "string" && type.startsWith("home_inventory/print_");
-const AI_ALWAYS = ["home_inventory/recipe_import", "home_inventory/receipt_read"];
+// Reach the AI or Open Food Facts (diet_reload: bulk requests): refused unless a test stubs them.
+const AI_ALWAYS = [
+  "home_inventory/recipe_import",
+  "home_inventory/receipt_read",
+  "home_inventory/diet_reload",
+];
 const callsByContext = new WeakMap<BrowserContext, unknown[]>();
 const stubsByContext = new WeakMap<BrowserContext, Map<string, unknown>>();
 

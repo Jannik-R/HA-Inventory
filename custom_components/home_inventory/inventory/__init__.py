@@ -2,7 +2,7 @@
 
 Callers use `inventory.<name>`; the submodules are an implementation detail
 (common, master, inherit, products, suggest, booking, labels, codes, queries, amounts, shopping,
-recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers).
+recipes, expiry_recipes, shopping_recipes, removal, ingredient_line, recipe_import, recipe_export, meal_plan, plan_shopping, canning, steps, learned, ai_check, ai_product, recipe_print, emergency, opened, corrections, cooked, frozen, stocktake, notify, assist, ai_import, purchase, leftovers, diet, diet_reload).
 """
 
 from .ai_check import changes as ai_changes
@@ -34,6 +34,7 @@ from .codes import (
 from .common import InventoryError, check_ean
 from .cooked import book_cooked, cooked_by_name, cooked_proposal, undo_cooked
 from .corrections import correct, edit_stock, move, put_back
+from .diet_reload import reload_candidates, store_off
 from .emergency import GROUPS as EMERGENCY_GROUPS
 from .emergency import supply as emergency_supply
 from .expiry_recipes import expiring_recipes
@@ -172,6 +173,7 @@ __all__ = [
     "recipe_sheet",
     "recipes",
     "recipes_jsonld",
+    "reload_candidates",
     "remove_shopping_recipe",
     "save",
     "save_canning",
@@ -192,6 +194,7 @@ __all__ = [
     "stocktake_apply",
     "stocktake_scan",
     "store_leftovers",
+    "store_off",
     "suggest",
     "suggest_by_keywords",
     "suggest_category",

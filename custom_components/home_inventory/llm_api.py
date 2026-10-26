@@ -94,7 +94,8 @@ SPECS = [
          {probatio.Optional("days", description="Expiring within this many days"):
           probatio.All(int, probatio.Range(min=0, max=366))},
          lambda h, a, c: run(h, inventory.assist_expiring, _day(None), a.get("days"))),
-    Spec("read", "get_recipes", "List the recipes with how many required ingredients are in stock.",
+    Spec("read", "get_recipes", "List the recipes with how many required ingredients are in stock, and, where known, "
+         "their diet (vegan, vegetarian, none) and contained major allergens.",
          {_SEARCH: str},
          lambda h, a, c: run(h, inventory.assist_recipes, a.get("search"))),
     Spec("read", "get_recipe", "One recipe: ingredients (scaled to `servings`) with their stock "

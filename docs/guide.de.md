@@ -680,6 +680,22 @@ Haltbarkeit. Leer heißt: Anbrechen ändert das Datum nicht.
 90 Tage) und ob eine Kategorie gekaufte Tiefkühlware ist (behält ihr Datum im Gefrierschrank), beides
 vererbt.
 
+**Allergene und Ernährung** (Modul *Allergene & Ernährung*, standardmäßig aus; einschalten unter *Konfigurieren > Module*): Kategorien
+und Produkte haben die Felder *Ernährung* (Vegan, Vegetarisch, Nicht vegetarisch oder unbekannt) und *Allergene* (welche der 14 EU-Hauptallergene
+enthalten sind). Der Wert des Produkts selbst gilt, sonst die nächste Kategorie darüber, grau angezeigt als
+„Geerbt: Milch (von Käse)“. *Eigene Angabe* setzt eine eigene Allergenliste (Allergene ankreuzen; nichts angekreuzt heißt keines der 14),
+*Zurücksetzen* kehrt zum geerbten Wert zurück. Produkte aus Open Food Facts bekommen beide Felder beim Einbuchen; Open Food Facts ist die
+Quelle und kann falsch liegen, prüfe also die Packung. Für vorhandene Produkte kann ein Admin in den Einstellungen (Bereich *Kategorien*)
+*Allergene von Open Food Facts nachladen* drücken: es holt etwa ein Produkt pro Sekunde, zeigt den Fortschritt, lässt sich
+anhalten und füllt nur leere Felder von Produkten mit EAN (Nicht-Lebensmittel und Produkte, auf die Open Food Facts schon geantwortet hat, werden
+übersprungen; bricht es mit einem Fehler ab, später mit demselben Knopf weitermachen). Spuren („kann enthalten“) werden nicht berücksichtigt. In der Rezeptliste
+(Modul *Rezepte* ebenfalls an) zeigt jedes Rezept Ernährung und Allergene aus seinen Zutaten (eine Kategorie zählt mit allen ihren Produkten,
+oder mit ihrem eigenen Wert, wenn sie keine hat). Der Filter *Ernährung* zeigt nur vegane oder vegetarische Rezepte und unter *Ohne*
+nur Rezepte ohne die angekreuzten Allergene. Der Filter ist streng: fehlt bei einer nötigen Zutat die Angabe, wird das Rezept
+ausgeblendet, und die Rezeptzeile nennt „Angaben fehlen bei: ...“. Optionale Zutaten zählen nicht, werden aber markiert („nicht vegetarisch“,
+„Enthält: Milch“) und in der Rezeptzeile vermerkt („Optional: Speck (nicht vegetarisch)“); das geht nur, wenn die Ernährung des
+Rezepts selbst bekannt ist, bei fehlenden Angaben gibt es keine Markierungen. Das ist eine Hilfe, keine medizinische Beratung: bei einer ernsten Allergie immer die Packung lesen.
+
 **Löschen**: Vor dem Löschen zeigt Vorrat, was mitgelöscht oder geändert wird (Unterkategorien,
 Produkte, Bestand, Rezeptzutaten …). Löschst du einen Lagerort mit Bestand, wählst du, wohin die
 Packungen kommen.

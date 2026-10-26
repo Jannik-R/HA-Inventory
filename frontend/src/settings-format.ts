@@ -22,7 +22,11 @@ export function inherited(
   if (!p)
     return {
       value:
-        field === "food" || field === "frozen_goods" || field === "emergency_group"
+        field === "food" ||
+        field === "frozen_goods" ||
+        field === "emergency_group" ||
+        field === "diet" ||
+        field === "allergens"
           ? null
           : md.defaults[field],
       source: "default",

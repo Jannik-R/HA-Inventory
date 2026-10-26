@@ -136,6 +136,12 @@ export const formStyles = css`
   .field {
     margin-bottom: 12px;
   }
+  .allergen-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    margin-bottom: 4px;
+  }
   .pair {
     display: grid;
     grid-template-columns: 2fr 1fr;

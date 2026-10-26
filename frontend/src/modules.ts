@@ -8,7 +8,8 @@ export type Module =
   | "opened"
   | "frozen"
   | "emergency"
-  | "leftovers";
+  | "leftovers"
+  | "diet";
 
 let active: readonly string[] | undefined;
 

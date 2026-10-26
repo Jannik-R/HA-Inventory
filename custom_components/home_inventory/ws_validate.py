@@ -6,6 +6,8 @@ import math
 
 import voluptuous as vol
 
+from .inventory.diet import DIETS, check_allergens
+
 ID = vol.All(int, vol.Range(min=1, max=2**31))
 NULL_ID = vol.Any(None, ID)
 PACKAGES = vol.All(int, vol.Range(min=1, max=9999))
@@ -38,5 +40,16 @@ OFF_JSON = text(100_000)
 QUERY = text(200)
 CODE = text(64)
 HTTP_URL = vol.All(text(2000), vol.Match(r"^https?://", msg="must be an http(s) URL"))
+DIET = vol.Any(None, vol.In(DIETS))
+
+
+def _allergens(value: object) -> str:
+    try:
+        return check_allergens(value)
+    except ValueError as err:
+        raise vol.Invalid("unknown allergen") from err
+
+
+ALLERGEN_SET = vol.Any(None, _allergens)  # canonical comma list; '' = none of the 14
 CANNING_TEMP = vol.All(int, vol.Range(min=1, max=200))  # °C
 CANNING_MINUTES = vol.All(int, vol.Range(min=1, max=1440))

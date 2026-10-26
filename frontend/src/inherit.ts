@@ -2,7 +2,7 @@ import { html, nothing } from "lit";
 import { mdiRestore } from "@mdi/js";
 import { t } from "./i18n";
 import { icon, numOrNull } from "./ui";
-import type { Category, InheritField, MasterData } from "./api";
+import type { Category, CategoryFlag, InheritField, MasterData } from "./api";
 
 export interface Dflt {
   value: number | string;
@@ -28,18 +28,20 @@ export function categoryPath(
 export function categoryDefault(
   md: MasterData | undefined,
   categoryId: number | null | undefined,
-  field: InheritField,
+  field: InheritField | CategoryFlag,
 ): Dflt | undefined {
   if (!md) return undefined;
   const cat = md.categories.find((c) => c.id === categoryId);
-  const e = cat ? cat.effective[field] : { value: md.defaults[field], source: "default" as const };
+  const e = cat
+    ? cat.effective[field]
+    : { value: md.defaults[field as InheritField] ?? null, source: "default" as const };
   if (e.value == null) return undefined;
   if (e.source === "default") return { value: e.value, source: t("settings.inherit_default") };
   const from = e.source === "own" ? cat!.name : md.categories.find((c) => c.id === e.source)?.name;
   return { value: e.value, source: t("settings.inherit_from", { name: from ?? "" }) };
 }
 
-const reset = (testid: string, onClick: () => void) =>
+export const reset = (testid: string, onClick: () => void) =>
   html`<button type="button" class="reset" data-testid=${`${testid}-reset`} @click=${onClick}>
     ${icon(mdiRestore)}${t("common.reset")}
   </button>`;
@@ -53,6 +55,8 @@ export function inheritSelect(o: {
   numeric: boolean;
   /** No default is fine: the empty choice reads "keine" and is allowed. */
   optional?: boolean;
+  /** Text of the empty choice when there is no default (instead of "keine"). */
+  empty?: string;
   invalid?: boolean;
   onChange: (v: number | string | null) => void;
 }) {
@@ -70,7 +74,7 @@ export function inheritSelect(o: {
       }}
     >
       <option value="" .selected=${own == null}>
-        ${o.dflt ? t("common.default", { value: label(o.dflt.value), source: o.dflt.source }) : t(o.optional ? "common.none" : "book.choose")}
+        ${o.dflt ? t("common.default", { value: label(o.dflt.value), source: o.dflt.source }) : (o.empty ?? t(o.optional ? "common.none" : "book.choose"))}
       </option>
       ${o.options.map(([v, l]) => html`<option value=${v} .selected=${own === v}>${l}</option>`)}
     </select>

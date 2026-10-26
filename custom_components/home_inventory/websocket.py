@@ -12,7 +12,19 @@ from homeassistant.core import HomeAssistant
 
 from . import inventory, off
 from .ws_common import db_of, run, translated
-from .ws_validate import CODE, DAYS, ID, NAME, NULL_ID, PACKAGES, POSITIVE, QUERY, SHELF_DAYS
+from .ws_validate import (
+    ALLERGEN_SET,
+    CODE,
+    DAYS,
+    DIET,
+    ID,
+    NAME,
+    NULL_ID,
+    PACKAGES,
+    POSITIVE,
+    QUERY,
+    SHELF_DAYS,
+)
 
 # Typed columns per table; inventory.save and DB constraints check the rest (cycles, unit rules).
 MASTER_SCHEMAS = {
@@ -37,6 +49,8 @@ MASTER_SCHEMAS = {
             vol.Optional("food"): vol.Any(None, vol.In((0, 1))),
             vol.Optional("frozen_goods"): vol.Any(None, vol.In((0, 1))),
             vol.Optional("frozen_days"): SHELF_DAYS,
+            vol.Optional("diet"): DIET,
+            vol.Optional("allergens"): ALLERGEN_SET,
             vol.Optional("emergency_group"): vol.Any(
                 None, vol.In((*inventory.EMERGENCY_GROUPS, "none"))
             ),

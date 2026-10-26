@@ -17,6 +17,7 @@ from .migration_25 import set_frozen
 from .migration_26 import add_dried
 from .migration_27 import set_emergency
 from .migration_29 import add_leftovers
+from .migration_30 import set_diet
 from .migrations import MIGRATIONS
 from .seed import seed
 from .seed_days import fill_days
@@ -32,6 +33,8 @@ class Connection(sqlite3.Connection):
 
     # module `frozen`: off = nothing is frozen, no date changes (inventory/frozen.py)
     freezing = True
+    # module `diet`: off = recipes() builds no diet (inventory/recipes.py)
+    diet = True
 
 
 def connect(path: str) -> sqlite3.Connection:
@@ -75,6 +78,7 @@ def migrate(conn: sqlite3.Connection) -> None:
         add_dried(conn)  # same
         set_emergency(conn)  # same
         add_leftovers(conn)  # same
+        set_diet(conn)  # same
         conn.commit()
 
 
@@ -100,9 +104,10 @@ class Database:
             raise
         return conn
 
-    async def async_open(self, freezing: bool = True) -> None:
+    async def async_open(self, freezing: bool = True, diet: bool = True) -> None:
         self._conn = await self._hass.async_add_executor_job(self._open)
         self._conn.freezing = freezing
+        self._conn.diet = diet
 
     def _run(self, fn: Callable[..., Any], args: tuple) -> tuple[Any, bool, list[dict]]:
         with self.lock:

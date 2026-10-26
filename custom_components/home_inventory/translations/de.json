@@ -118,6 +118,9 @@
     "nothing_to_print": {
       "message": "Die Einkaufsliste hat keine offenen Einträge zum Drucken."
     },
+    "diet_reload_busy": {
+      "message": "Ein anderes Nachladen von Open Food Facts läuft bereits."
+    },
     "not_food": {
       "message": "Diese Kategorie ist kein Lebensmittel und kann keine Rezeptzutat sein."
     },
@@ -588,7 +591,8 @@
         "opened": "Anbrechen",
         "frozen": "Einfrieren",
         "emergency": "Notvorrat",
-        "leftovers": "Reste"
+        "leftovers": "Reste",
+        "diet": "Allergene & Ernährung"
       }
     },
     "label_printer": {

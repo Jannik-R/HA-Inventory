@@ -42,6 +42,7 @@ opens this guide. These are the tabs:
 7b. [Canning and drying](#7b-canning-and-drying)
 8. [Labels and receipt printer](#8-labels-and-receipt-printer)
 9. [Categories, product types and inheritance](#9-categories-product-types-and-inheritance)
+9a. [Import and export](#9a-import-and-export)
 10. [Tips and FAQ](#10-tips-and-faq)
 
 ## 1. Getting started
@@ -704,6 +705,36 @@ known, so a recipe with missing information shows no marks. This is a help, not 
 
 **Deleting**: before deleting, Home Inventory lists what goes with it or changes (subcategories, products,
 stock, recipe ingredients …). Deleting a location with stock asks where its packages should go.
+
+## 9a. Import and export
+
+*Settings > Import / Export* (admins only).
+
+**Export**: *Export products* and *Export stock* save a CSV file (`;` separated, UTF-8, decimal comma) that opens in
+Excel or LibreOffice. The file is for private use: product data can come from Open Food Facts (ODbL), and the dialog says so.
+The products file holds only a product's **own** values (an empty cell is inherited); a category is its full path
+(`Nudeln, Reis & Getreide > Nudeln`).
+
+**Import**: choose *Products (CSV)*, *Stock (CSV)* or *Grocy*, then the file. Nothing changes yet: *Review import* lists
+what would be created, changed, skipped or wrong (with the line number), and only *Apply* writes it. Lines with an error are
+left out, the others still apply. Importing the same file again changes nothing.
+
+| File | Columns (header names, any case; others are ignored) |
+|---|---|
+| Products | `name` (required), `brand`, `category`, `ean`, `content_amount`, `content_unit`, `location`, `expiry_type` (`best_before`, `use_by`, `guide`), `warn_days`, `shelf_days`, `opened_days`, `frozen_days`, `min_packages`, `diet` (`vegan`, `vegetarian`, `none`), `allergens` (comma list of the keys, `none` = none of the 14) |
+| Stock | `name` (required), `brand`, `location`, `packages` (required), `expires_on`, `opened_on`, `frozen_on`, `remaining`, `charge` |
+
+- The delimiter (`;`, `,` or tab), decimal comma or point, and dates as `2026-12-24` or `24.12.2026` are all fine; at most 5000 lines.
+- **Products** are matched by `name` (and `brand`, when the file has that column). A match is updated: only filled cells
+  that differ are changed, an empty cell keeps the value. No match: a new product. A category that does not exist
+  is created from its path; a single name is taken as the one category of that name; with an empty cell the category is
+  guessed from the name or the line is an error. An unknown location is created; an unknown unit is an error.
+- **Stock** lines are *target* counts per product, place and dates: only the missing difference is booked in
+  (source *import*). If more is there already the line is skipped; nothing is ever booked out. Lines for partly used
+  packages (`remaining` below 1) and canning charges (`charge`) are skipped. Without a location the product's location is used.
+- **Grocy**: download the JSON files as described in the README (setup), pick them all at once. Products come first, then the stock.
+  A product in grams or millilitres counts each Grocy stock entry as one package.
+- Imports fire **no** `home_inventory_booked` events (so automations do not react to hundreds of bookings); the bookings are in the log.
 
 ## 10. Tips and FAQ
 

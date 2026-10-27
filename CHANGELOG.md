@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- AI prompts follow the database language (German or English): product names, ingredient lines and units come back in that language
+
 ## 0.3.0 - 2026-10-26
 
 ### Upgrade notes

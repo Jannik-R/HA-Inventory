@@ -14,6 +14,7 @@ from .ai_import import MAX_PASTE
 from .ai_import import page_sources as ai_page_sources
 from .ai_import import prompt as ai_import_prompt
 from .ai_import import to_recipe as ai_recipe
+from .ai_lang import language as ai_language
 from .ai_product import changes as ai_product_changes
 from .ai_product import prompt as ai_product_prompt
 from .assist import expiring_stock as assist_expiring
@@ -103,6 +104,7 @@ __all__ = [
     "add_shopping_item",
     "ai_changes",
     "ai_import_prompt",
+    "ai_language",
     "ai_page_sources",
     "ai_product_changes",
     "ai_product_prompt",

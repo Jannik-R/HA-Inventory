@@ -101,7 +101,7 @@ async def _check(hass: HomeAssistant, task: str, instructions: str, structure) -
 
 def _reasons_in(language: str | None) -> str:
     """Last prompt line (after the cached fixed part): the panel language for the "reason" texts.
-    The data itself stays German like the category tree and units."""
+    The data itself follows the database language (see inventory/ai_lang.py)."""
     name = "German" if (language or "").startswith("de") else "English"
     return f'\nWrite every "reason" in {name}.\n'
 

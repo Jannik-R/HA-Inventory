@@ -87,7 +87,7 @@ die andere Sprache zu bekommen:
 3. Im Konfigurationsordner von Home Assistant `home_inventory.db` löschen (und `home_inventory.db-wal` / `home_inventory.db-shm`, falls vorhanden). Alle Vorratsdaten gehen verloren.
 4. Home Assistant starten. Die Vorbelegung nutzt die Sprache, die beim Anlegen der Datenbank gesetzt ist.
 
-Die KI-Prompts (Rezeptimport, Kassenbon, Produktprüfung) sind noch deutsch, deshalb kann die KI in einer englischen Datenbank deutsche Namen vorschlagen.
+Die KI-Prompts (Rezeptimport, Kassenbon, Produktprüfung) folgen der Sprache der Datenbank: Namen, Zutatenzeilen und Einheiten schreibt die KI auf Deutsch oder Englisch.
 
 ### Etikettendrucker
 

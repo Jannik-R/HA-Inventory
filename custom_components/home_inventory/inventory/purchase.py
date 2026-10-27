@@ -7,6 +7,7 @@ from __future__ import annotations
 import sqlite3
 from datetime import date
 
+from .ai_lang import language, localized
 from .booking import book_in
 from .common import InventoryError
 from .inherit import effective
@@ -18,14 +19,14 @@ MAX_ITEMS = 100
 MAX_CANDIDATES = 5
 
 # Fixed part first and byte-identical between calls (prompt prefix caching, see ai_check).
-_TASK = """You read a German shopping receipt for "Vorrat", a household inventory in Home Assistant.
+_TASK = """You read a shopping receipt (in any language) for "Vorrat", a household inventory in Home Assistant.
 The text comes from OCR and may have errors. Find the store name and the bought items. Leave out
-deposit (Pfand, Leergut), bags (Tragetasche, Tüte), discounts and coupons (Rabatt, negative amounts),
+deposit, bags, discounts and coupons (negative amounts)@skip@,
 totals, payment, tax and every line that is not a product.
 For each item:
 - "text": the product part of the line as printed, without price and quantity
-- "name": a short readable German product name without brand and package size
-  (e.g. "H-Milch 3,5%" for "JA H-MILCH 3,5% 1L")
+- "name": a short readable @lang@ product name without brand and package size
+  (e.g. @example@)
 - "packages": how many were bought ("2 x 1,19" = 2; weighed goods = 1)
 - "product_ids": ids from the product list below that this item may be, best first; [] when none
   fits. Only ids from the list.
@@ -34,6 +35,20 @@ Answer with JSON only: {"store": "<store name or empty>", "items": [...]}.
 
 Products (id|name|brand):
 """
+
+
+_WORDS = {
+    "de": {
+        "lang": "German",
+        "skip": " (on German receipts Pfand, Leergut, Tragetasche, Tüte, Rabatt)",
+        "example": '"H-Milch 3,5%" for "JA H-MILCH 3,5% 1L"',
+    },
+    "en": {
+        "lang": "English",
+        "skip": "",
+        "example": '"Whole milk" for "TESCO WHOLE MILK 2PT"',
+    },
+}
 
 
 def line_key(text: str) -> str:
@@ -46,7 +61,8 @@ def prompt(conn: sqlite3.Connection, text: str) -> str:
         raise InventoryError("invalid_value")
     rows = conn.execute("SELECT id, name, brand FROM product ORDER BY name")
     products = "\n".join(f"{r['id']}|{r['name']}|{r['brand'] or ''}" for r in rows)
-    return f"{_TASK}{products}\n\nReceipt:\n{text.strip()}\n"
+    task = localized(_TASK, _WORDS, language(conn))
+    return f"{task}{products}\n\nReceipt:\n{text.strip()}\n"
 
 
 def _learned(conn: sqlite3.Connection, store: str, key: str) -> int | None:

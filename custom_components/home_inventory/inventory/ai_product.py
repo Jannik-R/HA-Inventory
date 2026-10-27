@@ -7,6 +7,7 @@ import json
 import sqlite3
 
 from .ai_check import MAX_TYPE_NAME, category_tree, unit_list
+from .ai_lang import language, localized
 
 MAX_NAME = 200
 MAX_AMOUNT = 1_000_000
@@ -15,12 +16,12 @@ MAX_AMOUNT = 1_000_000
 _TASK = """You check a new product for "Vorrat", a household inventory in Home Assistant. It comes
 from Open Food Facts (a barcode scan); the app filled the draft below from that data.
 Check:
-- "name": the short German product name as on the package, without brand and package size
+- "name": the short @lang@ product name as on the package, without brand and package size
   (e.g. "Spaghetti n.5", not "Barilla Spaghetti n.5 500g"). Keep a name that is fine.
 - "category_id": the most specific category from the tree that fits (food or non-food; a
   product type on the lowest level when one fits). When no product type fits but the product is a
-  distinct kind people keep (e.g. "Sumach" with no such type below "Gewürze"), propose one:
-  "new_type" {"name": <singular German name>, "parent_id": <the most specific category it
+  distinct kind people keep (e.g. "@sumac@" with no such type below "@spices@"), propose one:
+  "new_type" {"name": <singular @lang@ name>, "parent_id": <the most specific category it
   belongs below>} instead of "category_id". Never one the tree already has.
 - "content_amount" with "content_unit_id": the content of one package in a unit from the unit
   list (e.g. "4 x 125 g" = 500 g; canned or jarred food: the drained weight when stated).
@@ -31,6 +32,12 @@ Answer with JSON only.
 
 Categories (id name; indentation = level below the parent):
 """
+
+
+_WORDS = {
+    "de": {"lang": "German", "sumac": "Sumach", "spices": "Gewürze"},
+    "en": {"lang": "English", "sumac": "Sumac", "spices": "Spices"},
+}
 
 
 def _off(off_json: str | None) -> dict:
@@ -62,7 +69,8 @@ def prompt(conn: sqlite3.Connection, draft: dict) -> str:
     }
     body = json.dumps(product, ensure_ascii=False, separators=(",", ":"))
     tree, units = category_tree(conn, food_only=False), unit_list(conn)
-    return f"{_TASK}{tree}\n\nUnits (id symbol (name)):\n{units}\n\nProduct draft:\n{body}\n"
+    task = localized(_TASK, _WORDS, language(conn))
+    return f"{task}{tree}\n\nUnits (id symbol (name)):\n{units}\n\nProduct draft:\n{body}\n"
 
 
 def _named(conn: sqlite3.Connection, name: str) -> int | None:

@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
+from .ai_lang import language, localized
 from .common import unit_key
 from .ingredient_line import unit_lookup
 from .inherit import _categories, children, food_named, is_food
@@ -20,19 +21,19 @@ _TASK = """You check a recipe import for "Vorrat", a household inventory in Home
 Each recipe ingredient is linked to one food category from the tree below; the app checks the
 stock of that category and its subcategories. The best category is the most specific one that
 fits the ingredient (a product type on the lowest level when one fits); a more general category
-only when the recipe accepts any kind of it (e.g. "Nudeln"). Things nobody keeps in stock
+only when the recipe accepts any kind of it (e.g. "@pasta@"). Things nobody keeps in stock
 (water, ice cubes) may have no category (category_id 0).
 When no product type in the tree fits but the ingredient is a distinct food that people keep in
-stock (e.g. "Sumach" with no such type below "Gewürze"), propose a new product type: "new_type"
-{"name": <singular German name>, "parent_id": <the most specific category it belongs below>}.
+stock (e.g. "@sumac@" with no such type below "@spices@"), propose a new product type: "new_type"
+{"name": <singular @lang@ name>, "parent_id": <the most specific category it belongs below>}.
 Only a product type, never a new intermediate category; never one the tree already has.
 Each ingredient's amount has a unit from the unit list below. "unit" null with a "line" that
 names a unit means the app did not know the word: pick the matching unit ("unit_id", e.g.
-"Msp." = "Messerspitze"), or, when none fits, propose a new count unit "new_unit"
-{"name": <singular German name, e.g. "Knolle">}. Also fix a unit that does not fit the line.
+@tip@), or, when none fits, propose a new count unit "new_unit"
+{"name": <singular @lang@ name, e.g. "@bulb@">}. Also fix a unit that does not fit the line.
 Steps: one action-sized step each, in the recipe's order and wording. Split a long block into
-steps, do not invent or drop content. A section name only for real sub-parts (e.g. "Teig",
-"Füllung"); one section for the whole recipe is no section.
+steps, do not invent or drop content. A section name only for real sub-parts (e.g. "@dough@",
+"@filling@"); one section for the whole recipe is no section.
 
 Answer with JSON only.
 - Everything fine: {"ok": true}
@@ -44,10 +45,34 @@ Answer with JSON only.
   "steps": the complete new step list [{"text": ..., "section": ...}] only if the steps need
   splitting or fixing.
 Ingredients with "learned": true were confirmed by the user before: change them only when
-clearly wrong. Keep the recipe's language (German).
+clearly wrong. Keep the recipe's language (@lang@).
 
 Food categories (id name; indentation = level below the parent):
 """
+
+
+_WORDS = {
+    "de": {
+        "lang": "German",
+        "pasta": "Nudeln",
+        "sumac": "Sumach",
+        "spices": "Gewürze",
+        "tip": '"Msp." = "Messerspitze"',
+        "bulb": "Knolle",
+        "dough": "Teig",
+        "filling": "Füllung",
+    },
+    "en": {
+        "lang": "English",
+        "pasta": "Pasta",
+        "sumac": "Sumac",
+        "spices": "Spices",
+        "tip": '"tip" = "knife tip"',
+        "bulb": "bulb",
+        "dough": "Dough",
+        "filling": "Filling",
+    },
+}
 
 
 def unit_list(conn: sqlite3.Connection) -> str:
@@ -100,7 +125,8 @@ def prompt(conn: sqlite3.Connection, draft: dict) -> str:
     }
     body = json.dumps(recipe, ensure_ascii=False, separators=(",", ":"))
     tree, unit_lines = category_tree(conn), unit_list(conn)
-    return f"{_TASK}{tree}\n\nUnits (id symbol (name)):\n{unit_lines}\n\nRecipe draft:\n{body}\n"
+    task = localized(_TASK, _WORDS, language(conn))
+    return f"{task}{tree}\n\nUnits (id symbol (name)):\n{unit_lines}\n\nRecipe draft:\n{body}\n"
 
 
 def _headings(steps: list[dict]) -> list[dict]:

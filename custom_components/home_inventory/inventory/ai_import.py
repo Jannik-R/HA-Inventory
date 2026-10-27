@@ -7,6 +7,7 @@ from __future__ import annotations
 import html
 import re
 
+from .ai_lang import localized
 from .steps import MAX_SECTION, MAX_STEPS, MAX_TEXT
 
 MAX_PAGE_TEXT = 15_000  # visible text of a page sent to the AI (characters)
@@ -27,13 +28,28 @@ Answer with JSON only.
 - No recipe in the sources: {"found": false}
 - Otherwise {"found": true, "name": <dish name>, "servings": <number; 4 if not stated>,
   "ingredients": [<one line per ingredient>],
-  "steps": [{"text": <one action-sized step>, "section": <only for real sub-parts, e.g. "Teig">}]}
-Write everything in German (translate if needed). Ingredient lines as in a German cookbook:
-amount, unit, name, then a comma and a note: "200 g Mehl", "1 TL Salz", "2 Zwiebeln, fein
-gewürfelt", "Pfeffer". Metric units (g, kg, ml, l, EL, TL, Prise, Stück); convert cups and
+  "steps": [{"text": <one action-sized step>, "section": <only for real sub-parts, e.g. "@dough@">}]}
+Write everything in @lang@ (translate if needed). Ingredient lines as in a @lang@ cookbook:
+amount, unit, name, then a comma and a note: @lines@. Metric units (@units@); convert cups and
 ounces: liquids to ml, solids to g or pieces (never ml for onions, flour or cheese). Do not invent ingredients, amounts or steps; leave out what is not part of the recipe
 (hashtags, ads, greetings, links).
 """
+
+
+_WORDS = {
+    "de": {
+        "lang": "German",
+        "lines": '"200 g Mehl", "1 TL Salz", "2 Zwiebeln, fein gewürfelt", "Pfeffer"',
+        "units": "g, kg, ml, l, EL, TL, Prise, Stück",
+        "dough": "Teig",
+    },
+    "en": {
+        "lang": "English",
+        "lines": '"200 g flour", "1 tsp salt", "2 onions, finely diced", "pepper"',
+        "units": "g, kg, ml, l, tbsp, tsp, pinch, piece",
+        "dough": "Dough",
+    },
+}
 
 
 def _hidden_removed(page: str) -> str:
@@ -77,7 +93,7 @@ def page_sources(page: str) -> dict:
     }
 
 
-def prompt(sources: dict) -> str:
+def prompt(sources: dict, language: str = "de") -> str:
     """The instructions for ai_task: the task, then each non-empty text source."""
     labels = (
         ("title", "Title"),
@@ -85,7 +101,12 @@ def prompt(sources: dict) -> str:
         ("text", "Text"),
     )
     parts = [f"{label}:\n{sources[key]}" for key, label in labels if sources.get(key)]
-    return _TASK + "\nSources:\n" + ("\n\n".join(parts) or "(only the attached files)") + "\n"
+    return (
+        localized(_TASK, _WORDS, language)
+        + "\nSources:\n"
+        + ("\n\n".join(parts) or "(only the attached files)")
+        + "\n"
+    )
 
 
 def to_recipe(answer: object, image: str | None = None) -> dict | None:

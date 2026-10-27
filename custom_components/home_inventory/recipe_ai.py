@@ -59,13 +59,14 @@ async def _extract(
         ]
     if not attachments and not any(sources.get(k) for k in ("title", "description", "text")):
         raise InventoryError("recipe_not_found")
+    language = await db_of(hass).run(inventory.ai_language, write=False)
     try:
         async with asyncio.timeout(_TIMEOUT):
             result = await ai._generate(
                 hass,
                 task_name="Vorrat: Rezept auslesen",
                 entity_id=entity_id,
-                instructions=inventory.ai_import_prompt(sources),
+                instructions=inventory.ai_import_prompt(sources, language),
                 structure=RECIPE_IMPORT_SCHEMA,
                 attachments=attachments or None,
             )

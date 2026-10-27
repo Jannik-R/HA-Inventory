@@ -313,3 +313,23 @@ async def test_websocket_check(hass: HomeAssistant, hass_ws_client) -> None:
     assert (await client.receive_json())["result"] == {"status": "off"}
     await client.send_json_auto_id({"type": "home_inventory/recipe_ai_check", "draft": d})
     assert (await client.receive_json())["result"] == {"status": "off"}
+
+
+def test_prompts_follow_the_seed_language(conn):
+    from custom_components.home_inventory.inventory import ai_import, purchase
+
+    def texts():
+        return [
+            inv.ai_prompt(conn, draft(conn)),
+            inv.ai_product_prompt(conn, product(conn)),
+            ai_import.prompt({}, inv.ai_language(conn)),
+            purchase.prompt(conn, "MILK 1,00"),
+        ]
+
+    assert all("German" in t for t in texts())
+    assert not any("@" in t for t in texts())  # every @word@ filled in
+    conn.execute("UPDATE defaults SET seed_lang = 'en'")
+    en = texts()
+    assert not any("German" in t for t in en)
+    assert not any("@" in t for t in en)
+    assert "Sumac" in en[0] and "Sumac" in en[1] and "1 tsp salt" in en[2] and "TESCO" in en[3]

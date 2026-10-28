@@ -8,5 +8,5 @@ yt-dlp==2026.8.19
 home-assistant-frontend==20260930.4
 gazetteer-matcher==1.2.0
 hassil==3.12.1
-PyTurboJPEG==2.5.0
+PyTurboJPEG==2.6.1
 home-assistant-intents==2026.10.6

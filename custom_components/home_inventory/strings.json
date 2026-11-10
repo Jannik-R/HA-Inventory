@@ -250,6 +250,7 @@
         "data": {
           "off_lookup": "Look up products in Open Food Facts",
           "off_images": "Show product pictures",
+          "recipe_images": "Show recipe pictures",
           "recipe_url": "Import recipes from links",
           "ai_recipe_check": "AI checks recipe imports",
           "ai_product_check": "AI checks new products",
@@ -260,6 +261,7 @@
         "data_description": {
           "off_lookup": "An unknown barcode and the online search are sent to openfoodfacts.org. Off: new products are entered by hand.",
           "off_images": "Your browser loads the small product pictures from images.openfoodfacts.org; that server sees your IP address and which picture is requested. Off: no pictures.",
+          "recipe_images": "Your browser loads the recipe picture from the website the recipe was imported from; that server sees your IP address and which picture is requested. Off: no recipe pictures.",
           "recipe_url": "Home Assistant loads the page of a pasted link (only on click).",
           "ai_recipe_check": "Each import sends the recipe, the food category tree and the units (about 10,000 tokens) to the AI.",
           "ai_product_check": "When booking in a new product from Open Food Facts, its data, the category tree and the units go to the AI.",

@@ -3,7 +3,7 @@ import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fmtAmount, fmtNumber, fmtPortions } from "./format";
 import { stepList } from "./recipe-steps";
-import { hasModule } from "./modules";
+import { hasExternal, hasModule } from "./modules";
 import { optionalMark } from "./recipe-diet";
 import "./receipt-button";
 import { recipeOutputButtons } from "./recipe-output";
@@ -198,7 +198,7 @@ export const recipeDetail = (o: {
         : nothing
     }
     ${
-      r.image_url
+      r.image_url && hasExternal("recipe_images")
         ? html`<img
             class="photo"
             src=${r.image_url}

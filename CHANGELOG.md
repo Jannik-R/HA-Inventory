@@ -2,8 +2,16 @@
 
 ## Unreleased
 
-- AI prompts follow the database language (German or English): product names, ingredient lines and units come back in that language
+## 0.3.1 - 2026-11-10
+
+### Added
+
 - New external service *Rezeptbilder* (`recipe_images`, on by default): the browser loads recipe pictures from the website the recipe was imported from. Switch it off under *Konfigurieren > Externe Dienste*.
+
+### Changed
+
+- Requires Home Assistant 2026.11.0 or newer (the version CI tests against); dependency updates
+- AI prompts follow the database language (German or English): product names, ingredient lines and units come back in that language
 
 ## 0.3.0 - 2026-10-26
 

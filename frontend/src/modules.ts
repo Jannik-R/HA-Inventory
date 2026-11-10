@@ -22,6 +22,7 @@ export const hasModule = (m: Module) => !active || active.includes(m);
 export type External =
   | "off_lookup"
   | "off_images"
+  | "recipe_images"
   | "recipe_url"
   | "ai_recipe_check"
   | "ai_product_check"

@@ -3,6 +3,7 @@
 ## Unreleased
 
 - AI prompts follow the database language (German or English): product names, ingredient lines and units come back in that language
+- New external service *Rezeptbilder* (`recipe_images`, on by default): the browser loads recipe pictures from the website the recipe was imported from. Switch it off under *Konfigurieren > Externe Dienste*.
 
 ## 0.3.0 - 2026-10-26
 

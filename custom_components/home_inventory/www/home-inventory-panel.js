@@ -8413,7 +8413,7 @@ var Qo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "
               >${S("recipes.source")}</a
             >
           </p>` : v}
-    ${t.image_url ? g`<img
+    ${t.image_url && R("recipe_images") ? g`<img
             class="photo"
             src=${t.image_url}
             alt=${t.name}

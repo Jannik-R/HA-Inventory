@@ -5,7 +5,7 @@ pytest-xdist==3.8.0
 # (frontend, conversation for the LLM API); the HA container used to bring them. Keep on the versions of the pinned HA release.
 segno==1.6.6
 yt-dlp==2026.10.26
-home-assistant-frontend==20260930.5
+home-assistant-frontend==20261028.5
 gazetteer-matcher==1.2.0
 hassil==3.12.1
 PyTurboJPEG==2.6.1

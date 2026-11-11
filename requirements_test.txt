@@ -9,4 +9,4 @@ home-assistant-frontend==20260930.5
 gazetteer-matcher==1.2.0
 hassil==3.12.1
 PyTurboJPEG==2.6.1
-home-assistant-intents==2026.10.6
+home-assistant-intents==2026.10.27

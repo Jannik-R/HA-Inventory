@@ -26,7 +26,7 @@ services:
   # client as the gateway (a trusted network), so the client is set to a fixed untrusted address
   # (192.0.2.1, documentation range): requests through this port always need the HA login.
   proxy:
-    image: caddy:2.11.7
+    image: caddy:2.11.9
     profiles: [proxy]
     command:
       ["caddy", "reverse-proxy", "--from", ":8124", "--to", "homeassistant:8123",

@@ -225,7 +225,7 @@ it only through the services below. Each one has its own switch under *Configure
 |---|---|---|---|
 | *Look up products in Open Food Facts* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Search online*; the admin button *Reload allergens from Open Food Facts* sends the barcodes of products without allergen data, about one per second | on |
 | *Show product pictures* | your browser requests the small product picture from images.openfoodfacts.org, so that server sees your IP address and which product | stock list and booking result show a product with a picture | on |
-| *Show recipe pictures* | your browser requests the recipe picture from the website the recipe was imported from, so that server sees your IP address and which picture is requested | opened recipe with a picture | on |
+| *Show recipe pictures* | when a recipe is saved, Home Assistant downloads its picture once from the website the recipe was imported from, so that server sees your Home Assistant's IP address and which picture is requested; the picture is stored in Home Assistant | saved recipe with a picture (older recipes: when the recipe list first loads) | on |
 | *Import recipes from links* | a request for the linked page to that site (from Home Assistant) | *Import* with a link | on |
 | *AI checks recipe imports* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |
 | *AI checks new products* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |

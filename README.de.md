@@ -233,7 +233,7 @@ schickt nichts.
 |---|---|---|---|
 | *Produkte in Open Food Facts nachschlagen* | Barcode oder Suchtext an openfoodfacts.org (und die Schwester-Datenbanken) | unbekannter Barcode beim Einbuchen, *Online suchen*; der Admin-Knopf *Allergene von Open Food Facts nachladen* sendet die Barcodes der Produkte ohne Allergenangaben, etwa einen pro Sekunde | an |
 | *Produktbilder anzeigen* | dein Browser fragt das kleine Produktbild bei images.openfoodfacts.org an, dieser Server sieht also deine IP-Adresse und welches Produkt | Bestandsliste und Buchungsergebnis zeigen ein Produkt mit Bild | an |
-| *Rezeptbilder anzeigen* | dein Browser fragt das Rezeptbild bei der Website an, von der das Rezept importiert wurde; dieser Server sieht also deine IP-Adresse und welches Bild | geöffnetes Rezept mit Bild | an |
+| *Rezeptbilder anzeigen* | beim Speichern eines Rezepts lädt Home Assistant sein Bild einmal von der Website, von der das Rezept importiert wurde; dieser Server sieht also die IP-Adresse deines Home Assistant und welches Bild; das Bild wird in Home Assistant gespeichert | gespeichertes Rezept mit Bild (ältere Rezepte: wenn die Rezeptliste erstmals lädt) | an |
 | *Rezepte aus Links importieren* | eine Anfrage nach der verlinkten Seite an diese Website (von Home Assistant aus) | *Importieren* mit Link | an |
 | *KI prüft Rezeptimporte* | Rezept, Baum der Lebensmittel-Kategorien und Einheiten an die gewählte KI | jeder Rezeptimport | an (mit KI) |
 | *Neue Produkte prüfen* | die Open-Food-Facts-Daten des Produkts, Kategoriebaum und Einheiten an die KI | neues Produkt beim Einbuchen | an (mit KI) |

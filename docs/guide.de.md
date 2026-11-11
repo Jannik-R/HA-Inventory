@@ -383,7 +383,7 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
 [Einkochen und Dörren](#7b-einkochen-und-dörren), nicht hier). Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, die nummerierten Schritte, Quelle und Bild; **Portionen**
-rechnet die Mengen um (nur Anzeige). Dein Browser lädt das Bild von der Website, von der das Rezept importiert wurde; abschalten unter *Konfigurieren > Externe Dienste > Rezeptbilder anzeigen*. **Auf die Einkaufsliste** setzt das Rezept auf die Liste
+rechnet die Mengen um (nur Anzeige). Das Bild wird beim Speichern einmal von der Website des Rezepts in Home Assistant gespeichert und nur angemeldeten Nutzern gezeigt; abschalten unter *Konfigurieren > Externe Dienste > Rezeptbilder anzeigen* (dann wird nichts geladen, schon gespeicherte Bilder bleiben sichtbar). Ein Foto aus dem KI-Import wird nicht als Rezeptbild gespeichert. **Auf die Einkaufsliste** setzt das Rezept auf die Liste
 (siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
 [Speiseplan](#7a-speiseplan) ein (Datum: heute, Mahlzeit: Abendessen; im Dialog änderbar).
 

@@ -261,7 +261,7 @@
         "data_description": {
           "off_lookup": "Ein unbekannter Barcode und die Online-Suche werden an openfoodfacts.org geschickt. Aus: neue Produkte werden von Hand angelegt.",
           "off_images": "Dein Browser lädt die kleinen Produktbilder von images.openfoodfacts.org; dieser Server sieht deine IP-Adresse und welches Bild angefragt wird. Aus: keine Bilder.",
-          "recipe_images": "Dein Browser lädt das Rezeptbild von der Website, von der das Rezept importiert wurde; dieser Server sieht deine IP-Adresse und welches Bild angefragt wird. Aus: keine Rezeptbilder.",
+          "recipe_images": "Das Panel zeigt Rezeptbilder. Beim Speichern eines Rezepts wird sein Bild einmal von der Website des Rezepts in Home Assistant heruntergeladen (dieser Server sieht die IP-Adresse deines Home Assistant) und dort gespeichert; angezeigt wird die gespeicherte Kopie. Aus: nichts wird heruntergeladen und kein Bild aus dem Web angezeigt (bereits gespeicherte Bilder werden weiter gezeigt).",
           "recipe_url": "Home Assistant lädt die Seite eines eingefügten Links (nur auf Klick).",
           "ai_recipe_check": "Jeder Import schickt das Rezept, den Baum der Lebensmittel-Kategorien und die Einheiten (etwa 10.000 Tokens) an die KI.",
           "ai_product_check": "Beim Einbuchen eines neuen Produkts aus Open Food Facts gehen seine Daten, der Kategoriebaum und die Einheiten an die KI.",

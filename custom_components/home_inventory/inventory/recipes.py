@@ -207,6 +207,11 @@ def recipe_availability(conn: sqlite3.Connection, recipe_id: int, servings: int)
     return _availability(_ctx(conn), _ingredients(conn, recipe_id), servings / row["servings"])
 
 
+def recipe_image_url(conn: sqlite3.Connection, recipe_id: int) -> str | None:
+    row = conn.execute("SELECT image_url FROM recipe WHERE id = ?", (recipe_id,)).fetchone()
+    return row["image_url"] if row else None
+
+
 def recipes(conn: sqlite3.Connection) -> list[dict]:
     """All recipes by name with ingredients, availability at their own servings and a summary
     (available / total over the ingredients that are neither optional nor skipped)."""

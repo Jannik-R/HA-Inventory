@@ -7,7 +7,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
-from . import ai, inventory, recipe_ai
+from . import ai, inventory, recipe_ai, recipe_image
 from .websocket_stock import _NEW_PRODUCT
 from .ws_common import run, translated
 from .ws_validate import (
@@ -65,7 +65,9 @@ def async_register(hass: HomeAssistant) -> None:
 @websocket_api.websocket_command({vol.Required("type"): "home_inventory/recipes"})
 @websocket_api.async_response
 async def ws_recipes(hass: HomeAssistant, connection, msg: dict) -> None:
-    connection.send_result(msg["id"], await run(hass, inventory.recipes))
+    result = await run(hass, inventory.recipes)
+    await recipe_image.async_attach(hass, result)
+    connection.send_result(msg["id"], result)
 
 
 @websocket_api.websocket_command(
@@ -114,7 +116,12 @@ async def ws_recipe_availability(hass: HomeAssistant, connection, msg: dict) -> 
 )
 @websocket_api.async_response
 async def ws_recipe_save(hass: HomeAssistant, connection, msg: dict) -> None:
-    connection.send_result(msg["id"], {"id": await run(hass, inventory.save_recipe, msg["data"])})
+    data = msg["data"]
+    old = await run(hass, inventory.recipe_image_url, data["id"]) if "id" in data else None
+    recipe_id = await run(hass, inventory.save_recipe, data)
+    connection.send_result(msg["id"], {"id": recipe_id})
+    url = data.get("image_url", old)  # not sent: unchanged
+    await recipe_image.async_saved(hass, recipe_id, old, url)
 
 
 @websocket_api.websocket_command(

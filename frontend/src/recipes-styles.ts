@@ -82,8 +82,10 @@ export const recipesStyles = css`
     margin: 0;
   }
   .photo {
-    max-width: 100%;
-    max-height: 240px;
+    display: block;
+    width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
     margin-top: 8px;
   }
   a {

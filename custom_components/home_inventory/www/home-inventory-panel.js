@@ -8125,8 +8125,10 @@ var Mo = (e) => g`<label>
     margin: 0;
   }
   .photo {
-    max-width: 100%;
-    max-height: 240px;
+    display: block;
+    width: 100%;
+    max-height: 50vh;
+    object-fit: contain;
     margin-top: 8px;
   }
   a {
@@ -8413,9 +8415,9 @@ var Qo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "
               >${S("recipes.source")}</a
             >
           </p>` : v}
-    ${t.image_url && R("recipe_images") ? g`<img
+    ${t.image_path || t.image_url && R("recipe_images") ? g`<img
             class="photo"
-            src=${t.image_url}
+            src=${t.image_path ?? t.image_url}
             alt=${t.name}
             loading="lazy"
             referrerpolicy="no-referrer"

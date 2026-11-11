@@ -198,10 +198,10 @@ export const recipeDetail = (o: {
         : nothing
     }
     ${
-      r.image_url && hasExternal("recipe_images")
+      r.image_path || (r.image_url && hasExternal("recipe_images"))
         ? html`<img
             class="photo"
-            src=${r.image_url}
+            src=${r.image_path ?? r.image_url}
             alt=${r.name}
             loading="lazy"
             referrerpolicy="no-referrer"

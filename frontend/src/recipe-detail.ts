@@ -80,6 +80,17 @@ export const recipeDetail = (o: {
       .join(" "),
   );
   return html`<div class="detail-box">
+    ${
+      r.image_path || (r.image_url && hasExternal("recipe_images"))
+        ? html`<img
+            class="photo"
+            src=${r.image_path ?? r.image_url}
+            alt=${r.name}
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          />`
+        : nothing
+    }
     <label class="servings">
       <span class="lbl"
         >${isCanning(r) ? pt(r.canning_kind, "recipe_jars") : t("recipes.servings")}</span
@@ -195,17 +206,6 @@ export const recipeDetail = (o: {
               >${t("recipes.source")}</a
             >
           </p>`
-        : nothing
-    }
-    ${
-      r.image_path || (r.image_url && hasExternal("recipe_images"))
-        ? html`<img
-            class="photo"
-            src=${r.image_path ?? r.image_url}
-            alt=${r.name}
-            loading="lazy"
-            referrerpolicy="no-referrer"
-          />`
         : nothing
     }
   </div>`;

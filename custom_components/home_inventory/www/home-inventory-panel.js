@@ -8127,9 +8127,9 @@ var Mo = (e) => g`<label>
   .photo {
     display: block;
     width: 100%;
-    max-height: 50vh;
+    max-height: 30vh;
     object-fit: contain;
-    margin-top: 8px;
+    margin-bottom: 8px;
   }
   a {
     color: var(--primary-color);
@@ -8335,6 +8335,13 @@ var Qo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "
 		n.optional ? `(${S("recipes.optional")})` : ""
 	].filter(Boolean).join(" "));
 	return g`<div class="detail-box">
+    ${t.image_path || t.image_url && R("recipe_images") ? g`<img
+            class="photo"
+            src=${t.image_path ?? t.image_url}
+            alt=${t.name}
+            loading="lazy"
+            referrerpolicy="no-referrer"
+          />` : v}
     <label class="servings">
       <span class="lbl"
         >${I(t) ? Q(t.canning_kind, "recipe_jars") : S("recipes.servings")}</span
@@ -8415,13 +8422,6 @@ var Qo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "
               >${S("recipes.source")}</a
             >
           </p>` : v}
-    ${t.image_path || t.image_url && R("recipe_images") ? g`<img
-            class="photo"
-            src=${t.image_path ?? t.image_url}
-            alt=${t.name}
-            loading="lazy"
-            referrerpolicy="no-referrer"
-          />` : v}
   </div>`;
 }, ss = (e) => e.category_id == null && !e.text.trim() && e.amount == null && !e.note?.trim(), cs = (e) => e.map((e) => {
 	let t = {};

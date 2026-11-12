@@ -72,7 +72,7 @@ from .queries import expiring, stock_list
 from .recipe_export import recipe_jsonld, recipes_jsonld
 from .recipe_import import recipe_draft, recipe_import
 from .recipe_print import recipe_sheet
-from .recipes import recipe_availability, recipes, save_recipe
+from .recipes import recipe_availability, recipe_image_url, recipes, save_recipe
 from .removal import delete_impact, force_delete, move_location
 from .shopping import (
     add_shopping_by_name,
@@ -181,6 +181,7 @@ __all__ = [
     "recipe_availability",
     "recipe_by_name",
     "recipe_draft",
+    "recipe_image_url",
     "recipe_import",
     "recipe_items",
     "recipe_jsonld",

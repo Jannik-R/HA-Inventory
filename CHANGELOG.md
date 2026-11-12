@@ -21,6 +21,7 @@
 
 - A product name that several products share no longer books the oldest one silently: actions and AI tools fail with the list of brands. The shopping list still takes the category of that name or the oldest product
 - Freezing or thawing a product picked from the hit list goes by the product, not by its name
+- *Notvorrat* shows "1 Tag" instead of "1 Tage"
 - *Gekocht*: two ingredients of the same category or product no longer both claim the same packages; the proposal is planned row by row against the stock the rows before leave, so it can always be booked as shown
 
 ## 0.3.1 - 2026-11-10

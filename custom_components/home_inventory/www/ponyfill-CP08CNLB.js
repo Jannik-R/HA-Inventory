@@ -1,4 +1,4 @@
-//#region node_modules/barcode-detector/dist/es/zxing-exported.js
+// node_modules/barcode-detector/dist/es/zxing-exported.js
 var e = [
 	[
 		"All",
@@ -986,7 +986,7 @@ async function ce() {
 	function st(e, t) {
 		var n;
 		if (t === null) return this.isReference && H(`null is not a valid ${this.name}`), this.isSmartPointer ? (n = this.rawConstructor(), e !== null && e.push(this.rawDestructor, n), n) : 0;
-		(!t || !t.$$) && H(`Cannot pass "${at(t)}" as a ${this.name}`), t.$$.ptr || H(`Cannot pass deleted object as a pointer of type ${this.name}`), !this.isConst && t.$$.ptrType.isConst && H(`Cannot convert argument of type ${t.$$.smartPtrType ? t.$$.smartPtrType.name : t.$$.ptrType.name} to parameter type ${this.name}`);
+		t && t.$$ || H(`Cannot pass "${at(t)}" as a ${this.name}`), t.$$.ptr || H(`Cannot pass deleted object as a pointer of type ${this.name}`), !this.isConst && t.$$.ptrType.isConst && H(`Cannot convert argument of type ${t.$$.smartPtrType ? t.$$.smartPtrType.name : t.$$.ptrType.name} to parameter type ${this.name}`);
 		var r = t.$$.ptrType.registeredClass;
 		if (n = it(t.$$.ptr, r, this.registeredClass), this.isSmartPointer) switch (t.$$.smartPtr === void 0 && H("Passing raw pointer to smart pointer is illegal"), this.sharingPolicy) {
 			case 0:
@@ -1020,7 +1020,7 @@ async function ce() {
 	}, ut = {}, dt = (e, t) => {
 		for (t === void 0 && H("ptr should not be undefined"); e.baseClass;) t = e.upcast(t), e = e.baseClass;
 		return t;
-	}, ft = (e, t) => (t = dt(e, t), ut[t]), pt = (e, t) => ((!t.ptrType || !t.ptr) && L("makeClassHandle requires ptr and ptrType"), !!t.smartPtrType != !!t.smartPtr && L("Both smartPtrType and smartPtr must be specified"), t.count = { value: 1 }, W(Object.create(e, { $$: {
+	}, ft = (e, t) => (t = dt(e, t), ut[t]), pt = (e, t) => (t.ptrType && t.ptr || L("makeClassHandle requires ptr and ptrType"), !!t.smartPtrType != !!t.smartPtr && L("Both smartPtrType and smartPtr must be specified"), t.count = { value: 1 }, W(Object.create(e, { $$: {
 		value: t,
 		writable: !0
 	} })));
@@ -2323,5 +2323,4 @@ var P = /* @__PURE__ */ new WeakMap(), F = class {
 		}
 	}
 };
-//#endregion
 export { F as BarcodeDetector, ne as ZXING_CPP_COMMIT, pe as ZXING_WASM_SHA256, te as ZXING_WASM_VERSION, le as prepareZXingModule, ue as purgeZXingModule, de as setZXingModuleOverrides };

@@ -9,7 +9,7 @@ from .amounts import _amount, _convert, _stock_by_category, _units
 from .common import InventoryError, _now, id_by_name
 from .inherit import _categories, _chain, _path, children
 from .master import save
-from .products import add_product
+from .products import add_product, product_by_name
 from .shopping_recipes import recipe_items
 
 
@@ -240,11 +240,25 @@ def add_shopping_item(
     return row["id"]
 
 
-def add_shopping_by_name(conn: sqlite3.Connection, name: str) -> int:
-    """Free text (e.g. from HA's to-do card): a product, else a category, with exactly this name."""
-    for table, col in (("product", "product_id"), ("category", "category_id")):
-        if found := id_by_name(conn.execute(f"SELECT id, name FROM {table} ORDER BY id"), name):
-            return add_shopping_item(conn, **{col: found})
+def add_shopping_by_name(conn: sqlite3.Connection, name: str, brand: str | None = None) -> int:
+    """Free text (e.g. from HA's to-do card): a product (+ brand), else a category, with exactly this
+    name. Without a brand it never fails on a shared name: a category of that name, else the
+    oldest product."""
+    categories = conn.execute("SELECT id, name FROM category ORDER BY id").fetchall()
+    try:
+        product = product_by_name(conn, name, brand)
+    except InventoryError:
+        if brand:
+            raise
+        if found := id_by_name(categories, name):
+            return add_shopping_item(conn, category_id=found)
+        key = name.strip().casefold()
+        rows = conn.execute("SELECT id, name FROM product ORDER BY id")
+        product = next(r for r in rows if r["name"].casefold() == key)
+    if product:
+        return add_shopping_item(conn, product_id=product["id"])
+    if not brand and (found := id_by_name(categories, name)):
+        return add_shopping_item(conn, category_id=found)
     raise InventoryError("shopping_unknown", name=name.strip())
 
 

@@ -135,3 +135,16 @@ async def test_tool_results(hass: HomeAssistant, entry: MockConfigEntry) -> None
     with pytest.raises(ServiceValidationError) as err:
         await call(instance, "book_out", product="Penne")
     assert err.value.translation_key == "product_unknown"
+
+
+async def test_ambiguous_name(hass: HomeAssistant, entry: MockConfigEntry) -> None:
+    await entry.runtime_data.run(partial(product, brand="Barilla"))  # same name as the EAN one
+    instance = await api(hass)
+    with pytest.raises(ServiceValidationError) as err:
+        await call(instance, "book_in", product="Spaghetti")
+    assert err.value.translation_key == "product_not_unique_blank"
+    assert "Barilla" in str(err.value)
+    booked = await call(instance, "book_in", product="Spaghetti", brand="barilla")
+    assert booked["name"] == "Spaghetti"
+    rows = await call(instance, "get_stock", search="spaghetti")
+    assert [(r["brand"], r["packages"]) for r in rows] == [("Barilla", 1)]

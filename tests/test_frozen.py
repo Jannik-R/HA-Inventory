@@ -140,3 +140,19 @@ def test_freeze_scan(conn) -> None:
     again = inv.freeze_scan(conn, inv.label_info(conn, fresh)["code"], TODAY, freezer(conn))
     assert (again["thaw"], again["location"]) == (False, "Gefrierschrank")
     assert (fresh, fridge) not in stock(conn)
+
+
+def test_freeze_scan_picked_product(conn) -> None:
+    """A product picked in the panel goes by id, also when its name is shared."""
+    a = product(conn, "Rinderhack", "Hackfleisch", brand="A")
+    b = product(conn, "Rinderhack", "Hackfleisch", brand="B")
+    inv.book_in(conn, a, 1, "2026-10-22", loc(conn))
+    inv.book_in(conn, b, 1, "2026-10-22", loc(conn))
+    with pytest.raises(InventoryError) as err:
+        inv.freeze_scan(conn, "Rinderhack", TODAY)
+    assert err.value.translation_key == "product_not_unique"
+    res = inv.freeze_scan(conn, None, TODAY, product_id=b)
+    assert res["location"] == "Gefrierschrank"
+    assert [
+        r[0] for r in conn.execute("SELECT product_id FROM batch WHERE frozen_on IS NOT NULL")
+    ] == [b]

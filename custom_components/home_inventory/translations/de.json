@@ -130,6 +130,12 @@
     "product_unknown": {
       "message": "Kein Produkt mit dem Barcode oder Namen {code}. Neue Produkte einmal im Vorrat-Panel einbuchen."
     },
+    "product_not_unique": {
+      "message": "Mehrere Produkte heißen „{name}“ (Marken: {brands}). Marke angeben oder Barcode bzw. Etikett verwenden."
+    },
+    "product_not_unique_blank": {
+      "message": "Mehrere Produkte heißen „{name}“, eines davon ohne Marke (Marken: {brands}). Marke angeben oder Barcode bzw. Etikett verwenden."
+    },
     "location_unknown": {
       "message": "Kein Lagerort namens „{name}“."
     },
@@ -295,6 +301,10 @@
           "name": "Barcode",
           "description": "EAN oder Name eines Produkts, das schon im Vorrat angelegt ist."
         },
+        "brand": {
+          "name": "Marke",
+          "description": "Marke des Produkts, um eines zu wählen, wenn mehrere denselben Namen haben. Bei EAN oder Etikett-Code nicht nötig."
+        },
         "packages": {
           "name": "Packungen",
           "description": "Anzahl der Packungen."
@@ -317,6 +327,10 @@
           "name": "Code",
           "description": "EAN, Etikett-Code PTRY:… oder Produktname"
         },
+        "brand": {
+          "name": "Marke",
+          "description": "Marke des Produkts, um eines zu wählen, wenn mehrere denselben Namen haben. Bei EAN oder Etikett-Code nicht nötig."
+        },
         "packages": {
           "name": "Packungen",
           "description": "Anzahl der Packungen (Etikett-Code: 1)."
@@ -335,6 +349,10 @@
           "name": "Code",
           "description": "EAN, Etikett-Code PTRY:… oder Produktname"
         },
+        "brand": {
+          "name": "Marke",
+          "description": "Marke des Produkts, um eines zu wählen, wenn mehrere denselben Namen haben. Bei EAN oder Etikett-Code nicht nötig."
+        },
         "location": {
           "name": "Lagerort",
           "description": "Nur aus diesem Lagerort (nicht mit Etikett-Code)."
@@ -348,6 +366,10 @@
         "code": {
           "name": "Code",
           "description": "EAN, Etikett-Code PTRY:… oder Produktname"
+        },
+        "brand": {
+          "name": "Marke",
+          "description": "Marke des Produkts, um eines zu wählen, wenn mehrere denselben Namen haben. Bei EAN oder Etikett-Code nicht nötig."
         },
         "packages": {
           "name": "Packungen",
@@ -370,6 +392,10 @@
         "code": {
           "name": "Code",
           "description": "EAN, Etikett-Code PTRY:… oder Produktname"
+        },
+        "brand": {
+          "name": "Marke",
+          "description": "Marke des Produkts, um eines zu wählen, wenn mehrere denselben Namen haben. Bei EAN oder Etikett-Code nicht nötig."
         },
         "packages": {
           "name": "Packungen",

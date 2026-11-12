@@ -36,6 +36,9 @@ _SERVINGS = probatio.Optional("servings", description="Servings; default the hou
 _PRODUCT = probatio.Required(
     "product", description="Product name as get_stock returns it, or its EAN barcode"
 )
+_BRAND = probatio.Optional(
+    "brand", description="Brand; only when several products share the name (the error lists them)"
+)
 _LOCATION = probatio.Optional("location", description="Location name as shown in the panel")
 _PACKAGES = probatio.Optional("packages", description="Number of packages; default 1")
 _MEAL = probatio.Optional("meal", description="Meal; default dinner")
@@ -71,7 +74,7 @@ async def _shopping_list(hass: HomeAssistant, args: dict, ctx: llm.LLMContext) -
 
 
 async def _add_item(hass: HomeAssistant, args: dict, ctx: llm.LLMContext) -> Any:
-    await run(hass, inventory.add_shopping_by_name, args["name"])
+    await run(hass, inventory.add_shopping_by_name, args["name"], args.get("brand"))
     return {"added": args["name"]}
 
 
@@ -112,7 +115,7 @@ SPECS = [
                              a.get("days") or 7)),
     Spec("plan", "add_to_shopping_list", "Put a product or category on the shopping list "
          "(exact name of a product or category).",
-         {probatio.Required("name", description="Product or category name"): str},
+         {probatio.Required("name", description="Product or category name"): str, _BRAND: str},
          _add_item, _ADD),
     Spec("plan", "add_recipe_to_shopping_list", "Put what is missing for a recipe on the "
          "shopping list.",
@@ -126,16 +129,16 @@ SPECS = [
           _SERVINGS: probatio.All(int, probatio.Range(min=1, max=99))},
          _service("plan_meal"), _ADD),
     Spec("all", "book_in", "Book packages of a known product into the stock.",
-         {_PRODUCT: str, _PACKAGES: probatio.All(int, probatio.Range(min=1, max=999)),
+         {_PRODUCT: str, _BRAND: str, _PACKAGES: probatio.All(int, probatio.Range(min=1, max=999)),
           probatio.Optional("expires_on", description="Best-before date YYYY-MM-DD"): str,
           _LOCATION: str},
          _service("book_in", {"product": "code"}), _BOOK),
     Spec("all", "book_out", "Take packages of a product out of the stock (earliest expiry first).",
-         {_PRODUCT: str, _PACKAGES: probatio.All(int, probatio.Range(min=1, max=999)),
+         {_PRODUCT: str, _BRAND: str, _PACKAGES: probatio.All(int, probatio.Range(min=1, max=999)),
           _LOCATION: str},
          _service("book_out", {"product": "code"}), _BOOK),
     Spec("all", "open_package", "Mark one package of a product as opened (earliest expiry first).",
-         {_PRODUCT: str, _LOCATION: str},
+         {_PRODUCT: str, _BRAND: str, _LOCATION: str},
          _service("open_package", {"product": "code"}), _BOOK),
 ]  # fmt: skip
 

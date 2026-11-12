@@ -14,20 +14,18 @@ from .labels import _label_batch, book_out_code, open_code
 from .master import list_rows
 from .meal_plan import save_meal
 from .opened import open_package
-from .products import find_ean
+from .products import find_ean, product_by_name
 from .shopping_recipes import set_shopping_recipe
 
 
-def _product(conn: sqlite3.Connection, ean: str) -> dict:
-    """Local product by EAN, else by name (voice, AI); unknown ones are created in the panel
-    (category needs a human)."""
+def _product(conn: sqlite3.Connection, ean: str, brand: str | None = None) -> dict:
+    """Local product by EAN, else by name (+ brand; voice, AI); unknown ones are created in the
+    panel (category needs a human)."""
     if product := find_ean(conn, ean.strip()):
         return product
-    # shortcut: two products with the same name (other brand) -> the oldest; add brand matching if it bites
-    rows = conn.execute("SELECT * FROM product ORDER BY id").fetchall()
-    if (found := id_by_name(rows, ean)) is None:
+    if (product := product_by_name(conn, ean, brand)) is None:
         raise InventoryError("product_unknown", code=ean.strip())
-    return dict(next(r for r in rows if r["id"] == found))
+    return product
 
 
 def _location(conn: sqlite3.Connection, name: str | None) -> int | None:
@@ -46,8 +44,9 @@ def book_in_by_code(
     location: str | None = None,
     user_id: str | None = None,
     today: date | None = None,
+    brand: str | None = None,
 ) -> dict:
-    product = _product(conn, code)
+    product = _product(conn, code, brand)
     batch_id = book_in(
         conn, product["id"], packages, expires_on, _location(conn, location), "service", user_id,
         today,
@@ -61,6 +60,7 @@ def book_out_by_code(
     packages: int = 1,
     location: str | None = None,
     user_id: str | None = None,
+    brand: str | None = None,
 ) -> dict:
     """EAN: `packages`, earliest expiry first. Label code (PTRY:...): exactly one package of its batch."""
     if code.strip().upper().startswith("PTRY:"):
@@ -69,7 +69,7 @@ def book_out_by_code(
         ):  # the label names the batch; it is taken where it is
             raise InventoryError("invalid_value")
         return book_out_code(conn, code.strip()[5:], user_id)
-    product = _product(conn, code)
+    product = _product(conn, code, brand)
     taken = book_out(
         conn,
         product["id"],
@@ -87,13 +87,14 @@ def open_by_code(
     today: date,
     location: str | None = None,
     user_id: str | None = None,
+    brand: str | None = None,
 ) -> dict:
     """Open one package. EAN: earliest expiry first (at `location` if given). Label code: its batch."""
     if code.strip().upper().startswith("PTRY:"):
         if location is not None:  # the label names the batch; it is opened where it is
             raise InventoryError("invalid_value")
         return open_code(conn, code.strip()[5:], today, user_id, "service")
-    product = _product(conn, code)
+    product = _product(conn, code, brand)
     return open_package(
         conn, product["id"], location_id=_location(conn, location), today=today,
         source="service", user_id=user_id,
@@ -109,6 +110,7 @@ def frozen_by_code(
     location: str | None = None,
     to_location: str | None = None,
     user_id: str | None = None,
+    brand: str | None = None,
 ) -> dict:
     """Freeze (or thaw) packages. EAN / name: earliest date first (from `location` if given), to
     `to_location` (default: first freezer / the product's location). Label code: its batch."""
@@ -116,7 +118,7 @@ def frozen_by_code(
     if code.strip().upper().startswith("PTRY:"):
         product, batch_id = _label_batch(conn, code.strip()[5:])
     else:
-        product = _product(conn, code)
+        product = _product(conn, code, brand)
     return (thaw if thawing else freeze)(
         conn, product["id"], packages, batch_id, _location(conn, location),
         _location(conn, to_location), today, "service", user_id,
@@ -125,17 +127,27 @@ def frozen_by_code(
 
 def freeze_scan(
     conn: sqlite3.Connection,
-    code: str,
+    code: str | None,
     today: date,
     location_id: int | None = None,
     user_id: str | None = None,
+    product_id: int | None = None,
 ) -> dict:
     """Scan mode Einfrieren: one package. A label of a frozen batch thaws it, any other label
     freezes its batch; EAN / name freezes the earliest fresh one. `location_id` (a scanned
     location): the target when it is a freezer, else where the package comes from.
-    Returns the freeze / thaw result plus `thaw`."""
+    `product_id`: a product picked in the panel, no name lookup. Returns the freeze / thaw result
+    plus `thaw`."""
     batch_id, thawing = None, False
-    if code.strip().upper().startswith("PTRY:"):
+    if product_id is not None:
+        if not (
+            row := conn.execute("SELECT * FROM product WHERE id = ?", (product_id,)).fetchone()
+        ):
+            raise InventoryError("not_found")
+        product = dict(row)
+    elif code is None:
+        raise InventoryError("invalid_value")
+    elif code.strip().upper().startswith("PTRY:"):
         product, batch_id = _label_batch(conn, code.strip()[5:])
         thawing = bool(
             conn.execute("SELECT frozen_on FROM batch WHERE id = ?", (batch_id,)).fetchone()[0]

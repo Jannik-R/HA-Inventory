@@ -126,7 +126,8 @@ async def ws_frozen_undo(hass: HomeAssistant, connection, msg: dict) -> None:
 @websocket_api.websocket_command(
     {
         vol.Required("type"): "home_inventory/freeze_scan",
-        vol.Required("code"): CODE,
+        vol.Optional("code"): CODE,
+        vol.Optional("product_id"): ID,
         vol.Optional("location_id"): ID,
     }
 )
@@ -138,5 +139,6 @@ async def ws_freeze_scan(hass: HomeAssistant, connection, msg: dict) -> None:
         today=dt_util.now().date(),
         location_id=msg.get("location_id"),
         user_id=connection.user.id,
+        product_id=msg.get("product_id"),
     )
-    connection.send_result(msg["id"], await run(hass, fn, msg["code"]))
+    connection.send_result(msg["id"], await run(hass, fn, msg.get("code")))

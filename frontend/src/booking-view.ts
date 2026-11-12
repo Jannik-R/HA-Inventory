@@ -216,7 +216,7 @@ export class HomeInventoryBooking extends LitElement {
     this.hits = undefined;
     if (this.mode !== "in" && !p.id) return void (this.error = t("book.unknown"));
     if (this.mode === "freeze")
-      return frozenWith(this, () => freezeScan(this.hass!, p.ean ?? p.name, this.at?.id));
+      return frozenWith(this, () => freezeScan(this.hass!, undefined, this.at?.id, p.id));
     if (this.mode === "open")
       return openWith(this, () =>
         openPackage(this.hass!, { product_id: p.id!, location_id: this.at?.id }),

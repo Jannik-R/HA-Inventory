@@ -29,6 +29,7 @@ _CODE = vol.All(cv.string, vol.Length(min=1, max=64))
 _PACKAGES = vol.All(vol.Coerce(int), PACKAGES)
 # A template for an optional field may render "": same as left out.
 _LOCATION = vol.Any(None, "", NAME)
+_BRAND = _LOCATION  # picks one of several products with the same name
 
 BOOK_IN = vol.Schema(
     {
@@ -36,6 +37,7 @@ BOOK_IN = vol.Schema(
         vol.Optional("packages", default=1): _PACKAGES,
         vol.Optional("expires_on"): vol.Any(None, "", cv.date),
         vol.Optional("location"): _LOCATION,
+        vol.Optional("brand"): _BRAND,
     }
 )
 BOOK_OUT = vol.Schema(
@@ -43,15 +45,23 @@ BOOK_OUT = vol.Schema(
         vol.Required("code"): _CODE,
         vol.Optional("packages", default=1): _PACKAGES,
         vol.Optional("location"): _LOCATION,
+        vol.Optional("brand"): _BRAND,
     }
 )
-OPEN_PACKAGE = vol.Schema({vol.Required("code"): _CODE, vol.Optional("location"): _LOCATION})
+OPEN_PACKAGE = vol.Schema(
+    {
+        vol.Required("code"): _CODE,
+        vol.Optional("location"): _LOCATION,
+        vol.Optional("brand"): _BRAND,
+    }
+)
 FROZEN = vol.Schema(
     {
         vol.Required("code"): _CODE,
         vol.Optional("packages", default=1): _PACKAGES,
         vol.Optional("location"): _LOCATION,
         vol.Optional("to_location"): _LOCATION,
+        vol.Optional("brand"): _BRAND,
     }
 )
 _DATE = vol.Any(None, "", cv.date)
@@ -129,6 +139,7 @@ def async_register(hass: HomeAssistant) -> None:
             inventory.book_in_by_code,
             expires_on=d.get("expires_on") or None,
             location=d.get("location") or None,
+            brand=d.get("brand") or None,
             user_id=call.context.user_id,
             today=dt_util.now().date(),
         )
@@ -139,6 +150,7 @@ def async_register(hass: HomeAssistant) -> None:
         fn = partial(
             inventory.book_out_by_code,
             location=d.get("location") or None,
+            brand=d.get("brand") or None,
             user_id=call.context.user_id,
         )
         return await _run(hass, fn, d["code"], d["packages"])
@@ -148,6 +160,7 @@ def async_register(hass: HomeAssistant) -> None:
         fn = partial(
             inventory.open_by_code,
             location=d.get("location") or None,
+            brand=d.get("brand") or None,
             user_id=call.context.user_id,
         )
         return await _run(hass, fn, d["code"], dt_util.now().date())
@@ -159,6 +172,7 @@ def async_register(hass: HomeAssistant) -> None:
             thawing=thawing,
             packages=d["packages"],
             location=d.get("location") or None,
+            brand=d.get("brand") or None,
             to_location=d.get("to_location") or None,
             user_id=call.context.user_id,
         )

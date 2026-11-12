@@ -38,10 +38,11 @@ export const undoFrozen = (hass: Hass, booking_id: number) =>
   hass.callWS<null>({ type: "home_inventory/frozen_undo", booking_id });
 
 /** Scan mode Einfrieren: one package; a frozen batch's label thaws it (`thaw` in the result). */
-export const freezeScan = (hass: Hass, code: string, location_id?: number) =>
+export const freezeScan = (hass: Hass, code?: string, location_id?: number, product_id?: number) =>
   hass.callWS<Opened & { thaw: boolean }>({
     type: "home_inventory/freeze_scan",
-    code,
+    ...(code ? { code } : {}),
+    ...(product_id ? { product_id } : {}),
     ...(location_id ? { location_id } : {}),
   });
 

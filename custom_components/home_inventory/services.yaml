@@ -5,6 +5,10 @@ book_in:
       example: "4006040053026"
       selector:
         text:
+    brand:
+      example: Barilla
+      selector:
+        text:
     packages:
       default: 1
       selector:
@@ -26,6 +30,10 @@ book_out:
       example: "4006040053026"
       selector:
         text:
+    brand:
+      example: Barilla
+      selector:
+        text:
     packages:
       default: 1
       selector:
@@ -44,6 +52,10 @@ open_package:
       example: "4006040053026"
       selector:
         text:
+    brand:
+      example: Barilla
+      selector:
+        text:
     location:
       example: Kühlschrank
       selector:
@@ -53,6 +65,10 @@ freeze_package:
     code:
       required: true
       example: "4006040053026"
+      selector:
+        text:
+    brand:
+      example: Barilla
       selector:
         text:
     packages:
@@ -75,6 +91,10 @@ thaw_package:
     code:
       required: true
       example: "4006040053026"
+      selector:
+        text:
+    brand:
+      example: Barilla
       selector:
         text:
     packages:

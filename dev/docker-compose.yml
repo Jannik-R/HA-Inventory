@@ -4,7 +4,7 @@
 # Phone (HTTPS proxy on another host -> this PC:8124): docker compose -f dev/docker-compose.yml --profile proxy up -d
 services:
   homeassistant:
-    image: ghcr.io/home-assistant/home-assistant:2026.11.0
+    image: ghcr.io/home-assistant/home-assistant:2026.11.1
     ports:
       # Localhost only: the dev HA skips the login for local requests (configuration.yaml).
       - "127.0.0.1:8123:8123"
@@ -39,7 +39,7 @@ services:
 
   # Same image as HA, so the Python version always matches.
   test:
-    image: ghcr.io/home-assistant/home-assistant:2026.11.0
+    image: ghcr.io/home-assistant/home-assistant:2026.11.1
     profiles: [test]
     working_dir: /repo
     volumes:

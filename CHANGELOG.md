@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+- The book-in form remembers the last used location on this device, also after a reload
+- Lists show "Lädt …" until their data has arrived instead of their empty text
+- Icon buttons are 44 x 44 px; the plan bar and the settings navigation wrap on narrow phones
+- Dialog titles *Speiseplan auf die Einkaufsliste setzen* and *„…“ als gekocht ausbuchen*; the cook mode timer follows the language (05:03)
+
 ### Removed
 
 - Product pictures from Open Food Facts (stock list, booking result) and the external service *Produktbilder* (`off_images`); the stored `image_url` of products stays unused

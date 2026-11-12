@@ -207,6 +207,12 @@ export const fieldMsg = (msg: string | undefined, testid: string, hint = false) 
       >`
     : nothing;
 
+/** Shown by a view until its first response arrives (styled by the views' `.detail`). */
+export const loadingLine = () =>
+  html`<p class="detail" role="status" aria-live="polite" aria-busy="true" data-testid="loading">
+    ${t("common.loading")}
+  </p>`;
+
 /** Today as ISO date in local time. */
 export const todayIso = () => {
   const d = new Date();

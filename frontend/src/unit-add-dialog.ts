@@ -2,6 +2,7 @@ import { LitElement, html } from "lit";
 import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
+import type { Errors } from "./product-fields";
 import { addUnit, errorMessage, getMasterData, type Hass, type MasterData } from "./api";
 
 /** Small dialog for a new count unit. `open(name)`; fires `unit-added` ({id, md}) with fresh master data. */
@@ -43,9 +44,15 @@ export class HomeInventoryUnitAddDialog extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("dialog input")?.focus();
   }
 
+  private errors(): Errors {
+    const e: Errors = {};
+    if (!this.name.trim()) e.name = t("valid.required");
+    return e;
+  }
+
   private async save(ev: Event) {
     ev.preventDefault();
-    if (!this.name.trim() || this.busy) return;
+    if (Object.keys(this.errors()).length || this.busy) return;
     this.busy = true;
     try {
       const { id } = await addUnit(this.hass!, this.name.trim(), this.symbol.trim() || undefined);
@@ -61,18 +68,18 @@ export class HomeInventoryUnitAddDialog extends LitElement {
 
   render() {
     if (!this.active) return html`<dialog></dialog>`;
-    const err = this.name.trim() ? undefined : t("valid.required");
+    const err = this.errors();
     return editDialog({
       title: t("unit_add.title"),
       body: html`<label>
           <span class="lbl">${t("unit_add.name")}</span>
           <input
             data-testid="unit-add-name"
-            aria-invalid=${!!err}
+            aria-invalid=${!!err.name}
             .value=${this.name}
             @input=${(e: Event) => (this.name = (e.target as HTMLInputElement).value)}
           />
-          ${fieldMsg(err, "unit-add-name")}
+          ${fieldMsg(err.name, "unit-add-name")}
         </label>
         <label>
           <span class="lbl">${t("unit_add.symbol")}</span>
@@ -83,7 +90,7 @@ export class HomeInventoryUnitAddDialog extends LitElement {
           />
         </label>`,
       error: this.error,
-      invalid: !!err || this.busy,
+      invalid: Object.keys(err).length > 0 || this.busy,
       submit: { label: t("common.save"), testid: "unit-add-save" },
       dirty: () => JSON.stringify([this.name, this.symbol]) !== this.initial,
       onSubmit: (e) => this.save(e),

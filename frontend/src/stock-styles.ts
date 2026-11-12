@@ -26,6 +26,8 @@ export const stockStyles = css`
   }
   .batches .acts {
     display: flex;
+    flex-wrap: wrap; /* up to 7 buttons of 44px do not fit a 360px phone in one line */
+    justify-content: flex-end;
     margin-left: auto;
   }
   .expired {

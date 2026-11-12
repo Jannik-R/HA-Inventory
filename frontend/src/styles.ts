@@ -188,8 +188,8 @@ export const formStyles = css`
   .chev,
   .icon-btn {
     flex: none;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     padding: 0;
     border: 0;
     display: flex;

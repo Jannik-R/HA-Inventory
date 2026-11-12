@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiUndo } from "@mdi/js";
 import { t } from "./i18n";
-import { fieldMsg, icon } from "./ui";
+import { fieldMsg, icon, loadingLine } from "./ui";
 import { formStyles } from "./styles";
 import { fmtDateTime, fmtNumber } from "./format";
 import { confirmDialog } from "./confirm-dialog";
@@ -203,6 +203,7 @@ export class HomeInventoryHistory extends LitElement {
         ${fieldMsg(this.rangeError, "history-range")}
       </div>
       ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
+      ${!d && !this.error ? loadingLine() : nothing}
       ${d && !d.actions.length ? html`<p class="empty">${t("history.empty")}</p>` : nothing}
       <ul>
         ${(d?.actions ?? []).map((a) => this.action(a))}

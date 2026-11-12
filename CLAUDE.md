@@ -105,7 +105,7 @@ README.md, README.de.md      setup and reference (English, German; same sections
 
 - No hardcoded UI text. Every string is a key in `frontend/src/i18n/de.json` **and** `en.json` (same keys and `{placeholders}`; `npm run i18n:check` fails otherwise), used via `t("key")`. New keys: English, dot-separated (`stock.empty`). The panel follows `hass.language` (German, else English); prints and the sidebar title follow the HA system language.
 - Dates/numbers via `Intl` with `hass.locale`, never manual formatting.
-- Style only with HA theme variables (`--primary-color`, `--card-background-color`, `--primary-text-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). Must work in light and dark theme.
+- Style only with HA theme variables (`--primary-color`, `--primary-background-color`, `--card-background-color`, `--primary-text-color`, `--text-primary-color`, `--secondary-text-color`, `--divider-color`, `--error-color`, `--warning-color`, toolbar: `--app-header-background-color`, `--app-header-text-color`). The only fixed colors are the dialog backdrop scrim `rgba(0, 0, 0, 0.5)` and the black-on-white print block. Must work in light and dark theme.
 - Do not use HA internal elements (`ha-*`, `mwc-*`); they are not public API.
 - After frontend changes run the build so `www/home-inventory-panel.js` is updated; CI fails when the committed bundle differs from a fresh build.
 - Formatting: Prettier (`npm run format`, CI runs `format:check`); generated files are listed in `frontend/.prettierignore`. Python: ruff (config in `pyproject.toml`, CI runs `ruff check` and `ruff format --check`).

@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { fieldMsg } from "./ui";
+import { fieldMsg, loadingLine } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -82,7 +82,7 @@ export class HomeInventoryExpiry extends LitElement {
 
   render() {
     const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
-    if (!this.stock) return error;
+    if (!this.stock) return html`${error}${this.error ? nothing : loadingLine()}`;
     const invalid = this.errors();
     const days = this.days.trim() && !invalid ? Number(this.days) : undefined;
     const rows = this.stock

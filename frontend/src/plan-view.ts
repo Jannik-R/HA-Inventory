@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { mdiChevronLeft, mdiChevronRight } from "@mdi/js";
 import { t } from "./i18n";
 import { confirmDelete } from "./confirm-dialog";
-import { icon } from "./ui";
+import { icon, loadingLine } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, getRecipes, printPlan, type Hass, type Recipe } from "./api";
 import { deleteMeal, getMealPlan, type Meal } from "./api-plan";
@@ -28,6 +28,7 @@ export class HomeInventoryPlan extends LitElement {
     recipes: { state: true },
     error: { state: true },
     note: { state: true },
+    loaded: { state: true },
   };
 
   declare hass?: Hass;
@@ -38,6 +39,8 @@ export class HomeInventoryPlan extends LitElement {
   declare recipes: Recipe[];
   declare error: string;
   declare note: string;
+  /** The first plan response has arrived. */
+  declare loaded: boolean;
   private started = false;
   private narrow = window.matchMedia(NARROW);
   private onNarrow = () => this.requestUpdate();
@@ -60,6 +63,7 @@ export class HomeInventoryPlan extends LitElement {
     this.recipes = [];
     this.error = "";
     this.note = "";
+    this.loaded = false;
   }
 
   private get view(): View {
@@ -83,6 +87,7 @@ export class HomeInventoryPlan extends LitElement {
       const plan = await getMealPlan(this.hass!, iso(from), iso(to));
       this.meals = plan.meals;
       this.household = plan.household_servings;
+      this.loaded = true;
       this.error = "";
     } catch (err) {
       this.error = await errorMessage(this.hass!, err);
@@ -233,7 +238,7 @@ export class HomeInventoryPlan extends LitElement {
             : nothing
         }
       </div>
-      ${this.body()}
+      ${this.loaded || this.error ? this.body() : loadingLine()}
       <home-inventory-plan-shopping-dialog
         .hass=${this.hass}
         @home-inventory-shopped=${(e: CustomEvent<string>) => (this.note = e.detail)}
@@ -249,6 +254,7 @@ export class HomeInventoryPlan extends LitElement {
     css`
       nav {
         display: flex;
+        flex-wrap: wrap;
         gap: 4px;
         margin-bottom: 12px;
       }
@@ -258,6 +264,7 @@ export class HomeInventoryPlan extends LitElement {
       }
       .bar {
         display: flex;
+        flex-wrap: wrap; /* prev / today / next / range / shop / print do not fit a 360px phone in one line */
         align-items: center;
         gap: 8px;
         margin-bottom: 8px;

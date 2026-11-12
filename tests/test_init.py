@@ -223,7 +223,6 @@ async def test_options_flow_external(hass: HomeAssistant) -> None:
     assert entry.options == choice
     config = hass.data["frontend_panels"][DOMAIN].config["external"]
     assert config["off_lookup"] is False and config["recipe_url"] is True
-    assert config["off_images"] is True
     assert config["recipe_images"] is True
     assert config["ai_video"] is False  # no AI Task entity
     assert external({**choice, "ai_task_entity": "ai_task.x"}, "ai_video") is True

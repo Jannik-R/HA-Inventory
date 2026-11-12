@@ -1,4 +1,4 @@
-import { apiPage, openPage, remove, ws } from "./helpers";
+import { apiPage, openTab, panelConfig, remove, ws } from "./helpers";
 import { expect, test, type Page } from "./fixtures";
 
 // Screenshots for the user guide (docs/images/<name>-<theme>.png), at phone width in light and
@@ -13,11 +13,21 @@ const day = (offset: number) => {
 };
 const monday = -((new Date().getDay() + 6) % 7); // the week view starts on Monday
 
+// exact tab name: "Stock" is also part of "Emergency stock"
+const openPage = async (page: Page, path: string, tab: string) => {
+  await page.goto(path);
+  await expect(page.getByRole("tab", { name: tab, exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+};
+
 type Row = { id: number; name: string };
 const products: number[] = [];
 const meals: number[] = [];
 let recipeId: number | undefined;
 let canningId: number | undefined;
+let receipt: unknown; // stubbed answer of the receipt reading (the real AI is never called)
 
 test.beforeAll(async ({ browser }) => {
   const api = await apiPage(browser);
@@ -65,6 +75,23 @@ test.beforeAll(async ({ browser }) => {
   await bookIn("Tomatenmark", "Tomatenmark", [200, "g"], 3, 400, cupboard);
   await bookIn("Passierte Tomaten", "Passierte Tomaten", [500, "g"], 2, 300, cupboard);
   await bookIn("Basmatireis", "Basmatireis", [1, "kg"], 1, 500, cupboard);
+
+  const line = (text: string, name: string, i: number, packages: number, category: string) => ({
+    text,
+    name,
+    packages,
+    product_id: products[i],
+    candidates: [{ id: products[i], name, brand: null, shelf_days: null }],
+    category_id: cat(category),
+  });
+  receipt = {
+    store: "Supermarkt",
+    items: [
+      line("VOLLMILCH 1,5%", "Vollmilch 1,5 %", 0, 2, "Milch"),
+      line("BASMATI REIS 1KG", "Basmatireis", 5, 1, "Basmatireis"),
+      line("TOMATENMARK 200G", "Tomatenmark", 3, 3, "Tomatenmark"),
+    ],
+  };
 
   const canning = (await ws(api, {
     type: "home_inventory/canning_save",
@@ -163,6 +190,8 @@ const TABS = {
     recipes: "Rezepte",
     plan: "Speiseplan",
     canning: "Haltbarmachen",
+    emergency: "Notvorrat",
+    settings: "Einstellungen",
   },
   en: {
     stock: "Stock",
@@ -171,6 +200,8 @@ const TABS = {
     recipes: "Recipes",
     plan: "Meal plan",
     canning: "Preserving",
+    emergency: "Emergency stock",
+    settings: "Settings",
   },
 };
 
@@ -181,7 +212,10 @@ for (const lang of ["de", "en"] as const)
       const tab = TABS[lang];
       const shot = (page: Page, name: string) =>
         page.screenshot({ path: `${OUT}/${name}-${lang}-${theme}.png`, animations: "disabled" });
-      test(`guide screenshots (${lang}, ${theme})`, async ({ page }) => {
+      test(`guide screenshots (${lang}, ${theme})`, async ({ page, wsStub }) => {
+        test.setTimeout(180_000); // the receipt step runs the OCR once
+        await page.context().route("**/cdn.jsdelivr.net/**", (route) => route.abort());
+        wsStub("home_inventory/receipt_read", receipt);
         await page.emulateMedia({ colorScheme: theme });
         // panel language, dates and numbers of the guide (HA keeps the language per browser)
         await page.addInitScript(
@@ -224,6 +258,67 @@ for (const lang of ["de", "en"] as const)
         await openPage(page, "/home_inventory/canning", tab.canning);
         await expect(page.getByText("Erdbeermarmelade").first()).toBeVisible();
         await shot(page, "canning");
+
+        // Stocktaking: the cupboard with one product counted.
+        await openPage(page, "/home_inventory/stock", tab.stock);
+        await page.getByTestId("stocktake-start").click();
+        await page.getByTestId("stocktake-location").selectOption({ label: "Vorratsschrank" });
+        await expect(page.getByTestId("stocktake-row").first()).toBeVisible();
+        await page.getByTestId("code-input").fill("Tomatenmark");
+        await page.getByTestId("code-input").press("Enter");
+        await expect(
+          page.getByTestId("stocktake-row").filter({ hasText: "Tomatenmark" }),
+        ).toContainText(/1\D+3/);
+        await shot(page, "stocktake");
+
+        await openPage(page, "/home_inventory/history", tab.stock);
+        await page.getByTestId("history-from").fill(day(0)); // only today's demo bookings
+        await expect(page.getByText("Spaghettoni")).toHaveCount(0);
+        await expect(page.getByTestId("history-action").first()).toBeVisible();
+        await shot(page, "history");
+
+        // Optional modules and external services are switched on the way the options would.
+        await openPage(page, "/home_inventory/stock", tab.stock);
+        await panelConfig(page, {
+          modules: ["shopping", "recipes", "plan", "canning", "emergency"],
+        });
+        await openTab(page, tab.emergency);
+        await expect(page.getByTestId("emergency-supply")).toBeVisible();
+        await shot(page, "emergency");
+
+        await openPage(page, "/home_inventory/settings/categories", tab.settings);
+        await expect(page.getByTestId("settings-row").first()).toBeVisible();
+        await shot(page, "settings");
+
+        await openPage(page, "/home_inventory/stock", tab.stock);
+        await panelConfig(page, { external: { receipt_import: true, ai_import: true } });
+        await page.getByTestId("mode-in").click();
+        await page.getByTestId("receipt-import").click();
+        await page.getByTestId("receipt-photo").evaluate(async (input: HTMLInputElement) => {
+          // a white receipt on a dark table, only to get through the scan; the answer is stubbed
+          const c = document.createElement("canvas");
+          c.width = 900;
+          c.height = 700;
+          const g = c.getContext("2d")!;
+          g.fillStyle = "#333";
+          g.fillRect(0, 0, c.width, c.height);
+          g.fillStyle = "#fff";
+          g.fillRect(100, 100, 700, 400);
+          g.fillStyle = "#000";
+          g.font = "28px monospace";
+          g.fillText("SUPERMARKT", 130, 180);
+          const blob = await new Promise<Blob>((done) => c.toBlob((b) => done(b!), "image/png"));
+          const files = new DataTransfer();
+          files.items.add(new File([blob], "bon.png", { type: "image/png" }));
+          input.files = files.files;
+          input.dispatchEvent(new Event("change"));
+        });
+        await expect(page.getByTestId("camera-apply")).toBeEnabled({ timeout: 60_000 });
+        await page.getByTestId("camera-apply").click();
+        await expect(page.getByTestId("receipt-preview")).toBeVisible();
+        await page.getByTestId("receipt-read").click();
+        await expect(page.getByTestId("receipt-row")).toHaveCount(3, { timeout: 90_000 });
+        await shot(page, "receipt");
       });
     }
   });

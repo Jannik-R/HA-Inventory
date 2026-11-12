@@ -133,6 +133,8 @@ flowchart LR
 
 ## 2a. Importing a receipt
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/receipt-en-dark.png"><img src="images/receipt-en-light.png" alt="Import receipt dialog with three recognised lines" width="300"></picture></p>
+
 Instead of scanning every product, book in a whole shopping trip from its receipt. This needs an AI
 set up (README, *AI*).
 
@@ -252,6 +254,8 @@ Which locations are freezers is set under *Settings → Locations* with **Freeze
 
 ## 4a. Stocktaking
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stocktake-en-dark.png"><img src="images/stocktake-en-light.png" alt="Stocktaking of the cupboard with one product counted" width="300"></picture></p>
+
 Does the stock of a cupboard no longer match? Count it again with a stocktaking.
 
 1. In **Stock**, tap **Stocktaking**, then pick the **Location**. The list shows everything stored there
@@ -265,6 +269,8 @@ Does the stock of a cupboard no longer match? Count it again with a stocktaking.
    correction: what was not scanned is booked out, what was found is booked in.
 
 ## 4b. History
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/history-en-dark.png"><img src="images/history-en-light.png" alt="History with today's bookings" width="300"></picture></p>
 
 Who booked what, and when? **Stock > History** lists every booking, newest first.
 
@@ -297,6 +303,8 @@ ingredients come first, then the one with more ingredients in stock. Tap one to 
 > soon), see the [README](../README.md#sensors), e.g. for a phone notification.
 
 ## 5a. Emergency stock
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/emergency-en-dark.png"><img src="images/emergency-en-light.png" alt="Emergency stock tab with target, stock and days per group" width="300"></picture></p>
 
 The tab **Emergency stock** (module *Emergency stock*, switched on in *Settings > Devices & services >
 Home Inventory > Configure > Module*) checks the stock against the emergency supply recommended by the
@@ -654,6 +662,8 @@ baud rate. **Print a test receipt** checks the connection when you save. The tec
 into Docker) is in the [README](../README.md#receipt-printer).
 
 ## 9. Categories, product types and inheritance
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/settings-en-dark.png"><img src="images/settings-en-light.png" alt="Settings with the category list" width="300"></picture></p>
 
 The category tree has three levels: **main category → category → product type (Produktart)**,
 e.g. *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Products usually belong to a product type.

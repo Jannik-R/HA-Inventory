@@ -1,6 +1,5 @@
 """Seeded shelf life / days after opening (seed_days): every name exists, migration 21 keeps own values."""
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory.seed_days import _DE_DAYS
 
 
@@ -19,23 +18,6 @@ def test_every_name_is_a_unique_seeded_category(conn) -> None:
     assert days(conn, "H-Milch") == (90, 3)
     assert days(conn, "Eingekochtes") == (365, None)
     assert days(conn, "Marmelade & Gelee") == (None, 28)
-
-
-def test_migration_21_fills_only_empty_values(monkeypatch) -> None:
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 20
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:20])
-        m.setattr(db, "fill_days", lambda conn: None)
-        db.migrate(c)
-    assert days(c, "Joghurt") == (None, None)
-    c.execute("UPDATE category SET shelf_days = 4 WHERE name = 'H-Milch'")
-    c.execute("UPDATE category SET opened_days = 9 WHERE name = 'Käse'")
-    c.commit()
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert days(c, "H-Milch") == (4, 3)
-    assert days(c, "Käse") == (30, 9)
-    assert days(c, "Joghurt") == (21, 5)
 
 
 def test_book_in_without_date_guesses_from_shelf_life(conn) -> None:

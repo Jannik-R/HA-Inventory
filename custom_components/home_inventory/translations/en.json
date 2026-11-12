@@ -37,6 +37,9 @@
     "location_has_stock": {
       "message": "The location still holds stock. Move or take it out first."
     },
+    "old_database": {
+      "message": "The database {path} was written by a 0.x development version of Home Inventory. Version 1.0 does not support it. Move or delete the file, then reload the integration."
+    },
     "not_loaded": {
       "message": "The home_inventory integration is not loaded."
     },

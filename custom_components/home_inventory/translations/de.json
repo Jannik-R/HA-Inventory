@@ -37,6 +37,9 @@
     "location_has_stock": {
       "message": "Am Lagerort liegt noch Bestand. Bitte zuerst umlagern oder auslagern."
     },
+    "old_database": {
+      "message": "Die Datenbank {path} stammt aus einer 0.x-Entwicklungsversion von Vorrat. Version 1.0 unterstützt sie nicht. Verschiebe oder lösche die Datei und lade die Integration dann neu."
+    },
     "not_loaded": {
       "message": "Die Vorrat-Integration ist nicht geladen."
     },

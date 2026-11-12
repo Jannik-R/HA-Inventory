@@ -1,6 +1,5 @@
 """Recipe-only units: migration 13, seed, import, and how they count against the stock."""
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 
 from .test_inventory import loc, product, unit
@@ -15,24 +14,13 @@ def flags(c):
     }
 
 
-def test_migration_13_and_seed(conn):
-    old = db.connect(":memory:")
-    old.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
-    old.execute("INSERT INTO unit (name, symbol, is_count) VALUES ('Tasse', 'Tasse', 1)")
-    old.execute("INSERT INTO unit (name, symbol) VALUES ('ml', 'ml')")
-    old.commit()
-    db.migrate(old)
-    for c in (old, conn):  # upgraded and new DB agree
-        f, ml = flags(c), unit(c, "ml")
-        assert f["Esslöffel"][:2] == (1, 0) and f["Esslöffel"][3] == 15
-        assert f["Tasse"] == (1, 0, ml, 250) and f["Bund"][0] == 0
-    f = flags(conn)  # rule-of-thumb sizes (the old DB above has no g / Stück)
-    assert f["Prise"] == (1, 0, unit(conn, "g"), 0.5) and f["Zehe"] == (
-        1,
-        0,
-        unit(conn, "Stück"),
-        0.1,
-    )
+def test_seed(conn):
+    f, ml = flags(conn), unit(conn, "ml")
+    assert f["Esslöffel"][:2] == (1, 0) and f["Esslöffel"][3] == 15
+    assert f["Tasse"] == (1, 0, ml, 250) and f["Bund"][0] == 0
+    # rule-of-thumb sizes
+    assert f["Prise"] == (1, 0, unit(conn, "g"), 0.5)
+    assert f["Zehe"] == (1, 0, unit(conn, "Stück"), 0.1)
     assert f["Scheibe"][:3] == (1, 1, None)  # no sensible size: stays "any"
 
 

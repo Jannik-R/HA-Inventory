@@ -1,6 +1,5 @@
 """Inventory logic on an in-memory database (seed included), no HA needed."""
 
-import sqlite3
 from datetime import date
 
 import pytest
@@ -37,7 +36,11 @@ def test_migrate_idempotent(conn):
     version = conn.execute("PRAGMA user_version").fetchone()[0]
     count = conn.execute("SELECT COUNT(*) FROM category").fetchone()[0]
     db.migrate(conn)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == version == len(db.MIGRATIONS)
+    assert (
+        conn.execute("PRAGMA user_version").fetchone()[0]
+        == version
+        == db.BASELINE + len(db.MIGRATIONS)
+    )
     assert conn.execute("SELECT COUNT(*) FROM category").fetchone()[0] == count > 0
 
 
@@ -337,67 +340,6 @@ def test_seed_gives_every_category_a_location(conn):
     )
 
 
-def test_migration_2_merges_batches_by_date_only():
-    """Batches that differed only by date type become one; stock summed, bookings repointed."""
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{db.MIGRATIONS[0]}PRAGMA user_version=1;COMMIT;")
-    c.executescript(
-        """
-        INSERT INTO location (id, name) VALUES (1, 'L1');
-        INSERT INTO category (id, name) VALUES (1, 'C1');
-        INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'P', 1, 'x');
-        INSERT INTO batch (id, product_id, expires_on, expiry_type, created_at) VALUES
-            (1, 1, '2027-01-01', 'best_before', 'a'), (2, 1, '2027-01-01', 'use_by', 'b'),
-            (3, 1, NULL, 'best_before', 'c');
-        INSERT INTO stock VALUES (1, 1, 2), (2, 1, 3), (3, 1, 1);
-        INSERT INTO booking (ts, kind, batch_id, location_id, packages, source)
-            VALUES ('t', 'in', 2, 1, 3, 'test');
-        """
-    )
-    db.migrate(c)
-    assert [tuple(r) for r in c.execute("SELECT id, expires_on FROM batch ORDER BY id")] == [
-        (1, "2027-01-01"),
-        (3, None),
-    ]
-    assert stock(c) == {(1, 1): 5, (3, 1): 1}
-    assert c.execute("SELECT batch_id FROM booking").fetchone()[0] == 1
-    assert "expiry_type" not in [r[1] for r in c.execute("PRAGMA table_info(batch)")]
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-
-
-def test_migration_3_normalizes_and_cleans_up():
-    """OFF tags move to their own tables (each tag once), bad rows are fixed, defaults filled."""
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{db.MIGRATIONS[0]}{db.MIGRATIONS[1]}PRAGMA user_version=2;COMMIT;")
-    c.executescript(
-        """
-        INSERT INTO unit (id, name, symbol, is_count) VALUES (1, 'Gramm', 'g', 0), (2, 'Packung', 'Pkg.', 5);
-        INSERT INTO location (id, name) VALUES (1, 'L1');
-        INSERT INTO category (id, name, off_tags) VALUES (1, 'A', '["en:x", "en:y"]'), (2, 'B', '["en:y"]');
-        INSERT INTO product (id, name, category_id, content_amount, updated_at) VALUES (1, 'P', 1, 500, 'x');
-        INSERT INTO batch (id, product_id, created_at) VALUES (1, 1, 'x');
-        INSERT INTO booking (ts, kind, batch_id, location_id, packages, source) VALUES
-            ('t', 'in', 1, 1, 1, 's'), ('t', 'in', 1, 9, 1, 's'), ('t', 'in', 7, 1, 1, 's');
-        """
-    )
-    db.migrate(c)
-    assert c.execute("SELECT COUNT(*) FROM off_tag").fetchone()[0] == 2  # en:y only once
-    assert category_tags(c) == {1: ["en:x", "en:y"], 2: ["en:y"]}
-    assert tuple(c.execute("SELECT is_count FROM unit WHERE id = 2").fetchone()) == (1,)
-    assert tuple(c.execute("SELECT content_amount, content_unit_id FROM product").fetchone()) == (
-        None,
-        None,
-    )
-    # Booking of an unknown batch is gone, an unknown location is cleared.
-    assert [r[0] for r in c.execute("SELECT location_id FROM booking ORDER BY id")] == [1, None]
-    assert inv.defaults(c) == {
-        "unit_id": 2, "default_location_id": None, "expiry_type": "best_before", "warn_days": 7,
-        "shelf_days": None, "opened_days": None, "frozen_days": 90,
-    }  # fmt: skip
-    with pytest.raises(sqlite3.IntegrityError):
-        c.execute("UPDATE unit SET is_count = 2")
-
-
 def test_shopping_items_by_hand(conn):
     nudeln = cat(conn, "Nudeln")
     inv.save(conn, "category", {"id": nudeln, "min_packages": 1})
@@ -500,29 +442,6 @@ def test_force_delete_location_moves_or_removes_stock(conn):
     assert fridge not in [r["id"] for r in inv.list_rows(conn, "location")]
 
 
-def test_migration_4_min_stock_gets_its_effective_unit():
-    """Existing minimums keep the unit they meant (own, inherited or default)."""
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:3])}PRAGMA user_version=3;COMMIT;")
-    c.executescript(
-        """
-        INSERT INTO unit (id, name, symbol) VALUES (1, 'Gramm', 'g'), (2, 'Stück', 'St.');
-        UPDATE defaults SET unit_id = 2;
-        INSERT INTO defaults (id, unit_id, expiry_type, warn_days) VALUES (1, 2, 'best_before', 7)
-            ON CONFLICT DO NOTHING;
-        INSERT INTO category (id, parent_id, name, unit_id, min_stock) VALUES
-            (1, NULL, 'A', 1, NULL), (2, 1, 'B', NULL, 5), (3, NULL, 'C', NULL, 2), (4, 3, 'D', NULL, NULL);
-        INSERT INTO product (name, category_id, updated_at) VALUES ('P', 4, 'x');
-        """
-    )
-    db.migrate(c)
-    rows = c.execute("SELECT id, min_stock_unit_id FROM category WHERE id <= 4 ORDER BY id")
-    assert [tuple(r) for r in rows] == [(1, None), (2, 1), (3, 2), (4, None)]
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    with pytest.raises(sqlite3.IntegrityError):
-        c.execute("UPDATE category SET min_stock = 1 WHERE id = 4")
-
-
 def test_tags_are_shared_and_replaced(conn):
     a, b = cat(conn, "Nudeln"), cat(conn, "Reis")
     set_tags(conn, a, ["en:test-tag"])
@@ -599,49 +518,6 @@ def test_root_category_names_are_unique(conn):
     inv.save(
         conn, "category", {"name": "Wurzel", "parent_id": parent}
     )  # same name below another parent
-
-
-def test_migration_6_dedupes_roots_and_nodate_batches():
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:5])}PRAGMA user_version=5;COMMIT;")
-    c.executescript(
-        """
-        INSERT INTO location (id, name) VALUES (1, 'L1'), (2, 'L2');
-        INSERT INTO category (id, name) VALUES (1, 'A'), (2, 'A'), (3, 'A'), (4, 'B');
-        INSERT INTO category (id, parent_id, name) VALUES (5, 1, 'A');
-        INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'P', 1, 'x'), (2, 'Q', 4, 'x');
-        INSERT INTO batch (id, product_id, expires_on, created_at) VALUES
-            (1, 1, NULL, 'a'), (2, 1, NULL, 'b'), (3, 1, '2027-01-01', 'c'), (4, 1, NULL, 'd'), (5, 2, NULL, 'e');
-        INSERT INTO stock VALUES (1, 1, 1), (2, 1, 2), (2, 2, 5), (3, 1, 7), (4, 2, 1), (5, 1, 4);
-        INSERT INTO booking (ts, kind, batch_id, location_id, packages, source) VALUES ('t', 'in', 4, 2, 1, 'x');
-        """
-    )
-    db.migrate(c)
-    names = [r[0] for r in c.execute("SELECT name FROM category WHERE id <= 5 ORDER BY id")]
-    assert names == ["A", "A (2)", "A (3)", "B", "A"]
-    assert [r[0] for r in c.execute("SELECT id FROM batch ORDER BY id")] == [1, 3, 5]
-    assert stock(c) == {(1, 1): 3, (1, 2): 6, (3, 1): 7, (5, 1): 4}
-    assert c.execute("SELECT batch_id FROM booking").fetchone()[0] == 1
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    with pytest.raises(sqlite3.IntegrityError):
-        c.execute("INSERT INTO batch (product_id, created_at) VALUES (1, 'z')")
-    with pytest.raises(sqlite3.IntegrityError):
-        c.execute("INSERT INTO category (name) VALUES ('B')")
-    assert "reverts_id" in [r[1] for r in c.execute("PRAGMA table_info(booking)")]
-
-
-def test_migrate_rolls_back_a_failing_step(monkeypatch):
-    """A step that leaves a foreign key violation is undone, user_version stays."""
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:5])}PRAGMA user_version=5;COMMIT;")
-    bad = "INSERT INTO stock VALUES (99, 99, 1);" + db.MIGRATIONS[5]
-    monkeypatch.setattr(db, "MIGRATIONS", [*db.MIGRATIONS[:5], bad])
-    with pytest.raises(sqlite3.IntegrityError, match="migration 6"):
-        db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == 5
-    assert c.execute("SELECT COUNT(*) FROM stock").fetchone()[0] == 0
-    assert "reverts_id" not in [r[1] for r in c.execute("PRAGMA table_info(booking)")]
-    assert c.execute("PRAGMA foreign_keys").fetchone()[0] == 1
 
 
 def test_delete_impact_logs_only_touched_rows(conn):

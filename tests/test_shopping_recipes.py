@@ -2,7 +2,6 @@
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 
 from .test_inventory import cat, loc, product, unit
@@ -152,21 +151,6 @@ def test_recipe_delete_cascades(conn):
     assert inv.shopping_recipes(conn) == []
 
 
-def test_migration_12_upgrade(monkeypatch):
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # steps 8 and 9 are functions: let migrate() run up to 11
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:11])
-        m.setattr(db, "mark_recipe_only", lambda c: None)  # seeds before the column exists
-        m.setattr(db, "add_general", lambda c: None)  # same
-        m.setattr(db, "fill_days", lambda c: None)  # same
-        db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == 11
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("SELECT COUNT(*) FROM shopping_recipe").fetchone()[0] == 0
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-
-
 def test_group_key_ignores_row_order(conn):
     a = recipe(conn, [ing(conn, "Mehl", 1, "kg"), ing(conn, "Mehl", 200, "g")], name="A")
     inv.set_shopping_recipe(conn, a, 2)
@@ -183,27 +167,3 @@ def test_dropped_any_group_keeps_its_refs(conn):
     inv.set_shopping_recipe(conn, a, 2)
     inv.set_shopping_recipe(conn, b, 2)
     assert listed(conn) == [("Kräuter", 2, "Bund", [(1, "A", 2), (2, "B", None)])]
-
-
-def test_migration_13_keeps_used_units():
-    c = db.connect(":memory:")
-    with pytest.MonkeyPatch.context() as m:
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:12])
-        m.setattr(db, "mark_recipe_only", lambda c: None)
-        m.setattr(db, "add_general", lambda c: None)
-        m.setattr(db, "fill_days", lambda c: None)
-        db.migrate(c)
-    zehe, tl = (
-        c.execute("SELECT id FROM unit WHERE name = ?", (n,)).fetchone()[0]
-        for n in ("Zehe", "Teelöffel")
-    )
-    c.execute(
-        "INSERT INTO product (name, category_id, content_amount, content_unit_id, updated_at)"
-        " VALUES ('Knoblauch', (SELECT MIN(id) FROM category), 1, ?, 'x')",
-        (zehe,),
-    )
-    c.commit()
-    db.migrate(c)
-    flags = dict(c.execute("SELECT name, recipe_only FROM unit WHERE id IN (?, ?)", (zehe, tl)))
-    assert flags == {"Zehe": 0, "Teelöffel": 1}
-    assert c.execute("SELECT base_unit_id FROM unit WHERE id = ?", (zehe,)).fetchone()[0] is None

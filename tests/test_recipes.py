@@ -4,9 +4,7 @@ from datetime import date
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
-from custom_components.home_inventory.seed import seed
 
 from .test_inventory import cat, loc, product, unit
 
@@ -29,51 +27,6 @@ def recipe(conn, ingredients, servings=2, **kw):
 
 def status(conn, recipe_id, servings):
     return [i["status"] for i in inv.recipe_availability(conn, recipe_id, servings)]
-
-
-def test_migration_7_upgrade():
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:6])}PRAGMA user_version=6;COMMIT;")
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("SELECT COUNT(*) FROM recipe").fetchone()[0] == 0
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-
-
-def test_migration_10_skip_stock_defaults_to_off():
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
-    c.execute("INSERT INTO recipe (name, servings) VALUES ('R', 2)")
-    c.execute("INSERT INTO recipe_ingredient (recipe_id, text) VALUES (1, 'Salz')")
-    c.commit()
-    db.migrate(c)
-    assert c.execute("SELECT skip_stock FROM recipe_ingredient").fetchone()[0] == 0
-
-
-def test_upgrade_from_7_keeps_user_data():
-    """A 0.0.x DB with stock, a recipe and user edits goes through every later migration."""
-    c = db.connect(":memory:")
-    c.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
-    seed(c, "de")
-    c.execute("UPDATE category SET name = 'Teigwaren' WHERE name = 'Nudeln'")
-    c.commit()
-    p = inv.save(c, "product", {"name": "Penne", "category_id": cat(c, "Teigwaren")})
-    # by hand: today's book_in reads columns this schema does not have yet
-    b = c.execute("INSERT INTO batch (product_id, created_at) VALUES (?, 'x')", (p,)).lastrowid
-    c.execute("INSERT INTO stock (batch_id, location_id, packages) VALUES (?, ?, 2)", (b, loc(c)))
-    c.execute(
-        "INSERT INTO recipe (name, servings) VALUES ('R', 2)"
-    )  # today's code needs skip_stock
-    c.execute("INSERT INTO recipe_ingredient (recipe_id, category_id, text) VALUES (1, ?, 'x')",
-              (cat(c, "Teigwaren"),))  # fmt: skip
-    c.commit()
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    assert c.execute("SELECT min_packages FROM product").fetchone()[0] is None
-    assert inv.recipe_availability(c, 1, 2)[0]["status"] == "available"
-    inv.save(c, "product", {"id": p, "min_packages": 3})
-    assert [i["name"] for i in inv.shopping_list(c)] == ["Penne"]
 
 
 def test_save_keeps_order_and_replaces(conn):
@@ -107,77 +60,15 @@ def test_note_and_unmatched_text(conn):
     assert (a["note"], b["text"], b["note"]) == ("fein", "Salz", None)
 
 
-def test_product_types_seed_and_migration_8():
-    def types(c):
-        return {
-            r[0]
-            for r in c.execute(
-                "SELECT name FROM category WHERE parent_id IN (SELECT id FROM category WHERE parent_id IS NOT NULL)"
-            )
-        }
-
-    fresh = db.connect(":memory:")
-    db.migrate(fresh)
-    n = len(types(fresh))
+def test_product_types_seed(conn):
+    n = conn.execute(
+        "SELECT COUNT(*) FROM category WHERE parent_id IN"
+        " (SELECT id FROM category WHERE parent_id IS NOT NULL)"
+    ).fetchone()[0]
+    assert n > 150
     assert (
-        n > 150
-        and fresh.execute("SELECT COUNT(*) FROM category WHERE name = 'Tomatenmark'").fetchone()[0]
-        == 1
+        conn.execute("SELECT COUNT(*) FROM category WHERE name = 'Tomatenmark'").fetchone()[0] == 1
     )
-    # upgrade from 7: a renamed parent gets no types, a deleted type stays deleted
-    up = db.connect(":memory:")
-    up.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
-    seed(up, "de")
-    up.execute(
-        "DELETE FROM category WHERE parent_id IN (SELECT id FROM category WHERE parent_id IS NOT NULL)"
-    )
-    up.execute("UPDATE category SET name = 'Teigwaren' WHERE name = 'Nudeln'")
-    up.execute("DELETE FROM category WHERE name = 'Reis'")
-    up.commit()
-    db.migrate(up)
-    got = types(up)
-    assert "Tomatenmark" in got and "Spaghetti" not in got and "Basmatireis" not in got
-    assert len(got) < n and up.execute("PRAGMA foreign_key_check").fetchall() == []
-    assert up.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-
-
-def test_migration_9_adds_only_new_items():
-    up = db.connect(":memory:")
-    up.executescript(f"BEGIN;{''.join(db.MIGRATIONS[:7])}PRAGMA user_version=7;COMMIT;")
-    seed(up, "de")
-    for name in (
-        "Blätterteig",
-        "Maronen",
-        "Schattenmorellen",
-        "Schweineschmalz",
-        "Spaghetti",
-        "Pak Choi",
-    ):
-        up.execute("DELETE FROM category WHERE name = ?", (name,))
-    up.execute(
-        "DELETE FROM category WHERE parent_id = (SELECT id FROM category WHERE name = 'Alkohol')"
-    )
-    up.execute(
-        "DELETE FROM category WHERE name = 'Alkohol'"
-    )  # as an older DB without the sub-category
-    up.execute("DELETE FROM unit WHERE name IN ('cl', 'dl', 'Tasse')")
-    up.execute("PRAGMA user_version=8")  # as a 0.1.0 DB: a user also deleted Spaghetti
-    up.commit()
-    db.migrate(up)
-    names = {r[0] for r in up.execute("SELECT name FROM category")}
-    assert {"Blätterteig", "Maronen", "Schattenmorellen", "Schweineschmalz"} <= names
-    assert {"Pak Choi", "Rum", "Alkohol"} <= names and "Spaghetti" not in names
-    assert tuple(
-        up.execute(
-            "SELECT a.name, u.name FROM category c JOIN category a ON a.id = c.parent_id"
-            " LEFT JOIN unit u ON u.id = a.unit_id WHERE c.name = 'Rum'"
-        ).fetchone()
-    ) == ("Alkohol", "ml")
-    assert up.execute("SELECT 1 FROM unit WHERE name = 'Tasse'").fetchone()
-    assert (
-        up.execute("SELECT base_unit_id, factor FROM unit WHERE name = 'dl'").fetchone()[1] == 100
-    )
-    assert up.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
 
 
 def test_default_units(conn):

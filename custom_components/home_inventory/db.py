@@ -8,21 +8,19 @@ import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.exceptions import ConfigEntryError
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import EVENT_BOOKED, SIGNAL_CHANGED
+from .const import DOMAIN, EVENT_BOOKED, SIGNAL_CHANGED
 from .inventory.notify import bookings_since, last_booking
-from .migration_24 import set_guide
-from .migration_25 import set_frozen
-from .migration_26 import add_dried
-from .migration_27 import set_emergency
-from .migration_29 import add_leftovers
-from .migration_30 import set_diet
-from .migrations import MIGRATIONS
+from .migrations import APP_ID, BASELINE, MIGRATIONS
+from .schema_sql import SCHEMA
 from .seed import seed
 from .seed_days import fill_days
+from .seed_diet import set_diet
 from .seed_en import to_english
-from .seed_general import add_general
+from .seed_flags import set_emergency, set_frozen, set_guide
+from .seed_general import add_dried, add_general, add_leftovers
 from .seed_types import mark_recipe_only
 
 if TYPE_CHECKING:
@@ -54,41 +52,51 @@ def seed_lang(hass: HomeAssistant) -> str:
 
 
 def migrate(conn: sqlite3.Connection, lang: str = "de") -> None:
-    """Apply missing steps, one transaction each; seed while there are no units.
+    """Create the baseline schema in a new file, apply missing steps (one transaction each); seed while there are no units.
 
-    `lang` is the seed language of a new DB (an existing one keeps its names).
+    `lang` is the seed language of a new DB (an existing one keeps its names). A file written
+    by a 0.x version (a user_version but no APP_ID) is refused untouched.
 
     Foreign keys are off during a step (SQLite's way to rebuild a referenced table) and
     checked before its commit; a violation rolls the step back.
     """
     start = conn.execute("PRAGMA user_version").fetchone()[0]
+    if start and conn.execute("PRAGMA application_id").fetchone()[0] != APP_ID:
+        raise ConfigEntryError(
+            translation_domain=DOMAIN,
+            translation_key="old_database",
+            translation_placeholders={"path": conn.execute("PRAGMA database_list").fetchone()[2]},
+        )
     conn.execute("PRAGMA foreign_keys=OFF")  # no effect inside a transaction, so set it here
     try:
-        for i in range(start, len(MIGRATIONS)):
-            step = MIGRATIONS[i]
+        if start == 0:
+            conn.executescript(
+                f"BEGIN;{SCHEMA}PRAGMA application_id={APP_ID};PRAGMA user_version={BASELINE};COMMIT;"
+            )
+            start = BASELINE
+        for version in range(start, BASELINE + len(MIGRATIONS)):
+            step = MIGRATIONS[version - BASELINE]
             if callable(step):
                 conn.execute("BEGIN")
                 step(conn)
-                conn.execute(f"PRAGMA user_version={i + 1}")
+                conn.execute(f"PRAGMA user_version={version + 1}")
             else:
-                conn.executescript(f"BEGIN;{step}PRAGMA user_version={i + 1};")
+                conn.executescript(f"BEGIN;{step}PRAGMA user_version={version + 1};")
             if bad := conn.execute("PRAGMA foreign_key_check").fetchall():
                 conn.rollback()
-                raise sqlite3.IntegrityError(f"migration {i + 1}: foreign key violations {bad[:5]}")
+                raise sqlite3.IntegrityError(
+                    f"migration {version + 1}: foreign key violations {bad[:5]}"
+                )
             conn.commit()
     finally:
         conn.execute("PRAGMA foreign_keys=ON")
     if conn.execute("SELECT 1 FROM unit").fetchone() is None:
         seed(conn, "de")
-        mark_recipe_only(conn)  # not in seed(): old-schema DBs are seeded by tests
-        add_general(conn)  # same
-        fill_days(conn)  # same
-        set_guide(conn)  # same
-        set_frozen(conn)  # same
-        add_dried(conn)  # same
-        set_emergency(conn)  # same
-        add_leftovers(conn)  # same
-        set_diet(conn)  # same
+        for setter in (  # the German base seed first, then the setters, then the rename
+            mark_recipe_only, add_general, fill_days, set_guide, set_frozen, add_dried,
+            set_emergency, add_leftovers, set_diet,
+        ):  # fmt: skip
+            setter(conn)
         if lang == "en":
             to_english(conn)
         conn.commit()

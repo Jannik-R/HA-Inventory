@@ -74,8 +74,8 @@ jobs:
       - uses: hacs/action@d556e736723344f83838d08488c983a15381059a # 22.5.0
         with:
           category: integration
-          # Not published yet: no brands entry, repo description/topics are set when going public.
-          ignore: brands description topics
+          # Custom repository, no brands entry; description and topics are set on the repository.
+          ignore: brands
 
   tests:
     needs: changes

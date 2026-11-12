@@ -10,7 +10,10 @@ export async function openTab(page: Page, name: string) {
 /** Open a panel path and wait until its tab is active. */
 export async function openPage(page: Page, path: string, tab: string) {
   await page.goto(path);
-  await expect(page.getByRole("tab", { name: tab, exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: tab, exact: true })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
 }
 
 /** Websocket call through the logged-in HA frontend (test data setup and cleanup). */

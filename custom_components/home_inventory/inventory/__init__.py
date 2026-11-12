@@ -36,7 +36,8 @@ from .codes import (
     shop_recipe_by_name,
 )
 from .common import InventoryError, check_ean
-from .cooked import book_cooked, cooked_by_name, cooked_proposal, undo_cooked
+from .cooked import cooked_by_name, cooked_proposal
+from .cooked_book import book_cooked, undo_cooked
 from .corrections import correct, edit_stock, move, put_back
 from .diet_reload import reload_candidates, store_off
 from .emergency import GROUPS as EMERGENCY_GROUPS

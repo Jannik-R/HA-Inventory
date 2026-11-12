@@ -134,3 +134,29 @@ def test_recipe_item_uid_and_summary() -> None:
     any_item = {**item, "amount": None, "name": "Petersilie", "recipes": [{"name": "Bolognese"}]}
     assert summary(any_item) == "Petersilie (für Bolognese)"
     assert summary(any_item, "en") == "Petersilie (for Bolognese)"
+
+
+async def test_todo_add_ambiguous_name(hass: HomeAssistant) -> None:
+    """Two products of one name: the to-do add still works (the oldest one)."""
+    entry = MockConfigEntry(domain=DOMAIN)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    entity_id = er.async_get(hass).async_get_entity_id("todo", DOMAIN, f"{entry.entry_id}_shopping")
+    db = entry.runtime_data
+    cat = (await db.run(inventory.master_data))["categories"][0]["id"]
+    first = await db.run(
+        inventory.save, "product", {"name": "Quarkspeise", "brand": "A", "category_id": cat}
+    )
+    await db.run(
+        inventory.save, "product", {"name": "Quarkspeise", "brand": "B", "category_id": cat}
+    )
+    await hass.services.async_call(
+        TODO_DOMAIN,
+        "add_item",
+        {"item": "quarkspeise"},
+        target={"entity_id": entity_id},
+        blocking=True,
+    )
+    rows = await db.run(inventory.shopping_list)
+    assert [i["product_id"] for i in rows if i["manual"]] == [first]

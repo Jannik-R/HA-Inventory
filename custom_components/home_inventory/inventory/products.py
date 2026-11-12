@@ -6,7 +6,7 @@ import json
 import sqlite3
 from itertools import islice
 
-from .common import COLUMNS, unit_key
+from .common import COLUMNS, InventoryError, unit_key
 from .diet import off_diet
 from .ingredient_line import unit_lookup
 from .inherit import category_tags, set_tags
@@ -18,6 +18,26 @@ from .suggest import suggest, suggest_category
 def find_ean(conn: sqlite3.Connection, ean: str) -> dict | None:
     row = conn.execute("SELECT * FROM product WHERE ean = ?", (ean,)).fetchone()
     return dict(row) if row else None
+
+
+def product_by_name(conn: sqlite3.Connection, name: str, brand: str | None = None) -> dict | None:
+    """The product of this name (and brand, if given), ignoring case; None if there is none.
+    Several matches raise `product_not_unique` listing their brands, so the caller can narrow."""
+    key, bkey = name.strip().casefold(), (brand or "").strip().casefold()
+    rows = [
+        r
+        for r in conn.execute("SELECT * FROM product ORDER BY id")
+        if r["name"].casefold() == key and (not bkey or (r["brand"] or "").casefold() == bkey)
+    ]
+    if len(rows) > 1:
+        brands = sorted({r["brand"] for r in rows if r["brand"]}, key=str.casefold)
+        blank = any(not r["brand"] for r in rows)
+        raise InventoryError(
+            "product_not_unique_blank" if blank else "product_not_unique",
+            name=name.strip(),
+            brands=", ".join(brands) or "-",
+        )
+    return dict(rows[0]) if rows else None
 
 
 def list_products(conn: sqlite3.Connection) -> list[dict]:

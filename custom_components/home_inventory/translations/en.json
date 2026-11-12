@@ -130,6 +130,12 @@
     "product_unknown": {
       "message": "No product with barcode or name {code}. Book new products in once in the Home Inventory panel."
     },
+    "product_not_unique": {
+      "message": "Several products are called “{name}” (brands: {brands}). Add the brand, or use the barcode or label."
+    },
+    "product_not_unique_blank": {
+      "message": "Several products are called “{name}”, one of them without a brand (brands: {brands}). Add the brand, or use the barcode or label."
+    },
     "location_unknown": {
       "message": "No storage location named “{name}”."
     },
@@ -295,6 +301,10 @@
           "name": "Barcode",
           "description": "EAN or name of a product already in the home_inventory."
         },
+        "brand": {
+          "name": "Brand",
+          "description": "Brand of the product, to pick one when several share the name. Not needed for an EAN or label code."
+        },
         "packages": {
           "name": "Packages",
           "description": "Number of packages."
@@ -317,6 +327,10 @@
           "name": "Code",
           "description": "EAN, label code PTRY:… or product name"
         },
+        "brand": {
+          "name": "Brand",
+          "description": "Brand of the product, to pick one when several share the name. Not needed for an EAN or label code."
+        },
         "packages": {
           "name": "Packages",
           "description": "Number of packages (label code: 1)."
@@ -335,6 +349,10 @@
           "name": "Code",
           "description": "EAN, label code PTRY:… or product name"
         },
+        "brand": {
+          "name": "Brand",
+          "description": "Brand of the product, to pick one when several share the name. Not needed for an EAN or label code."
+        },
         "location": {
           "name": "Storage location",
           "description": "Only from this location (not with a label code)."
@@ -348,6 +366,10 @@
         "code": {
           "name": "Code",
           "description": "EAN, label code PTRY:… or product name"
+        },
+        "brand": {
+          "name": "Brand",
+          "description": "Brand of the product, to pick one when several share the name. Not needed for an EAN or label code."
         },
         "packages": {
           "name": "Packages",
@@ -370,6 +392,10 @@
         "code": {
           "name": "Code",
           "description": "EAN, label code PTRY:… or product name"
+        },
+        "brand": {
+          "name": "Brand",
+          "description": "Brand of the product, to pick one when several share the name. Not needed for an EAN or label code."
         },
         "packages": {
           "name": "Packages",

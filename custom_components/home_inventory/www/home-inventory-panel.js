@@ -4231,9 +4231,10 @@ var J = s`
 }), qr = (e, t) => e.callWS({
 	type: "home_inventory/frozen_undo",
 	booking_id: t
-}), Jr = (e, t, n) => e.callWS({
+}), Jr = (e, t, n, r) => e.callWS({
 	type: "home_inventory/freeze_scan",
-	code: t,
+	...t ? { code: t } : {},
+	...r ? { product_id: r } : {},
 	...n ? { location_id: n } : {}
 }), Yr = (e, t) => e.callWS({
 	type: "home_inventory/remaining",
@@ -6619,7 +6620,7 @@ var Xa = /^\d{8,14}$/, Za = class extends x {
 	async choose(e) {
 		let t = ++this.seq;
 		if (this.hits = void 0, this.mode !== "in" && !e.id) return void (this.error = S("book.unknown"));
-		if (this.mode === "freeze") return Wa(this, () => Jr(this.hass, e.ean ?? e.name, this.at?.id));
+		if (this.mode === "freeze") return Wa(this, () => Jr(this.hass, void 0, this.at?.id, e.id));
 		if (this.mode === "open") return Ua(this, () => Ur(this.hass, {
 			product_id: e.id,
 			location_id: this.at?.id

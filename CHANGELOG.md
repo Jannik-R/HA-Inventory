@@ -6,6 +6,15 @@
 
 - Product pictures from Open Food Facts (stock list, booking result) and the external service *Produktbilder* (`off_images`); the stored `image_url` of products stays unused
 
+### Added
+
+- Optional field `brand` for the actions `book_in`, `book_out`, `open_package`, `freeze_package`, `thaw_package` and the AI tools: picks one of several products with the same name
+
+### Fixed
+
+- A product name that several products share no longer books the oldest one silently: actions and AI tools fail with the list of brands. The shopping list still takes the category of that name or the oldest product
+- Freezing or thawing a product picked from the hit list goes by the product, not by its name
+
 ## 0.3.1 - 2026-11-10
 
 ### Added

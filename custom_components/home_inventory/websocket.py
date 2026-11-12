@@ -1,6 +1,6 @@
 """Websocket commands for the panel. Thin: validate input, call inventory, return the result.
 
-Master data, defaults, delete and product lookup here; more in websocket_stock / _label / _recipe."""
+Master data, defaults, delete and product lookup here; more in websocket_stock / _shopping / _label / _recipe."""
 
 from __future__ import annotations
 

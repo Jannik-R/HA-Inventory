@@ -1,60 +1,16 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { mdiClose, mdiTimerOutline } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
 import { formStyles } from "./styles";
 import { confirmDialog } from "./confirm-dialog";
-import { lang } from "./format";
 import { amountText } from "./recipe-detail";
 import "./cooked-dialog";
 import type { HomeInventoryCookedDialog } from "./cooked-dialog";
 import { stepList } from "./recipe-steps";
+import { cookStyles } from "./cook-mode-styles";
+import { alarm, clock, type Timer } from "./cook-timer";
 import type { Hass, Ingredient, MasterData, Recipe, Step } from "./api";
-
-interface Timer {
-  key: string;
-  label: string;
-  step: number;
-  end: number;
-}
-
-type DurationFormat = new (
-  locale?: string,
-  o?: { style: "digital"; hoursDisplay: "auto" },
-) => { format: (d: { hours: number; minutes: number; seconds: number }) => string };
-
-const clock = (hass: Hass | undefined, ms: number) => {
-  const s = Math.max(0, Math.ceil(ms / 1000));
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const DF = (Intl as unknown as { DurationFormat?: DurationFormat }).DurationFormat;
-  if (DF)
-    return new DF(lang(hass), { style: "digital", hoursDisplay: "auto" }).format({
-      hours: h,
-      minutes: m,
-      seconds: s % 60,
-    });
-  const mm = String(m).padStart(h ? 2 : 1, "0"); // browsers without Intl.DurationFormat
-  const ss = String(s % 60).padStart(2, "0");
-  return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
-};
-
-/** Three short beeps and a vibration when a timer runs out. */
-const alarm = () => {
-  navigator.vibrate?.([300, 200, 300, 200, 300]);
-  try {
-    const ctx = new AudioContext();
-    for (let k = 0; k < 3; k++) {
-      const osc = ctx.createOscillator();
-      osc.frequency.value = 880;
-      osc.connect(ctx.destination);
-      osc.start(ctx.currentTime + k * 0.4);
-      osc.stop(ctx.currentTime + k * 0.4 + 0.25);
-    }
-  } catch {
-    // no audio (e.g. not allowed yet): the vibration and the red timer remain
-  }
-};
 
 /** Full-screen cooking view: ingredients, steps to tick off (not saved), timers from the steps.
  * Keeps the screen on while open. Call `open(...)`. */
@@ -258,104 +214,7 @@ export class HomeInventoryCookMode extends LitElement {
     void d.open(this.recipe!, this.servings);
   }
 
-  static styles = [
-    formStyles,
-    css`
-      dialog {
-        width: 100vw;
-        max-width: 100vw;
-        height: 100dvh;
-        max-height: 100dvh;
-        margin: 0;
-        box-sizing: border-box;
-        padding: 16px 16px 96px;
-        border: none;
-        overflow-y: auto;
-      }
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-      h2 {
-        margin: 0;
-      }
-      h3,
-      h4 {
-        margin: 16px 0 4px;
-        font-size: 1em;
-        font-weight: 500;
-      }
-      .ings,
-      ol {
-        max-width: 720px;
-      }
-      ol {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-      .no {
-        display: inline-block;
-        min-width: 1.6em;
-        font-weight: 500;
-      }
-      .ings li {
-        padding: 2px 0;
-      }
-      ol li {
-        margin: 8px 0;
-      }
-      .step {
-        display: block;
-        width: 100%;
-        text-align: left;
-        font: inherit;
-        font-size: 1.1em;
-        line-height: 1.5;
-        padding: 6px 8px;
-        color: var(--primary-text-color);
-        background: none;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-      .step.done {
-        color: var(--secondary-text-color);
-        text-decoration: line-through;
-      }
-      .timer-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        margin: 2px 8px 0 8px;
-      }
-      .timers {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 16px;
-        padding: 8px 16px;
-        background: var(--card-background-color, var(--primary-background-color));
-        border-top: 1px solid var(--divider-color);
-      }
-      .timer {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-      .timer.over strong {
-        color: var(--error-color);
-      }
-      .detail {
-        color: var(--secondary-text-color);
-      }
-    `,
-  ];
+  static styles = [formStyles, cookStyles];
 }
 
 customElements.define("home-inventory-cook-mode", HomeInventoryCookMode);

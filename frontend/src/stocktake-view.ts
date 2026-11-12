@@ -1,9 +1,9 @@
-import { LitElement, css, html, nothing } from "lit";
+import { LitElement, html, nothing } from "lit";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 import { t } from "./i18n";
 import { fieldMsg, icon, loadingLine } from "./ui";
-import { formStyles } from "./styles";
-import { doneLine, doneStyles } from "./booking-done";
+import { doneLine } from "./booking-done";
+import { stocktakeStyles } from "./stocktake-styles";
 import { fmtDate } from "./format";
 import { confirmDialog } from "./confirm-dialog";
 import {
@@ -352,59 +352,7 @@ export class HomeInventoryStocktake extends LitElement {
       }`;
   }
 
-  static styles = [
-    formStyles,
-    doneStyles,
-    css`
-      ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-      }
-      li {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 0;
-        border-bottom: 1px solid var(--divider-color);
-      }
-      li .field-error {
-        flex-basis: 100%;
-      }
-      .what {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        min-width: 0;
-      }
-      .count {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        white-space: nowrap;
-      }
-      .acts {
-        display: flex;
-      }
-      .pick {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 8px;
-        margin: 8px 0;
-      }
-      h3 {
-        font-size: 1em;
-        margin: 16px 0 4px;
-      }
-      .actions {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 12px;
-      }
-    `,
-  ];
+  static styles = stocktakeStyles;
 }
 
 customElements.define("home-inventory-stocktake", HomeInventoryStocktake);

@@ -235,7 +235,6 @@ Which locations are freezers is set under *Settings → Locations* with **Freeze
 **Stock** shows the category tree with everything in stock, with counts and the earliest date.
 
 - Tap a row to open it. A product shows its batches (date, location, packages).
-- A product with a picture (from Open Food Facts) shows it small at the right of its row and in the message after booking. Your browser loads it directly from images.openfoodfacts.org. To switch it off: the integration's *Configure* > *External services* > *Show product pictures*.
 - The input field filters the list while you type: name, brand, barcode, category and location.
   With the switch on the **magnifier** (search), <kbd>Enter</kbd> opens no dialog, so you can find a product with the
   scanner to edit it without booking anything.

@@ -32,8 +32,6 @@ import { hasExternal } from "./modules";
 export interface Booked {
   message: string;
   taken?: Taken[];
-  /** The product's picture link (shown with the message). */
-  image?: string | null;
 }
 
 const blankForm = () => ({
@@ -251,9 +249,7 @@ export class HomeInventoryBookingForm extends LitElement {
         name: p.name,
         where,
       }) + (printed ? ` · ${t("label.printed", { n: printed })}` : "");
-    this.dispatchEvent(
-      new CustomEvent<Booked>("booked", { detail: { message, taken, image: p.image_url } }),
-    );
+    this.dispatchEvent(new CustomEvent<Booked>("booked", { detail: { message, taken } }));
   }
 
   render() {

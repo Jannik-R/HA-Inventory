@@ -131,6 +131,8 @@ flowchart LR
 
 ## 2a. Kassenbon importieren
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/receipt-de-dark.png"><img src="images/receipt-de-light.png" alt="Dialog Kassenbon importieren mit drei erkannten Zeilen" width="300"></picture></p>
+
 Statt jedes Produkt einzeln zu scannen, buchst du einen ganzen Einkauf vom Kassenbon ein. Das geht
 nur, wenn eine KI eingerichtet ist (README, *KI*).
 
@@ -253,6 +255,8 @@ Welche Lagerorte Gefrierorte sind, legst du unter *Einstellungen → Lagerorte* 
 
 ## 4a. Inventur
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/stocktake-de-dark.png"><img src="images/stocktake-de-light.png" alt="Inventur im Vorratsschrank mit einem gezählten Produkt" width="300"></picture></p>
+
 Stimmt der Bestand eines Schranks nicht mehr? Zähle ihn mit der Inventur nach.
 
 1. Im **Bestand** auf **Inventur** tippen, dann den **Lagerort** wählen. Die Liste zeigt alles, was laut
@@ -266,6 +270,8 @@ Stimmt der Bestand eines Schranks nicht mehr? Zähle ihn mit der Inventur nach.
    alles als Korrektur: Nicht Gescanntes wird ausgebucht, Gefundenes eingebucht.
 
 ## 4b. Verlauf
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/history-de-dark.png"><img src="images/history-de-light.png" alt="Verlauf mit den Buchungen von heute" width="300"></picture></p>
 
 Wer hat wann was gebucht? **Bestand > Verlauf** listet jede Buchung, die neueste zuerst.
 
@@ -301,6 +307,8 @@ stehen oben, bei gleicher Zahl das Rezept mit mehr vorhandenen Zutaten. Ein Tipp
 > eine Benachrichtigung aufs Handy.
 
 ## 5a. Notvorrat
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/emergency-de-dark.png"><img src="images/emergency-de-light.png" alt="Tab Notvorrat mit Soll, Ist und Reichweite je Gruppe" width="300"></picture></p>
 
 Der Tab **Notvorrat** (Modul *Notvorrat*, eingeschaltet unter *Einstellungen → Geräte & Dienste → Home Inventory → Konfigurieren → Module*) prüft den Bestand gegen den Notvorrat, den das Bundesamt für Bevölkerungsschutz und Katastrophenhilfe (BBK) empfiehlt: Lebensmittel und Getränke für **zehn Tage**, je Person.
 
@@ -650,6 +658,8 @@ Druckern die Baudrate. **Testbon drucken** prüft die Verbindung beim Speichern.
 Einrichtung (USB an Docker durchreichen) steht im [README](../README.de.md#bondrucker).
 
 ## 9. Kategorien, Produktarten und Vererbung
+
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="images/settings-de-dark.png"><img src="images/settings-de-light.png" alt="Einstellungen mit der Kategorienliste" width="300"></picture></p>
 
 Der Kategoriebaum hat drei Ebenen: **Hauptkategorie → Kategorie → Produktart**, z. B.
 *Nudeln, Reis & Getreide → Nudeln → Spaghetti*. Produkte hängen meist an einer Produktart.

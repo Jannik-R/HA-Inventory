@@ -22,7 +22,7 @@ SPAGHETTI = {
         "en:pastas",
         "en:spaghetti",
     ],
-    "image_front_small_url": "https://images.example/spaghetti.jpg",
+    "image_front_url": "https://images.example/spaghetti.jpg",
     "product_name": "Spaghetti Nº5",
     "product_name_de": "Spaghetti No. 5",
     "product_quantity": 500,
@@ -231,7 +231,7 @@ async def test_async_search(hass: HomeAssistant, aioclient_mock) -> None:
 
 def test_normalize_survives_odd_fields():
     p = {"code": 4006040053026, "product_name": 5, "product_name_de": None, "generic_name_de": " Brot ",
-         "brands": ["a"], "categories_tags": "en:x", "image_front_small_url": {}}  # fmt: skip
+         "brands": ["a"], "categories_tags": "en:x", "image_front_url": {}}  # fmt: skip
     out = off.normalize(p, "de")
     assert out["name"] == "Brot" and out["brand"] is None and out["ean"] == "4006040053026"
     assert out["off_tags"] == [] and out["image_url"] is None

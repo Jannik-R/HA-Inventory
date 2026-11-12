@@ -26,7 +26,7 @@ left out). Their search sometimes answers 500.
 - Always send `User-Agent: HA-Inventory/<ver> (<repo url>)` (`off.HEADERS`). Read-only, no auth.
 - Rate limits: product 100 req/min, search **10 req/min** -> search only on explicit user action, never per keystroke. Local products first (`inventory.search_products`, `find_ean`).
 - Always pass `fields=`; full product JSON is large.
-- Fields used: `code, product_name, product_name_<lang>, generic_name_<lang>, brands` (comma list, first wins), `categories_tags` (includes all ancestors, roughly general -> specific; may contain non-`en:` junk), `product_quantity` + `product_quantity_unit` (usually g/ml, already the total for multipacks), `quantity` (free text fallback, e.g. "6 x 1,5 l"), `image_front_small_url`.
+- Fields used: `code, product_name, product_name_<lang>, generic_name_<lang>, brands` (comma list, first wins), `categories_tags` (includes all ancestors, roughly general -> specific; may contain non-`en:` junk), `product_quantity` + `product_quantity_unit` (usually g/ml, already the total for multipacks), `quantity` (free text fallback, e.g. "6 x 1,5 l"), `image_front_url`.
 - Data quality varies: tags can be missing or only in one language (e.g. only `nl:...`). Missing match -> user picks a category, `add_product` learns the last tag.
 
 ## Checking seed off_tags

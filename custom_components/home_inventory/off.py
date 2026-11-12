@@ -31,7 +31,7 @@ SITES = {
 _OTHER_TYPE = re.compile(r"different product type: (\w+)")
 FIELDS = (
     "code,product_name,product_name_{lang},generic_name_{lang},brands,categories_tags,"
-    "product_quantity,product_quantity_unit,quantity,image_front_small_url,"
+    "product_quantity,product_quantity_unit,quantity,image_front_url,"
     "allergens_tags,ingredients_analysis_tags"
 )
 SEARCH_FIELDS = "code,product_name,product_name_{lang},brands,quantity"
@@ -119,7 +119,7 @@ def normalize(p: dict, lang: str) -> dict:
             p.get("product_quantity"), p.get("product_quantity_unit"), p.get("quantity")
         ),
         "off_tags": [t for t in tags if isinstance(t, str)] if isinstance(tags, list) else [],
-        "image_url": _image(p.get("image_front_small_url")),
+        "image_url": _image(p.get("image_front_url")),
         "off_json": json.dumps(p, ensure_ascii=False),
     }
 

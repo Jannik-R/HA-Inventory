@@ -3,6 +3,7 @@ import { hasModule } from "./modules";
 import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
+import { imageStyles, productImage } from "./product-image";
 import {
   errorMessage,
   saveProduct,
@@ -124,6 +125,7 @@ export class HomeInventoryProductDialog extends LitElement {
     return editDialog({
       title: t("common.edit_name", { name: this.orig?.name ?? p.name }),
       body: html`${productFields(this.md, p, (f, v) => this.set(f, v), err, this.hass)}
+        ${productImage(p.image_url, 160)}
         <label>
           <span class="lbl">${t("products.ean")}</span>
           <input
@@ -246,7 +248,7 @@ export class HomeInventoryProductDialog extends LitElement {
     });
   }
 
-  static styles = formStyles;
+  static styles = [formStyles, imageStyles];
 }
 
 customElements.define("home-inventory-product-dialog", HomeInventoryProductDialog);

@@ -34,7 +34,9 @@ test.afterAll(async ({ browser }) => {
   await page.close();
 });
 
-test("stock row shows the product image, and none when the service is off", async ({ page }) => {
+test("product edit dialog shows the product image, and none when the service is off", async ({
+  page,
+}) => {
   let requests = 0;
   await page.route("https://images.openfoodfacts.org/**", (route) => {
     requests++;
@@ -43,14 +45,19 @@ test("stock row shows the product image, and none when the service is off", asyn
   await openPage(page, "/home_inventory/stock", "Bestand");
   await panelConfig(page, { external: { off_images: true } });
   await page.getByTestId("code-input").fill(NAME);
-  const img = page.getByTestId("stock-product").locator("xpath=..").getByTestId("product-image");
+  await page.getByTestId("product-edit").click();
+  const img = page.getByTestId("product-image");
   await expect(img).toHaveAttribute("src", IMAGE);
   await expect(img).toHaveAttribute("alt", "");
+  await expect(
+    page.getByTestId("stock-product").locator("xpath=..").getByTestId("product-image"),
+  ).toHaveCount(0);
 
   const before = requests;
   await panelConfig(page, { external: { off_images: false } });
   await page.getByTestId("code-input").fill(`${NAME} `);
-  await expect(page.getByTestId("stock-product")).toHaveCount(1);
+  await page.getByTestId("product-edit").click();
+  await expect(page.getByTestId("name")).toBeVisible();
   await expect(page.getByTestId("product-image")).toHaveCount(0);
   expect(requests).toBeGreaterThan(0);
   expect(requests).toBe(before);
@@ -64,6 +71,7 @@ test("an image link on a foreign host renders no img", async ({ page }) => {
   });
   await page.reload();
   await page.getByTestId("code-input").fill(NAME);
-  await expect(page.getByTestId("stock-product")).toHaveCount(1);
+  await page.getByTestId("product-edit").click();
+  await expect(page.getByTestId("name")).toBeVisible();
   await expect(page.getByTestId("product-image")).toHaveCount(0);
 });

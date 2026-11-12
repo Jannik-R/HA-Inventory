@@ -13,7 +13,7 @@ export function doneLine(
 ) {
   if (!message) return nothing;
   return html`<p class="done" role="status" data-testid=${prefix ? `${prefix}-done` : "message"}>
-    ${productImage(image)} ${message}
+    ${productImage(image, 120)} ${message}
     ${
       undo
         ? html`<button

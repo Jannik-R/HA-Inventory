@@ -1,7 +1,7 @@
 import { css, html, nothing } from "lit";
 import { hasExternal } from "./modules";
 
-/** Small product picture (Open Food Facts image server). Nothing when the service is off (no request
+/** Product picture (`size` px, default 40) (Open Food Facts image server). Nothing when the service is off (no request
  *  leaves the browser), the product has none, or the link is not https on an Open * Facts host. */
 const HOSTS = [
   "openfoodfacts.org",
@@ -22,14 +22,14 @@ function allowed(url: string) {
   }
 }
 
-export const productImage = (url?: string | null) =>
+export const productImage = (url?: string | null, size = 40) =>
   url && hasExternal("off_images") && allowed(url)
     ? html`<img
         class="pimg"
         src=${url}
         alt=""
-        width="40"
-        height="40"
+        width=${size}
+        height=${size}
         @error=${(e: Event) => ((e.target as HTMLElement).hidden = true)}
         loading="lazy"
         referrerpolicy="no-referrer"
@@ -43,8 +43,8 @@ export const imageStyles = css`
   }
   .pimg {
     flex: none;
-    width: 40px;
-    height: 40px;
+    max-width: 100%;
+    height: auto;
     object-fit: contain;
     margin: 0 8px;
   }

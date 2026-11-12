@@ -4228,12 +4228,12 @@ function Wr(e) {
 		return !1;
 	}
 }
-var Gr = (e) => e && R("off_images") && Wr(e) ? g`<img
+var Gr = (e, t = 40) => e && R("off_images") && Wr(e) ? g`<img
         class="pimg"
         src=${e}
         alt=""
-        width="40"
-        height="40"
+        width=${t}
+        height=${t}
         @error=${(e) => e.target.hidden = !0}
         loading="lazy"
         referrerpolicy="no-referrer"
@@ -4244,8 +4244,8 @@ var Gr = (e) => e && R("off_images") && Wr(e) ? g`<img
   }
   .pimg {
     flex: none;
-    width: 40px;
-    height: 40px;
+    max-width: 100%;
+    height: auto;
     object-fit: contain;
     margin: 0 8px;
   }
@@ -4254,7 +4254,7 @@ var Gr = (e) => e && R("off_images") && Wr(e) ? g`<img
 //#region src/booking-done.ts
 function q(e, t, n, r, i) {
 	return e ? g`<p class="done" role="status" data-testid=${n ? `${n}-done` : "message"}>
-    ${Gr(i)} ${e}
+    ${Gr(i, 120)} ${e}
     ${t ? g`<button
             type="button"
             class="undo"
@@ -4887,6 +4887,7 @@ var Fi = [
 		return E({
 			title: S("common.edit_name", { name: this.orig?.name ?? e.name }),
 			body: g`${Ni(this.md, e, (e, t) => this.set(e, t), t, this.hass)}
+        ${Gr(e.image_url, 160)}
         <label>
           <span class="lbl">${S("products.ean")}</span>
           <input
@@ -4997,7 +4998,7 @@ var Fi = [
 		});
 	}
 	static {
-		this.styles = C;
+		this.styles = [C, Kr];
 	}
 };
 customElements.define("home-inventory-product-dialog", Ii);
@@ -6955,7 +6956,6 @@ var no = class extends x {
             ${r ? g` · <span class=${this.status(r)}>${this.date(r)}</span>` : v}
           </span>
         </button>
-        ${Gr(this.products.get(e.id)?.image_url)}
         ${D({
 			testid: "product",
 			name: e.name,

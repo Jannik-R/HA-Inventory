@@ -1,5 +1,7 @@
 # Home Inventory (Vorrat) für Home Assistant
 
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![Release](https://img.shields.io/github/v/release/Jannik-R/HA-Inventory)](https://github.com/Jannik-R/HA-Inventory/releases) [![CI](https://github.com/Jannik-R/HA-Inventory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Jannik-R/HA-Inventory/actions/workflows/ci.yml) [![Lizenz: MIT](https://img.shields.io/github/license/Jannik-R/HA-Inventory)](LICENSE) [![Mindestversion Home Assistant 2026.11.0](https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-41BDF5.svg)](https://www.home-assistant.io/)
+
 *English: [README.md](README.md)*
 
 Vorratsverwaltung (Lebensmittel, Batterien, Haushaltswaren, Medikamente, Eingekochtes) als Custom
@@ -7,7 +9,7 @@ Integration für Home Assistant: per Barcode oder Name ein- und ausbuchen, Charg
 Mindesthaltbarkeits- oder Verbrauchsdatum je Lagerort verwalten, sehen, was bald abläuft, und eine
 markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 
-> Status: frühe Entwicklung, aktuelle Version 0.3.2. Änderungen: [CHANGELOG.md](CHANGELOG.md).
+> Version 1.0.0 ist die erste öffentliche Veröffentlichung. Die 0.x-Versionen waren nur Entwicklungsstände, nicht für den produktiven Einsatz gedacht. 1.0.x unterstützt ihre Datenbanken nicht: eine 0.x-Datenbankdatei wird beim Einrichten mit einer Meldung abgelehnt, die die Datei nennt, und 1.0.x startet mit einer neuen Datenbank. Änderungen: [CHANGELOG.md](CHANGELOG.md).
 > Planung: [docs/PLAN.md](docs/PLAN.md) (englisch).
 
 ## Funktionen
@@ -48,17 +50,35 @@ Vorhanden:
 
 Planung: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
 
+### Bekannte Einschränkungen
+
+- Manche Erklärungen gibt es nur als Tooltip beim Darüberfahren mit der Maus: den Rezeptnamen hinter den Markierungen auf der Einkaufsliste, die Gerichtnamen in der Ansicht *Monat* des Speiseplans und Hilfetexte an manchen Feldbeschriftungen. Auf Touchscreens erscheinen sie nicht.
+- Die Notvorrat-Zeile zeigt bei einem Ein-Personen-Haushalt „1 Personen“.
+
 ## Installation
 
-Benötigt Home Assistant 2026.10.1 oder neuer.
+Benötigt Home Assistant 2026.11.0 oder neuer.
 
-HACS (erst wenn das Repository öffentlich ist; HACS kann nicht aus privaten Repositories installieren): dieses Repository als benutzerdefiniertes Repository hinzufügen (Kategorie *Integration*), *Home Inventory (Vorrat)* installieren, Home Assistant neu starten. Versionen sind die GitHub-Releases.
+**Empfohlen: HACS.** Versionen sind die GitHub-Releases. Der Knopf öffnet dieses Repository in HACS auf deinem Home Assistant als benutzerdefiniertes Repository:
 
-Von Hand: das Release herunterladen (oder das Repository klonen), `custom_components/home_inventory` nach `config/custom_components/` kopieren und Home Assistant neu starten.
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Jannik-R&repository=HA-Inventory&category=integration)
+
+Ohne Knopf, in HACS:
+
+1. Das Drei-Punkte-Menü oben rechts öffnen > *Benutzerdefinierte Repositories*.
+2. Die URL `https://github.com/Jannik-R/HA-Inventory` eintragen, Typ *Integration*, und *Hinzufügen*.
+3. *Home Inventory (Vorrat)* in der Liste öffnen und *Download* wählen.
+4. Home Assistant neu starten.
+
+**Von Hand:** das Release herunterladen (oder das Repository klonen), `custom_components/home_inventory` nach `config/custom_components/` kopieren und Home Assistant neu starten.
 
 Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten). `yt-dlp` (Video eines Beitrags für den KI-Rezeptimport) wird erst beim ersten Gebrauch installiert, wenn *Externe Dienste > Videos für den Rezeptimport laden* an ist; das Home-Assistant-Image enthält es schon, eine normale Installation lädt also nichts herunter.
 
-Danach: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, Module wählen (siehe unten). Das Panel erscheint als *Vorrat* (bei Home Assistant auf Englisch: *Home Inventory*) in der Seitenleiste.
+Nach dem Neustart die Einrichtung starten:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=home_inventory)
+
+Ohne Knopf: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, dann Module wählen (siehe unten). Das Panel erscheint als *Vorrat* (bei Home Assistant auf Englisch: *Home Inventory*) in der Seitenleiste.
 
 **Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an außer *Allergene & Ernährung*: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen*, *Dörren* und *Reste* (Tab *Haltbarmachen*, sichtbar solange eins davon an ist, mit Umschalter wenn mehrere an sind), *Anbrechen* (Knopf *Anbrechen* an der Charge, Buchungsmodus *Anbrechen* und das Feld *Haltbar nach Anbruch*), *Einfrieren* (Knöpfe *Einfrieren* / *Auftauen* und die Felder *Haltbar eingefroren*, *Tiefkühlware*; abgeschaltet wird nichts eingefroren und kein Datum geändert, auch nicht an einem Lagerort mit *Gefrierort*). Standardmäßig aus: *Allergene & Ernährung* (Felder *Ernährung* und *Allergene* an Kategorien und Produkten, Ernährungszeile und Filter in der Rezeptliste). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
 

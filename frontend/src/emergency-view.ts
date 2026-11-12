@@ -2,7 +2,7 @@ import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
 import { errorMessage, type Hass } from "./api";
 import { getEmergency, type Emergency } from "./api-emergency";
-import { fmtNumber } from "./format";
+import { fmtDays, fmtNumber } from "./format";
 import { loadingLine } from "./ui";
 
 /** Emergency stock (Notvorrat): stock against the BBK recommendation, days per food group. */
@@ -45,9 +45,11 @@ export class HomeInventoryEmergency extends LitElement {
     const n = (v: number) => fmtNumber(this.hass, v);
     return html`
       <p class="supply" data-testid="emergency-supply">
-        ${t("emergency.supply", { days: n(d.supply_days) })}
+        ${t("emergency.supply", { days: fmtDays(this.hass, d.supply_days) })}
       </p>
-      <p class="detail">${t("emergency.target", { persons: n(d.persons), days: n(d.days) })}</p>
+      <p class="detail">
+        ${t("emergency.target", { persons: n(d.persons), days: fmtDays(this.hass, d.days) })}
+      </p>
       <table>
         <thead>
           <tr>
@@ -73,7 +75,7 @@ export class HomeInventoryEmergency extends LitElement {
                 </td>
                 <td>${n(g.need)} ${g.unit}</td>
                 <td>${n(g.have)} ${g.unit}</td>
-                <td>${t("emergency.days", { days: n(g.days) })}</td>
+                <td>${fmtDays(this.hass, g.days)}</td>
               </tr>`,
           )}
         </tbody>

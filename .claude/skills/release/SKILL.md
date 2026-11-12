@@ -8,8 +8,8 @@ equal `manifest.json` → `version` (HACS and HA show that number).
 
 ## 1. Prepare (branch `release/<version>`)
 
-- [ ] Pick the version (SemVer, `0.x` until the first public release): fix → patch, feature → minor,
-      schema change without migration path or removed service field → major (or minor while `0.x`, say so in CHANGELOG).
+- [ ] Pick the version (SemVer): fix → patch, feature → minor,
+      schema change without migration path or removed service field → major.
 - [ ] `custom_components/home_inventory/manifest.json` → `version`.
 - [ ] `CHANGELOG.md`: new section `## <version> - <YYYY-MM-DD>` on top, user-visible changes since the last tag
       (`git log --oneline v<last>..main`), grouped *Added / Changed / Fixed*; note DB migrations and anything the user must do.
@@ -38,4 +38,4 @@ gh release create v<version> --target main --title "v<version>" --notes-file <ch
 
 - Notes = the CHANGELOG section of this version (write it to a scratch file, do not use `--generate-notes`).
 - Check: `gh release view v<version>`; the tag points to the merge commit on `main`.
-- HACS needs a **public** repository; while the repo is private, install manually (README → Installation).
+- HACS (custom repository) offers the GitHub releases as versions.

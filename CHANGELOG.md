@@ -1,10 +1,16 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2026-11-12
+
+First public release. The 0.x versions below were development versions only and are not meant for productive use.
 
 ### Upgrade notes
 
 - 1.0.0 starts with a new database. Databases written by 0.x versions are refused at setup with an error that names the file (move or delete it, then reload the integration); nothing is migrated, moved or deleted automatically. 0.x was for development only.
+
+### Added
+
+- Installation through HACS as a custom repository
 
 ### Changed
 

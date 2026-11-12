@@ -74,11 +74,7 @@ Ohne Knopf, in HACS:
 
 Python-Pakete (installiert Home Assistant): `segno` (QR-Codes auf Etiketten). `yt-dlp` (Video eines Beitrags für den KI-Rezeptimport) wird erst beim ersten Gebrauch installiert, wenn *Externe Dienste > Videos für den Rezeptimport laden* an ist; das Home-Assistant-Image enthält es schon, eine normale Installation lädt also nichts herunter.
 
-Nach dem Neustart die Einrichtung starten:
-
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=home_inventory)
-
-Ohne Knopf: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, dann Module wählen (siehe unten). Das Panel erscheint als *Vorrat* (bei Home Assistant auf Englisch: *Home Inventory*) in der Seitenleiste.
+Nach dem Neustart einrichten: *Einstellungen → Geräte & Dienste → Integration hinzufügen → Home Inventory*, dann Module wählen (siehe unten). Das Panel erscheint als *Vorrat* (bei Home Assistant auf Englisch: *Home Inventory*) in der Seitenleiste.
 
 **Module.** Bestand, Ein- und Auslagern, Ablauf und Einstellungen sind immer da. Optional, alle standardmäßig an außer *Allergene & Ernährung*: *Einkaufsliste* (Tab *Einkauf* und die To-do-Entität), *Rezepte* (Tab *Rezepte*), *Speiseplan* (Tab *Speiseplan*, die Kalender-Entität und der Einstellungsbereich *Mahlzeiten*), *Einkochen*, *Dörren* und *Reste* (Tab *Haltbarmachen*, sichtbar solange eins davon an ist, mit Umschalter wenn mehrere an sind), *Anbrechen* (Knopf *Anbrechen* an der Charge, Buchungsmodus *Anbrechen* und das Feld *Haltbar nach Anbruch*), *Einfrieren* (Knöpfe *Einfrieren* / *Auftauen* und die Felder *Haltbar eingefroren*, *Tiefkühlware*; abgeschaltet wird nichts eingefroren und kein Datum geändert, auch nicht an einem Lagerort mit *Gefrierort*). Standardmäßig aus: *Allergene & Ernährung* (Felder *Ernährung* und *Allergene* an Kategorien und Produkten, Ernährungszeile und Filter in der Rezeptliste). Später änderbar unter *Konfigurieren > Module*; Speichern lädt die Integration neu. Ein abgeschaltetes Modul blendet nur seinen Tab und seine Knöpfe aus (z. B. *Auf die Einkaufsliste* im Rezept) und entfernt seine Entität; die Daten bleiben und sind beim Wiedereinschalten zurück. Websocket-Befehle und Aktionen eines abgeschalteten Moduls funktionieren weiter.
 

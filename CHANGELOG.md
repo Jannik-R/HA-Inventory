@@ -6,6 +6,10 @@
 
 - Product pictures from Open Food Facts (stock list, booking result) and the external service *Produktbilder* (`off_images`); the stored `image_url` of products stays unused
 
+### Fixed
+
+- *Gekocht*: two ingredients of the same category or product no longer both claim the same packages; the proposal is planned row by row against the stock the rows before leave, so it can always be booked as shown
+
 ## 0.3.1 - 2026-11-10
 
 ### Added

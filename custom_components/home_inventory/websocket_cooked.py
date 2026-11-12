@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from . import inventory
-from .ws_common import run
+from .ws_common import db_of, run, translated
 from .ws_validate import ID, NULL_ID, PACKAGES_OR_ZERO, REMAINING
 
 SERVINGS = vol.All(int, vol.Range(min=1, max=99))
@@ -41,7 +41,9 @@ def async_register(hass: HomeAssistant) -> None:
 @websocket_api.async_response
 async def ws_proposal(hass: HomeAssistant, connection, msg: dict) -> None:
     """Book-out rows for the ingredients of a recipe (nothing is changed)."""
-    result = await run(hass, inventory.cooked_proposal, msg["recipe_id"], msg["servings"])
+    fn = partial(inventory.cooked_proposal, msg["recipe_id"], msg["servings"])
+    with translated():  # plans in a rolled back SAVEPOINT: nothing to announce
+        result = await db_of(hass).run(fn, write=False)
     connection.send_result(msg["id"], result)
 
 

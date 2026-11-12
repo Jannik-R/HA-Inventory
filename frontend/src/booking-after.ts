@@ -12,7 +12,6 @@ import { frozenLine, type FrozenDone } from "./frozen-action";
 export interface AfterHost extends EventTarget {
   hass?: Hass;
   message: string;
-  image?: string | null;
   undo?: Taken[];
   opened?: Opened;
   /** The last freeze / thaw (scan mode Einfrieren). */
@@ -95,13 +94,7 @@ export const afterLine = (host: AfterHost) =>
           () => requestLabel(host, host.opened!),
           "open",
         )
-      : doneLine(
-          host.message,
-          host.undo && (() => undoLast(host)),
-          undefined,
-          undefined,
-          host.image,
-        );
+      : doneLine(host.message, host.undo && (() => undoLast(host)));
 
 /** The booking input's state a code scan needs. */
 interface ScanHost extends AfterHost {

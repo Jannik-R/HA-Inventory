@@ -13,6 +13,7 @@ from homeassistant.helpers.typing import ConfigType
 from . import (
     events,
     llm_api,
+    recipe_image,
     services,
     websocket,
     websocket_canning,
@@ -43,6 +44,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     await hass.http.async_register_static_paths(
         [StaticPathConfig(PANEL_URL, str(Path(__file__).parent / "www"), False)]
     )
+    hass.http.register_view(recipe_image.RecipeImageView)
     websocket.async_register(hass)
     websocket_stock.async_register(hass)
     websocket_label.async_register(hass)

@@ -332,6 +332,8 @@ export interface Recipe {
   steps: Step[];
   source_url: string | null;
   image_url: string | null;
+  /** Signed path of the picture stored in HA (preferred over image_url). */
+  image_path?: string;
   /** Set: a canning recipe (Einkochen tab) that makes this product. */
   canning_product_id: number | null;
   canning_product: string | null;

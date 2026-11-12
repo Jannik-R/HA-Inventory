@@ -78,13 +78,22 @@ def _servings(value: object) -> int:
     return min(max(int(match[0]), 1), 99) if match else 4
 
 
+def _pixels(value: object) -> int:
+    """width * height of an ImageObject, 0 without (usable) size info."""
+    try:
+        return int(value["width"]) * int(value["height"])  # type: ignore[index]
+    except (TypeError, KeyError, ValueError):
+        return 0
+
+
 def _image(value: object) -> str | None:
-    if isinstance(value, list):
-        value = next((v for v in value if _image(v)), None)
-    if isinstance(value, dict):
-        value = value.get("url") or value.get("contentUrl")
-    ok = isinstance(value, str) and len(value) <= 2000 and re.match(r"https?://", value)
-    return value if ok else None
+    """The largest picture (by width x height) of the JSON-LD `image`; the first without sizes."""
+    found = []
+    for v in value if isinstance(value, list) else [value]:
+        url = v.get("url") or v.get("contentUrl") if isinstance(v, dict) else v
+        if isinstance(url, str) and len(url) <= 2000 and re.match(r"https?://", url):
+            found.append((_pixels(v), url))
+    return max(found, key=lambda f: f[0])[1] if found else None  # max keeps the first on a tie
 
 
 def recipe_import(conn: sqlite3.Connection, page: str, url: str) -> dict:

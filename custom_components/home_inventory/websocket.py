@@ -10,7 +10,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from . import inventory, off
+from . import inventory, off, recipe_image
 from .ws_common import db_of, run, translated
 from .ws_validate import (
     ALLERGEN_SET,
@@ -155,6 +155,8 @@ async def ws_delete(hass: HomeAssistant, connection, msg: dict) -> None:
         )
     else:
         await run(hass, inventory.delete, msg["table"], msg["row_id"])
+    if msg["table"] == "recipe":
+        await recipe_image.async_delete(hass, msg["row_id"])
     connection.send_result(msg["id"])
 
 

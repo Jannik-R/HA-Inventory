@@ -235,7 +235,6 @@ Welche Lagerorte Gefrierorte sind, legst du unter *Einstellungen → Lagerorte* 
 **Bestand** zeigt den Kategoriebaum mit allem, was da ist, mit Anzahl und frühestem Datum.
 
 - Eine Zeile antippen klappt sie auf. Ein Produkt zeigt seine Chargen (Datum, Lagerort, Packungen).
-- Hat ein Produkt ein Bild (von Open Food Facts), erscheint es klein rechts in der Zeile und in der Meldung nach dem Buchen. Dein Browser lädt es direkt von images.openfoodfacts.org. Abschalten: Einstellungen des Dienstes > *Konfigurieren* > *Externe Dienste* > *Produktbilder anzeigen*.
 - Das Eingabefeld filtert die Liste beim Tippen nach Name, Marke, Barcode, Kategorie und Lagerort.
   Steht der Schalter auf der **Lupe** (Suchen), öffnet <kbd>Enter</kbd> kein Fenster. So findest du ein Produkt auch mit dem
   Scanner, um es zu bearbeiten, ohne etwas zu buchen.
@@ -383,7 +382,7 @@ ein Bondrucker eingerichtet ist (siehe [Etiketten und Bondrucker](#8-etiketten-u
 **Rezepte** zeigt alle Rezepte mit dem Stand „5 von 7 vorhanden“ (Einkochrezepte stehen im Tab
 [Einkochen und Dörren](#7b-einkochen-und-dörren), nicht hier). Das Suchfeld findet Name und
 Zutaten. Eine Zeile aufklappen zeigt Zutaten mit Status, die nummerierten Schritte, Quelle und Bild; **Portionen**
-rechnet die Mengen um (nur Anzeige). Dein Browser lädt das Bild von der Website, von der das Rezept importiert wurde; abschalten unter *Konfigurieren > Externe Dienste > Rezeptbilder anzeigen*. **Auf die Einkaufsliste** setzt das Rezept auf die Liste
+rechnet die Mengen um (nur Anzeige). Das Bild wird beim Speichern einmal von der Website des Rezepts in Home Assistant gespeichert und nur angemeldeten Nutzern gezeigt; abschalten unter *Konfigurieren > Externe Dienste > Rezeptbilder anzeigen* (dann wird nichts geladen, schon gespeicherte Bilder bleiben sichtbar). Ein Foto aus dem KI-Import wird nicht als Rezeptbild gespeichert. **Auf die Einkaufsliste** setzt das Rezept auf die Liste
 (siehe [Einkaufsliste](#6-einkaufsliste)). **Einplanen** trägt es mit den angezeigten Portionen in den
 [Speiseplan](#7a-speiseplan) ein (Datum: heute, Mahlzeit: Abendessen; im Dialog änderbar).
 

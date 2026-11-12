@@ -61,6 +61,7 @@ custom_components/home_inventory/   integration (Python)
   recipe_media.py           media for the AI import: yt-dlp video + caption, image download, hidden `.home_inventory_import` folder in the media dir (ai_task attachments)
   llm_api.py                LLM API `home_inventory` for Assist agents / HA MCP Server: tools per access level (options `llm_access`); write tools call the services
   off.py                    Open Food Facts client
+  recipe_image.py           recipe pictures stored locally (`<config>/home_inventory/recipe_images/<id>.jpg`): background download on save / list (switch `recipe_images`), Pillow shrink, auth HTTP view with signed path, delete with the recipe
   recipe_fetch.py           recipe page fetch for the import (HA session, on user click only)
   coordinator.py            shared by the entity platforms: coordinator refreshed by DB writes, device
   sensor.py                 expired / expiring-soon sensors (no polling)

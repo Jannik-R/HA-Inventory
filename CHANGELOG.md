@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Removed
+
+- Product pictures from Open Food Facts (stock list, booking result) and the external service *Produktbilder* (`off_images`); the stored `image_url` of products stays unused
+
 ## 0.3.1 - 2026-11-10
 
 ### Added

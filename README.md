@@ -18,7 +18,6 @@ Available:
 - Receipt import (*Import receipt*, needs an AI): document scan of a shopping receipt (live outline, corners, black and white), text recognition in the browser, the AI reads the items, you check product, packages and date per line in one dialog and book all in; remembers per store which product a receipt line is
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations
-- Small product pictures (from Open Food Facts) in the stock list and the booking result; switchable under *External services*
 - Stock overview with search, take-out and batch correction; a whole storage location can be moved to another one in the settings (panel only, no service: it is a stock correction)
 - Expiry overview with a temporary "expiring soon" threshold and recipe suggestions that use up what expires (recipes ranked by expiring ingredients, then by availability; marked in the recipe list); sensors for expired / expiring packages
 - Emergency stock (module *Emergency stock*): tab *Emergency stock* checks the stock against the BBK recommendation for ten days per person (persons from *Household servings*): one row per food group with target, stock and the days it lasts; categories are assigned to a group; sensor *Emergency supply* (days); see the [guide](docs/guide.en.md#5a-emergency-stock)
@@ -224,8 +223,7 @@ it only through the services below. Each one has its own switch under *Configure
 | Service (switch) | What is sent, to whom | When | Default |
 |---|---|---|---|
 | *Look up products in Open Food Facts* | the barcode or search text to openfoodfacts.org (and its sister databases) | unknown barcode at book-in, *Search online*; the admin button *Reload allergens from Open Food Facts* sends the barcodes of products without allergen data, about one per second | on |
-| *Show product pictures* | your browser requests the small product picture from images.openfoodfacts.org, so that server sees your IP address and which product | stock list and booking result show a product with a picture | on |
-| *Show recipe pictures* | your browser requests the recipe picture from the website the recipe was imported from, so that server sees your IP address and which picture is requested | opened recipe with a picture | on |
+| *Show recipe pictures* | when a recipe is saved, Home Assistant downloads its picture once from the website the recipe was imported from, so that server sees your Home Assistant's IP address and which picture is requested; the picture is stored in Home Assistant | saved recipe with a picture (older recipes: when the recipe list first loads) | on |
 | *Import recipes from links* | a request for the linked page to that site (from Home Assistant) | *Import* with a link | on |
 | *AI checks recipe imports* | the recipe, the food category tree and the units to the chosen AI | every recipe import | on (with AI) |
 | *AI checks new products* | the Open Food Facts data of the product, the category tree and the units to the AI | new product at book-in | on (with AI) |

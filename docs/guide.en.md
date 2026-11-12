@@ -235,7 +235,6 @@ Which locations are freezers is set under *Settings → Locations* with **Freeze
 **Stock** shows the category tree with everything in stock, with counts and the earliest date.
 
 - Tap a row to open it. A product shows its batches (date, location, packages).
-- A product with a picture (from Open Food Facts) shows it small at the right of its row and in the message after booking. Your browser loads it directly from images.openfoodfacts.org. To switch it off: the integration's *Configure* > *External services* > *Show product pictures*.
 - The input field filters the list while you type: name, brand, barcode, category and location.
   With the switch on the **magnifier** (search), <kbd>Enter</kbd> opens no dialog, so you can find a product with the
   scanner to edit it without booking anything.
@@ -393,7 +392,7 @@ set up (see [Labels and receipt printer](#8-labels-and-receipt-printer)).
 
 **Recipes** shows all recipes with "5 von 7 vorhanden" (5 of 7 in stock). The search finds names
 and ingredients. Opening a row shows the ingredients with their status, the numbered steps, source and
-image; **Servings** scales the amounts (display only). Your browser loads the picture from the website the recipe was imported from; to switch it off: *Configure* > *External services* > *Show recipe pictures*. **On the shopping list** (put on
+image; **Servings** scales the amounts (display only). Saving the recipe downloads the picture once from the website it was imported from into Home Assistant, where it is stored and shown to logged-in users only; to switch it off: *Configure* > *External services* > *Show recipe pictures* (then nothing is downloaded, pictures already stored stay visible). A photo from the AI import is not stored as recipe picture. **On the shopping list** (put on
 the shopping list) adds the recipe's missing amounts (see [Shopping list](#6-shopping-list)). **Plan** adds it to the
 [meal plan](#7a-meal-plan) with the shown servings (date: today, meal: Abendessen/dinner, both changeable in the dialog).
 

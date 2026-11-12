@@ -1,7 +1,7 @@
 import { pt, type Preserve } from "./preserve";
 import { LitElement, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, rowActions, todayIso, toggled } from "./ui";
+import { chevron, loadingLine, rowActions, todayIso, toggled } from "./ui";
 import { formStyles } from "./styles";
 import { recipesStyles } from "./recipes-styles";
 import {
@@ -268,7 +268,7 @@ export class HomeInventoryRecipes extends LitElement {
 
   render() {
     const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
-    if (!this.recipes || !this.md) return error;
+    if (!this.recipes || !this.md) return html`${error}${this.error ? nothing : loadingLine()}`;
     const list = this.shown();
     return html`${error}
       <div class="bar">

@@ -4,6 +4,7 @@ import { t } from "./i18n";
 import { icon } from "./ui";
 import { formStyles } from "./styles";
 import { confirmDialog } from "./confirm-dialog";
+import { lang } from "./format";
 import { amountText } from "./recipe-detail";
 import "./cooked-dialog";
 import type { HomeInventoryCookedDialog } from "./cooked-dialog";
@@ -17,10 +18,23 @@ interface Timer {
   end: number;
 }
 
-const clock = (ms: number) => {
+type DurationFormat = new (
+  locale?: string,
+  o?: { style: "digital"; hoursDisplay: "auto" },
+) => { format: (d: { hours: number; minutes: number; seconds: number }) => string };
+
+const clock = (hass: Hass | undefined, ms: number) => {
   const s = Math.max(0, Math.ceil(ms / 1000));
   const h = Math.floor(s / 3600);
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(h ? 2 : 1, "0");
+  const m = Math.floor((s % 3600) / 60);
+  const DF = (Intl as unknown as { DurationFormat?: DurationFormat }).DurationFormat;
+  if (DF)
+    return new DF(lang(hass), { style: "digital", hoursDisplay: "auto" }).format({
+      hours: h,
+      minutes: m,
+      seconds: s % 60,
+    });
+  const mm = String(m).padStart(h ? 2 : 1, "0"); // browsers without Intl.DurationFormat
   const ss = String(s % 60).padStart(2, "0");
   return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 };
@@ -211,7 +225,7 @@ export class HomeInventoryCookMode extends LitElement {
                 const left = x.end - this.now;
                 return html`<span class="timer ${left <= 0 ? "over" : ""}" data-testid="cook-timer">
                   ${t("cook.timer", { n: x.step + 1, what: x.label })}:
-                  <strong>${left > 0 ? clock(left) : t("cook.timer_done")}</strong>
+                  <strong>${left > 0 ? clock(this.hass, left) : t("cook.timer_done")}</strong>
                   <button
                     type="button"
                     class="icon-btn"

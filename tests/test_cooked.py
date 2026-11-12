@@ -312,3 +312,105 @@ async def test_service_reduces_a_partial_package(hass: HomeAssistant, entry) -> 
     res = await call(hass, "cooked", recipe="wenig")
     assert [(b["packages"], b["action"]) for b in res["bookings"]] == [(0, "reduce")]
     assert len(res["remaining_ids"]) == 1
+
+
+KEYS = ("product_id", "batch_id", "packages", "action", "open", "remaining", "used_up")
+NUDELN = ("Nudeln", 500, "g"), ("Nudeln", 1000, "g")  # 1 + 2 packages of 500 g
+
+
+def booked_as_returned(conn, prop):
+    """Book the checked rows of a proposal unchanged; the number of packages touched."""
+    items = [
+        {k: c[k] for k in KEYS}
+        for r in prop
+        if r["checked"]
+        for c in r["candidates"]
+        if c["product_id"] == r["product_id"]
+    ]
+    return sum(b["packages"] for b in inv.book_cooked(conn, items, "u", TODAY)["bookings"])
+
+
+def two_batches(conn):
+    p = pasta(conn)
+    inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    inv.book_in(conn, p, 1, "2027-02-01", loc(conn))
+    return p
+
+
+def test_same_category_rows_share_the_stock(conn):
+    two_batches(conn)
+    prop = rows(conn, [ing(conn, *a) for a in NUDELN], cook=2)
+    assert [r["checked"] for r in prop] == [True, True]
+    assert booked_as_returned(conn, prop) == 3
+    assert sum(stock(conn).values()) == 0
+
+
+def test_too_little_for_the_second_row_is_short_but_books(conn):
+    p = pasta(conn)
+    inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    prop = rows(conn, [ing(conn, *a) for a in NUDELN], cook=2)
+    assert (prop[1]["checked"], prop[1]["candidates"][0]["packages"]) == (False, 1)  # 2 of 1 left
+    assert booked_as_returned(conn, prop) == 1
+
+
+def test_everything_taken_leaves_the_row_out(conn):
+    inv.book_in(conn, pasta(conn), 1, "2027-01-01", loc(conn))
+    assert len(rows(conn, [ing(conn, *a) for a in (NUDELN[0], NUDELN[0])], cook=2)) == 1
+
+
+def test_fully_opened_batch_of_several_packages_serves_both_rows(conn):
+    p = pasta(conn)
+    inv.book_in(conn, p, 2, "2027-01-01", loc(conn))
+    conn.execute("UPDATE batch SET opened_on = '2026-10-01'")
+    prop = rows(conn, [ing(conn, *NUDELN[0]), ing(conn, *NUDELN[0])], cook=2)
+    assert [r["checked"] for r in prop] == [True, True]
+    assert booked_as_returned(conn, prop) == 2
+
+
+def test_second_row_uses_the_rest_of_the_package_the_first_opened(conn):
+    inv.book_in(conn, pasta(conn), 1, "2027-01-01", loc(conn))
+    prop = rows(conn, [ing(conn, "Nudeln", 200, "g"), ing(conn, "Nudeln", 200, "g")], cook=2)
+    assert [r["candidates"][0]["action"] for r in prop] == ["open", "reduce"]
+    assert all(b is None or b in {x[0] for x in conn.execute("SELECT id FROM batch")}
+               for r in prop for b in [r["candidates"][0]["batch_id"]])  # fmt: skip
+    booked_as_returned(conn, prop)
+    assert sum(stock(conn).values()) == 1  # one package left, at level 0.2
+
+
+def test_unchecked_row_takes_nothing_from_the_next(conn):
+    inv.book_in(conn, pasta(conn), 1, "2027-01-01", loc(conn))
+    prop = rows(conn, [ing(conn, "Nudeln", 2, "Stück"), ing(conn, *NUDELN[0])], cook=2)
+    assert [r["checked"] for r in prop] == [False, True]
+    assert booked_as_returned(conn, prop) == 1
+
+
+async def test_proposal_changes_nothing_and_fires_no_event(hass: HomeAssistant, entry) -> None:  # noqa: F811
+    db = entry.runtime_data
+    seen = []
+    hass.bus.async_listen("home_inventory_booked", seen.append)
+
+    def setup(conn):
+        two_batches(conn)
+        return recipe(conn, [ing(conn, *a) for a in NUDELN], name="Doppelt")
+
+    rid = await db.run(setup)
+    await hass.async_block_till_done()
+    seen.clear()  # the setup's own stock-in events
+    snap = lambda c: (stock(c), c.execute("SELECT count(*), max(id) FROM booking").fetchone()[:])  # noqa: E731
+    before = await db.run(snap, write=False)
+    prop = await db.run(inv.cooked_proposal, rid, 2)  # a normal write run: still nothing announced
+    await hass.async_block_till_done()
+    assert (len(prop), seen, await db.run(snap, write=False)) == (2, [], before)
+
+
+async def test_service_shares_the_stock_between_ingredients(hass: HomeAssistant, entry) -> None:  # noqa: F811
+    db = entry.runtime_data
+
+    def setup(conn):
+        two_batches(conn)
+        recipe(conn, [ing(conn, *a) for a in NUDELN], name="Doppelt")
+
+    await db.run(setup)
+    res = await call(hass, "cooked", recipe="doppelt")
+    assert sum(b["packages"] for b in res["bookings"]) == 3
+    assert sum((await db.run(stock)).values()) == 0

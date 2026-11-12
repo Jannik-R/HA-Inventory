@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed
+
+- The book-in form remembers the last used location on this device, also after a reload
+- Lists show "Lädt …" until their data has arrived instead of their empty text
+- Icon buttons are 44 x 44 px; the plan bar and the settings navigation wrap on narrow phones
+- Dialog titles *Speiseplan auf die Einkaufsliste setzen* and *„…“ als gekocht ausbuchen*; the cook mode timer follows the language (05:03)
+
 ### Removed
 
 - Product pictures from Open Food Facts (stock list, booking result) and the external service *Produktbilder* (`off_images`); the stored `image_url` of products stays unused
@@ -14,6 +21,7 @@
 
 - A product name that several products share no longer books the oldest one silently: actions and AI tools fail with the list of brands. The shopping list still takes the category of that name or the oldest product
 - Freezing or thawing a product picked from the hit list goes by the product, not by its name
+- *Gekocht*: two ingredients of the same category or product no longer both claim the same packages; the proposal is planned row by row against the stock the rows before leave, so it can always be booked as shown
 
 ## 0.3.1 - 2026-11-10
 

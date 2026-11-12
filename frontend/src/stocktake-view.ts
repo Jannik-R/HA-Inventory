@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 import { t } from "./i18n";
-import { fieldMsg, icon } from "./ui";
+import { fieldMsg, icon, loadingLine } from "./ui";
 import { formStyles } from "./styles";
 import { doneLine, doneStyles } from "./booking-done";
 import { fmtDate } from "./format";
@@ -35,6 +35,7 @@ export class HomeInventoryStocktake extends LitElement {
     md: { state: true },
     location: { state: true },
     rows: { state: true },
+    loadingRows: { state: true },
     counted: { state: true },
     extra: { state: true },
     pick: { state: true },
@@ -48,6 +49,7 @@ export class HomeInventoryStocktake extends LitElement {
   declare location: number | null;
   /** Stock rows at the location when it was chosen (the list being counted). */
   declare rows: StockRow[];
+  declare loadingRows: boolean;
   declare counted: Map<number, number>;
   declare extra: Extra[];
   /** A scan that names several batches here: which one was it? */
@@ -61,6 +63,7 @@ export class HomeInventoryStocktake extends LitElement {
     super();
     this.location = null;
     this.rows = [];
+    this.loadingRows = false;
     this.counted = new Map();
     this.extra = [];
     this.query = "";
@@ -79,14 +82,23 @@ export class HomeInventoryStocktake extends LitElement {
   }
 
   private async choose(location: number | null) {
+    const fresh = location !== this.location; // a refresh of the same location keeps its list
     this.location = location;
     this.counted = new Map();
     this.extra = [];
     this.pick = undefined;
     this.error = "";
-    this.rows = location
-      ? (await getStock(this.hass!)).filter((r) => r.location_id === location)
-      : [];
+    this.loadingRows = !!location && fresh;
+    try {
+      this.rows = location
+        ? (await getStock(this.hass!)).filter((r) => r.location_id === location)
+        : [];
+    } catch (err) {
+      this.rows = [];
+      this.error = await errorMessage(this.hass!, err);
+    } finally {
+      this.loadingRows = false;
+    }
     await this.updateComplete;
     this.renderRoot
       .querySelector<HomeInventoryBookingScan>("home-inventory-booking-scan")
@@ -318,7 +330,13 @@ export class HomeInventoryStocktake extends LitElement {
                 @find=${(e: CustomEvent<string>) => this.find(e.detail)}
               ></home-inventory-booking-scan>
               ${this.pick ? this.pickLine(this.pick) : nothing}
-              ${this.rows.length ? this.list() : html`<p class="empty">${t("stocktake.empty")}</p>`}
+              ${
+                this.loadingRows
+                  ? loadingLine()
+                  : this.rows.length
+                    ? this.list()
+                    : html`<p class="empty">${t("stocktake.empty")}</p>`
+              }
               ${this.extras()}
               <div class="actions">
                 <button

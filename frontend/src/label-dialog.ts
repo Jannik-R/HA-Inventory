@@ -4,6 +4,7 @@ import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, type Hass } from "./api";
 import { MAX_LABELS, printLabels } from "./label-print";
+import type { Errors } from "./product-fields";
 
 /** Print labels of one batch: how many (default 1, or `count`). Call `open()`; fires `home-inventory-printed` (detail: printed count). */
 export class HomeInventoryLabelDialog extends LitElement {
@@ -35,11 +36,16 @@ export class HomeInventoryLabelDialog extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("dialog input")?.focus();
   }
 
-  private invalid = () => !/^\d+$/.test(this.count) || +this.count < 1 || +this.count > MAX_LABELS;
+  private errors(): Errors {
+    const e: Errors = {};
+    if (!/^\d+$/.test(this.count) || +this.count < 1 || +this.count > MAX_LABELS)
+      e.count = t("valid.label_count", { max: MAX_LABELS });
+    return e;
+  }
 
   private async print(e: Event) {
     e.preventDefault();
-    if (this.invalid()) return;
+    if (Object.keys(this.errors()).length) return;
     try {
       const b = this.batch!;
       const n = await printLabels(this.hass!, b.id, Number(this.count), b.location);
@@ -56,7 +62,7 @@ export class HomeInventoryLabelDialog extends LitElement {
   render() {
     const b = this.batch;
     if (!b) return html`<dialog></dialog>`;
-    const bad = this.invalid();
+    const err = this.errors();
     return editDialog({
       title: t("label.title", { name: b.name }),
       body: html`<label>
@@ -68,20 +74,20 @@ export class HomeInventoryLabelDialog extends LitElement {
           max=${MAX_LABELS}
           step="1"
           inputmode="numeric"
-          aria-invalid=${bad}
+          aria-invalid=${!!err.count}
           .value=${this.count}
           @input=${(e: Event) => (this.count = (e.target as HTMLInputElement).value)}
         />
         ${
-          bad
-            ? fieldMsg(t("valid.label_count", { max: MAX_LABELS }), "label-count")
+          err.count
+            ? fieldMsg(err.count, "label-count")
             : b.location
               ? html`<span class="detail">${t("location_label.hint")}</span>`
               : html`<span class="detail">${t("label.in_stock", { n: b.packages })}</span>`
         }
       </label>`,
       error: this.error,
-      invalid: bad,
+      invalid: Object.keys(err).length > 0,
       submit: { label: t("label.submit"), testid: "label-print" },
       dirty: () => this.count !== "1",
       onSubmit: (e) => this.print(e),

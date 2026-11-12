@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { rowActions } from "./ui";
+import { loadingLine, rowActions } from "./ui";
 import { formStyles } from "./styles";
 import {
   errorMessage,
@@ -155,7 +155,7 @@ export class HomeInventoryCanning extends LitElement {
 
   /** The protocol list with its primary action. */
   private protocols() {
-    if (!this.rows) return nothing;
+    if (!this.rows) return this.error ? nothing : loadingLine();
     const rows = this.rows.filter((c) => c.kind === this.kind);
     return html`<div class="bar">
         <button class="primary" data-testid="canning-add" @click=${() => this.edit()}>

@@ -3,6 +3,7 @@ import { t } from "./i18n";
 import { errorMessage, type Hass } from "./api";
 import { getEmergency, type Emergency } from "./api-emergency";
 import { fmtNumber } from "./format";
+import { loadingLine } from "./ui";
 
 /** Emergency stock (Notvorrat): stock against the BBK recommendation, days per food group. */
 export class HomeInventoryEmergency extends LitElement {
@@ -40,7 +41,7 @@ export class HomeInventoryEmergency extends LitElement {
   render() {
     const d = this.data;
     if (this.error) return html`<p class="error">${this.error}</p>`;
-    if (!d) return nothing;
+    if (!d) return loadingLine();
     const n = (v: number) => fmtNumber(this.hass, v);
     return html`
       <p class="supply" data-testid="emergency-supply">

@@ -1,6 +1,6 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { t } from "./i18n";
-import { chevron, rowActions, toggled } from "./ui";
+import { chevron, loadingLine, rowActions, toggled } from "./ui";
 import { formStyles } from "./styles";
 import "./settings-dialog";
 import "./defaults-view";
@@ -206,7 +206,9 @@ export class HomeInventorySettings extends LitElement {
                     .data=${this.data}
                     @home-inventory-saved=${this.load}
                   ></home-inventory-defaults>`
-          : nothing
+          : this.pageError
+            ? nothing
+            : loadingLine()
       }
       <home-inventory-settings-dialog
         .hass=${this.hass}
@@ -332,6 +334,7 @@ export class HomeInventorySettings extends LitElement {
     css`
       nav {
         display: flex;
+        flex-wrap: wrap;
         gap: 4px;
         margin-bottom: 12px;
       }

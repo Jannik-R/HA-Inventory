@@ -2,6 +2,7 @@ import { LitElement, css, html } from "lit";
 import { t } from "./i18n";
 import { editDialog, fieldMsg } from "./ui";
 import { formStyles } from "./styles";
+import type { Errors } from "./product-fields";
 import { errorMessage, getDeleteImpact, moveLocation, type Hass } from "./api";
 
 type Loc = { id: number; name: string };
@@ -53,9 +54,15 @@ export class HomeInventoryMoveLocation extends LitElement {
     this.renderRoot.querySelector<HTMLElement>("select")?.focus();
   }
 
+  private errors(): Errors {
+    const e: Errors = {};
+    if (!this.target) e.target = t("valid.location");
+    return e;
+  }
+
   private async save(e: Event) {
     e.preventDefault();
-    if (!this.target || !this.batches) return;
+    if (Object.keys(this.errors()).length || !this.batches) return;
     try {
       await moveLocation(this.hass!, this.from!.id, Number(this.target));
       this.renderRoot.querySelector("dialog")?.close();
@@ -68,6 +75,7 @@ export class HomeInventoryMoveLocation extends LitElement {
   render() {
     const from = this.from;
     if (!from) return html`<dialog></dialog>`;
+    const err = this.errors();
     return editDialog({
       title: t("settings.location.move_name", { name: from.name }),
       body: html`<p class="detail" data-testid="move-summary">
@@ -85,7 +93,7 @@ export class HomeInventoryMoveLocation extends LitElement {
           <span class="lbl">${t("settings.location.move_target")}</span>
           <select
             data-testid="move-target"
-            aria-invalid=${!this.target}
+            aria-invalid=${!!err.target}
             .value=${this.target}
             @change=${(e: Event) => (this.target = (e.target as HTMLSelectElement).value)}
           >
@@ -94,10 +102,10 @@ export class HomeInventoryMoveLocation extends LitElement {
               .filter((l) => l.id !== from.id)
               .map((l) => html`<option value=${l.id}>${l.name}</option>`)}
           </select>
-          ${fieldMsg(this.target ? undefined : t("valid.location"), "move-target")}
+          ${fieldMsg(err.target, "move-target")}
         </label>`,
       error: this.error,
-      invalid: !this.target || !this.batches,
+      invalid: Object.keys(err).length > 0 || !this.batches,
       submit: { label: t("settings.location.move_action"), testid: "move-save" },
       dirty: () => !!this.target,
       onSubmit: (e) => this.save(e),

@@ -1,6 +1,6 @@
 import { LitElement, html } from "lit";
 import { t } from "./i18n";
-import { editDialog, fieldMsg, rowActions } from "./ui";
+import { editDialog, fieldMsg, loadingLine, rowActions } from "./ui";
 import { formStyles } from "./styles";
 import { errorMessage, type Hass } from "./api";
 
@@ -63,7 +63,7 @@ export class HomeInventoryMealTimes extends LitElement {
   }
 
   render() {
-    if (!this.starts) return html`${this.error ? html`<p class="error">${this.error}</p>` : ""}`;
+    if (!this.starts) return this.error ? html`<p class="error">${this.error}</p>` : loadingLine();
     const d = this.d;
     return html`<p class="detail intro">${t("settings.meals.hint")}</p>
       <ul>

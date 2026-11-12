@@ -83,3 +83,31 @@ test("product dialog validates the EAN", async ({ page }) => {
   await expect(page.getByTestId("save")).toBeEnabled();
   await page.keyboard.press("Escape"); // never saved
 });
+
+test("label dialog shows its error once touched and blocks printing", async ({ page }) => {
+  await openPage(page, "/home_inventory/stock", "Bestand");
+  await page.getByTestId("code-input").fill(PRODUCT);
+  await page.getByTestId("stock-batch-label").first().click();
+  const count = page.getByTestId("label-count");
+  await expect(page.getByTestId("label-count-error")).toBeHidden(); // untouched, but valid anyway
+  await count.fill("0");
+  await expect(page.getByTestId("label-count-error")).toBeVisible();
+  await expect(page.getByTestId("label-print")).toBeDisabled();
+  await page.keyboard.press("Escape"); // never printed
+  await page.getByTestId("confirm-ok").click();
+});
+
+test("book-in form starts with the last used location of this device", async ({ page }) => {
+  await page.addInitScript(
+    (id) => localStorage.setItem("home_inventory.last_location", String(id)),
+    locationId,
+  );
+  await openPage(page, "/home_inventory/in", "Bestand");
+  const code = page.getByTestId("code-input");
+  await code.fill("E2E Standort");
+  await code.press("Enter");
+  await page.getByTestId("new-product").click();
+  await expect(page.getByTestId("location").locator("option:checked")).toContainText(
+    `${LOCATION} (zuletzt benutzt)`,
+  );
+});

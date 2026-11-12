@@ -56,7 +56,9 @@ test("recipe steps: edit with a heading, numbered list, cook mode with a timer, 
   await cook.getByTestId("cook-step").first().click();
   await expect(cook.getByTestId("cook-step").first()).toHaveAttribute("aria-pressed", "true");
   await cook.getByTestId("cook-timer-start").click();
-  await expect(cook.getByTestId("cook-timer")).toContainText(/Schritt 2, 10 Minuten: 9:5\d|10:00/);
+  await expect(cook.getByTestId("cook-timer")).toContainText(
+    /Schritt 2, 10 Minuten:\s+(09:5\d|10:00)(?![\d:])/,
+  );
   // a running timer would be lost: closing asks first
   await cook.getByTestId("cook-close").click();
   await page.getByTestId("confirm-ok").click();

@@ -16,6 +16,7 @@ import {
 } from "./api";
 import { MAX_LABELS, printLabels } from "./label-print";
 import { categoryDefault, categoryPath, type Dflt } from "./inherit";
+import { lastLocation, rememberLocation } from "./last-location";
 import { dateField, locationFields, printField, type InForm } from "./booking-in-fields";
 import {
   newProductData,
@@ -46,9 +47,6 @@ const blankForm = () => ({
 type Inherit = "default_location_id" | "expiry_type" | "shelf_days";
 /** The category whose defaults apply: the chosen one, or the parent of a proposed product type. */
 const catOf = (p?: Product) => p?.category_id ?? p?.new_type?.parent_id ?? null;
-// shortcut: last used location lives until the page reloads; persist it if users ask for it.
-let lastLocation: number | null = null;
-
 /** Book in / book out form for one chosen product. Fires `booked` (detail: done message) and `cancel`. */
 export class HomeInventoryBookingForm extends LitElement {
   static properties = {
@@ -166,8 +164,14 @@ export class HomeInventoryBookingForm extends LitElement {
     if (own != null) return { value: own, source: t("book.from_product") };
     const d = categoryDefault(this.md, catOf(this.draft), field);
     if (d) return d;
-    if (field === "default_location_id" && lastLocation != null)
-      return { value: lastLocation, source: t("book.last_used") };
+    const last = lastLocation();
+    // a deleted location is ignored (locations have no inactive state)
+    if (
+      field === "default_location_id" &&
+      last != null &&
+      this.md?.locations.some((l) => l.id === last)
+    )
+      return { value: last, source: t("book.last_used") };
     return undefined;
   }
 
@@ -223,7 +227,7 @@ export class HomeInventoryBookingForm extends LitElement {
         }),
       );
       if (!res) return;
-      lastLocation = location_id;
+      if (location_id != null) rememberLocation(location_id);
       if (this.f.print ?? this.labels?.print_on_book_in) {
         const n = await this.run(() =>
           printLabels(hass, res.batch_id, Math.min(packages, MAX_LABELS)),

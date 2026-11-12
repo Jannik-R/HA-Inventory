@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { t } from "./i18n";
-import { editDialog, icon } from "./ui";
+import { editDialog, fieldMsg, icon } from "./ui";
+import type { Errors } from "./product-fields";
 import { formStyles } from "./styles";
 import { errorMessage, getLabelConfig, type Hass, type MasterData } from "./api";
 import { bookReceipt, readReceipt, type ReceiptBookItem } from "./api-purchase";
@@ -76,10 +77,17 @@ export class HomeInventoryReceiptImport extends LitElement {
     this.rows = rows;
   }
 
-  private invalid() {
-    if (!this.rows) return !this.image || !!this.status;
-    return !!this.status || this.rows.some((r) => Object.keys(rowErrors(r)).length);
+  private errors(): Errors {
+    const e: Errors = {};
+    if (!this.rows && !this.image) e.photo = t("valid.photo");
+    return e;
   }
+
+  /** Review rows show their own messages (rowErrors); a running step blocks too. */
+  private invalid = () =>
+    !!this.status ||
+    Object.keys(this.errors()).length > 0 ||
+    !!this.rows?.some((r) => Object.keys(rowErrors(r)).length);
 
   private async read() {
     const hass = this.hass!;
@@ -166,6 +174,7 @@ export class HomeInventoryReceiptImport extends LitElement {
   }
 
   private pickStep() {
+    const err = this.errors();
     return html`<button
         type="button"
         class="scan"
@@ -182,8 +191,10 @@ export class HomeInventoryReceiptImport extends LitElement {
           accept="image/*"
           data-testid="receipt-photo"
           ?disabled=${!!this.status}
+          aria-invalid=${!!err.photo}
           @change=${(e: Event) => this.pickFile(e)}
         />
+        ${fieldMsg(err.photo, "receipt-photo")}
       </label>
       ${
         this.image

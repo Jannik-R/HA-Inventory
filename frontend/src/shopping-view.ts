@@ -20,7 +20,7 @@ import {
 } from "./api-shopping";
 import { missingText, refList } from "./shopping-text";
 import { rowStyles } from "./shopping-row-styles";
-import { rowActions } from "./ui";
+import { loadingLine, rowActions } from "./ui";
 import { confirmDelete } from "./confirm-dialog";
 import "./shopping-add";
 import "./shopping-recipes";
@@ -217,7 +217,7 @@ export class HomeInventoryShopping extends LitElement {
 
   render() {
     const error = this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing;
-    if (!this.items || !this.cats) return error;
+    if (!this.items || !this.cats) return html`${error}${this.error ? nothing : loadingLine()}`;
     const bar = html`${error}
       <div class="bar">
         <button class="primary" data-testid="shopping-add" @click=${() => this.openAdd()}>

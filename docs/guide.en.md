@@ -122,8 +122,9 @@ flowchart LR
    (see [Household size](#household-settings)).
 7. **Packages** and **Location**: the location is prefilled (grey:
    "Inherited: Kühlschrank (from Milchprodukte & Eier)"). Another choice applies to this booking
-   only; **Reset** returns to the default. For a new product **Becomes default location** keeps the
-   chosen location as its default.
+   only; **Reset** returns to the default. If neither the product nor its category has a default
+   location, the last used one is prefilled (remembered on this device). For a new product
+   **Becomes default location** keeps the chosen location as its default.
 8. **Print labels** (if set up) and **Book in**.
 
 > [!NOTE]

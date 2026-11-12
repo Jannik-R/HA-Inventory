@@ -120,7 +120,9 @@ flowchart LR
    [Haushaltsgröße](#haushalt-einstellungen)).
 7. **Packungen** und **Lagerort**: Der Lagerort ist vorbelegt (grau: „Geerbt: Kühlschrank (von
    Milchprodukte & Eier)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
-   zurück. Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten Ort fürs Produkt.
+   zurück. Hat weder Produkt noch Kategorie einen Standardlagerort, ist der zuletzt benutzte vorbelegt
+   (auf diesem Gerät gemerkt). Bei neuen Produkten merkt sich **Wird Standardlager** den gewählten
+   Ort fürs Produkt.
 8. **Etiketten drucken** (falls eingerichtet) und **Einbuchen**.
 
 > [!NOTE]

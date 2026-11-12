@@ -1,5 +1,5 @@
-import { a as e, i as t, n, r, t as i } from "./rolldown-runtime-BItFwnF5.js";
-//#region node_modules/regenerator-runtime/runtime.js
+import { a as e, i as t, n, r, t as i } from "./rolldown-runtime-DsPmjQRF.js";
+// node_modules/regenerator-runtime/runtime.js
 var a = /* @__PURE__ */ i(((e, t) => {
 	var n = function(e) {
 		var t = Object.prototype, n = t.hasOwnProperty, r = Object.defineProperty || function(e, t, n) {
@@ -832,5 +832,4 @@ var a = /* @__PURE__ */ i(((e, t) => {
 		...i
 	};
 }));
-//#endregion
 export default q();

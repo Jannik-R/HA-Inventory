@@ -1,5 +1,5 @@
-import { o as e } from "./rolldown-runtime-BItFwnF5.js";
-//#region node_modules/@lit/reactive-element/css-tag.js
+import { o as e } from "./rolldown-runtime-DsPmjQRF.js";
+// node_modules/@lit/reactive-element/css-tag.js
 var t = globalThis, n = t.ShadowRoot && (t.ShadyCSS === void 0 || t.ShadyCSS.nativeShadow) && "adoptedStyleSheets" in Document.prototype && "replace" in CSSStyleSheet.prototype, r = Symbol(), i = /* @__PURE__ */ new WeakMap(), a = class {
 	constructor(e, t, n) {
 		if (this._$cssResult$ = !0, n !== r) throw Error("CSSResult is not constructable. Use `unsafeCSS` or `css` instead.");
@@ -253,8 +253,7 @@ var de = class extends HTMLElement {
 	firstUpdated(e) {}
 };
 de.elementStyles = [], de.shadowRootOptions = { mode: "open" }, de[se("elementProperties")] = /* @__PURE__ */ new Map(), de[se("finalized")] = /* @__PURE__ */ new Map(), oe?.({ ReactiveElement: de }), (re.reactiveElementVersions ??= []).push("2.1.2");
-//#endregion
-//#region node_modules/lit-html/lit-html.js
+// node_modules/lit-html/lit-html.js
 var fe = globalThis, pe = (e) => e, me = fe.trustedTypes, he = me ? me.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, ge = "$lit$", p = `lit$${Math.random().toFixed(9).slice(2)}$`, _e = "?" + p, ve = `<${_e}>`, m = document, ye = () => m.createComment(""), be = (e) => e === null || typeof e != "object" && typeof e != "function", xe = Array.isArray, Se = (e) => xe(e) || typeof e?.[Symbol.iterator] == "function", Ce = "[ 	\n\f\r]", we = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, Te = /-->/g, Ee = />/g, h = RegExp(`>|${Ce}(?:([^\\s"'>=/]+)(${Ce}*=${Ce}*(?:[^ \t\n\f\r"'\`<>=]|("|')|))|$)`, "g"), De = /'/g, Oe = /"/g, ke = /^(?:script|style|textarea|title)$/i, Ae = (e) => (t, ...n) => ({
 	_$litType$: e,
 	strings: t,
@@ -524,8 +523,7 @@ var Ge = (e, t, n) => {
 x._$litElement$ = !0, x.finalized = !0, Ke.litElementHydrateSupport?.({ LitElement: x });
 var qe = Ke.litElementPolyfillSupport;
 qe?.({ LitElement: x }), (Ke.litElementVersions ??= []).push("4.2.2");
-//#endregion
-//#region node_modules/@mdi/js/mdi.js
+// node_modules/@mdi/js/mdi.js
 var Je = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4Z", Ye = "M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z", Xe = "M4,6H6V18H4V6M7,6H8V18H7V6M9,6H12V18H9V6M13,6H14V18H13V6M16,6H18V18H16V6M19,6H20V18H19V6M2,4V8H0V4A2,2 0 0,1 2,2H6V4H2M22,2A2,2 0 0,1 24,4V8H22V4H18V2H22M2,16V20H6V22H2A2,2 0 0,1 0,20V16H2M22,20V16H24V20A2,2 0 0,1 22,22H18V20H22Z", Ze = "M19 3H18V1H16V3H8V1H6V3H5C3.89 3 3 3.89 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.89 20.1 3 19 3M19 19H5V8H19V19M12 17V15H8V12H12V10L16 13.5L12 17Z", Qe = "M20,4H16.83L15,2H9L7.17,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6A2,2 0 0,0 20,4M20,18H4V6H8.05L9.88,4H14.12L15.95,6H20V18M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z", $e = "M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z", et = "M15.41,16.58L10.83,12L15.41,7.41L14,6L8,12L14,18L15.41,16.58Z", tt = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z", nt = "M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7M7.5,13.5L9,12L11,14L15.5,9.5L17,11L11,17L7.5,13.5Z", rt = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z", it = "M2,21H20V19H2M20,8H18V5H20M20,3H4V13A4,4 0 0,0 8,17H14A4,4 0 0,0 18,13V10H20A2,2 0 0,0 22,8V5C22,3.89 21.1,3 20,3Z", at = "M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19M8,9H16V19H8V9M15.5,4L14.5,3H9.5L8.5,4H5V6H19V4H15.5Z", ot = "M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z", st = "M20,10C22,13 17,22 15,22C13,22 13,21 12,21C11,21 11,22 9,22C7,22 2,13 4,10C6,7 9,7 11,8V5C5.38,8.07 4.11,3.78 4.11,3.78C4.11,3.78 6.77,0.19 11,5V3H13V8C15,7 18,7 20,10Z", ct = "M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z", lt = "M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3", ut = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z", dt = "M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z", ft = "M7,10L12,15L17,10H7Z", pt = "M19,13H5V11H19V13Z", mt = "M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M7,13H17V11H7", ht = "M2,10.96C1.5,10.68 1.35,10.07 1.63,9.59L3.13,7C3.24,6.8 3.41,6.66 3.6,6.58L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.66,6.72 20.82,6.88 20.91,7.08L22.36,9.6C22.64,10.08 22.47,10.69 22,10.96L21,11.54V16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V10.96C2.7,11.13 2.32,11.14 2,10.96M12,4.15V4.15L12,10.85V10.85L17.96,7.5L12,4.15M5,15.91L11,19.29V12.58L5,9.21V15.91M19,15.91V12.69L14,15.59C13.67,15.77 13.3,15.76 13,15.6V19.29L19,15.91M13.85,13.36L20.13,9.73L19.55,8.72L13.27,12.35L13.85,13.36Z", gt = "M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z", _t = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z", vt = "M18,3H6V7H18M19,12A1,1 0 0,1 18,11A1,1 0 0,1 19,10A1,1 0 0,1 20,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z", yt = "M18 10H6A2 2 0 0 0 4 12V19H20V12A2 2 0 0 0 18 10M18 14H14V12H18M17 9H7V4H17Z", bt = "M19.5 3.5L18 2L16.5 3.5L15 2L13.5 3.5L12 2L10.5 3.5L9 2L7.5 3.5L6 2L4.5 3.5L3 2V22L4.5 20.5L6 22L7.5 20.5L9 22L10.5 20.5L12 22L13.5 20.5L15 22L16.5 20.5L18 22L19.5 20.5L21 22V2L19.5 3.5M19 19H5V5H19V19M6 15H18V17H6M6 11H18V13H6M6 7H18V9H6V7Z", xt = "M13,3A9,9 0 0,0 4,12H1L4.89,15.89L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z", St = "M20.79,13.95L18.46,14.57L16.46,13.44V10.56L18.46,9.43L20.79,10.05L21.31,8.12L19.54,7.65L20,5.88L18.07,5.36L17.45,7.69L15.45,8.82L13,7.38V5.12L14.71,3.41L13.29,2L12,3.29L10.71,2L9.29,3.41L11,5.12V7.38L8.5,8.82L6.5,7.69L5.92,5.36L4,5.88L4.47,7.65L2.7,8.12L3.22,10.05L5.55,9.43L7.55,10.56V13.45L5.55,14.58L3.22,13.96L2.7,15.89L4.47,16.36L4,18.12L5.93,18.64L6.55,16.31L8.55,15.18L11,16.62V18.88L9.29,20.59L10.71,22L12,20.71L13.29,22L14.7,20.59L13,18.88V16.62L15.5,15.17L17.5,16.3L18.12,18.63L20,18.12L19.53,16.35L21.3,15.88L20.79,13.95M9.5,10.56L12,9.11L14.5,10.56V13.44L12,14.89L9.5,13.44V10.56Z", Ct = "M8 17.85C8 19.04 7.11 20 6 20S4 19.04 4 17.85C4 16.42 6 14 6 14S8 16.42 8 17.85M16.46 12V10.56L18.46 9.43L20.79 10.05L21.31 8.12L19.54 7.65L20 5.88L18.07 5.36L17.45 7.69L15.45 8.82L13 7.38V5.12L14.71 3.41L13.29 2L12 3.29L10.71 2L9.29 3.41L11 5.12V7.38L8.5 8.82L6.5 7.69L5.92 5.36L4 5.88L4.47 7.65L2.7 8.12L3.22 10.05L5.55 9.43L7.55 10.56V12H2V13H22V12H16.46M9.5 12V10.56L12 9.11L14.5 10.56V12H9.5M20 17.85C20 19.04 19.11 20 18 20S16 19.04 16 17.85C16 16.42 18 14 18 14S20 16.42 20 17.85M14 20.85C14 22.04 13.11 23 12 23S10 22.04 10 20.85C10 19.42 12 17 12 17S14 19.42 14 20.85Z", wt = "M21,9L17,5V8H10V10H17V13M7,11L3,15L7,19V16H14V14H7V11Z", Tt = "M21.41 11.58L12.41 2.58A2 2 0 0 0 11 2H4A2 2 0 0 0 2 4V11A2 2 0 0 0 2.59 12.42L11.59 21.42A2 2 0 0 0 13 22A2 2 0 0 0 14.41 21.41L21.41 14.41A2 2 0 0 0 22 13A2 2 0 0 0 21.41 11.58M13 20L4 11V4H11L20 13M6.5 5A1.5 1.5 0 1 1 5 6.5A1.5 1.5 0 0 1 6.5 5Z", Et = "M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M19.03,7.39L20.45,5.97C20,5.46 19.55,5 19.04,4.56L17.62,6C16.07,4.74 14.12,4 12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22C17,22 21,17.97 21,13C21,10.88 20.26,8.93 19.03,7.39M11,14H13V8H11M15,1H9V3H15V1Z", Dt = "M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.15,8 12.5,8Z", Ot = "M17.75,4.09L15.22,6.03L16.13,9.09L13.5,7.28L10.87,9.09L11.78,6.03L9.25,4.09L12.44,4L13.5,1L14.56,4L17.75,4.09M21.25,11L19.61,12.25L20.2,14.23L18.5,13.06L16.8,14.23L17.39,12.25L15.75,11L17.81,10.95L18.5,9L19.19,10.95L21.25,11M18.97,15.95C19.8,15.87 20.69,17.05 20.16,17.8C19.84,18.25 19.5,18.67 19.08,19.07C15.17,23 8.84,23 4.94,19.07C1.03,15.17 1.03,8.83 4.94,4.93C5.34,4.53 5.76,4.17 6.21,3.85C6.96,3.32 8.14,4.21 8.06,5.04C7.79,7.9 8.75,10.87 10.95,13.06C13.14,15.26 16.1,16.22 18.97,15.95M17.33,17.97C14.5,17.81 11.7,16.64 9.53,14.5C7.36,12.31 6.2,9.5 6.04,6.68C3.23,9.82 3.34,14.64 6.35,17.66C9.37,20.67 14.19,20.78 17.33,17.97Z", kt = "M3,12H7A5,5 0 0,1 12,7A5,5 0 0,1 17,12H21A1,1 0 0,1 22,13A1,1 0 0,1 21,14H3A1,1 0 0,1 2,13A1,1 0 0,1 3,12M15,12A3,3 0 0,0 12,9A3,3 0 0,0 9,12H15M12,2L14.39,5.42C13.65,5.15 12.84,5 12,5C11.16,5 10.35,5.15 9.61,5.42L12,2M3.34,7L7.5,6.65C6.9,7.16 6.36,7.78 5.94,8.5C5.5,9.24 5.25,10 5.11,10.79L3.34,7M20.65,7L18.88,10.79C18.74,10 18.47,9.23 18.05,8.5C17.63,7.78 17.1,7.15 16.5,6.64L20.65,7M12.71,16.3L15.82,19.41C16.21,19.8 16.21,20.43 15.82,20.82C15.43,21.21 14.8,21.21 14.41,20.82L12,18.41L9.59,20.82C9.2,21.21 8.57,21.21 8.18,20.82C7.79,20.43 7.79,19.8 8.18,19.41L11.29,16.3C11.5,16.1 11.74,16 12,16C12.26,16 12.5,16.1 12.71,16.3Z", At = "M3.55 19.09L4.96 20.5L6.76 18.71L5.34 17.29M12 6C8.69 6 6 8.69 6 12S8.69 18 12 18 18 15.31 18 12C18 8.68 15.31 6 12 6M20 13H23V11H20M17.24 18.71L19.04 20.5L20.45 19.09L18.66 17.29M20.45 5L19.04 3.6L17.24 5.39L18.66 6.81M13 1H11V4H13M6.76 5.39L4.96 3.6L3.55 5L5.34 6.81L6.76 5.39M1 13H4V11H1M13 20H11V23H13", jt = {
 	"panel.title": "Vorrat",
 	"panel.help": "Anleitung",
@@ -1944,8 +1942,7 @@ function S(e, t) {
 	let n = Pt[e] ?? Mt[e] ?? e;
 	return t ? n.replace(/\{(\w+)\}/g, (e, n) => n in t ? String(t[n]) : e) : n;
 }
-//#endregion
-//#region src/styles.ts
+// src/styles.ts
 var C = s`
   :host {
     display: block;
@@ -2487,8 +2484,7 @@ var Zt = (e, t) => e.filter((e) => !e.recipe_only || e.id === t), P = (e) => e.c
 	dateStyle: "short",
 	timeStyle: "short"
 }).format(new Date(t));
-//#endregion
-//#region src/inherit.ts
+// src/inherit.ts
 function U(e, t) {
 	let n = [];
 	for (let r = e?.find((e) => e.id === t); r; r = e.find((e) => e.id === r.parent_id)) n.unshift(r.name);
@@ -2562,8 +2558,7 @@ function Bn(e) {
     ${t == null ? v : zn(e.testid, () => e.onChange(null))}
   </span>`;
 }
-//#endregion
-//#region src/category-picker.ts
+// src/category-picker.ts
 var Vn = class extends x {
 	static {
 		this.properties = {
@@ -2763,8 +2758,7 @@ var Vn = class extends x {
 	}
 };
 customElements.define("home-inventory-category-picker", Vn);
-//#endregion
-//#region src/diet-fields.ts
+// src/diet-fields.ts
 var Hn = [
 	"gluten",
 	"crustaceans",
@@ -2826,8 +2820,7 @@ function Gn(e) {
               ${zn("allergens", () => e.onAllergens(null))}`}
     </div>`;
 }
-//#endregion
-//#region src/settings-format.ts
+// src/settings-format.ts
 function Kn(e, t) {
 	return e.categories.find((e) => e.id === t)?.name ?? "";
 }
@@ -2856,8 +2849,7 @@ function K(e, t, n, r) {
 	}
 	return n === "default_location_id" ? a.find((e) => e.id === r)?.name ?? S("common.none_dash") : n === "expiry_type" ? S(`settings.expiry.${r}`) : In(t, r);
 }
-//#endregion
-//#region src/min-stock.ts
+// src/min-stock.ts
 function Yn(e) {
 	let t = {};
 	return e.min_stock != null && !(e.min_stock > 0) && (t.min_stock = S("valid.positive")), e.min_packages != null && !(Number.isInteger(e.min_packages) && e.min_packages >= 1) && (t.min_packages = S("valid.packages")), t;
@@ -2914,8 +2906,7 @@ function Xn(e) {
     </label>
     <p class="detail">${S("settings.category.min_hint")}</p>`;
 }
-//#endregion
-//#region src/settings-model.ts
+// src/settings-model.ts
 var Zn = {
 	categories: "category",
 	locations: "location",
@@ -3178,8 +3169,7 @@ var Zn = {
 	}
 };
 customElements.define("home-inventory-settings-dialog", tr);
-//#endregion
-//#region src/defaults-view.ts
+// src/defaults-view.ts
 var nr = [
 	["unit_id", "settings.category.unit"],
 	["default_location_id", "settings.category.location"],
@@ -3338,8 +3328,7 @@ var nr = [
 	}
 };
 customElements.define("home-inventory-defaults", ar);
-//#endregion
-//#region src/api-transfer.ts
+// src/api-transfer.ts
 var or = (e, t) => e.callWS({
 	type: "home_inventory/export_csv",
 	kind: t
@@ -3508,8 +3497,7 @@ var or = (e, t) => e.callWS({
 	}
 };
 customElements.define("home-inventory-transfer", br);
-//#endregion
-//#region src/api-diet.ts
+// src/api-diet.ts
 var xr = (e, t) => e.callWS({
 	type: "home_inventory/diet_reload",
 	after: t
@@ -3594,8 +3582,7 @@ var xr = (e, t) => e.callWS({
 	}
 };
 customElements.define("home-inventory-diet-reload", Sr);
-//#endregion
-//#region src/meal-times-view.ts
+// src/meal-times-view.ts
 var Cr = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, wr = class extends x {
 	static {
 		this.properties = {
@@ -3674,8 +3661,7 @@ var Cr = /^([01][0-9]|2[0-3]):[0-5][0-9]$/, wr = class extends x {
 	}
 };
 customElements.define("home-inventory-meal-times", wr);
-//#endregion
-//#region src/move-location.ts
+// src/move-location.ts
 var Tr = class extends x {
 	static {
 		this.properties = {
@@ -3753,8 +3739,7 @@ var Tr = class extends x {
 	}
 };
 customElements.define("home-inventory-move-location", Tr);
-//#endregion
-//#region src/label-print.ts
+// src/label-print.ts
 function Er(e, t, n, r) {
 	let i = document.createElement("iframe");
 	i.style.cssText = "position:fixed;width:0;height:0;border:0", i.addEventListener("load", async () => {
@@ -3783,8 +3768,7 @@ async function Dr(e, t, n, r = !1) {
 	});
 	return "printed" in i ? i.printed : (Er(i.image, i.count, i.width_mm, i.height_mm), 0);
 }
-//#endregion
-//#region src/label-dialog.ts
+// src/label-dialog.ts
 var Or = class extends x {
 	static {
 		this.properties = {
@@ -3850,8 +3834,7 @@ var Or = class extends x {
 	}
 };
 customElements.define("home-inventory-label-dialog", Or);
-//#endregion
-//#region src/location-scan.ts
+// src/location-scan.ts
 var kr = /^PTRY:L(\d+)$/i, Ar = (e) => kr.test(e.trim());
 async function jr(e, t) {
 	let n = Number(kr.exec(t.trim())[1]);
@@ -3922,8 +3905,7 @@ async function Lr(e, t, n, r) {
 		move_to: s
 	}), !0) : !1;
 }
-//#endregion
-//#region src/settings-view.ts
+// src/settings-view.ts
 var Rr = class extends x {
 	static {
 		this.properties = {
@@ -4131,8 +4113,7 @@ var Rr = class extends x {
 	}
 };
 customElements.define("home-inventory-settings", Rr);
-//#endregion
-//#region src/stock-data.ts
+// src/stock-data.ts
 function zr(e, t, n, r = [], i) {
 	let a = t.trim(), o = (e) => V(e.join(" "), a), s = /* @__PURE__ */ new Map();
 	for (let t of e) {
@@ -4153,12 +4134,12 @@ function zr(e, t, n, r = [], i) {
 			batches: []
 		}, s.set(t.product_id, e)), e.packages += t.packages, e.batches.push(t);
 	}
-	if (n == null) for (let e of r) !s.has(e.id) && (!a || o([
+	if (n == null) for (let e of r) s.has(e.id) || a && !o([
 		e.name,
 		e.brand,
 		e.ean,
 		U(i?.categories, e.category_id)
-	])) && s.set(e.id, {
+	]) || s.set(e.id, {
 		id: e.id,
 		category_id: e.category_id,
 		name: e.name,
@@ -4176,8 +4157,7 @@ function Vr(e, t, n, r) {
 	let i = Br(e.expires_on);
 	return i < 0 ? e.expiry_type === "use_by" ? "expired" : "past" : i <= (r ?? Number(t?.warn_days ?? W(n, t?.category_id, "warn_days")?.value ?? 0)) ? "soon" : "";
 }
-//#endregion
-//#region src/stock-tree.ts
+// src/stock-tree.ts
 function Hr(e, t, n, r) {
 	let i = /* @__PURE__ */ new Map(), a = (n) => {
 		let [r, o] = [0, 0];
@@ -4212,8 +4192,7 @@ function Hr(e, t, n, r) {
 	};
 	return s(null, 0), o;
 }
-//#endregion
-//#region src/booking-done.ts
+// src/booking-done.ts
 function q(e, t, n, r) {
 	return e ? g`<p class="done" role="status" data-testid=${n ? `${n}-done` : "message"}>
     ${e}
@@ -4291,8 +4270,7 @@ var ni = (e) => {
     ${n.map((e) => g`<option value=${e} ?selected=${e === t}>${ei(e)}</option>`)}
   </select>`;
 };
-//#endregion
-//#region src/take-out.ts
+// src/take-out.ts
 async function ri(e, t) {
 	let n = e.undo;
 	e.error = "", e.undo = void 0;
@@ -4394,8 +4372,7 @@ var fi = (e) => {
     ${T(ht)}
   </button>`;
 };
-//#endregion
-//#region src/frozen-action.ts
+// src/frozen-action.ts
 function mi(e, t) {
 	if (!e || !t) return !1;
 	let n = e.categories.find((e) => e.id === t.category_id)?.effective;
@@ -4437,8 +4414,7 @@ async function _i(e) {
 		}
 	}
 }
-//#endregion
-//#region src/stock-batch-row.ts
+// src/stock-batch-row.ts
 function vi(e, t, n, r) {
 	let i = t.expires_on ? z(e, t.expires_on) : S("stock.no_date");
 	return t.expires_on && t.expiry_type === "guide" ? i = S("stock.approx_date", { date: i }) : t.expiry_guessed && (i = S("stock.guessed_date", { date: i })), t.opened_on && (i = S("stock.opened_on", {
@@ -4666,8 +4642,7 @@ var yi = (e, t, n) => g`<li data-testid="stock-batch">
 	}
 };
 customElements.define("home-inventory-frozen-dialog", Ti);
-//#endregion
-//#region src/product-fields.ts
+// src/product-fields.ts
 var Ei = (e = {}) => ({
 	ean: null,
 	name: "",
@@ -4777,8 +4752,7 @@ function Ai(e, t, n, r) {
 		n
 	].filter(Boolean).join(" · ");
 }
-//#endregion
-//#region src/product-dialog.ts
+// src/product-dialog.ts
 var ji = [
 	"name",
 	"brand",
@@ -4958,8 +4932,7 @@ var ji = [
 	}
 };
 customElements.define("home-inventory-product-dialog", Mi);
-//#endregion
-//#region src/batch-dialog.ts
+// src/batch-dialog.ts
 var Ni = class extends x {
 	static {
 		this.properties = {
@@ -5061,8 +5034,7 @@ var Ni = class extends x {
 	}
 };
 customElements.define("home-inventory-batch-dialog", Ni);
-//#endregion
-//#region src/api-purchase.ts
+// src/api-purchase.ts
 var Pi = (e, t) => e.callWS({
 	type: "home_inventory/receipt_read",
 	text: t
@@ -5088,8 +5060,7 @@ function Bi(e, t) {
 	return e === "day" ? [t, Z(t, 1)] : e === "week" ? [zi(t), Z(zi(t), 7)] : [zi(new Date(t.getFullYear(), t.getMonth(), 1)), Z(zi(new Date(t.getFullYear(), t.getMonth() + 1, 0)), 7)];
 }
 var Vi = (e, t, n) => e === "month" ? new Date(t.getFullYear(), t.getMonth() + n, 1) : Z(t, n * (e === "week" ? 7 : 1)), Hi = (e) => e?.locale?.language;
-//#endregion
-//#region src/receipt-row.ts
+// src/receipt-row.ts
 function Ui(e) {
 	let t = {};
 	return e.choice === null && (t.choice = S("receipt.choose")), e.choice === "skip" || (e.choice === "new" && !e.name.trim() && (t.name = S("valid.required")), e.choice === "new" && e.category_id == null && (t.category = S("valid.required")), Number.isInteger(e.packages) && e.packages >= 1 && e.packages <= 9999 || (t.packages = S("valid.packages")), A(e.dateBad, e.expires_on) && (t.expires = S("valid.date"))), t;
@@ -5198,10 +5169,9 @@ var Ki = s`
     overflow-wrap: anywhere;
   }
 `;
-//#endregion
-//#region src/ocr.ts
+// src/ocr.ts
 async function qi(t, n) {
-	let { createWorker: r } = await import("./src-MUpJjT8c.js").then((t) => /* @__PURE__ */ e(t.default, 1)), i = new URL(
+	let { createWorker: r } = await import("./src-BdEU0Ij4.js").then((t) => /* @__PURE__ */ e(t.default, 1)), i = new URL(
 		/* @vite-ignore */
 		"vendor/",
 		import.meta.url
@@ -5219,8 +5189,7 @@ async function qi(t, n) {
 		await a.terminate();
 	}
 }
-//#endregion
-//#region src/photo.ts
+// src/photo.ts
 async function Ji(e, t) {
 	let n = await createImageBitmap(e), r = Math.min(1, t / Math.max(n.width, n.height)), i = document.createElement("canvas");
 	return i.width = Math.round(n.width * r), i.height = Math.round(n.height * r), i.getContext("2d").drawImage(n, 0, 0, i.width, i.height), n.close(), i;
@@ -5335,8 +5304,7 @@ function ra(e, t, n) {
 		]) e.delete();
 	}
 }
-//#endregion
-//#region src/scan-corners.ts
+// src/scan-corners.ts
 var ia = .01, aa = class extends x {
 	constructor(...e) {
 		super(...e), this.dragging = -1;
@@ -5442,8 +5410,7 @@ var ia = .01, aa = class extends x {
 	}
 };
 customElements.define("home-inventory-scan-corners", aa);
-//#endregion
-//#region src/camera-dialog.ts
+// src/camera-dialog.ts
 var oa = 480, sa = 1e3, ca = 200;
 function la(e, t, n, r) {
 	let i = Math.max(1, Math.max(t, n) / r), a = document.createElement("canvas");
@@ -5633,8 +5600,7 @@ var ua = (e, t) => e?.map((e) => ({
 	}
 };
 customElements.define("home-inventory-camera", da);
-//#endregion
-//#region src/receipt-import.ts
+// src/receipt-import.ts
 var fa = 3e3, pa = class extends x {
 	static {
 		this.properties = {
@@ -5843,8 +5809,7 @@ var fa = 3e3, pa = class extends x {
 	}
 };
 customElements.define("home-inventory-receipt-import", pa);
-//#endregion
-//#region src/booking-receipt.ts
+// src/booking-receipt.ts
 var ma = (e, t, n, r) => g`${n && R("receipt_import") ? g`<button
             type="button"
             class="receipt"
@@ -5867,7 +5832,7 @@ var ma = (e, t, n, r) => g`${n && R("receipt_import") ? g`<button
 async function ga() {
 	let e = window.BarcodeDetector, t = e ? await e.getSupportedFormats() : [];
 	if (e && t.includes("ean_13")) return new e({ formats: ha.filter((e) => t.includes(e)) });
-	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-uT9tp3Ca.js"), import("./zxing_reader-B_eQ7OPO.js")]);
+	let [{ BarcodeDetector: n, prepareZXingModule: r }, { default: i }] = await Promise.all([import("./ponyfill-CP08CNLB.js"), import("./zxing_reader--v3emN_l.js")]);
 	return r({ overrides: { locateFile: (e, t) => e.endsWith(".wasm") ? i : t + e } }), new n({ formats: [...ha] });
 }
 var _a = class extends x {
@@ -5949,8 +5914,7 @@ var _a = class extends x {
 	}
 };
 customElements.define("home-inventory-scanner", _a);
-//#endregion
-//#region src/booking-scan.ts
+// src/booking-scan.ts
 var va = class extends x {
 	static {
 		this.properties = { value: { attribute: !1 } };
@@ -6021,8 +5985,7 @@ var va = class extends x {
 	}
 };
 customElements.define("home-inventory-booking-scan", va);
-//#endregion
-//#region src/booking-in-fields.ts
+// src/booking-in-fields.ts
 function ya(e, t, n, r, i) {
 	let a = !n.expires && e.expires_on && e.expires_on < k();
 	return g`<label>
@@ -6086,8 +6049,7 @@ function xa(e, t, n) {
     />${S("label.print")}
   </label>`;
 }
-//#endregion
-//#region src/booking-pick.ts
+// src/booking-pick.ts
 var Sa = "auto", Ca = (e, t) => e?.find((e) => `${e.batch_id}:${e.location_id}` === t), wa = (e, t) => Ca(e, t)?.packages ?? e?.reduce((e, t) => e + t.packages, 0);
 function Ta(e, t, n, r) {
 	let i = (e, t) => g`<label class="check">
@@ -6442,8 +6404,7 @@ var Ea = s`
 	}
 };
 customElements.define("home-inventory-booking-form", Fa);
-//#endregion
-//#region src/booking-hits.ts
+// src/booking-hits.ts
 function Ia(e, t) {
 	return g`
     ${e.length ? v : g`<p class="empty">${S("book.no_hits")}</p>`}
@@ -6470,8 +6431,7 @@ function Ia(e, t) {
     </div>
   `;
 }
-//#endregion
-//#region src/booking-modes.ts
+// src/booking-modes.ts
 var La = [
 	["search", ut],
 	["in", _t],
@@ -6570,8 +6530,7 @@ async function Ya(e, t, n) {
 	let r = n.replace(qa, "");
 	return await (e.mode === "open" ? Ua(e, () => Wr(t, r)) : Ha(e, r)), !0;
 }
-//#endregion
-//#region src/booking-view.ts
+// src/booking-view.ts
 var Xa = /^\d{8,14}$/, Za = class extends x {
 	static {
 		this.properties = {
@@ -6747,8 +6706,7 @@ var Xa = /^\d{8,14}$/, Za = class extends x {
 	}
 };
 customElements.define("home-inventory-booking", Za);
-//#endregion
-//#region src/stock-view.ts
+// src/stock-view.ts
 var Qa = class extends x {
 	static {
 		this.properties = {
@@ -6932,8 +6890,7 @@ var Qa = class extends x {
 	}
 };
 customElements.define("home-inventory-stock", Qa);
-//#endregion
-//#region src/expiry-recipes.ts
+// src/expiry-recipes.ts
 var $a = class extends x {
 	static {
 		this.properties = {
@@ -6996,8 +6953,7 @@ var $a = class extends x {
 	}
 };
 customElements.define("home-inventory-expiry-recipes", $a);
-//#endregion
-//#region src/expiry-view.ts
+// src/expiry-view.ts
 var eo = class extends x {
 	static {
 		this.properties = {
@@ -7135,8 +7091,7 @@ var eo = class extends x {
 	}
 };
 customElements.define("home-inventory-expiry", eo);
-//#endregion
-//#region src/emergency-view.ts
+// src/emergency-view.ts
 var to = class extends x {
 	static {
 		this.properties = {
@@ -7236,8 +7191,7 @@ var to = class extends x {
 	}
 };
 customElements.define("home-inventory-emergency", to);
-//#endregion
-//#region node_modules/lit-html/directive.js
+// node_modules/lit-html/directive.js
 var no = {
 	ATTRIBUTE: 1,
 	CHILD: 2,
@@ -7307,8 +7261,7 @@ var no = {
 	key: t,
 	done: n
 });
-//#endregion
-//#region src/shopping-text.ts
+// src/shopping-text.ts
 function bo(e, t) {
 	let n = (t) => H(e, t.missing, t.unit_symbol);
 	if (t.manual) return [t.product_id ? t.brand : S("shopping.any"), S("book.count", { n: t.packages })].filter(Boolean).join(" · ");
@@ -7335,8 +7288,7 @@ function xo(e, t) {
 		unknown: r ? S("shopping.unknown", { n: r }) : ""
 	};
 }
-//#endregion
-//#region src/shopping-row-styles.ts
+// src/shopping-row-styles.ts
 var So = s`
   .what {
     display: flex;
@@ -7574,8 +7526,7 @@ var So = s`
 	}
 };
 customElements.define("home-inventory-shopping-add", wo);
-//#endregion
-//#region src/shopping-recipe-dialog.ts
+// src/shopping-recipe-dialog.ts
 var To = class extends x {
 	static {
 		this.properties = {
@@ -7677,8 +7628,7 @@ var To = class extends x {
 	}
 };
 customElements.define("home-inventory-shopping-recipe-dialog", To);
-//#endregion
-//#region src/shopping-recipes.ts
+// src/shopping-recipes.ts
 var Eo = class extends x {
 	static {
 		this.properties = {
@@ -7767,8 +7717,7 @@ var Eo = class extends x {
 	}
 };
 customElements.define("home-inventory-shopping-recipes", Eo);
-//#endregion
-//#region src/shopping-view.ts
+// src/shopping-view.ts
 var Do = class extends x {
 	static {
 		this.properties = {
@@ -7946,8 +7895,7 @@ var Do = class extends x {
 	}
 };
 customElements.define("home-inventory-shopping", Do);
-//#endregion
-//#region src/form-fields.ts
+// src/form-fields.ts
 var Oo = (e) => g`<label>
     <span class="lbl">${e.label}</span>
     <span class="num">
@@ -8218,8 +8166,7 @@ var Oo = (e) => g`<label>
 	}
 };
 customElements.define("home-inventory-receipt-button", qo);
-//#endregion
-//#region src/recipe-output.ts
+// src/recipe-output.ts
 var Jo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "recipe"}.json`, Yo = async (e, t, n) => {
 	try {
 		ur(await Dn(e, n?.id), n ? Jo(n.name) : S("recipes.export_all_file"));
@@ -8616,8 +8563,7 @@ var Jo = (e) => `${e.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "") || "
 	}
 };
 customElements.define("home-inventory-ingredient-pick", ds);
-//#endregion
-//#region src/unit-add-dialog.ts
+// src/unit-add-dialog.ts
 var fs = class extends x {
 	static {
 		this.properties = {
@@ -8690,8 +8636,7 @@ var fs = class extends x {
 	}
 };
 customElements.define("home-inventory-unit-add-dialog", fs);
-//#endregion
-//#region src/recipe-ingredients.ts
+// src/recipe-ingredients.ts
 var ps = class extends x {
 	static {
 		this.properties = {
@@ -8918,8 +8863,7 @@ var ps = class extends x {
 	}
 };
 customElements.define("home-inventory-recipe-ingredients", ps);
-//#endregion
-//#region src/product-input.ts
+// src/product-input.ts
 function ms(e) {
 	let t = `${e.testid}-product`, n = e.products.some((t) => t.name === e.name.trim()), r = !!e.name.trim() && !n;
 	return g`<label>
@@ -8948,8 +8892,7 @@ function ms(e) {
             ${O(e.err.category, `${t}-category`)}
           </div>` : v}`;
 }
-//#endregion
-//#region src/recipe-steps-editor.ts
+// src/recipe-steps-editor.ts
 var hs = (e) => e.text.length > (e.kind === "head" ? 100 : 2e3) ? S("valid.too_long", { n: e.kind === "head" ? 100 : Po }) : void 0, gs = class extends x {
 	static {
 		this.properties = { value: { attribute: !1 } };
@@ -9071,8 +9014,7 @@ var hs = (e) => e.text.length > (e.kind === "head" ? 100 : 2e3) ? S("valid.too_l
 	}
 };
 customElements.define("home-inventory-recipe-steps", gs);
-//#endregion
-//#region src/recipe-draft.ts
+// src/recipe-draft.ts
 var _s = (e) => ({
 	name: e?.name ?? "",
 	servings: e?.servings ?? 4,
@@ -9341,8 +9283,7 @@ var _s = (e) => ({
 	}
 };
 customElements.define("home-inventory-recipe-dialog", ys);
-//#endregion
-//#region src/recipe-import.ts
+// src/recipe-import.ts
 var bs = [
 	"url",
 	"text",
@@ -9554,8 +9495,7 @@ var bs = [
 	}
 };
 customElements.define("home-inventory-recipe-import", Cs);
-//#endregion
-//#region src/api-plan.ts
+// src/api-plan.ts
 var ws = (e, t, n) => e.callWS({
 	type: "home_inventory/meal_plan",
 	start: t,
@@ -9717,8 +9657,7 @@ var ws = (e, t, n) => e.callWS({
 	}
 };
 customElements.define("home-inventory-meal-dialog", ks);
-//#endregion
-//#region src/cooked-row.ts
+// src/cooked-row.ts
 var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), As = (e) => ({
 	product_id: e.product_id,
 	batch_id: e.batch_id,
@@ -10005,8 +9944,7 @@ var $ = (e) => e.src.candidates.find((t) => t.product_id === e.product_id), As =
 	}
 };
 customElements.define("home-inventory-leftover-store", Gs);
-//#endregion
-//#region src/api-cooked.ts
+// src/api-cooked.ts
 var Ks = (e, t, n) => e.callWS({
 	type: "home_inventory/cooked_proposal",
 	recipe_id: t,
@@ -10154,8 +10092,7 @@ var Ks = (e, t, n) => e.callWS({
 	}
 };
 customElements.define("home-inventory-cooked-dialog", Ys);
-//#endregion
-//#region src/cook-mode.ts
+// src/cook-mode.ts
 var Xs = (e) => {
 	let t = Math.max(0, Math.ceil(e / 1e3)), n = Math.floor(t / 3600), r = String(Math.floor(t % 3600 / 60)).padStart(n ? 2 : 1, "0"), i = String(t % 60).padStart(2, "0");
 	return n ? `${n}:${r}:${i}` : `${r}:${i}`;
@@ -10412,8 +10349,7 @@ var Xs = (e) => {
 	}
 };
 customElements.define("home-inventory-cook-mode", Qs);
-//#endregion
-//#region src/recipes-view.ts
+// src/recipes-view.ts
 var $s = class extends x {
 	static {
 		this.properties = {
@@ -10612,8 +10548,7 @@ var $s = class extends x {
 	}
 };
 customElements.define("home-inventory-recipes", $s);
-//#endregion
-//#region src/plan-shift.ts
+// src/plan-shift.ts
 var ec = (e, t) => g`<button
     class="icon-btn"
     data-testid="plan-meal-shift"
@@ -10640,8 +10575,7 @@ async function tc(e, t) {
 		action: S("plan.shift_ok")
 	}) ? (await Ds(e, t.day, t.slot, !0), !0) : !1;
 }
-//#endregion
-//#region src/plan-day.ts
+// src/plan-day.ts
 function nc(e, t) {
 	let n = Y(t);
 	return g`<div data-testid="plan-day" data-day=${n}>
@@ -11052,8 +10986,7 @@ var mc = s`
 	}
 };
 customElements.define("home-inventory-plan-shopping-dialog", _c);
-//#endregion
-//#region src/plan-view.ts
+// src/plan-view.ts
 var vc = class extends x {
 	static {
 		this.properties = {
@@ -11240,8 +11173,7 @@ var vc = class extends x {
 	}
 };
 customElements.define("home-inventory-plan", vc);
-//#endregion
-//#region src/canning-new-fields.ts
+// src/canning-new-fields.ts
 function yc(e) {
 	let t = e.draft, n = e.e;
 	if (e.canning) return g`<p class="detail" data-testid="canning-fixed">
@@ -11295,8 +11227,7 @@ function yc(e) {
       ${O(n.location, "canning-location")}
     </label>`;
 }
-//#endregion
-//#region src/canning-dialog.ts
+// src/canning-dialog.ts
 var bc = class extends x {
 	static {
 		this.properties = {
@@ -11493,8 +11424,7 @@ var bc = class extends x {
 	}
 };
 customElements.define("home-inventory-canning-dialog", bc);
-//#endregion
-//#region src/leftover-dialog.ts
+// src/leftover-dialog.ts
 var xc = class extends x {
 	static {
 		this.properties = {
@@ -11676,8 +11606,7 @@ var xc = class extends x {
 	}
 };
 customElements.define("home-inventory-leftover-dialog", xc);
-//#endregion
-//#region src/canning-view.ts
+// src/canning-view.ts
 var Sc = class extends x {
 	static {
 		this.properties = {
@@ -11863,8 +11792,7 @@ var Sc = class extends x {
 	}
 };
 customElements.define("home-inventory-canning", Sc);
-//#endregion
-//#region src/api-stocktake.ts
+// src/api-stocktake.ts
 var Cc = (e, t, n) => e.callWS({
 	type: "home_inventory/stocktake_scan",
 	location_id: t,
@@ -12163,8 +12091,7 @@ var Cc = (e, t, n) => e.callWS({
 	}
 };
 customElements.define("home-inventory-stocktake", Tc);
-//#endregion
-//#region src/api-history.ts
+// src/api-history.ts
 var Ec = (e, t) => e.callWS({
 	type: "home_inventory/history",
 	...Object.fromEntries(Object.entries(t).filter(([, e]) => e !== "" && e !== void 0))
@@ -12362,8 +12289,7 @@ var Ec = (e, t) => e.callWS({
 	}
 };
 customElements.define("home-inventory-history", kc);
-//#endregion
-//#region src/home-inventory-panel.ts
+// src/home-inventory-panel.ts
 var Ac = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", jc = [
 	"stock",
 	"expiry",
@@ -12551,5 +12477,4 @@ var Ac = "https://github.com/Jannik-R/HA-Inventory/blob/main/docs/guide", jc = [
 	}
 };
 customElements.define("home-inventory-panel", Nc);
-//#endregion
 export { Nc as HomeInventoryPanel };

@@ -1,9 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.3.2 - 2026-11-12
+
+No database migration.
 
 ### Changed
 
+- Recipe pictures are stored locally: Home Assistant downloads the picture once when a recipe is saved (largest image of the page, shrunk to 1200 px, in `<config>/home_inventory/recipe_images/`, part of backups) instead of the browser loading it from the recipe website on every view. Still gated by the external service *Rezeptbilder* (`recipe_images`); stored pictures show when it is off
 - The book-in form remembers the last used location on this device, also after a reload
 - Lists show "Lädt …" until their data has arrived instead of their empty text
 - Icon buttons are 44 x 44 px; the plan bar and the settings navigation wrap on narrow phones

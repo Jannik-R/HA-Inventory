@@ -26,6 +26,7 @@ from . import (
     websocket_plan,
     websocket_purchase,
     websocket_recipe,
+    websocket_shopping,
     websocket_stock,
     websocket_stocktake,
     websocket_transfer,
@@ -47,6 +48,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.http.register_view(recipe_image.RecipeImageView)
     websocket.async_register(hass)
     websocket_stock.async_register(hass)
+    websocket_shopping.async_register(hass)
     websocket_label.async_register(hass)
     websocket_recipe.async_register(hass)
     websocket_plan.async_register(hass)

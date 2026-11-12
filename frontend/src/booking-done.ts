@@ -35,10 +35,6 @@ export const doneStyles = css`
   .done {
     margin: 0 0 12px;
   }
-  .done .pimg {
-    margin: 0 8px 0 0;
-    vertical-align: middle;
-  }
   .undo {
     margin-left: 8px;
     padding: 4px 8px;

@@ -22,14 +22,14 @@ function allowed(url: string) {
   }
 }
 
-export const productImage = (url?: string | null, size = 40) =>
+/** `size` is the max height in px; wide packs may use the full width instead. */
+export const productImage = (url: string | null | undefined, size: number) =>
   url && hasExternal("off_images") && allowed(url)
     ? html`<img
         class="pimg"
         src=${url}
         alt=""
-        width=${size}
-        height=${size}
+        style="max-height: ${size}px"
         @error=${(e: Event) => ((e.target as HTMLElement).hidden = true)}
         loading="lazy"
         referrerpolicy="no-referrer"
@@ -42,10 +42,9 @@ export const imageStyles = css`
     display: none;
   }
   .pimg {
-    flex: none;
+    display: block;
     max-width: 100%;
-    height: auto;
     object-fit: contain;
-    margin: 0 8px;
+    margin: 0 0 8px;
   }
 `;

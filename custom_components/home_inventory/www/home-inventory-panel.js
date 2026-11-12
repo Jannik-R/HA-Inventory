@@ -4228,12 +4228,11 @@ function Wr(e) {
 		return !1;
 	}
 }
-var Gr = (e, t = 40) => e && R("off_images") && Wr(e) ? g`<img
+var Gr = (e, t) => e && R("off_images") && Wr(e) ? g`<img
         class="pimg"
         src=${e}
         alt=""
-        width=${t}
-        height=${t}
+        style="max-height: ${t}px"
         @error=${(e) => e.target.hidden = !0}
         loading="lazy"
         referrerpolicy="no-referrer"
@@ -4243,11 +4242,10 @@ var Gr = (e, t = 40) => e && R("off_images") && Wr(e) ? g`<img
     display: none;
   }
   .pimg {
-    flex: none;
+    display: block;
     max-width: 100%;
-    height: auto;
     object-fit: contain;
-    margin: 0 8px;
+    margin: 0 0 8px;
   }
 `;
 //#endregion
@@ -4270,10 +4268,6 @@ var J = s`
   ${Kr}
   .done {
     margin: 0 0 12px;
-  }
-  .done .pimg {
-    margin: 0 8px 0 0;
-    vertical-align: middle;
   }
   .undo {
     margin-left: 8px;

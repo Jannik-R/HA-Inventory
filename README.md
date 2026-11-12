@@ -386,6 +386,13 @@ Requires Docker (running) and Node.js LTS. Python lint and format: ruff (config 
 docker compose -f dev/docker-compose.yml up -d homeassistant
 ```
 
+A fresh dev database (delete `dev/config/home_inventory.db` and start HA once; the old 0.x file is refused) is empty. `dev/demo_data.py` fills it with a small demo household (products with expiry dates relative to today, recipes, a meal plan, shopping list, a canning protocol) through the `inventory` layer. It refuses a database that already has products. HA caches the data, so stop it first:
+
+```bash
+C="docker compose -f dev/docker-compose.yml"
+$C stop homeassistant && $C run --rm -e TZ=Europe/Berlin --entrypoint python test dev/demo_data.py && $C start homeassistant
+```
+
 On Windows, `scripts/dev.ps1` starts the dev HA together with the receipt printer bridge (see below)
 and waits until HA answers; `-Proxy` adds the phone proxy, `-Printer "<name>"` picks another Windows
 printer, `-NoBridge` skips the bridge, `-Stop` stops everything:

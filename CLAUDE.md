@@ -73,6 +73,7 @@ frontend/                   panel source (Lit + TypeScript, Vite); licenses.ts: 
   e2e/                      Playwright specs (local only)
   scripts/check-i18n.mjs    missing/unused UI keys and hardcoded German text (`npm run i18n:check`, runs in CI)
 dev/                        dev HA (docker compose); runtime data in dev/config/ is git-ignored
+dev/demo_data.py            dev only: fills an EMPTY dev DB with a demo household through `inventory.<name>` (refuses a DB with products; tests/test_demo_data.py keeps it current)
 tests/                      pytest (pytest-homeassistant-custom-component)
 scripts/receipt_bridge.py   dev only (Windows): raw TCP 9100 -> Windows printer queue, so the dev HA reaches a USB receipt printer
 scripts/dev.ps1             dev only (Windows): start/stop the dev HA with the receipt printer bridge
@@ -139,6 +140,7 @@ cd frontend && npm run docs:screenshots  # regenerate the guide screenshots in d
 cd frontend && npm run typecheck:e2e  # type-check the E2E specs (runs in CI)
 docker compose -f dev/docker-compose.yml run --rm --entrypoint sh test -c "pip install -q -r requirements_test.txt && ruff check --fix . && ruff format ."   # Python lint + format (CI checks both)
 docker compose -f dev/docker-compose.yml up -d homeassistant   # dev HA on :8123
+docker compose -f dev/docker-compose.yml stop homeassistant && docker compose -f dev/docker-compose.yml run --rm -e TZ=Europe/Berlin --entrypoint python test dev/demo_data.py && docker compose -f dev/docker-compose.yml start homeassistant   # demo data into an empty dev DB
 pwsh scripts/dev.ps1                  # Windows: dev HA + receipt printer bridge (-Stop, -Proxy, -NoBridge)
 ```
 

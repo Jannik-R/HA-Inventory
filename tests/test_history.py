@@ -27,18 +27,6 @@ def actions(conn, **kw):
     return inv.history(conn, **kw)["actions"]
 
 
-def test_migration_31_backfills_action_id(monkeypatch) -> None:
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 30
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:30])
-        db.migrate(c)
-    inv.book_in(c, product(c), 1, None, loc(c))
-    inv.book_in(c, product(c), 1, None, loc(c))
-    c.commit()
-    db.migrate(c)
-    assert c.execute("SELECT count(*) FROM booking WHERE action_id = id").fetchone()[0] == 2
-
-
 def test_stamp_groups_one_call(conn) -> None:
     p = pasta(conn)
     b = act(conn, inv.book_in, p, 3, "2027-01-01", loc(conn))

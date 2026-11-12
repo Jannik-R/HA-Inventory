@@ -155,7 +155,7 @@ _DE_RECIPE_UNITS = [
     ("Tropfen", "Tropfen", None, 1, 1),
 ]
 
-# Units only offered in recipes (migration 13; a new DB marks them in seed()).
+# Units only offered in recipes (`mark_recipe_only`, called by db.migrate after the seed).
 # Frozen: RECIPE_ONLY / RECIPE_BASES belong to migration 13. Later additions need a new step.
 RECIPE_ONLY = (
     "Prise", "Messerspitze", "Esslöffel", "Teelöffel", "Zehe", "Scheibe", "Handvoll", "Zweig",
@@ -229,42 +229,21 @@ _DE_UNITS: dict[str, str] = {
 _DE_UNITS = {**MORE_UNITS, **_DE_UNITS}
 
 
-# Added after 0.1.0 (migration 9): only these are inserted into existing DBs.
-NEW_IN_9 = {
-    "cl", "dl", "Schattenmorellen", "Blätterteig", "Schweineschmalz", "Maronen",
-    "Handvoll", "Zweig", "Würfel", "Beutel", "Schuss", "Kopf", "Stiel", "Kugel", "Flasche",
-    "Tasse", "Spritzer", "Tropfen", "Preiselbeeren", "Peperoni", "Chilischoten", "Grünkohl",
-    "Pak Choi", "Kerbel", "Estragon", "Ciabatta", "Marzipan", "Rotwein", "Weißwein", "Rum",
-    "Sesam", "Mohn", "Nelken", "Schalotten", "Alkohol", "Bier", "Sekt", "Likör", "Amaretto",
-    "Wermut", "Schnaps", "Weinbrand", "Whiskey", "Schokostreusel", "Löffelbiskuits", "Kokosraspel", "Datteln",
-}  # fmt: skip
-NEW_IN_9 |= {name for names in MORE_TYPES.values() for name in names}
-
-
-def add_seed_extras(conn: sqlite3.Connection, only: set[str] | None = None) -> None:
+def add_seed_extras(conn: sqlite3.Connection) -> None:
     """Insert the recipe units and product types missing in this DB, then the default units
-    (`_DE_UNITS`); the caller commits. `only` limits it to these names (a later migration).
+    (`_DE_UNITS`); the caller commits.
 
     Only under a parent that exists by exact name, and only when no category has the type's
     name yet, so renames and deletions by the user are respected and nothing is added twice.
     """
-    if not conn.execute("SELECT 1 FROM unit").fetchone():
-        return  # new DB (migration 8 runs before the seed): seed() calls this after the base data
-
-    def wanted(name: str) -> bool:
-        return only is None or name in only
-
-    for name, symbol, base, factor, is_count in filter(lambda u: wanted(u[0]), _DE_RECIPE_UNITS):
+    for name, symbol, base, factor, is_count in _DE_RECIPE_UNITS:
         conn.execute(
             "INSERT INTO unit (name, symbol, base_unit_id, factor, is_count)"
             " SELECT ?, ?, (SELECT id FROM unit WHERE name = ?), ?, ?"
             " WHERE NOT EXISTS (SELECT 1 FROM unit WHERE name = ?)",
             (name, symbol, base, factor, is_count, name),
         )
-    if (
-        wanted("Alkohol")
-        and not conn.execute("SELECT 1 FROM category WHERE name = 'Alkohol'").fetchone()
-    ):
+    if not conn.execute("SELECT 1 FROM category WHERE name = 'Alkohol'").fetchone():
         from .inventory.inherit import set_tags  # local: inventory imports db, which imports this
 
         drinks = conn.execute(
@@ -283,18 +262,14 @@ def add_seed_extras(conn: sqlite3.Connection, only: set[str] | None = None) -> N
         if row is None:
             continue
         for sort, name in enumerate(names):
-            if (
-                wanted(name)
-                and not conn.execute("SELECT 1 FROM category WHERE name = ?", (name,)).fetchone()
-            ):
+            if not conn.execute("SELECT 1 FROM category WHERE name = ?", (name,)).fetchone():
                 conn.execute(
                     "INSERT INTO category (parent_id, name, sort) VALUES (?, ?, ?)",
                     (row[0], name, sort),
                 )
     for name, unit in _DE_UNITS.items():  # only where no own unit is set yet
-        if wanted(name):
-            conn.execute(
-                "UPDATE category SET unit_id = (SELECT id FROM unit WHERE name = ?)"
-                " WHERE name = ? AND unit_id IS NULL AND EXISTS (SELECT 1 FROM unit WHERE name = ?)",
-                (unit, name, unit),
-            )
+        conn.execute(
+            "UPDATE category SET unit_id = (SELECT id FROM unit WHERE name = ?)"
+            " WHERE name = ? AND unit_id IS NULL AND EXISTS (SELECT 1 FROM unit WHERE name = ?)",
+            (unit, name, unit),
+        )

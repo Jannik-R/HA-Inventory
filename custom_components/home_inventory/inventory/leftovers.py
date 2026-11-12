@@ -6,8 +6,9 @@ from __future__ import annotations
 import sqlite3
 from datetime import date, timedelta
 
-from ..migration_29 import ROOT, add_leftovers
 from ..seed_en import seeded
+from ..seed_general import LEFTOVERS as ROOT
+from ..seed_general import add_leftovers
 from .canning import save_canning
 from .codes import _location, _recipe
 from .common import InventoryError, _exists

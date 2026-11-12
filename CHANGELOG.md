@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Upgrade notes
+
+- 1.0.0 starts with a new database. Databases written by 0.x versions are refused at setup with an error that names the file (move or delete it, then reload the integration); nothing is migrated, moved or deleted automatically. 0.x was for development only.
+
+### Changed
+
+- The 32 schema migrations of the 0.x versions are squashed into one baseline schema (`PRAGMA user_version` 33, marked with an `application_id`); a new database is identical to what 0.3.2 created.
+
 ## 0.3.2 - 2026-11-12
 
 No database migration.

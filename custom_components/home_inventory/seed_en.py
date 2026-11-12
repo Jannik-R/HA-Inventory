@@ -1,7 +1,7 @@
 """English seed (phase 38): a new DB is seeded in German, then renamed in one pass by `to_english`.
 
 Ids stay, so everything the post-seed setters wrote carries over. `seeded` is for by-name
-seeders that also run on existing DBs (a later migration, first use): wrap the German name in it.
+seeders that also run later (first use): wrap the German name in it.
 """
 
 from __future__ import annotations
@@ -28,11 +28,8 @@ CUP_ML = 240  # US cup (the German seed has 250 ml)
 
 
 def lang(conn: sqlite3.Connection) -> str:
-    """Seed language of this DB; 'de' for a DB before migration 32."""
-    try:
-        row = conn.execute("SELECT seed_lang FROM defaults WHERE id = 1").fetchone()
-    except sqlite3.OperationalError:
-        return "de"
+    """Seed language of this DB ('de' while there are no defaults yet)."""
+    row = conn.execute("SELECT seed_lang FROM defaults WHERE id = 1").fetchone()
     return row[0] if row else "de"
 
 

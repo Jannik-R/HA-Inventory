@@ -3,7 +3,6 @@ categories in recipes; migration 15 keeps batches."""
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 
 
@@ -95,31 +94,10 @@ def test_non_food_is_no_ingredient(conn) -> None:
     assert inv.effective(conn, category_id=cat(conn, "Eingekochtes"))["shelf_days"]["value"] == 365
 
 
-def test_migration_15_keeps_batches(tmp_path, monkeypatch) -> None:
-    full = db.MIGRATIONS
-    monkeypatch.setattr(db, "MIGRATIONS", full[:14])
-    monkeypatch.setattr(db, "add_general", lambda conn: None)  # the 14 seed had no such roots
-    monkeypatch.setattr(db, "fill_days", lambda conn: None)  # nor the columns
-    c = db.connect(str(tmp_path / "old.db"))
-    db.migrate(c)
-    pid = c.execute(
-        "INSERT INTO product (name, category_id, updated_at) VALUES ('Reis', ?, 'x')",
-        (cat(c, "Nudeln"),),
-    ).lastrowid
-    b = c.execute(
-        "INSERT INTO batch (product_id, expires_on, created_at) VALUES (?, '2027-01-01', 'x')",
-        (pid,),
-    ).lastrowid
-    c.execute("INSERT INTO stock (batch_id, location_id, packages) VALUES (?, 1, 3)", (b,))
-    c.commit()
-    monkeypatch.setattr(db, "MIGRATIONS", full)
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(full)
-    assert [tuple(r) for r in c.execute("SELECT batch_id, packages FROM stock")] == [(b, 3)]
-    assert inv.book_in(c, pid, 1, "2027-01-01") == b  # the old batch is still found
+def test_non_food_roots_are_seeded(conn) -> None:
     food = "SELECT food FROM category WHERE parent_id IS NULL AND name = ?"
-    assert c.execute(food, ("Haushalt & Drogerie",)).fetchone()[0] == 0
-    assert c.execute(food, ("Haustechnik",)).fetchone()[0] == 0
+    assert conn.execute(food, ("Haushalt & Drogerie",)).fetchone()[0] == 0
+    assert conn.execute(food, ("Haustechnik",)).fetchone()[0] == 0
 
 
 def test_canning_recipe_makes_its_product(conn) -> None:
@@ -169,34 +147,3 @@ def test_electrical_tree(conn) -> None:
     assert conn.execute(parent, ("Knopfzelle CR2032",)).fetchone()[0] == "Batterien"
     assert conn.execute(parent, ("Sockel GU10",)).fetchone()[0] == "Leuchtmittel"
     assert conn.execute("SELECT 1 FROM category WHERE name = 'Glühbirnen'").fetchone() is None
-
-
-def test_old_household_types_move(conn) -> None:
-    """A DB seeded before 16 had Batterien and Glühbirnen under Spülmittel."""
-    ids = conn.execute(
-        "WITH RECURSIVE sub(id, d) AS (SELECT id, 0 FROM category WHERE name = 'Haustechnik'"
-        " UNION ALL SELECT c.id, d + 1 FROM category c JOIN sub ON c.parent_id = sub.id)"
-        " SELECT id FROM sub ORDER BY d DESC"
-    ).fetchall()
-    for (i,) in ids:
-        conn.execute("DELETE FROM category WHERE id = ?", (i,))
-    rinse = cat(conn, "Spülmittel")
-    for name in ("Batterien", "Glühbirnen", "Kerzen"):
-        conn.execute(
-            "INSERT OR IGNORE INTO category (parent_id, name) VALUES (?, ?)", (rinse, name)
-        )
-    battery = cat(conn, "Batterien")
-    pid = inv.save(conn, "product", {"name": "Varta AA", "category_id": battery})
-    db.add_general(conn)
-    root = cat(conn, "Haustechnik")
-    assert (
-        conn.execute("SELECT parent_id FROM category WHERE id = ?", (battery,)).fetchone()[0]
-        == root
-    )
-    assert (
-        conn.execute("SELECT category_id FROM product WHERE id = ?", (pid,)).fetchone()[0]
-        == battery
-    )
-    assert (
-        conn.execute("SELECT 1 FROM category WHERE name = 'Glühbirnen'").fetchone() is None
-    )  # unused

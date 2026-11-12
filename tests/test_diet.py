@@ -3,8 +3,8 @@
 import json
 from unittest.mock import patch
 
-from custom_components.home_inventory import db, off_diet
 from custom_components.home_inventory import inventory as inv
+from custom_components.home_inventory import off_diet
 from custom_components.home_inventory.const import DEFAULT_MODULES, modules_of
 from custom_components.home_inventory.inventory.diet import (
     check_allergens,
@@ -12,7 +12,7 @@ from custom_components.home_inventory.inventory.diet import (
     recipe_diet,
 )
 from custom_components.home_inventory.inventory.diet import off_diet as parse
-from custom_components.home_inventory.migration_30 import _SEEDED
+from custom_components.home_inventory.seed_diet import _DIET as _SEEDED
 
 from .test_inventory import cat, product
 from .test_websocket import master, ws  # noqa: F401
@@ -53,31 +53,6 @@ def test_seeded_names_exist_once_and_are_filled(conn):
         assert conn.execute(sql, (name,)).fetchone()[0] == 1, name
     row = conn.execute("SELECT diet, allergens FROM category WHERE name = 'Weizenmehl'").fetchone()
     assert tuple(row) == ("vegan", "gluten")
-
-
-def test_migration_30_fills_product_from_off_json(monkeypatch):
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 29
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:29])
-        m.setattr(db, "set_diet", lambda conn: None)
-        db.migrate(c)
-    tags = json.dumps(
-        {"allergens_tags": ["en:milk"], "ingredients_analysis_tags": ["en:vegetarian"]}
-    )
-    cid = c.execute("SELECT id FROM category WHERE name = 'Nudeln'").fetchone()[0]
-    for i, raw in enumerate([tags, "not json", None], 1):
-        c.execute(
-            "INSERT INTO product (id, name, category_id, updated_at, off_json)"
-            " VALUES (?, 'P', ?, 'x', ?)",
-            (i, cid, raw),
-        )
-    c.commit()
-    db.migrate(c)
-    rows = [tuple(r) for r in c.execute("SELECT diet, allergens FROM product ORDER BY id")]
-    assert rows == [("vegetarian", "milk"), (None, None), (None, None)]
-    got = c.execute("SELECT diet FROM category WHERE name = 'Weizenmehl'").fetchone()
-    assert got[0] == "vegan"
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
 def test_inheritance_and_product_own_value(conn):

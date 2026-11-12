@@ -4,7 +4,6 @@ from datetime import date
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory.inventory import InventoryError
 from tests.test_inventory import cat, loc, product, stock
@@ -92,27 +91,6 @@ def test_no_freezer(conn) -> None:
     inv.book_in(conn, meat, 1, "2026-10-22", loc(conn))
     assert err_key(lambda: inv.freeze(conn, meat)) == "no_freezer"
     assert err_key(lambda: inv.freeze(conn, meat, to_location_id=loc(conn))) == "no_freezer"
-
-
-def test_migration_25(monkeypatch) -> None:
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 24
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:24])
-        m.setattr(db, "set_frozen", lambda conn: None)
-        db.migrate(c)
-    meat = product(c, "Rinderhack", "Hackfleisch")
-    b = c.execute(  # old schema: no booking functions (effective() reads the new columns)
-        "INSERT INTO batch (product_id, expires_on, created_at) VALUES (?, '2026-10-22', '')",
-        (meat,),
-    ).lastrowid
-    c.execute("INSERT INTO stock (batch_id, location_id, packages) VALUES (?, ?, 2)", (b, loc(c)))
-    c.commit()
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    assert stock(c) == {(b, loc(c)): 2}
-    assert inv.effective(c, meat)["frozen_days"]["value"] == 90
-    assert inv.freeze(c, meat, today=TODAY)["location"] == "Gefrierschrank"
 
 
 def test_module_off_changes_no_date(conn) -> None:

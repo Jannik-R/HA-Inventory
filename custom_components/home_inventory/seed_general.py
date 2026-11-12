@@ -1,7 +1,9 @@
-"""Seeded main categories beyond food (and home-canned food); data plus the insert. Migration 16
-adds them to existing DBs, db.migrate after the seed to a new one."""
+"""Seeded main categories beyond food (and home-canned food, dried food, leftovers); data plus the
+insert. `db.migrate` adds them after the base seed."""
 
 import sqlite3
+
+from .seed_en import seeded
 
 # (root name, root values, {sub-category: [product types]}); location / unit by name.
 _DE_GENERAL = [
@@ -61,36 +63,11 @@ _DE_GENERAL = [
 ]
 # Existing root marked as not a food.
 _HOUSEHOLD = "Haushalt & Drogerie"
-# Old seeded types under Spülmittel (seed_types_more before migration 16): Batterien becomes the
-# battery category; Glühbirnen goes when unused, else moves to Leuchtmittel (products stay).
-_OLD_PARENT = "Spülmittel"
 
 
 def _id(conn: sqlite3.Connection, table: str, name: str | None) -> int | None:
     row = conn.execute(f"SELECT id FROM {table} WHERE name = ?", (name,)).fetchone()
     return row[0] if row else None
-
-
-def _old_type(conn: sqlite3.Connection, name: str) -> int | None:
-    """Id of a type the old seed put under Spülmittel, if it is still there."""
-    row = conn.execute(
-        "SELECT c.id FROM category c JOIN category p ON p.id = c.parent_id"
-        " WHERE c.name = ? AND p.name = ?",
-        (name, _OLD_PARENT),
-    ).fetchone()
-    return row[0] if row else None
-
-
-def _used(conn: sqlite3.Connection, category_id: int) -> bool:
-    return any(
-        conn.execute(f"SELECT 1 FROM {table} WHERE {col} = ?", (category_id,)).fetchone()
-        for table, col in (
-            ("category", "parent_id"),
-            ("product", "category_id"),
-            ("recipe_ingredient", "category_id"),
-            ("shopping_item", "category_id"),
-        )
-    )
 
 
 def _child(conn: sqlite3.Connection, parent: int, name: str, sort: int) -> int | None:
@@ -106,8 +83,6 @@ def _child(conn: sqlite3.Connection, parent: int, name: str, sort: int) -> int |
 
 def add_general(conn: sqlite3.Connection) -> None:
     """Insert the roots above where no root of that name exists; mark household as non-food."""
-    if not conn.execute("SELECT 1 FROM unit").fetchone():
-        return  # new DB (migrations run before the seed): migrate() calls this after the seed
     sort = conn.execute("SELECT ifnull(max(sort), 0) FROM category WHERE parent_id IS NULL")
     sort = sort.fetchone()[0]
     for name, v, subs in _DE_GENERAL:
@@ -130,8 +105,6 @@ def add_general(conn: sqlite3.Connection) -> None:
                 v.get("food"),
             ),
         ).lastrowid
-        if (old := _old_type(conn, "Batterien")) is not None:
-            conn.execute("UPDATE category SET parent_id = ? WHERE id = ?", (root, old))
         for i, (sub, types) in enumerate(subs.items()):
             sub_id = _child(conn, root, sub, i)
             for j, t in enumerate(types):
@@ -142,12 +115,47 @@ def add_general(conn: sqlite3.Connection) -> None:
     ).fetchone()
     if household:
         conn.execute("UPDATE category SET food = 0 WHERE id = ? AND food IS NULL", (household[0],))
-    if (bulbs := _old_type(conn, "Glühbirnen")) is not None:
-        if _used(conn, bulbs):
-            conn.execute(
-                "UPDATE category SET parent_id = (SELECT id FROM category WHERE name = 'Leuchtmittel')"
-                " WHERE id = ? AND EXISTS (SELECT 1 FROM category WHERE name = 'Leuchtmittel')",
-                (bulbs,),
-            )
-        else:
-            conn.execute("DELETE FROM category WHERE id = ?", (bulbs,))
+
+
+_DRIED = ["Trockenobst", "Gemüsechips", "Getrocknete Kräuter", "Getrocknete Pilze", "Jerky"]
+
+
+def add_dried(conn: sqlite3.Connection) -> None:
+    """Root Gedörrtes (guide date, shelf 180 days) with its types unless a root of that name exists."""
+    if conn.execute(
+        "SELECT 1 FROM category WHERE parent_id IS NULL AND name = 'Gedörrtes'"
+    ).fetchone():
+        return
+    sort = conn.execute(
+        "SELECT ifnull(max(sort), 0) + 1 FROM category WHERE parent_id IS NULL"
+    ).fetchone()[0]
+    root = conn.execute(
+        "INSERT INTO category (name, sort, default_location_id, expiry_type, warn_days, shelf_days)"
+        " VALUES ('Gedörrtes', ?, ?, 'guide', 14, 180)",
+        (sort, _id(conn, "location", "Vorratsschrank")),
+    ).lastrowid
+    for i, name in enumerate(_DRIED):
+        _child(conn, root, name, i)
+
+
+LEFTOVERS = "Reste"
+
+
+def add_leftovers(conn: sqlite3.Connection) -> None:
+    """Root Reste (guide date, 3 days, fridge) unless a root of that name exists; also on first use.
+
+    The products "Reste: <dish>" are created by inventory/leftovers.py. Names via `seeded`
+    (English in an English DB: "Leftovers: <dish>").
+    """
+    if conn.execute(
+        "SELECT 1 FROM category WHERE parent_id IS NULL AND name = ?", (seeded(conn, LEFTOVERS),)
+    ).fetchone():
+        return
+    sort = conn.execute(
+        "SELECT ifnull(max(sort), 0) + 1 FROM category WHERE parent_id IS NULL"
+    ).fetchone()[0]
+    conn.execute(
+        "INSERT INTO category (name, sort, default_location_id, expiry_type, warn_days, shelf_days,"
+        " emergency_group) VALUES (?, ?, ?, 'guide', 1, 3, 'none')",
+        (seeded(conn, LEFTOVERS), sort, _id(conn, "location", seeded(conn, "Kühlschrank"))),
+    )

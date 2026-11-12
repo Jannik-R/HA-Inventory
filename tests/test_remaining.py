@@ -1,11 +1,9 @@
 """Remaining amount of opened packages (migration 28): a partly used package is its own batch."""
 
-import sqlite3
 from datetime import date
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory.inventory import InventoryError
 
@@ -56,31 +54,6 @@ def part(conn, p):
 
 def last_booking(conn):
     return conn.execute("SELECT MAX(id) FROM booking").fetchone()[0]
-
-
-def test_migration_28(monkeypatch):
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 27
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:27])
-        db.migrate(c)
-    cat = c.execute("SELECT id FROM category LIMIT 1").fetchone()[0]
-    c.executescript(
-        f"INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'Reis', {cat}, 't');"
-        "INSERT INTO batch (id, product_id, opened_on, created_at) VALUES (1, 1, '2026-10-01', 't');"
-        "INSERT INTO booking (ts, kind, batch_id, packages, source) VALUES ('t', 'open', 1, 1, 'x');"
-    )
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("SELECT remaining FROM batch").fetchone()[0] == 1
-    c.execute(
-        "INSERT INTO booking (ts, kind, batch_id, packages, source) VALUES ('t', 'remaining', 1, 1, 'x')"
-    )
-    new = "INSERT INTO batch (product_id, opened_on, remaining, created_at) VALUES (1, '2026-10-01', ?, 't')"
-    c.execute(new, (0.5,))
-    c.execute(new, (0.5,))  # partly used batches never merge
-    with pytest.raises(sqlite3.IntegrityError):
-        c.execute(new, (1,))  # a second full batch of the key does not exist
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
 def test_level_moves_one_package_to_its_own_batch(conn):

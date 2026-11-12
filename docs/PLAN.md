@@ -111,6 +111,8 @@ booking    (id, ts, kind 'in'|'out'|'move'|'correct'|'open'|'remaining', batch_i
             -- root category names are unique too (partial unique index, migration 6)
 ```
 
+**Schema baseline 1.0.0 (2026-11-12):** migrations 1-32 are squashed into one baseline (`schema_sql.py`, `PRAGMA user_version` 33 and a `PRAGMA application_id` marker) followed by the seed; later schema changes are steps in `migrations.MIGRATIONS` from version 34. The "migration N" notes in this document name the 0.x step that introduced a feature. 0.x databases (a user_version but no `application_id` marker; 1-32, development only, never released as production) are refused at setup with a translated error that names the file; nothing is migrated, moved or deleted automatically.
+
 ### Category tree
 
 One self-referencing `category` table, any depth. Convention (not enforced):

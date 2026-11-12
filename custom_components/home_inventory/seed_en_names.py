@@ -143,14 +143,14 @@ EN_NAMES: dict[str, str | None] = {
     "Gemüse & Eingelegtes": "Vegetables & pickles",
     "Soßen & Suppen": "Sauces & soups",
     "Fleisch & Wurst": "Meat & sausage",
-    # migration_26.py: Gedörrtes
+    # seed_general.py add_dried: Gedörrtes
     "Gedörrtes": "Dried food",
     "Trockenobst": "Dried fruit",
     "Gemüsechips": "Vegetable chips",
     "Getrocknete Kräuter": "Dried herbs",
     "Getrocknete Pilze": "Dried mushrooms",
     "Jerky": "Jerky",
-    # migration_29.py: Reste
+    # seed_general.py add_leftovers: Reste
     "Reste": "Leftovers",
     # seed_types.py: product types (parent keys above are not repeated)
     # Obst

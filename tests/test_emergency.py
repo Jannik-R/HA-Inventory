@@ -2,7 +2,6 @@
 
 from datetime import date
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from tests.test_inventory import cat, loc, unit
 
@@ -76,20 +75,6 @@ def test_frozen_partly_used_package_counts_by_level(conn) -> None:
     batch = inv.book_in(conn, pid, 1, location_id=loc(conn, "Gefrierschrank"))
     inv.set_remaining(conn, batch, 0.5)
     assert groups(conn)["grains"]["have"] == 0.5
-
-
-def test_migration_27(monkeypatch) -> None:
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 26
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:26])
-        m.setattr(db, "set_emergency", lambda conn: None)
-        db.migrate(c)
-    assert "emergency_group" not in [r[1] for r in c.execute("PRAGMA table_info(category)")]
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    got = c.execute("SELECT emergency_group FROM category WHERE name = 'Getränke'").fetchone()
-    assert got[0] == "drinks"
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
 
 
 def test_missing_units_do_not_break(conn) -> None:

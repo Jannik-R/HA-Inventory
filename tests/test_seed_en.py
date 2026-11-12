@@ -9,7 +9,7 @@ from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory.inventory import suggest_by_keywords
 from custom_components.home_inventory.inventory.ingredient_line import parse_ingredient, unit_lookup
-from custom_components.home_inventory.migration_30 import _SEEDED as DIET
+from custom_components.home_inventory.seed_diet import _DIET as DIET
 from custom_components.home_inventory.seed_en import CATEGORIES, lang, seeded
 from custom_components.home_inventory.seed_en_names import EN_LOCATIONS, EN_UNITS
 
@@ -104,9 +104,6 @@ def test_leftover_name_and_seeded(pair, conn):
     )
     assert seeded(en, "Reste") == "Leftovers" and seeded(en, "Stück") == "piece"
     assert seeded(conn, "Reste") == "Reste"
-    old = db.connect(":memory:")  # DB below step 32: no seed_lang column
-    old.executescript("CREATE TABLE defaults (id INTEGER)")
-    assert lang(old) == "de" and seeded(old, "Reste") == "Reste"
 
 
 def test_seed_lang_of_hass(monkeypatch):
@@ -162,13 +159,6 @@ def test_suggest_english(pair, name, category):
         assert got == CATEGORIES[category]
 
 
-def test_migration_32_fixes_elderberry_unit(monkeypatch):
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:31])
-        db.migrate(c)
-    c.execute("UPDATE category SET unit_id = NULL WHERE name = 'Holunderbeeren'")
-    c.commit()
-    db.migrate(c)
+def test_elderberry_unit_is_seeded(conn):
     sql = "SELECT u.name FROM category c JOIN unit u ON u.id = c.unit_id WHERE c.name = 'Holunderbeeren'"
-    assert c.execute(sql).fetchone()[0] == "g" and lang(c) == "de"
+    assert conn.execute(sql).fetchone()[0] == "g" and lang(conn) == "de"

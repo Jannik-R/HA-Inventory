@@ -2,7 +2,6 @@
 
 from datetime import date
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from tests.test_inventory import cat, loc
 
@@ -42,16 +41,3 @@ def test_drying_recipe_makes_a_drying_protocol(conn) -> None:
     row = conn.execute("SELECT expires_on FROM batch WHERE id = ?", (res["batch_id"],)).fetchone()
     assert row[0] == "2027-04-20"
     assert inv.recipe_by_name(conn, "Apfelchips dörren") == rid
-
-
-def test_migration_26(monkeypatch) -> None:
-    c = db.connect(":memory:")
-    with monkeypatch.context() as m:  # seeded DB of version 25
-        m.setattr(db, "MIGRATIONS", db.MIGRATIONS[:25])
-        m.setattr(db, "add_dried", lambda conn: None)
-        db.migrate(c)
-    assert c.execute("SELECT 1 FROM category WHERE name = 'Gedörrtes'").fetchone() is None
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(db.MIGRATIONS)
-    assert c.execute("SELECT 1 FROM category WHERE name = 'Gedörrtes'").fetchone()
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []

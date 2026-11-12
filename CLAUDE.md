@@ -38,24 +38,16 @@ custom_components/home_inventory/   integration (Python)
   __init__.py               setup: static path, panel, platforms; config_flow.py, const.py
   inventory/                ALL business logic. Websocket, services, entities, AI tools only call `inventory.<name>`
     __init__.py             public API (re-exports); submodules: common, master, inherit, products, suggest, booking, corrections (put back, move, correct, edit stock), labels, codes, queries, amounts, shopping, shopping_recipes, recipes, expiry_recipes, recipe_import, recipe_export (schema.org JSON-LD), ingredient_line, meal_plan, plan_shopping, removal, canning, opened, frozen (freeze / thaw, freezer rule), emergency (emergency stock vs. BBK need), stocktake, history (booking history: actions, undo of a whole action), notify (read views for the HA events), steps, learned, ai_check, ai_product (AI check of new products), recipe_print, assist (read views for AI tools), ai_import (AI recipe import: prompt, page sources, answer), purchase (receipt import: prompt, answer check, booking, learned receipt lines), cooked (book out a cooked recipe: proposal planned row by row in a rolled back SAVEPOINT), cooked_book (book / undo the rows), transfer_csv / transfer_ctx / transfer_apply (CSV export and import, preview = apply in a rolled back SAVEPOINT), grocy (Grocy JSON files -> the same rows), leftovers (leftovers as a charge, product "Reste: <dish>" in root Reste), diet (allergens / diet per category and product, recipe diet), diet_reload (admin reload from OFF, chunks)
-  db.py                     sqlite3 connection, applies the migrations (PRAGMA user_version); signals entities and fires home_inventory_booked after writes
-  migrations.py             MIGRATIONS: the schema steps (SQL scripts or callables), one per schema version
+  db.py                     sqlite3 connection, creates the baseline schema / applies later migrations (PRAGMA user_version), refuses 0.x files; signals entities and fires home_inventory_booked after writes
+  migrations.py             BASELINE (user_version 33 = the 1.0.0 schema), APP_ID (PRAGMA application_id marker of 1.0 files) and MIGRATIONS: the steps after it (SQL scripts or callables)
+  schema_sql.py             data only: the baseline schema as one SQL script (`SCHEMA`)
   seed.py, keywords.py      default units/locations/categories (new DB only); name keywords for category suggestion
   seed_en.py                English seed: `to_english` renames a fresh German-seeded DB by dictionary, `seeded()` / `lang()`; seed_en_names.py / seed_en_more.py: the dictionaries (data only); keywords_en.py: English name keywords
-  seed_types.py             seeded product types (lowest category level), shared by seed and migrations 8/9 (`NEW_IN_9`: later additions for existing DBs)
-  seed_types_more.py        data only: the larger product type and unit lists added in migration 9 (long by nature)
-  migration_15.py           migration 15 SQL (non-food, shelf life, canning recipes, protocols, charges), kept out of migrations.py for size
-  migration_20.py           migration 20 SQL (opened packages: opened_days, batch.opened_on, booking kind 'open')
-  migration_24.py           migration 24: date kind 'guide' (Richtwert): rebuilds defaults/category/product with the wider CHECK; `set_guide` (fresh produce) also after the seed
-  migration_25.py           migration 25: freezing (location.freezer, category.frozen_goods, frozen_days, batch.frozen_on, booking kinds freeze/thaw); `set_frozen` seeds values, also after the seed
-  migration_26.py           migration 26: drying (canning.kind, recipe.canning_kind); `add_dried` seeds the root Gedörrtes, also after the seed
-  migration_27.py           migration 27: emergency stock group (category.emergency_group); `set_emergency` seeds it, also after the seed
-  migration_28.py           migration 28: remaining amount of opened packages (batch.remaining; a partly used package is its own batch, batch_key only for full ones; booking kind 'remaining')
-  migration_29.py           migration 29: canning.kind 'leftover' (table rebuilt); root category Reste (`add_leftovers`)
-  migration_30.py           migration 30: allergens and diet (category / product `diet`, `allergens`); `set_diet` seeds by name, also after the seed
+  seed_types.py             seeded product types (lowest category level), shared by seed (`add_seed_extras`, `mark_recipe_only`)
+  seed_types_more.py        data only: the larger product type and unit lists (long by nature)
   off_diet.py, websocket_diet.py  admin reload of allergens / diet from Open Food Facts, one small throttled chunk per call
-  migration_32.py           migration 32: defaults.seed_lang (language of the seeded names, see seed_en.py); repairs the Holunderbeeren unit
-  seed_general.py           seeded non-food roots and Eingekochtes: added by migrate() after the seed (new DB) and by migration 16 (existing DBs)
+  seed_general.py           seeded non-food roots, Eingekochtes, Gedörrtes (`add_dried`) and Reste (`add_leftovers`, also on first use): added by migrate() after the seed
+  seed_flags.py, seed_diet.py  seed setters by category name after the seed: date kind guide, freezing, emergency groups; allergens / diet
   ai.py                     AI check of recipe imports and new products, and reading of shopping receipts, via HA `ai_task` (entity from the options; prompt and answer checks in inventory/ai_check.py)
   recipe_ai.py              recipe import with AI fallback: URL without JSON-LD, pasted text, photo -> ai_task -> draft (inventory/ai_import.py)
   recipe_media.py           media for the AI import: yt-dlp video + caption, image download, hidden `.home_inventory_import` folder in the media dir (ai_task attachments)
@@ -97,7 +89,7 @@ README.md, README.de.md      setup and reference (English, German; same sections
 - Blocking I/O (sqlite) only via `hass.async_add_executor_job`. HTTP via HA's shared `aiohttp` session.
 - No new Python requirements in `manifest.json` without a strong reason. A package only an optional feature needs is not in the manifest: install it on first use with `homeassistant.requirements.async_process_requirements` (see `recipe_media.YT_DLP`).
 - **External services (privacy)**: everything that sends data out of Home Assistant (a request to a third party, the AI, a library the panel loads from a CDN) is one entry in `const.EXTERNAL` (key -> default) with its own switch in the options step *Externe Dienste* (strings in `strings.json` + translations), gated where the data would go out with `external_on(hass, key)` (panel: `hasExternal(key)` in `frontend/src/modules.ts`), and one row in the *Privacy* / *Datenschutz* table of both READMEs. Never add an outgoing call without that. The default (on/off) of every new external service is the user's decision: ask, do not pick one.
-- Schema change = new migration step in `migrations.py` (skill `db-migration`). Never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` only fills a new DB: before the first release, seed changes need no migration (delete the dev DB); after it, existing DBs are fixed by a migration step.
+- Schema: 1.0.0 is one baseline (`schema_sql.py`, `PRAGMA user_version` 33 plus `application_id`; migrations 1-32 of the 0.x development versions are squashed, files without the `application_id` marker are 0.x files and refused with a translated setup error). A schema change after 1.0.0 = new step in `migrations.MIGRATIONS` (skill `db-migration`); never edit a step that is merged to `main`; an unmerged step may be edited (then delete `dev/config/home_inventory.db`). `seed.py` and the seed modules only fill a new DB: a seed change after 1.0.0 also needs a migration step that fixes existing DBs.
 - Booking changes always write a `booking` row. Stock never goes negative (DB constraint).
 - User-facing backend text (config flow, services, entity names, errors) via `strings.json` + `translations/de.json` / `en.json`. Raise `HomeAssistantError` with `translation_key`.
 

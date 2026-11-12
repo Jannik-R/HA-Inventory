@@ -1,12 +1,10 @@
 """Opened packages: own batch with opened_on, effective expiry (inherited opened_days), FEFO,
 labels, undo, service by code; migration 20 keeps batches and bookings."""
 
-import sqlite3
 from datetime import date
 
 import pytest
 
-from custom_components.home_inventory import db
 from custom_components.home_inventory import inventory as inv
 from custom_components.home_inventory.inventory import InventoryError
 from tests.test_inventory import cat, loc, product, stock
@@ -137,42 +135,3 @@ def test_defaults_take_opened_days(conn) -> None:
     d = inv.defaults(conn)
     inv.save_defaults(conn, {**d, "opened_days": 5})
     assert inv.effective(conn, product(conn))["opened_days"] == {"value": 5, "source": "default"}
-
-
-def test_migration_20_keeps_batches_and_bookings(tmp_path, monkeypatch) -> None:
-    full = db.MIGRATIONS
-    monkeypatch.setattr(db, "MIGRATIONS", full[:19])
-    monkeypatch.setattr(db, "fill_days", lambda conn: None)  # no opened_days column yet
-    c = db.connect(str(tmp_path / "old.db"))
-    db.migrate(c)
-    c.executescript(
-        """
-        INSERT INTO product (id, name, category_id, updated_at) VALUES (1, 'Apfelmus', 1, 'x');
-        INSERT INTO canning (id, made_on, seq, product_id, jars) VALUES (1, '2026-10-01', 1, 1, 2);
-        INSERT INTO batch (id, product_id, expires_on, created_at, canning_id)
-            VALUES (7, 1, '2027-10-01', 'x', 1), (8, 1, NULL, 'x', NULL);
-        INSERT INTO stock (batch_id, location_id, packages) VALUES (7, 1, 2), (8, 1, 1);
-        INSERT INTO booking (id, ts, kind, batch_id, location_id, packages, source)
-            VALUES (1, 'x', 'out', 8, 1, 1, 'panel');
-        INSERT INTO booking (id, ts, kind, batch_id, location_id, packages, source, reverts_id)
-            VALUES (2, 'x', 'in', 8, 1, 1, 'undo', 1);
-        """
-    )
-    c.commit()
-    monkeypatch.setattr(db, "MIGRATIONS", full)
-    db.migrate(c)
-    assert c.execute("PRAGMA user_version").fetchone()[0] == len(full)
-    assert c.execute("PRAGMA foreign_key_check").fetchall() == []
-    batches = [tuple(r) for r in c.execute("SELECT id, canning_id, opened_on FROM batch")]
-    assert batches == [(7, 1, None), (8, None, None)]
-    assert [tuple(r) for r in c.execute("SELECT id, reverts_id FROM booking")] == [
-        (1, None),
-        (2, 1),
-    ]
-    opened = inv.open_package(c, 1, 7, today=TODAY)  # a charge may now have a second batch
-    assert opened["batch_id"] not in (7, 8)
-    with pytest.raises(sqlite3.IntegrityError):  # still undone once only
-        c.execute(
-            "INSERT INTO booking (ts, kind, batch_id, packages, source, reverts_id)"
-            " VALUES ('x', 'in', 8, 1, 'undo', 1)"
-        )

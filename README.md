@@ -1,5 +1,7 @@
 # Home Inventory (Vorrat) for Home Assistant
 
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![Release](https://img.shields.io/github/v/release/Jannik-R/HA-Inventory)](https://github.com/Jannik-R/HA-Inventory/releases) [![CI](https://github.com/Jannik-R/HA-Inventory/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Jannik-R/HA-Inventory/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/github/license/Jannik-R/HA-Inventory)](LICENSE) [![Minimum Home Assistant 2026.11.0](https://img.shields.io/badge/Home%20Assistant-2026.11.0%2B-41BDF5.svg)](https://www.home-assistant.io/)
+
 *Deutsch: [README.de.md](README.de.md)*
 
 Household inventory (food, batteries, household goods, medicine, home-canned jars) as a Home Assistant
@@ -7,7 +9,7 @@ custom integration: book items in and out by barcode or name, track batches with
 dates per storage location, see what expires soon, and get a brand-independent shopping list from
 minimum stock levels.
 
-> Status: early development, current release 0.3.2. Changes: [CHANGELOG.md](CHANGELOG.md).
+> Version 1.0.0 is the first public release. The 0.x versions were development versions only, not meant for productive use. 1.0.x does not support their databases: a 0.x database file is refused at setup with a message naming the file, and 1.0.x starts with a new database. Changes: [CHANGELOG.md](CHANGELOG.md).
 > Plan: [docs/PLAN.md](docs/PLAN.md).
 
 ## Features
@@ -48,17 +50,35 @@ Available:
 
 Roadmap: [docs/PLAN.md](docs/PLAN.md) section 6.
 
+### Known limitations
+
+- Some explanations are only available as mouse-over tooltips: the recipe name behind the marks on the shopping list, the dish names in the *Month* view of the meal plan, and help texts on some field labels. They do not show on touch screens.
+- The emergency stock line reads "1 Personen" (German) / "1 persons" (English) for a one-person household.
+
 ## Installation
 
 Requires Home Assistant 2026.10.1 or newer.
 
-HACS (only once the repository is public; HACS cannot install from private repositories): add this repository as a custom repository (category *Integration*), install *Home Inventory (Vorrat)*, restart Home Assistant. Versions are the GitHub releases.
+**Recommended: HACS.** Versions are the GitHub releases. The button opens this repository in HACS as a custom repository on your Home Assistant:
 
-Manual: download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Jannik-R&repository=HA-Inventory&category=integration)
+
+Without the button, in HACS:
+
+1. Open the three-dot menu (top right) > *Custom repositories*.
+2. Enter the URL `https://github.com/Jannik-R/HA-Inventory`, type *Integration*, and *Add*.
+3. Open *Home Inventory (Vorrat)* in the list and install it.
+4. Restart Home Assistant.
+
+**Manual:** download the release (or clone the repository), copy `custom_components/home_inventory` into your `config/custom_components/` and restart Home Assistant.
 
 Python packages (installed by Home Assistant): `segno` (QR codes on labels). `yt-dlp` (video of a post for the AI recipe import) is installed only on first use with *External services > Load videos for the recipe import* turned on; the Home Assistant image already contains it, so a standard install downloads nothing.
 
-Then: *Settings → Devices & services → Add integration → Home Inventory*, choose the modules (see below). The panel appears in the sidebar as *Home Inventory* (with Home Assistant in German: *Vorrat*).
+After the restart, start the setup:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=home_inventory)
+
+Without the button: *Settings → Devices & services → Add integration → Home Inventory*, then choose the modules (see below). The panel appears in the sidebar as *Home Inventory* (with Home Assistant in German: *Vorrat*).
 
 **Modules.** Stock, booking in/out, expiry and settings are always there. Optional, all on by default except *Allergens & diet*: *Shopping list* (tab *Shopping* and the shopping list to-do entity), *Recipes* (tab *Recipes*), *Meal plan* (tab *Meal plan*, the meal plan calendar entity and the settings section *Meals*), *Canning*, *Drying* and *Leftovers* (tab *Preserving*, shown while one of them is on, with a switch between them when several are on), *Opened packages* (button *Open* on batch rows, booking mode *Open* and the field *Keeps after opening*), *Freezing* (buttons *Freeze* / *Thaw* and the fields *Keeps frozen*, *Frozen goods*; turned off, nothing is frozen and no date changes, also not at a location marked *Freezer*). Off by default: *Allergens & diet* (fields *Diet* and *Allergens* on categories and products, diet line and filter in the recipe list). Change them later under *Configure > Modules*; saving reloads the integration. A turned off module only hides its tab and buttons (e.g. *On the shopping list* in a recipe) and removes its entity; its data stays and comes back when the module is turned on again. Websocket commands and services of a turned off module keep working.
 

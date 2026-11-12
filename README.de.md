@@ -57,7 +57,7 @@ Planung: [docs/PLAN.md](docs/PLAN.md), Abschnitt 6.
 
 ## Installation
 
-Benötigt Home Assistant 2026.10.1 oder neuer.
+Benötigt Home Assistant 2026.11.0 oder neuer.
 
 **Empfohlen: HACS.** Versionen sind die GitHub-Releases. Der Knopf öffnet dieses Repository in HACS auf deinem Home Assistant als benutzerdefiniertes Repository:
 

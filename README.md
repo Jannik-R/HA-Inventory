@@ -57,7 +57,7 @@ Roadmap: [docs/PLAN.md](docs/PLAN.md) section 6.
 
 ## Installation
 
-Requires Home Assistant 2026.10.1 or newer.
+Requires Home Assistant 2026.11.0 or newer.
 
 **Recommended: HACS.** Versions are the GitHub releases. The button opens this repository in HACS as a custom repository on your Home Assistant:
 

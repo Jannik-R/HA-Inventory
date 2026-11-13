@@ -87,7 +87,7 @@ test("scan mode Einfrieren freezes by label to a scanned freezer and undoes", as
   // our freezer as target, then the fresh batch's label
   await input.fill(`PTRY:L${freezerId}`);
   await input.press("Enter");
-  await expect(page.getByTestId("scanned-location")).toContainText(FREEZER);
+  await expect(page.getByTestId("booking-location")).toHaveValue(String(freezerId));
   await input.fill(`PTRY:P${productId}:2099-12-31`);
   await input.press("Enter");
   await expect(page.getByTestId("frozen-done")).toContainText(`„${NAME}“ eingefroren (${FREEZER})`);

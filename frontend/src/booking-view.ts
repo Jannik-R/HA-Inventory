@@ -18,7 +18,7 @@ import {
   type Location,
 } from "./api";
 import type { FrozenDone } from "./frozen-action";
-import { locationLine } from "./location-scan";
+import { locationSelect } from "./location-scan";
 import "./booking-scan";
 import type { HomeInventoryBookingScan } from "./booking-scan";
 import { blankProduct } from "./product-fields";
@@ -248,8 +248,15 @@ export class HomeInventoryBooking extends LitElement {
       >
         ${modeSwitch(this.mode, (m) => this.setMode(m))}
       </home-inventory-booking-scan>
-      ${locationLine(this.at?.name, () => (this.at = undefined))} ${afterLine(this)}
-      ${open ? nothing : error}
+      ${
+        this.mode === "search"
+          ? nothing
+          : locationSelect(this.md?.locations ?? [], this.at, (l) => {
+              this.at = l;
+              this.focusInput();
+            })
+      }
+      ${afterLine(this)} ${open ? nothing : error}
       ${receiptEntry(this.hass, this.md, this.mode === "in", this.receiptBooked)}
       <dialog
         data-testid="booking-dialog"

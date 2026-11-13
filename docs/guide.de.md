@@ -72,6 +72,8 @@ Für Admins lohnt sich vorher ein Blick in **Einstellungen**:
 Knöpfe sind **Lupe** (Suchen), **+** (Einbuchen) und **−** (Auslagern); der gewählte ist gefüllt.
 Das Eingabefeld ist sofort bereit. Der Schalter bleibt so, bis du ihn umstellst oder den Tab wechselst.
 
+Darunter steht das Feld **Lagerort**. Wähle dort den Lagerort, an dem du gerade arbeitest (z. B. das Regal, das du einräumst). Er gilt für alle folgenden Scans, bis du ihn änderst oder die Seite neu lädt: Einbuchen trägt ihn im Formular vor (bei jeder Buchung änderbar), Auslagern zeigt nur den Bestand an diesem Lagerort, Anbrechen und Einfrieren nehmen von dort. **Automatisch (Produktvorgabe)** lässt den Lagerort aus dem Produkt bzw. der Kategorie wählen. Ein gescanntes Lagerort-Etikett stellt dasselbe Feld um.
+
 > [!TIP]
 > Ein Lesezeichen auf `/home_inventory/in` öffnet den Bestand gleich mit **Einbuchen**, `/home_inventory/out` mit
 > **Auslagern**. Praktisch fürs Küchentablet.
@@ -646,10 +648,9 @@ ohne Aufdruck. Ein Scan des Etiketts bucht die Packung aus.
 - **Einkochetiketten** tragen die Charge statt einer Marke in der Markenzeile (siehe [Einkochen](#7b-einkochen-und-dörren)).
 - Bei mehr als 2 Etiketten auf einmal fragt Vorrat vorher nach.
 - **Lagerort-Etiketten** (Admin): unter *Einstellungen → Lagerorte* das Etikett-Symbol am Lagerort
-  (Regal, Fach). Scannst du so ein Etikett im Buchungsfeld (Einbuchen, Auslagern, Anbrechen), gilt dieser
-  Lagerort für die folgenden Buchungen: Einbuchen landet dort, Auslagern und Anbrechen nehmen von dort.
-  Über dem Feld steht „Lagerort: …“; **Aufheben** oder ein anderes Lagerort-Etikett ändert das, das
-  Verlassen des Bestands auch. In der [Inventur](#4a-inventur) wechselt so ein Scan den Lagerort.
+  (Regal, Fach). Scannst du so ein Etikett im Buchungsfeld (Einbuchen, Auslagern, Anbrechen, Einfrieren),
+  stellt es das Feld **Lagerort** unter dem Scanfeld auf diesen Lagerort um (siehe
+  [Einbuchen](#2-einkäufe-einbuchen)). In der [Inventur](#4a-inventur) wechselt so ein Scan den Lagerort.
 
 **Bondrucker** (für Einkaufszettel, Rezepte und Speiseplan): *Einstellungen > Geräte & Dienste > Home Inventory > Konfigurieren >
 Bondrucker*. Unter **Drucker** steht der Gerätepfad (USB am Home-Assistant-Rechner, z. B.

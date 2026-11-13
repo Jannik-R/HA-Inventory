@@ -9,7 +9,7 @@ custom integration: book items in and out by barcode or name, track batches with
 dates per storage location, see what expires soon, and get a brand-independent shopping list from
 minimum stock levels.
 
-> Version 1.0.0 is the first public release. The 0.x versions were development versions only, not meant for productive use. 1.0.x does not support their databases: a 0.x database file is refused at setup with a message naming the file, and 1.0.x starts with a new database. Changes: [CHANGELOG.md](CHANGELOG.md).
+> Version 1.0.0 is the first public release. The 0.x versions were development versions only, not meant for productive use. 1.x does not support their databases: a 0.x database file is refused at setup with a message naming the file, and 1.x starts with a new database. Changes: [CHANGELOG.md](CHANGELOG.md).
 > Plan: [docs/PLAN.md](docs/PLAN.md).
 
 ## Features

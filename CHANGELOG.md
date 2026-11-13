@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.0 - 2026-11-13
+
+No database migration.
+
+### Added
+
+- Booking view: a *Location* select under the scan field; it presets the location for booking in and limits booking out, opening and freezing to that location until it is changed or the page is reloaded
+- Expiry date from the camera when booking in: a scan button next to the date reads it on the device (tesseract.js, nothing leaves Home Assistant); understands DD.MM.YYYY, DD.MM.YY, MM/YYYY, "Ende MM/YY" and the like, and prefers a date after MHD, best before, use by, EXP
+- Option *Log AI changes* (options step *AI*, default off): every correction the AI check makes to a recipe import or a new product is appended as one JSON line to `<config>/home_inventory/ai_changes.jsonl` (moved to `.1` at 2 MB), to find what the import and the suggestions get wrong
+
+### Changed
+
+- When the AI does not answer (e.g. overloaded), the error says so and asks to try again later instead of talking about a recipe draft
+
 ## 1.0.0 - 2026-11-12
 
 First public release. The 0.x versions below were development versions only and are not meant for productive use.

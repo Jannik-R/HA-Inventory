@@ -601,6 +601,7 @@ var Ye = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"book.no_date_hint": "Leer lassen, wenn es kein Ablaufdatum gibt.",
 	"book.no_date": "ohne Datum",
 	"book.location": "Lagerort",
+	"book.location_auto": "Automatisch (Produktvorgabe)",
 	"book.packages": "Packungen",
 	"book.which": "Welche Packung",
 	"book.fefo": "Automatisch (frühestes Datum zuerst)",
@@ -1096,8 +1097,6 @@ var Ye = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"stocktake.empty": "Laut Bestand liegt hier nichts. Gescannte Packungen erscheinen unter „Nicht im Bestand“.",
 	"location_label.print": "Etikett für „{name}“ drucken",
 	"location_label.hint": "Gescannt im Buchungsfeld gilt dieser Lagerort für die folgenden Buchungen.",
-	"location_label.active": "Lagerort: {name} (für die folgenden Buchungen)",
-	"location_label.clear": "Aufheben",
 	"location_label.unknown": "Unbekannter Lagerort.",
 	"stock.mode_freeze": "Einfrieren",
 	"book.undone_frozen": "Rückgängig gemacht.",
@@ -1305,6 +1304,7 @@ var Ye = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"book.no_date_hint": "Leave empty if there is no expiry date.",
 	"book.no_date": "no date",
 	"book.location": "Location",
+	"book.location_auto": "Automatic (product default)",
 	"book.packages": "Packages",
 	"book.which": "Which package",
 	"book.fefo": "Automatic (earliest date first)",
@@ -1800,8 +1800,6 @@ var Ye = "M11,4H13V16L18.5,10.5L19.92,11.92L12,19.84L4.08,11.92L5.5,10.5L11,16V4
 	"stocktake.empty": "According to the stock nothing is stored here. Scanned packages show under “Not in stock”.",
 	"location_label.print": "Print a label for “{name}”",
 	"location_label.hint": "Scanned in the booking field, this location applies to the following bookings.",
-	"location_label.active": "Location: {name} (for the following bookings)",
-	"location_label.clear": "Clear",
 	"location_label.unknown": "Unknown location.",
 	"stock.mode_freeze": "Freeze",
 	"book.undone_frozen": "Undone.",
@@ -3855,12 +3853,16 @@ async function Ar(e, t) {
 	let n = Number(Or.exec(t.trim())[1]);
 	return (await M(e)).locations.find((e) => e.id === n) ?? null;
 }
-var jr = (e, t) => e ? h`<p class="done" role="status" data-testid="scanned-location">
-        ${x("location_label.active", { name: e })}
-        <button type="button" class="undo" data-testid="scanned-location-clear" @click=${t}>
-          ${x("location_label.clear")}
-        </button>
-      </p>` : _, Mr = (e, t) => {
+var jr = (e, t, n) => h`<label>
+    <span class="lbl">${x("book.location")}</span>
+    <select
+      data-testid="booking-location"
+      @change=${(t) => n(e.find((e) => t.target.value === String(e.id)))}
+    >
+      <option value="" .selected=${!t}>${x("book.location_auto")}</option>
+      ${e.map((e) => h`<option value=${e.id} .selected=${e.id === t?.id}>${e.name}</option>`)}
+    </select>
+  </label>`, Mr = (e, t) => {
 	let n = x("location_label.print", { name: e.name });
 	return h`<button
     class="icon-btn"
@@ -6679,8 +6681,10 @@ var $a = /^\d{8,14}$/, eo = class extends b {
       >
         ${Ha(this.mode, (e) => this.setMode(e))}
       </home-inventory-booking-scan>
-      ${jr(this.at?.name, () => this.at = void 0)} ${Ya(this)}
-      ${e ? _ : t}
+      ${this.mode === "search" ? _ : jr(this.md?.locations ?? [], this.at, (e) => {
+			this.at = e, this.focusInput();
+		})}
+      ${Ya(this)} ${e ? _ : t}
       ${ha(this.hass, this.md, this.mode === "in", this.receiptBooked)}
       <dialog
         data-testid="booking-dialog"

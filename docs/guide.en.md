@@ -76,6 +76,8 @@ Open **Stock** and set the switch in front of the input field to **+** (book in)
 buttons are the **magnifier** (search), **+** (book in) and **−** (book out); the chosen one is
 filled. The input field is ready right away. The switch stays until you change it or leave the tab.
 
+Below it is the **Location** select. Choose the location you are working at (e.g. the shelf you are stocking). It applies to all following scans until you change it or reload the page: book in pre-fills it in the form (still changeable per booking), book out shows only stock at that location, opening and freezing take from there. **Automatic (product default)** lets the product's or category's default location decide. A scanned location label sets the same select.
+
 > [!TIP]
 > A bookmark to `/home_inventory/in` opens the stock with **Book in** already set, `/home_inventory/out`
 > with **Book out**. Handy for a kitchen tablet.
@@ -650,9 +652,8 @@ Scanning the label books the package out.
 - **Canning labels** show the charge instead of a brand in the brand line (see [Canning](#7b-canning-and-drying)).
 - Printing more than 2 labels at once asks first.
 - **Location labels** (admin): under *Settings → Locations*, the tag icon on a location (shelf,
-  compartment). Scanned in the booking field (book in, book out, open), that location applies to the
-  following bookings: booking in lands there, booking out and opening take from there. Above the field it
-  says "Location: …"; **Clear** or another location label changes it, so does leaving the stock view.
+  compartment). Scanned in the booking field (book in, book out, open, freeze), it sets the **Location**
+  select below the scan field to that location (see [Booking in](#2-booking-in-your-shopping)).
   In [stocktaking](#4a-stocktaking) such a scan switches the location.
 
 **Receipt printer** (for the shopping list, recipes and meal plan): *Settings > Devices & services > Home Inventory > Configure >

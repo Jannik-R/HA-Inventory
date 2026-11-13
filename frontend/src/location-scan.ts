@@ -1,4 +1,4 @@
-import { html, nothing } from "lit";
+import { html } from "lit";
 import { mdiTagOutline } from "@mdi/js";
 import { t } from "./i18n";
 import { icon } from "./ui";
@@ -16,16 +16,23 @@ export async function scannedLocation(hass: Hass, code: string): Promise<Locatio
   return (await getMasterData(hass)).locations.find((l) => l.id === id) ?? null;
 }
 
-/** "Lagerort: Keller" above the bookings while a scanned location applies, with a clear button. */
-export const locationLine = (name: string | undefined, clear: () => void) =>
-  name
-    ? html`<p class="done" role="status" data-testid="scanned-location">
-        ${t("location_label.active", { name })}
-        <button type="button" class="undo" data-testid="scanned-location-clear" @click=${clear}>
-          ${t("location_label.clear")}
-        </button>
-      </p>`
-    : nothing;
+/** Fixed location for the following scans (also set by a scanned location label); empty = the product's default. */
+export const locationSelect = (
+  locations: Location[],
+  at: Location | undefined,
+  pick: (l: Location | undefined) => void,
+) =>
+  html`<label>
+    <span class="lbl">${t("book.location")}</span>
+    <select
+      data-testid="booking-location"
+      @change=${(e: Event) =>
+        pick(locations.find((l) => (e.target as HTMLSelectElement).value === String(l.id)))}
+    >
+      <option value="" .selected=${!at}>${t("book.location_auto")}</option>
+      ${locations.map((l) => html`<option value=${l.id} .selected=${l.id === at?.id}>${l.name}</option>`)}
+    </select>
+  </label>`;
 
 /** Location row (settings): print its label, code PTRY:L<id>. */
 export const locationLabelButton = (l: { name: string }, open: () => void) => {

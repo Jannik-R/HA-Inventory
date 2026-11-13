@@ -205,7 +205,7 @@ async def test_options_flow_ai(hass: HomeAssistant) -> None:
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
-    assert entry.options == {"ai_task_entity": None, "llm_access": "all"}
+    assert entry.options == {"ai_task_entity": None, "llm_access": "all", "ai_log_changes": False}
 
 
 async def test_options_flow_external(hass: HomeAssistant) -> None:

@@ -9,7 +9,7 @@ Integration für Home Assistant: per Barcode oder Name ein- und ausbuchen, Charg
 Mindesthaltbarkeits- oder Verbrauchsdatum je Lagerort verwalten, sehen, was bald abläuft, und eine
 markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 
-> Version 1.0.0 ist die erste öffentliche Veröffentlichung. Die 0.x-Versionen waren nur Entwicklungsstände, nicht für den produktiven Einsatz gedacht. 1.0.x unterstützt ihre Datenbanken nicht: eine 0.x-Datenbankdatei wird beim Einrichten mit einer Meldung abgelehnt, die die Datei nennt, und 1.0.x startet mit einer neuen Datenbank. Änderungen: [CHANGELOG.md](CHANGELOG.md).
+> Version 1.0.0 ist die erste öffentliche Veröffentlichung. Die 0.x-Versionen waren nur Entwicklungsstände, nicht für den produktiven Einsatz gedacht. 1.x unterstützt ihre Datenbanken nicht: eine 0.x-Datenbankdatei wird beim Einrichten mit einer Meldung abgelehnt, die die Datei nennt, und 1.x startet mit einer neuen Datenbank. Änderungen: [CHANGELOG.md](CHANGELOG.md).
 > Planung: [docs/PLAN.md](docs/PLAN.md) (englisch).
 
 ## Funktionen

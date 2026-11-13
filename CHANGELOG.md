@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1 - 2026-11-13
+
+No database migration.
+
+### Fixed
+
+- Adding a location failed with "expected int at 'freezer'" when the *Freezer* box was left unticked
+
 ## 1.1.0 - 2026-11-13
 
 No database migration.

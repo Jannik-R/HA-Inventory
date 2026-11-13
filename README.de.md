@@ -17,6 +17,7 @@ markenunabhängige Einkaufsliste aus Mindestmengen bekommen.
 Vorhanden:
 
 - Einbuchen per EAN-Barcode (USB-/Bluetooth-Scanner oder Handykamera) oder Name; Produktdaten von Open Food Facts, bei Non-Food von Open Beauty Facts, Open Pet Food Facts und Open Products Facts
+- Ablaufdatum per Live-Scan beim Einbuchen: der Knopf „Ablaufdatum scannen“ neben dem Datumsfeld liest das aufgedruckte Datum auf deinem Gerät; nichts verlässt Home Assistant; klappt nur eingeschränkt gut (klarer Druck gut, Punktmatrix-Druck, Prägung und glänzende Folie oft nicht)
 - Kassenbon-Import (*Kassenbon importieren*, braucht eine KI): Dokumentenscan des Bons (Live-Umriss, Ecken, Schwarz-Weiß), Texterkennung im Browser, die KI liest die Artikel, du prüfst Produkt, Packungen und Datum je Zeile in einem Dialog und buchst alles ein; merkt sich je Händler, welches Produkt zu einer Bonzeile gehört
 - Kategoriebaum (Hauptkategorie → Kategorie → Produktart, viele vorbelegt) mit geerbten Vorgaben (Einheit, Lagerort, Datumsart, Warnung vor Ablauf)
 - Chargen mit Ablaufdatum, gezählt in Packungen, verteilt auf mehrere Lagerorte

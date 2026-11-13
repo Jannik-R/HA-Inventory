@@ -2,8 +2,9 @@ import { html, nothing } from "lit";
 import { t } from "./i18n";
 import { fieldMsg, todayIso } from "./ui";
 import { inheritSelect, type Dflt } from "./inherit";
-import type { MasterData, Product } from "./api";
+import type { Hass, MasterData, Product } from "./api";
 import type { Errors } from "./product-fields";
+import "./expiry-camera";
 
 /** Book-in form values the fields below read and change. */
 export interface InForm {
@@ -19,25 +20,38 @@ type Set = (patch: Partial<InForm>) => void;
 
 /** Expiry date; `type` is the product's date type (own or inherited), if any; `shelf`: the
  * shelf life the shown date was proposed from. */
-export function dateField(f: InForm, set: Set, err: Errors, type: unknown, shelf?: Dflt) {
+export function dateField(
+  f: InForm,
+  set: Set,
+  err: Errors,
+  type: unknown,
+  shelf?: Dflt,
+  hass?: Hass,
+) {
   const past = !err.expires && f.expires_on && f.expires_on < todayIso();
   return html`<label>
     <span class="lbl"
       >${type ? t("book.expires_on_type", { type: t(`settings.expiry.${type}`) }) : t("book.expires_on")}</span
     >
-    <input
-      id="expires"
-      data-testid="expires"
-      type="date"
-      min="2000-01-01"
-      max="2099-12-31"
-      aria-invalid=${!!err.expires}
-      .value=${f.expires_on}
-      @input=${(e: Event) => {
-        const el = e.target as HTMLInputElement;
-        set({ expires_on: el.value, dateBad: el.validity.badInput });
-      }}
-    />
+    <div class="input-row">
+      <input
+        id="expires"
+        data-testid="expires"
+        type="date"
+        min="2000-01-01"
+        max="2099-12-31"
+        aria-invalid=${!!err.expires}
+        .value=${f.expires_on}
+        @input=${(e: Event) => {
+          const el = e.target as HTMLInputElement;
+          set({ expires_on: el.value, dateBad: el.validity.badInput });
+        }}
+      />
+      <home-inventory-expiry-camera
+        .hass=${hass}
+        @expiry-found=${(e: CustomEvent<string>) => set({ expires_on: e.detail, dateBad: false })}
+      ></home-inventory-expiry-camera>
+    </div>
     ${
       err.expires || past
         ? html`${fieldMsg(err.expires, "expires")}${past ? fieldMsg(t("valid.past"), "expires", true) : ""}`

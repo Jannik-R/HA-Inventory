@@ -197,6 +197,22 @@ export const formStyles = css`
     justify-content: center;
     color: var(--secondary-text-color);
   }
+  /* input + icon button in one row; hints of the button element (display: contents) wrap below */
+  .input-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .input-row > input {
+    flex: 1;
+  }
+  .input-row > home-inventory-expiry-camera {
+    display: contents;
+  }
+  .input-row .detail {
+    flex-basis: 100%;
+  }
   dialog .actions {
     justify-content: flex-end;
   }

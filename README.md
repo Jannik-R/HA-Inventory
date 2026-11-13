@@ -17,6 +17,7 @@ minimum stock levels.
 Available:
 
 - Book in by EAN barcode (USB/Bluetooth scanner or phone camera) or by name; product data from Open Food Facts, for non-food from Open Beauty Facts, Open Pet Food Facts and Open Products Facts
+- Expiry date by live scan when booking in: the scan button next to the date field reads the printed date on your device; nothing leaves Home Assistant; works only to a limited extent (clear print reads well, dot-matrix print, embossing and shiny film often not)
 - Receipt import (*Import receipt*, needs an AI): document scan of a shopping receipt (live outline, corners, black and white), text recognition in the browser, the AI reads the items, you check product, packages and date per line in one dialog and book all in; remembers per store which product a receipt line is
 - Category tree (main category → category → Produktart, many seeded) with inherited defaults (unit, location, date type, expiry warning)
 - Batches with expiry date, counted per package, spread over multiple storage locations

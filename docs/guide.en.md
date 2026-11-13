@@ -122,6 +122,24 @@ flowchart LR
    shelf life an empty field means no date (see [Categories](#9-categories-product-types-and-inheritance)).
    To have the guessed date already in the field, turn on **Fill in the guessed expiry date**
    (see [Household size](#household-settings)).
+
+   Next to the date field is the **Scan expiry date** button. It opens the live camera with a horizontal
+   read band in the middle. Hold the date upright inside the band. About once per second Home Inventory
+   reads the text in the band on your device (nothing leaves Home Assistant). A recognised date gets a
+   frame and is shown under the band. While nothing is read, the hint says "Hold the date inside the
+   frame". Once the same date was read twice among the last four readings, it is taken into the field
+   automatically and the camera closes. The first opening loads the text recognition data once (about
+   5 MB, then cached in the browser). The readings alternate between the raw and a preprocessed image,
+   which gives dot-matrix print a chance too.
+   The date rules stay: a date after "best before", "use by", "consume by", EXP or BBE wins, otherwise
+   the latest date found. Formats include 12.03.2027, 12.03.27, 12/03/2027, 12-03-27, 03/2027, 03/27
+   and "Ende 03/27" (month only: the last day of that month; 03.27 only right after "best before" or
+   similar). Check the date and save as usual. Tip: hold the camera close to the date.
+
+   Text recognition works only to a limited extent. Clear printed text on a calm background in good
+   light reads well. Dot-matrix print, embossing without ink, shiny or curved film and cans are hard.
+   Text turned sideways is not read: turn the phone until the date lies level inside the band. If it
+   does not work, close the camera and type the date.
 7. **Packages** and **Location**: the location is prefilled (grey:
    "Inherited: Kühlschrank (from Milchprodukte & Eier)"). Another choice applies to this booking
    only; **Reset** returns to the default. If neither the product nor its category has a default

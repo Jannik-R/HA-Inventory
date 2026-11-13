@@ -224,6 +224,8 @@ deiner Produkte (ID, Name, Marke), nicht das Foto: einige tausend Tokens. Die KI
 und die Artikel mit bis zu fünf passenden Produkten je Zeile; Pfand, Tüten und Rabatte lässt sie weg.
 Eine einmal eingebuchte Bonzeile merkt sich Vorrat je Händler und wählt sie beim nächsten Mal vor.
 
+**KI-Änderungen protokollieren.** Die Option *KI-Änderungen protokollieren* (unter *KI*, standardmäßig aus) hängt jede Korrektur, die die KI-Prüfung eines Rezeptimports oder eines neuen Produkts vorschlägt, als eine JSON-Zeile an `<config>/home_inventory/ai_changes.jsonl` an: Zeitpunkt, Prüfung, Quelle (Rezept-URL oder Barcode), unser Entwurf und die Änderungen der KI. Nur Prüfungen mit Änderungen werden geschrieben; ab 2 MB wird die Datei nach `ai_changes.jsonl.1` verschoben und eine neue begonnen. Die Datei bleibt lokal und kann Rezepttext enthalten; sie zeigt, was Import und Vorschläge falsch machen.
+
 **Assistenten (LLM-API).** Die Integration stellt die LLM-API *Home Inventory* bereit. Wähle sie in
 einem Assist-Agenten (z. B. *Google Gemini > Konfigurieren > Home Assistant steuern*) oder in der
 Integration *Model Context Protocol Server* (für Claude Desktop und andere MCP-Clients). *Zugriff für

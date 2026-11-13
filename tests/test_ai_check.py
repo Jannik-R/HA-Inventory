@@ -9,8 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.home_inventory import ai
 from custom_components.home_inventory import inventory as inv
-from custom_components.home_inventory.const import CONF_AI_TASK, DOMAIN
+from custom_components.home_inventory.const import CONF_AI_LOG, CONF_AI_TASK, DOMAIN
 from custom_components.home_inventory.inventory.learned import learned
 
 from .test_inventory import cat, unit
@@ -333,3 +334,53 @@ def test_prompts_follow_the_seed_language(conn):
     assert not any("German" in t for t in en)
     assert not any("@" in t for t in en)
     assert "Sumac" in en[0] and "Sumac" in en[1] and "1 tsp salt" in en[2] and "TESCO" in en[3]
+
+
+async def test_change_log(hass: HomeAssistant, tmp_path) -> None:
+    """Option on: one JSON line per check with changes; off / "ok": no file; rotation at 2 MB."""
+    hass.config.config_dir = str(tmp_path)
+    entry = MockConfigEntry(domain=DOMAIN, options={CONF_AI_TASK: "ai_task.test"})
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    hass.config.components.add("ai_task")
+    log = tmp_path / "home_inventory" / "ai_changes.jsonl"
+    d = {"name": "Gelee", "servings": 4, "steps": [{"text": "Kochen."}], "ingredients": []}
+    changed = SimpleNamespace(
+        data={"ok": False, "steps": [{"text": "Kochen."}, {"text": "Essen."}]}
+    )
+    same = SimpleNamespace(data={"ok": True})
+
+    async def check(answer):
+        with patch(
+            "custom_components.home_inventory.ai._generate", AsyncMock(return_value=answer)
+        ) as gen:
+            res = await ai.async_check_recipe(hass, {**d, "source_url": "https://x.test/r"})
+        assert "x.test" not in gen.await_args.kwargs["instructions"]
+        return res
+
+    await check(changed)
+    assert not log.exists()  # option off
+    hass.config_entries.async_update_entry(
+        entry, options={CONF_AI_TASK: "ai_task.test", CONF_AI_LOG: True}
+    )
+    await check(same)
+    assert not log.exists()
+    await check(changed)
+    row = json.loads(log.read_text(encoding="utf-8"))
+    assert row["check"] == "recipe" and row["source"] == "https://x.test/r" and row["draft"] == d
+    assert "ok" not in row["changes"] and len(row["changes"]["steps"]) == 2 and row["ts"]
+    log.write_text("x" * ai.LOG_MAX_BYTES)
+    await check(changed)
+    assert (tmp_path / "home_inventory" / "ai_changes.jsonl.1").stat().st_size == ai.LOG_MAX_BYTES
+    assert len(log.read_text(encoding="utf-8").splitlines()) == 1
+
+    # product path: source is the barcode; a write failure never breaks the check
+    p = {"name": "Spaghetti", "category_id": None, "off_json": "{}", "ean": "8076800195057"}
+    answer = SimpleNamespace(data={"ok": False, "name": "Spaghetti n.5", "reason": "r"})
+    with patch("custom_components.home_inventory.ai._generate", AsyncMock(return_value=answer)):
+        res = await ai.async_check_product(hass, p)
+        assert res["status"] == "changes"
+        row = json.loads(log.read_text(encoding="utf-8").splitlines()[-1])
+        assert row["check"] == "product" and row["source"] == p["ean"]
+        with patch("custom_components.home_inventory.ai._append_log", side_effect=OSError):
+            assert (await ai.async_check_product(hass, p))["status"] == "changes"

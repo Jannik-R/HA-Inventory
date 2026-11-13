@@ -24,6 +24,7 @@ from homeassistant.helpers.selector import (
 
 from . import label, receipt
 from .const import (
+    CONF_AI_LOG,
     CONF_AI_TASK,
     CONF_HOUSEHOLD_SERVINGS,
     CONF_LABEL_HEIGHT,
@@ -125,6 +126,7 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
             return self._save(
                 {
                     CONF_AI_TASK: user_input.get(CONF_AI_TASK),
+                    CONF_AI_LOG: user_input[CONF_AI_LOG],
                     CONF_LLM_ACCESS: user_input[CONF_LLM_ACCESS],
                 }
             )
@@ -134,6 +136,7 @@ class HomeInventoryOptionsFlow(OptionsFlowWithReload):
                 vol.Optional(
                     CONF_AI_TASK, description={"suggested_value": o.get(CONF_AI_TASK)}
                 ): EntitySelector(EntitySelectorConfig(domain="ai_task")),
+                vol.Required(CONF_AI_LOG, default=o.get(CONF_AI_LOG, False)): bool,
                 vol.Required(
                     CONF_LLM_ACCESS, default=o.get(CONF_LLM_ACCESS, DEFAULT_LLM_ACCESS)
                 ): SelectSelector(

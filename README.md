@@ -217,6 +217,8 @@ thousand tokens. The AI returns the store and
 the items with up to five matching products each; deposit, bags and discounts are left out. A receipt
 line booked once is remembered per store and preselected next time without asking the AI to decide.
 
+**Log AI changes.** The option *Log AI changes* (under *AI*, off by default) appends every correction that the AI check of a recipe import or a new product proposes as one JSON line to `<config>/home_inventory/ai_changes.jsonl`: timestamp, check, source (recipe URL or barcode), our draft and the AI's changes. Only checks with changes are written; at 2 MB the file is moved to `ai_changes.jsonl.1` and a new one is started. The file stays local and may contain recipe text; it shows what the import and suggestions get wrong.
+
 **Assistants (LLM API).** The integration provides the LLM API *Home Inventory*. Select it in an
 Assist agent (e.g. *Google Gemini > Configure > Control Home Assistant*) or in the *Model Context
 Protocol Server* integration (for Claude Desktop and other MCP clients). *Access for assistants (LLM API)*

@@ -10,6 +10,7 @@
     "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:unit": "node scripts/check-expiry-parse.mjs",
     "i18n:check": "node scripts/check-i18n.mjs"
   },
   "dependencies": {

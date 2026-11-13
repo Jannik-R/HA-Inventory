@@ -120,6 +120,24 @@ flowchart LR
    [Kategorien](#9-kategorien-produktarten-und-vererbung)). Soll das geschätzte Datum schon im Feld
    stehen, schalte **Geschätztes Ablaufdatum vorausfüllen** ein (siehe
    [Haushaltsgröße](#haushalt-einstellungen)).
+
+   Neben dem Datumsfeld steht der Knopf **Ablaufdatum scannen**. Er öffnet die Live-Kamera mit einem
+   waagerechten Lesestreifen in der Mitte. Halte das Datum aufrecht in den Streifen. Etwa einmal pro Sekunde
+   liest Vorrat den Text im Streifen auf deinem Gerät (nichts verlässt Home Assistant). Ein erkanntes Datum
+   bekommt einen Rahmen und steht unter dem Streifen. Solange nichts erkannt wird, steht dort „Datum in den
+   Rahmen halten“. Sobald dasselbe Datum zweimal unter den letzten vier Lesungen vorkommt, übernimmt Vorrat
+   es automatisch ins Feld, und die Kamera schließt sich. Beim ersten Öffnen lädt die Texterkennung einmal
+   ihre Daten (etwa 5 MB, danach im Browser gespeichert). Die Lesungen wechseln zwischen Originalbild und
+   aufbereitetem Bild, damit auch Punktmatrix-Druck eine Chance hat.
+   Die Regeln fürs Datum bleiben: Ein Datum nach „mind. haltbar bis“, „zu verbrauchen bis“, EXP oder BBE
+   gewinnt, sonst das späteste gefundene Datum. Erkannt werden z. B. 12.03.2027, 12.03.27, 12/03/2027,
+   12-03-27, 03/2027, 03/27 und „Ende 03/27“ (nur der Monat: letzter Tag des Monats; 03.27 nur direkt nach
+   „MHD“ o. Ä.). Prüfe das Datum und speichere wie sonst. Tipp: Halte die Kamera nah an das Datum.
+
+   Die Texterkennung klappt nur eingeschränkt gut. Gut lesbar ist klarer, aufgedruckter Text auf ruhigem
+   Hintergrund bei gutem Licht. Schwierig sind Punktmatrix-Druck, Prägungen ohne Farbe, glänzende oder
+   gewölbte Folie und Dosen. Quer stehender Text wird nicht gelesen: Dreh das Handy, bis das Datum waagerecht
+   im Streifen liegt. Klappt es nicht, schließ die Kamera und tipp das Datum ein.
 7. **Packungen** und **Lagerort**: Der Lagerort ist vorbelegt (grau: „Geerbt: Kühlschrank (von
    Milchprodukte & Eier)“). Eine andere Wahl gilt nur für diese Buchung; **Zurücksetzen** kehrt zum Standard
    zurück. Hat weder Produkt noch Kategorie einen Standardlagerort, ist der zuletzt benutzte vorbelegt

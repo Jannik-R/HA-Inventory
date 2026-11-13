@@ -87,7 +87,9 @@ export class HomeInventoryRecipeDialog extends LitElement {
     const sent = d.ingredients;
     this.ai = { kind: "running" };
     try {
-      const res = await checkRecipe(this.hass!, aiDraft(d.name, d.servings, d.steps, sent));
+      const url = d.source_url.trim();
+      const draft = aiDraft(d.name, d.servings, d.steps, sent);
+      const res = await checkRecipe(this.hass!, url ? { ...draft, source_url: url } : draft);
       if (run !== this.aiRun) return;
       if (res.status !== "changes") {
         this.ai = { kind: res.status === "ok" ? "ok" : "none" };

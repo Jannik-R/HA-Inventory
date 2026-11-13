@@ -164,7 +164,7 @@
       "message": "Rezept oder Text angeben."
     },
     "ai_failed": {
-      "message": "Die KI-Prüfung ist fehlgeschlagen. Der Entwurf bleibt wie importiert."
+      "message": "Die KI hat nicht geantwortet (vielleicht überlastet). Bitte später erneut versuchen."
     },
     "nothing_planned": {
       "message": "Für diese Mahlzeit ist an dem Tag kein Rezept geplant."
@@ -282,10 +282,12 @@
         "description": "Eine in Home Assistant eingerichtete KI (KI-Aufgabe, z. B. Google Gemini oder Anthropic Claude) liest Rezepte ohne Rezeptdaten aus (Instagram, TikTok, YouTube, eingefügter Text, Fotos) und prüft jeden Rezeptimport einmal: Kategorien der Zutaten und Schritte. Leer lassen = keine KI. Assist-Agenten und der MCP-Server nutzen die LLM-API „Home Inventory“, wenn du sie dort auswählst; die Zugriffsstufe legt fest, was sie dürfen.",
         "data": {
           "ai_task_entity": "KI-Aufgabe",
+          "ai_log_changes": "KI-Änderungen protokollieren",
           "llm_access": "Zugriff für Assistenten (LLM-API)"
         },
         "data_description": {
           "ai_task_entity": "Jeder Import schickt das Rezept und den Baum der Lebensmittel-Kategorien (etwa 10.000 Tokens) an diese KI; beim Auslesen eines Beitrags auch sein Bild und, wenn unter Externe Dienste erlaubt, sein Video.",
+          "ai_log_changes": "Schreibt jede Korrektur der KI-Prüfung in home_inventory/ai_changes.jsonl, um Import und Vorschläge zu verbessern.",
           "llm_access": "Gilt für jeden Assistenten, der die LLM-API „Home Inventory“ nutzt."
         }
       }

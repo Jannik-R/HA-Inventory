@@ -39,6 +39,7 @@ EXTERNAL = {
 }
 _NEEDS_AI = {"ai_recipe_check", "ai_product_check", "ai_import", "ai_video", "receipt_import"}
 # What Assist agents / the MCP Server may do through the LLM API: read, + shopping list and plan, + booking.
+CONF_AI_LOG = "ai_log_changes"  # log what the AI check changes to home_inventory/ai_changes.jsonl
 CONF_LLM_ACCESS = "llm_access"
 LLM_ACCESS = ["read", "plan", "all"]
 DEFAULT_LLM_ACCESS = "plan"

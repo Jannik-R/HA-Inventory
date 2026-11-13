@@ -244,6 +244,7 @@ _DRAFT_INGREDIENT = vol.Schema(
                 vol.Required("servings"): SERVINGS,
                 vol.Required("steps"): vol.All([STEP], vol.Length(max=100)),
                 vol.Required("ingredients"): vol.All([_DRAFT_INGREDIENT], vol.Length(max=100)),
+                vol.Optional("source_url"): str,  # only for the change log; never fails the check
             },
             extra=vol.REMOVE_EXTRA,
         ),

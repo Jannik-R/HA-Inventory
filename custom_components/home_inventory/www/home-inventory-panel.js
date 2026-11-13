@@ -9389,18 +9389,21 @@ var Ps = (e) => ({
 		let e = ++this.aiRun, t = this.draft, n = t.ingredients;
 		this.ai = { kind: "running" };
 		try {
-			let r = await Sn(this.hass, Ss(t.name, t.servings, t.steps, n));
+			let r = t.source_url.trim(), i = Ss(t.name, t.servings, t.steps, n), a = await Sn(this.hass, r ? {
+				...i,
+				source_url: r
+			} : i);
 			if (e !== this.aiRun) return;
-			if (r.status !== "changes") {
-				this.ai = { kind: r.status === "ok" ? "ok" : "none" };
+			if (a.status !== "changes") {
+				this.ai = { kind: a.status === "ok" ? "ok" : "none" };
 				return;
 			}
-			let i = Cs(r, n, t.steps, this.draft, this.md);
+			let o = Cs(a, n, t.steps, this.draft, this.md);
 			this.draft = {
 				...this.draft,
-				ingredients: i.ingredients,
-				steps: i.steps
-			}, this.ai = i.state;
+				ingredients: o.ingredients,
+				steps: o.steps
+			}, this.ai = o.state;
 		} catch (t) {
 			e === this.aiRun && (this.ai = {
 				kind: "failed",

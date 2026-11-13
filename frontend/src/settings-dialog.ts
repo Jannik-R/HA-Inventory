@@ -55,6 +55,7 @@ export class HomeInventorySettingsDialog extends LitElement {
       d.factor ??= 1;
       d.symbol ??= "";
     }
+    if (table === "location") d.freezer ??= 0;
     d.name ??= "";
     this.edit = { table, d, orig: { ...d } };
   }

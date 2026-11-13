@@ -2993,7 +2993,7 @@ var Xn = {
 		this.error = "";
 		let r = {};
 		for (let i of Zn[e]) r[i] = t?.[i] ?? n[i] ?? null;
-		t && (r.id = t.id), e === "unit" && (r.is_count ??= 0, r.recipe_only ??= 0, r.factor ??= 1, r.symbol ??= ""), r.name ??= "", this.edit = {
+		t && (r.id = t.id), e === "unit" && (r.is_count ??= 0, r.recipe_only ??= 0, r.factor ??= 1, r.symbol ??= ""), e === "location" && (r.freezer ??= 0), r.name ??= "", this.edit = {
 			table: e,
 			d: r,
 			orig: { ...r }

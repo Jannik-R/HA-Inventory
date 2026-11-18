@@ -21,11 +21,11 @@
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@techstark/opencv-js": "^5.0.0-release.1",
     "@tesseract.js-data/deu": "^1.0.0",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.6"
+    "vite": "^8.3.8"
   }
 }

@@ -18,7 +18,7 @@
     "barcode-detector": "^3.2.3",
     "lit": "^3.3.3",
     "tesseract.js": "^7.0.0",
-    "zxing-wasm": "^3.1.6"
+    "zxing-wasm": "^3.1.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
